@@ -380,18 +380,36 @@ and BUFFER, a buffer containing the result."
 	"http://jabber.org/protocol/disco#info")
   "Features advertised on service discovery requests")
 
-(defconst jabber-jid-menu
+(defconst jabber-jid-chat-menu
   (list
    (cons "Start chat" 'jabber-chat-with)
-   (cons "Send message" 'jabber-send-message)
+   (cons "Send message" 'jabber-send-message))
+  "Menu items for chat menu")
+
+(defconst jabber-jid-info-menu
+  (list
    (cons "Send items disco query" 'jabber-get-disco-items)
    (cons "Send info disco query" 'jabber-get-disco-info)
    (cons "Send browse query" 'jabber-get-browse)
-   (cons "Request software version" 'jabber-get-version)
+   (cons "Request software version" 'jabber-get-version))
+  "Menu item for info menu")
+
+(defconst jabber-jid-roster-menu
+  (list
    (cons "Send subscription request" 'jabber-send-subscription-request)
    (cons "Add/modify roster entry" 'jabber-roster-change)
    (cons "Delete roster entry" 'jabber-roster-delete))
-  "Menu items for JID menu") 
+  "Menu items for roster menu")
+
+(defconst jabber-jid-muc-menu
+  (list
+   (cons "Join groupchat" 'jabber-groupchat-join)
+   (cons "Leave groupchat" 'jabber-groupchat-leave))
+  "Menu items for MUC menu")
+
+(defconst jabber-jid-menu
+  (append jabber-jid-chat-menu jabber-jid-info-menu jabber-jid-roster-menu jabber-jid-muc-menu)
+  "All menu items")
 
 (defconst jabber-error-messages
   (list
@@ -619,7 +637,10 @@ is not present, emulate it with `xml-get-attribute'."
 (defvar jabber-roster-mode-map nil)
 
 (defun jabber-roster-mode ()
-  "\\{jabber-roster-mode-map}"
+  "Major mode for Jabber roster display.
+Use the keybindings (mnemonic as Chat, Roster, Info, MUC) to bring up
+menus of actions.
+\\{jabber-roster-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'jabber-roster-mode
 	mode-name "jabber-roster")
@@ -630,8 +651,11 @@ is not present, emulate it with `xml-get-attribute'."
 
 (unless jabber-roster-mode-map
   (setq jabber-roster-mode-map (make-sparse-keymap))
-  (define-key jabber-roster-mode-map "\C-c\C-c" 'jabber-popup-menu)
-  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-menu)
+  (define-key jabber-roster-mode-map "\C-c\C-c" 'jabber-popup-chat-menu)
+  (define-key jabber-roster-mode-map "\C-c\C-r" 'jabber-popup-roster-menu)
+  (define-key jabber-roster-mode-map "\C-c\C-i" 'jabber-popup-info-menu)
+  (define-key jabber-roster-mode-map "\C-c\C-m" 'jabber-popup-muc-menu)
+  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu)
   )
 
 (defun jabber-browse-mode ()
@@ -647,9 +671,7 @@ is not present, emulate it with `xml-get-attribute'."
 (defvar jabber-browse-mode-map nil)
 
 (unless jabber-browse-mode-map
-  (setq jabber-browse-mode-map (make-sparse-keymap))
-  (define-key jabber-browse-mode-map "\C-c\C-c" 'jabber-popup-menu)
-  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-menu)
+  (setq jabber-browse-mode-map jabber-roster-mode-map)
 )
 
 (defun jabber-groupchat-mode ()
@@ -936,15 +958,39 @@ Return nil if no such data available."
 	  (setq count (1+ count))))
     count))
 
-(defun jabber-popup-menu ()
-  "Popup menu of things commonly done to JIDs"
-  (interactive)
+(defun jabber-popup-menu (which-menu)
+  "Popup specified menu"
   (let* ((mouse-event (and (listp last-input-event) last-input-event))
-	 (choice (widget-choose "Actions" jabber-jid-menu mouse-event)))
+	 (choice (widget-choose "Actions" which-menu mouse-event)))
     (if mouse-event
 	(mouse-set-point mouse-event))
     (if choice
 	(call-interactively choice))))
+
+(defun jabber-popup-chat-menu ()
+  "Popup chat menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-chat-menu))
+
+(defun jabber-popup-info-menu ()
+  "Popup info menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-info-menu))
+
+(defun jabber-popup-roster-menu ()
+  "Popup roster menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-roster-menu))
+
+(defun jabber-popup-muc-menu ()
+  "Popup MUC menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-muc-menu))
+
+(defun jabber-popup-combined-menu ()
+  "Popup combined menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-menu))
 
 (defun jabber-sort-roster ()
   "sort roster according to online status"
@@ -1906,7 +1952,7 @@ With prefix argument, register a new account."
 
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat"
-  (interactive (list (read-string "group: ")
+  (interactive (list (jabber-jid-read-completing "group: ")
 		     (read-string (format "Nickname: (default %s) "
 					  jabber-nickname) 
 				  nil nil jabber-nickname t)))
