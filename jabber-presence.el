@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.3 2004/03/03 18:30:39 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -92,8 +92,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(presence-show (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'show)))))
 	(presence-status (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'status)))))
 	(error (car (jabber-xml-get-children xml-data 'error)))
-	(priority (or (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'priority))))
-		      "")))
+	(priority (string-to-number (or (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'priority))))
+					"0"))))
     (cond
      ((string= type "subscribe")
       (run-with-idle-timer 0.01 nil #'jabber-process-subscription-request from presence-status))
