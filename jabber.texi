@@ -50,6 +50,7 @@ this permission notice are preserved on all copies.
 * Keepalive::                   
 * Tracking activity::           
 * Watch buddies::               
+* Message history::             
 * Customization::               
 * Hacking and extending::       
 * Protocol support::            
@@ -532,7 +533,7 @@ If you try to exit Emacs while you still have unread messages, you
 will be notified and asked about this.  If you don't like that, set
 @code{jabber-activity-query-unread} to nil.
 
-@node Watch buddies, Customization, Tracking activity, Top
+@node Watch buddies, Message history, Tracking activity, Top
 @chapter Watch buddies
 
 @cindex watch
@@ -550,7 +551,28 @@ online.  jabber.el will remember this for the rest of your Emacs
 session (it's not saved to disk, though), but if you want to get rid
 of it, type @kbd{M-x jabber-watch-remove}.
 
-@node Customization, Hacking and extending, Watch buddies, Top
+@node Message history, Customization, Watch buddies, Top
+@chapter Message history
+
+@cindex history
+@cindex backlog
+@vindex jabber-history-enabled
+@vindex jabber-history-file
+
+If you want a record of messages sent and received, set
+@code{jabber-history-enabled} to t.  This will save all messages to
+the file specified by @code{jabber-history-file}, by default
+@file{~/.jabber_global_message_log}.  There is no facility for
+reading old messages yet, but just reading the file as text should be
+enough for many purposes.
+
+When you open a new chat buffer and have entries in your history file,
+the last few messages you recently exchanged with the contact in
+question will be inserted.  You can control how many messages with
+@code{jabber-backlog-number} (by default 10), and how old messages
+with @code{jabber-backlog-days} (by default 3 days).
+
+@node Customization, Hacking and extending, Message history, Top
 @chapter Customization
 
 @findex jabber-customize
