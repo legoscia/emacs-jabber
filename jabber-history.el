@@ -210,7 +210,7 @@ This function is to be called from a chat buffer."
 		'> (- (jabber-float-time) (* jabber-backlog-days 86400.0))
 		jabber-backlog-number
 		t			; both incoming and outgoing
-		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")
+		(concat "^" (regexp-quote (jabber-jid-user jabber-chatting-with)) "\\(/.*\\)?$")
 		(jabber-history-filename jabber-chatting-with)))
     (if (string= (aref msg 1) "in")
 	(jabber-chat-print (aref msg 2) (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
