@@ -305,11 +305,11 @@ TIMESTAMP is timestamp, or nil for now."
 
 (defun jabber-send-groupchat (group body)
   "send a message to a groupchat"
-  (jabber-send-message group body nil "groupchat"))
+  (jabber-send-message group nil body "groupchat"))
 
 (defun jabber-send-chat (to body)
   "send a chat message to someone"
-  (jabber-send-message to body nil "chat"))
+  (jabber-send-message to nil body "chat"))
 
 (provide 'jabber-chat)
 
