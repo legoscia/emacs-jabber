@@ -1,3 +1,13 @@
+emacs-jabber (0.6.1) unstable; urgency=low
+
+  * Message history
+  * Activity tracking
+  * Notification for specific people going online
+  * Support for /me
+  * Improved MUC support
+
+ -- Magnus Henoch <mange@freemail.hu>  Thu, 23 Dec 2004 19:04:58 +0100
+
 emacs-jabber (0.6) unstable; urgency=low
 
   * Chat buffer no longer uses minibuffer

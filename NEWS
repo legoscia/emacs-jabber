@@ -2,6 +2,13 @@
 
 * New features in jabber.el 0.6.1
 
+** Message history
+Set jabber-history-enabled to t to activate it.
+
+** Backlogs
+If you have history enabled, the last few messages are inserted when
+you open a new chat buffer.
+
 ** Activity tracking on the mode line
 Activate it with M-x jabber-activity-mode.
 
@@ -13,6 +20,8 @@ As in "/me laughs" etc.
 
 ** Message alerts for current buffer can be disabled
 Set jabber-message-alert-same-buffer to nil to do that.
+
+** Basic moderation support in MUC
 
 ** MUC alerts are separated from ordinary message alerts
 Customize jabber-alert-muc-hooks to get your desired behaviour.
