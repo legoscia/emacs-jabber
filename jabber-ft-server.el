@@ -68,6 +68,9 @@
       (message "Starting download of %s..." (file-name-nondirectory file-name))
       (with-current-buffer buffer
 	(setq buffer-file-coding-system 'binary)
+	;; For Emacs, switch buffer to unibyte _before_ anything goes into it,
+	;; otherwise binary files are corrupted.  For XEmacs, it isn't needed,
+	;; and it also doesn't have set-buffer-multibyte.
 	(if (fboundp 'set-buffer-multibyte)
 	    (set-buffer-multibyte nil))
 	(set-visited-file-name file-name t))
