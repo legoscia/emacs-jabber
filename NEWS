@@ -28,6 +28,10 @@ Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
 See define-jabber-alert.  Alerts for Festival (speech synthesis),
 Sawfish, and xmessage added.
 
+** Activity mode improved
+Can now display count in frame title.  Update hook added.
+(Not documented yet)
+
 ** Roster display optimized
 
 ** Optionally use per-contact history files

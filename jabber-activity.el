@@ -80,6 +80,29 @@ JIDs."
 		 (function :tag "Other function"))
   :group 'jabber-activity)
 
+(defcustom jabber-activity-count-in-title nil
+  "If non-nil, display number of active JIDs in frame title."
+  :type 'boolean
+  :group 'jabber-activity
+  :set #'(lambda (var val)
+	   (custom-set-default var val)
+	   (when jabber-activity-mode
+	     (jabber-activity-mode -1)
+	     (jabber-activity-mode 1))))
+
+(defcustom jabber-activity-count-in-title-format
+  '(jabber-activity-jids ("[" jabber-activity-count-string "] "))
+  "Format string used for displaying activity in frame titles.
+Same syntax as `mode-line-format'."
+  :type 'sexp
+  :group 'jabber-activity
+  :set #'(lambda (var val)
+	   (if (not jabber-activity-mode)
+	       (custom-set-default var val)
+	     (jabber-activity-mode -1)
+	     (custom-set-default var val)
+	     (jabber-activity-mode 1))))
+
 (defcustom jabber-activity-show-p 'jabber-activity-show-p-default
   "Predicate function to call to check if the given JID should be
 shown in the mode line or not."
@@ -106,8 +129,17 @@ there are unread messages which otherwise would be lost."
 (defvar jabber-activity-mode-string ""
   "The mode string for jabber activity")
 
+(defvar jabber-actitity-count-string "0"
+  "Number of active JIDs as a string.")
+
+(defvar jabber-activity-update-hook nil
+  "Hook called when `jabber-activity-jids' changes.
+It is called after `jabber-activity-mode-string' and
+`jabber-activity-count-string' are updated.")
+
 ;; Protect this variable from being set in Local variables etc.
 (put 'jabber-activity-mode-string 'risky-local-variable t)
+(put 'jabber-activity-count-string 'risky-local-variable t)
 
 (defun jabber-activity-make-string-default (jid)
   "Return the nick of the JID.	If no nick is available, return
@@ -196,7 +228,10 @@ on JIDs where `jabber-activity-show-p'"
 		      jabber-activity-jids)
   	      ","))
   	  ""))
-  (force-mode-line-update 'all))
+  (setq jabber-activity-count-string 
+	(number-to-string (length jabber-activity-jids)))
+  (force-mode-line-update 'all)
+  (run-hooks 'jabber-activity-update-hook))
 
 ;;; Hooks
 
@@ -267,7 +302,12 @@ With a numeric arg, enable this display if arg is positive."
 	(add-to-list 'kill-emacs-query-functions
 		     'jabber-activity-kill-hook)
 	(add-to-list 'global-mode-string
-		     '(t jabber-activity-mode-string)))
+		     '(t jabber-activity-mode-string))
+	(when jabber-activity-count-in-title
+	  (add-to-list 'frame-title-format
+		       jabber-activity-count-in-title-format)
+	  (add-to-list 'icon-title-format
+		       jabber-activity-count-in-title-format)))
     (progn
       (if (featurep 'xemacs)
 	  (ad-disable-advice 'switch-to-buffer 'after 'jabber-activity-update)
@@ -280,7 +320,13 @@ With a numeric arg, enable this display if arg is positive."
       (remove-hook 'jabber-post-connect-hook
 		   'jabber-activity-make-name-alist)
       (setq global-mode-string (delete '(t jabber-activity-mode-string)
-				       global-mode-string)))))
+				       global-mode-string))
+      (setq frame-title-format
+	    (delete jabber-activity-count-in-title-format
+		    frame-title-format))
+      (setq icon-title-format
+	    (delete jabber-activity-count-in-title-format
+		    icon-title-format)))))
 
 (provide 'jabber-activity)
 
