@@ -493,6 +493,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @menu
 * Connection settings::         
 * Customizing the roster buffer::  
+* Customizing the chat buffer::  
 * Customizing alerts::          
 * Debug options::               
 @end menu
@@ -539,7 +540,7 @@ priority during a session with @code{jabber-send-presence}.
 
 @code{jabber-nickname} is your default nickname for groupchats.
 
-@node Customizing the roster buffer, Customizing alerts, Connection settings, Customization
+@node Customizing the roster buffer, Customizing the chat buffer, Connection settings, Customization
 @section Customizing the roster buffer
 
 @vindex jabber-sort-order
@@ -579,7 +580,44 @@ the values correspond to the values of the resource in question, and
 that the @code{%p} escape is available, which inserts the priority of
 the resource.
 
-@node Customizing alerts, Debug options, Customizing the roster buffer, Customization
+@node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
+@section Customizing the chat buffer
+
+@vindex jabber-chat-time-format
+@vindex jabber-chat-local-prompt-format
+@vindex jabber-chat-foreign-prompt-format
+@vindex jabber-chat-prompt-local
+@vindex jabber-chat-prompt-foreign
+
+You can customize the look of the prompts in the chat buffer.  There
+are separate settings for local (i.e. your own messages) and foreign
+prompts.
+
+@code{jabber-chat-prompt-local} and @code{jabber-chat-prompt-foreign}
+determine the faces used for the prompts.
+
+@code{jabber-chat-local-prompt-format} and
+@code{jabber-chat-foreign-prompt-format} determine what text is
+displayed in the prompts.  They are format strings, with the following
+special sequences defined:
+
+@table @code
+@item %t
+The time when the message was sent or received
+@item %n
+The nickname of the user.  For the foreign prompt, this is the name of
+the contact in the roster, or the JID if no name set.  For the local
+prompt, this is the username part of your JID.
+@item %j
+The bare JID of the user
+@end table
+
+@code{jabber-chat-time-format} defines how @code{%t} shows time.  Its
+format is identical to that passed to @code{format-time-string}.
+@xref{Time Conversion, , Time Conversion, elisp, GNU Emacs Lisp
+Reference Manual}.
+
+@node Customizing alerts, Debug options, Customizing the chat buffer, Customization
 @section Customizing alerts
 
 @cindex Alert hooks
