@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.39 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber.el,v 1.40 2004/03/10 09:47:05 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -40,6 +40,7 @@
 (require 'jabber-register)
 (require 'jabber-browse)
 (require 'jabber-version)
+(require 'jabber-ahc-presence)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
