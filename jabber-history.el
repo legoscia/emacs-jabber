@@ -70,7 +70,8 @@ will be logged to the same file."
 		    (or to
 			"me")
 		    body))
-    (append-to-file (point-min) (point-max) "~/.jabber_global_message_log")))
+    (let ((coding-system-for-write 'utf-8))
+      (append-to-file (point-min) (point-max) "~/.jabber_global_message_log"))))
 
 ;; Changed version of jabber-send-chat just to test concept. I don't
 ;; know if placing the message loggin for outgoing messages here is
