@@ -28,7 +28,8 @@
 
 Each entry is a list, containing:
  * Stream ID
- * Full JID of initiator")
+ * Full JID of initiator
+ * Profile start function, to be called when session is activated")
 
 (defvar jabber-socks5-active-sessions nil
   "List of active sessions.
@@ -42,11 +43,11 @@ This is an alist where the keys are (sid jid).")
 		   'jabber-socks5-accept
 		   'jabber-socks5-read))
 
-(defun jabber-socks5-accept (jid sid)
+(defun jabber-socks5-accept (jid sid profile-start-function)
   "Remember that we are waiting for connection from JID, with stream id SID"
   ;; asking the user for permission is done in the profile
   (add-to-list 'jabber-socks5-pending-sessions
-	       (list sid jid)))
+	       (list sid jid profile-start-function)))
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/bytestreams" 'jabber-socks5-process))
@@ -55,11 +56,17 @@ This is an alist where the keys are (sid jid).")
   (let* ((jid (jabber-xml-get-attribute xml-data 'from))
 	 (id (jabber-xml-get-attribute xml-data 'id))
 	 (query (jabber-iq-query xml-data))
-	 (sid (jabber-xml-get-attribute query 'sid)))
-    (unless (member (list sid jid) jabber-socks5-pending-sessions)
+	 (sid (jabber-xml-get-attribute query 'sid))
+	 (session (dolist (pending-session jabber-socks5-pending-sessions)
+		    (when (and (equal sid (nth 0 pending-session))
+			       (equal jid (nth 1 pending-session)))
+		      (return pending-session)))))
+    ;; check that we really are expecting this session
+    (unless session
       (jabber-signal-error "auth" 'not-acceptable))
 
-    (setq jabber-socks5-pending-sessions (delete (list sid jid) jabber-socks5-pending-sessions))
+    (setq jabber-socks5-pending-sessions (delq session jabber-socks5-pending-sessions))
+    ;; find streamhost to connect to
     (let* ((streamhosts (jabber-xml-get-children query 'streamhost))
 	   (streamhost (dolist (streamhost streamhosts)
 			 (if (jabber-socks5-connect streamhost jid sid)
@@ -67,10 +74,13 @@ This is an alist where the keys are (sid jid).")
       (unless streamhost
 	(jabber-signal-error "cancel" 'item-not-found))
       
+      ;; tell initiator which streamhost we use
       (jabber-send-iq jid "result"
 		      `(query ((xmlns . "http://jabber.org/protocol/bytestreams"))
 			      (streamhost-used ((jid . ,streamhost))))
-		      nil nil nil nil id))))
+		      nil nil nil nil id)
+      ;; tell profile to start reading data
+      (funcall (nth 2 session) jid sid #'jabber-socks5-read))))
 
 (defun jabber-socks5-connect (streamhost jid sid)
   "Attempt to connect to STREAMHOST, authenticating with JID and SID.
@@ -78,8 +88,8 @@ Return nil on error.  On success, store details in
 `jabber-socks5-active-sessions'.
 
 STREAMHOST has the form
-;(streamhost ((host . HOST)
-;	     (port . PORT)))
+\(streamhost ((host . HOST)
+	     (port . PORT)))
 
 Zeroconf is not supported."
   (condition-case nil
@@ -118,6 +128,10 @@ Zeroconf is not supported."
 	    )))
     (error
      nil)))
+
+(defun jabber-socks5-read (jid sid)
+  ;; to be implemented
+  )
 
 (provide 'jabber-socks5)
 
