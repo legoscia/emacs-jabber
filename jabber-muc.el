@@ -36,6 +36,13 @@ Values are strings.")
 Keys are strings, the bare JID of the room.
 Values are lists of nickname strings.")
 
+(defcustom jabber-muc-default-nicknames nil
+  "Default nickname for specific MUC rooms."
+  :group 'jabber-chat
+  :type '(repeat
+	  (cons (string :tag "JID of room")
+		(string :tag "Nickname"))))
+
 (defun jabber-muc-add-groupchat (group nickname)
   "Remember participating in GROUP under NICKNAME."
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
@@ -156,10 +163,16 @@ Return nil if nothing known about that combination."
 
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat"
-  (interactive (list (jabber-read-jid-completing "group: ")
-		     (jabber-read-with-input-method (format "Nickname: (default %s) "
-							    jabber-nickname) 
-						    nil nil jabber-nickname)))
+  (interactive 
+   (let* ((group (jabber-read-jid-completing "group: "))
+	  (default-nickname (or
+			     (cdr (assoc group jabber-muc-default-nicknames))
+			     jabber-nickname)))
+     (list 
+      group
+      (jabber-read-with-input-method (format "Nickname: (default %s) "
+					    default-nickname) 
+				     nil nil default-nickname))))
   (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
 			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
 

@@ -2,6 +2,10 @@
 
 * New features in jabber.el 0.7
 
+** MUC features
+*** Different default nicknames for different MUC rooms
+See jabber-muc-default-nicknames.
+
 ** Vcard viewer and editor
 (Not documented yet)
 
@@ -12,7 +16,6 @@ Sawfish, and xmessage added.
 ** Roster display optimized
 
 ** Optionally use per-contact history files
-(Not documented yet)
 
 ** Jabber menu in menubar not enabled by default
 Call jabber-menu to have it there.
