@@ -92,7 +92,8 @@ Trailing newlines are always removed, regardless of this variable."
   :group 'jabber-roster)
 
 (defface jabber-roster-user-xa
-  '((t (:foreground "black" :weight normal :slant italic)))
+  '((((background dark)) (:foreground "magenta" :weight normal :slant italic))
+    (t (:foreground "black" :weight normal :slant italic)))
   "face for displaying extended away users"
   :group 'jabber-roster)
 
