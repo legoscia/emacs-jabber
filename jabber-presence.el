@@ -286,6 +286,17 @@ and `jabber-default-status'."
 		  #'jabber-report-success "Roster item removal"
 		  #'jabber-report-success "Roster item removal"))
 
+(defun jabber-roster-delete-jid-at-point ()
+  "Delete JID at point from roster.
+Signal an error if there is no JID at point."
+  (interactive)
+  (let ((jid-at-point (get-text-property (point)
+					 'jabber-jid)))
+    (if (and jid-at-point
+	     (yes-or-no-p (format "Really delete %s from roster? " jid-at-point)))
+	(jabber-roster-delete jid-at-point)
+      (error "No contact at point"))))
+
 (provide 'jabber-presence)
 
 ;;; arch-tag: b8616d4c-dde8-423e-86c7-da7b4928afc3

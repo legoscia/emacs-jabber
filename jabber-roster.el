@@ -118,6 +118,7 @@ Trailing newlines are always removed, regardless of this variable."
 
 (defvar jabber-roster-mode-map (copy-keymap jabber-common-keymap))
 (define-key jabber-roster-mode-map (kbd "RET") 'jabber-chat-with-jid-at-point)
+(define-key jabber-roster-mode-map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
