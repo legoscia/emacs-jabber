@@ -60,7 +60,7 @@
   "history of status messages")
 
 (defgroup jabber nil "Jabber instant messaging"
-  :group 'emacs)
+  :group 'applications)
 
 (defgroup jabber-faces nil "faces for displaying jabber instant messaging"
   :group 'jabber)
