@@ -1458,37 +1458,41 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (desc (car (jabber-xml-get-children field 'desc))))
       ;; "required" not implemented yet
 
-      (if (or label var)
-	  (widget-insert (or label var) ": "))
       (cond
        ((string= type "fixed")
 	(widget-insert (car (jabber-xml-node-children (car values)))))
 
        ((string= type "text-multi")
-	(setq jabber-widget-alist
-	      (cons
-	       (cons var
-		     (widget-create 'text (or (car (jabber-xml-node-children (car values))) "")))
-	       jabber-widget-alist)))
+	(if (or label var)
+	    (widget-insert (or label var) ":\n"))
+	(push (cons (cons var type)
+		    (widget-create 'text (or (car (jabber-xml-node-children (car values))) "")))
+	      jabber-widget-alist))
 
        ((string= type "list-single")
-	(setq jabber-widget-alist
-	      (cons
-	       (cons var
-		     (apply 'widget-create
-			    'radio-button-choice 
-			    :value (car (xml-node-children (car values)))
-			    (mapcar (lambda (option)
-				      `(item :tag ,(jabber-xml-get-attribute option 'label)
-					     :value ,(car (jabber-xml-node-children (car (jabber-xml-get-children option 'value))))))
-				    options)))
-	       jabber-widget-alist)))
+	(if (or label var)
+	    (widget-insert (or label var) ":\n"))
+	(push (cons (cons var type)
+		    (apply 'widget-create
+			   'radio-button-choice 
+			   :value (car (xml-node-children (car values)))
+			   (mapcar (lambda (option)
+				     `(item :tag ,(jabber-xml-get-attribute option 'label)
+					    :value ,(car (jabber-xml-node-children (car (jabber-xml-get-children option 'value))))))
+				   options)))
+	      jabber-widget-alist))
 				    
+       ((string= type "boolean")
+	(push (cons (cons var type)
+		    (widget-create 'checkbox :tag (or label var) :value (not (string= (car (xml-node-children (car (values)))) "0"))))
+	      jabber-widget-alist))
 
        (t				; in particular including text-single and text-private
+	(if (or label var)
+	    (widget-insert (or label var) ": "))
 	(setq jabber-widget-alist
 	      (cons
-	       (cons var
+	       (cons (cons var type)
 		     (widget-create 'editable-field
 				    :secret (if (string= type "text-private") ?* nil)
 				    (or (car (jabber-xml-node-children (car values)))
@@ -1504,9 +1508,23 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        (type . "submit"))
       ,@(mapcar
 	 (lambda (widget-cons)
-	   `(field ((var . ,(car widget-cons)))
-		   (value nil ,(widget-value (cdr widget-cons)))))
+	   `(field ((var . ,(caar widget-cons)))
+		   ,@(mapcar
+		      (lambda (value)
+			(list 'value nil value))
+		      (jabber-xdata-value-convert (widget-value (cdr widget-cons)) (cdar widget-cons)))))
 	 jabber-widget-alist)))
+
+(defun jabber-xdata-value-convert (value type)
+  "Convert VALUE from form used by widget library to form required by JEP-0004.
+Return a list of strings, each of which to be included as cdata in a <value/> tag."
+  (cond
+   ((string= type "boolean")
+    (if value (list "1") (list "0")))
+   ((string= type "text-multi")
+    (split-string value "[\n\r]"))
+   (t					; in particular including text-single, text-private and list-single
+    (list value))))
 
 (defun jabber-init-widget-buffer (submit-to)
   "Setup buffer-local variables for widgets."
