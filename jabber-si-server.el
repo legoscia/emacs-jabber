@@ -36,7 +36,8 @@ Each entry is a list, containing:
    error if request is declined; returning an XML node to return in
    response, or nil of none needed
  * Data function, taking JID of initiator, stream ID, and string
-   containing received data in binary form; receives `nil' on EOF.")
+   containing received data in binary form; receives `nil' on EOF.
+   Returns non-nil to keep connection; nil to close it.")
 
 (defvar jabber-si-stream-methods nil
   "Supported SI stream methods.

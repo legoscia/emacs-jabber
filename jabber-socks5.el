@@ -216,7 +216,9 @@ Zeroconf is not supported."
 	 (sid (nth 1 session))
 	 (jid (nth 2 session))
 	 (profile-data-function (nth 3 session)))
-    (funcall profile-data-function jid sid data)))
+    ;; If the data function requests it, tear down the connection.
+    (unless (funcall profile-data-function jid sid data)
+      (jabber-socks5-sentinel connection nil))))
 
 (defun jabber-socks5-sentinel (process event-string)
   ;; Connection terminated.  Shuffle together the remaining data,

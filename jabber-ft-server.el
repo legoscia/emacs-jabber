@@ -25,6 +25,10 @@
 (defvar jabber-ft-sessions nil
   "Alist, where keys are (sid jid), and values are buffers of the files.")
 
+(defvar jabber-ft-size nil
+  "Size of the file that is being downloaded")
+(make-variable-buffer-local 'jabber-ft-size)
+
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si/profile/file-transfer")
 
 (add-to-list 'jabber-si-profiles
@@ -73,7 +77,8 @@
 	;; and it also doesn't have set-buffer-multibyte.
 	(if (fboundp 'set-buffer-multibyte)
 	    (set-buffer-multibyte nil))
-	(set-visited-file-name file-name t))
+	(set-visited-file-name file-name t)
+	(setq jabber-ft-size (string-to-number size)))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
       
@@ -84,9 +89,13 @@
   "Receive chunk of transferred file."
   (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions))))
     (with-current-buffer buffer
-      ;; If data is nil, there is no more data
-      (if data
-	  (insert data)
+      ;; If data is nil, there is no more data.
+      ;; But maybe the remote entity doesn't close the stream -
+      ;; then we have to keep track of file size to know when to stop.
+      (when data
+	(insert data))
+      (if (and data (< (buffer-size) jabber-ft-size))
+	  t
 	(basic-save-buffer)
 	(message "%s downloaded" (file-name-nondirectory buffer-file-name))))))
 
