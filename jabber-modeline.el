@@ -63,11 +63,9 @@ and offline contacts, respectively."
   (or global-mode-string (setq global-mode-string '("")))
   (if jabber-mode-line-mode
       (progn
-	(or (memq 'jabber-mode-line-string global-mode-string)
-	    (setq global-mode-string
-		  (append global-mode-string '(jabber-mode-line-string))))
+	(add-to-list 'global-mode-string 'jabber-mode-line-string t)
 
-	(setq jabber-mode-line-string (list "" 
+	(setq jabber-mode-line-string (list " "
 					    'jabber-mode-line-presence
 					    " "
 					    'jabber-mode-line-contacts))
