@@ -207,6 +207,9 @@ The top node should be the `vCard' node."
 		       (list (list 'USERID nil (cdr email)))))
 	     (cdr (assq 'EMAIL parsed)))))
 		     
+(add-to-list 'jabber-jid-info-menu
+	     (cons "Request vcard" 'jabber-vcard-get))
+
 (defun jabber-vcard-get (jid)
   "Request vcard from JID."
   (interactive (list (jabber-read-jid-completing "Request vcard from: ")))
