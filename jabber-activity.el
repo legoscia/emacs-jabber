@@ -236,7 +236,8 @@ such buffer exists, switch back to most recently used buffer."
   (if jabber-activity-jids
       (let ((jid (car jabber-activity-jids)))
 	(switch-to-buffer (or (get-buffer (jabber-chat-get-buffer jid))
-			      (get-buffer (jabber-muc-get-buffer jid)))))
+			      (get-buffer (jabber-muc-get-buffer jid))))
+	(jabber-activity-clean))
     ;; Switch back to the buffer used last
     (switch-to-buffer nil)))
 
