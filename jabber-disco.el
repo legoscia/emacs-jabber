@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.3 2004/03/03 18:32:13 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,10 +21,10 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-;;; All this should be seriously rewritten, or at least reconsidered.  I'm
-;;; imagining a separation between backend and frontend, so that various
-;;; functions can perform disco queries for their own purposes, and maybe
-;;; some caching with that.
+;;; All the client part should be seriously rewritten, or at least
+;;; reconsidered.  I'm imagining a separation between backend and
+;;; frontend, so that various functions can perform disco queries for
+;;; their own purposes, and maybe some caching with that.
 
 (require 'jabber-iq)
 
@@ -32,6 +32,14 @@
 (defvar jabber-advertised-features
   (list "http://jabber.org/protocol/disco#info")
   "Features advertised on service discovery requests")
+
+(defvar jabber-disco-items-nodes nil
+  "Alist of node names and functions returning disco item data")
+
+(defvar jabber-disco-info-nodes
+  (list
+   (cons "" #'jabber-disco-return-client-info))
+  "Alist of node names and functions returning disco info data")
 
 (defun jabber-process-disco-info (xml-data)
   "Handle results from info disco requests."
@@ -79,10 +87,32 @@
 
 (add-to-list 'jabber-iq-get-xmlns-alist
 	     (cons "http://jabber.org/protocol/disco#info" 'jabber-return-disco-info))
+(add-to-list 'jabber-iq-get-xmlns-alist
+	     (cons "http://jabber.org/protocol/disco#items" 'jabber-return-disco-info))
 (defun jabber-return-disco-info (xml-data)
   "Respond to a service discovery request.
 See JEP-0030."
-  ;; TODO: nodes
+  (let* ((to (jabber-xml-get-attribute xml-data 'from))
+	 (id (jabber-xml-get-attribute xml-data 'id))
+	 (xmlns (jabber-iq-xmlns xml-data))
+	 (which-alist (eval (cdr (assoc xmlns
+					(list
+					 (cons "http://jabber.org/protocol/disco#info" 'jabber-disco-info-nodes)
+					 (cons "http://jabber.org/protocol/disco#items" 'jabber-disco-items-nodes))))))
+	 (node (or
+		(jabber-xml-get-attribute (jabber-iq-query xml-data) 'node)
+		""))
+	 (func (cdr (assoc node which-alist))))
+    (if func
+	(funcall func xml-data)
+      (jabber-send-sexp `(iq ((to . ,to)
+			      (type . "error")
+			      (id . ,id))
+			     (error ((type . "cancel"))
+				    (item-not-found
+				     ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))
+
+(defun jabber-disco-return-client-info (xml-data)
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id)))
     (jabber-send-iq to "result"
