@@ -94,6 +94,8 @@ Return nil if nothing known about that combination."
 (defun jabber-muc-read-nickname (group prompt)
   "Read the nickname of a participant in GROUP."
   (let ((nicknames (cdr (assoc group jabber-muc-participants))))
+    (unless nicknames
+      (error "Unknown group: %s" group))
     (completing-read prompt nicknames nil t)))
 
 (add-to-list 'jabber-jid-muc-menu
@@ -196,6 +198,27 @@ Return nil if nothing known about that combination."
 			      (plist-get plist 'role)
 			      (plist-get plist 'affiliation))))
 		  (cdr (assoc group jabber-muc-participants))))))
+
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Set role (kick, voice, op)" 'jabber-muc-set-role))
+
+(defun jabber-muc-set-role (group nickname role reason)
+  "Set role of NICKNAME in GROUP to ROLE, specifying REASON."
+  (interactive
+   (let* ((group (jabber-muc-read-completing "Group: "))
+	  (nickname (jabber-muc-read-nickname group "Nickname: ")))
+     (list group nickname
+	   (completing-read "New role: " '("none" "visitor" "participant" "moderator") nil t)
+	   (read-string "Reason: "))))
+  (unless (or (zerop (length nickname)) (zerop (length role)))
+    (jabber-send-iq group "set"
+		    `(query ((xmlns . "http://jabber.org/protocol/muc#admin"))
+			    (item ((nick . ,nickname)
+				   (role . ,role))
+				  ,(unless (zerop (length reason))
+				     `(reason () ,reason))))
+		    'jabber-report-success "Role change"
+		    'jabber-report-success "Role change")))
 
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
