@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.11 2004/03/28 13:20:07 legoscia Exp $
+@c $Id: jabber.texi,v 1.12 2004/04/02 19:35:14 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.5
@@ -135,7 +135,7 @@ display it in a buffer called @code{*-jabber-*}.
 
 Now that you are connected, you can send @dfn{initial presence}.  This
 means sending a notification of you being online to everyone on your
-roster.  You don't have to do that, and if you don't noone can see
+roster.  You don't have to do that, and if you don't no-one can see
 that you are online.  This is usually not what you want, but it is
 occasionally useful.  To send presence, type @kbd{M-x
 jabber-send-presence}.  You will be asked three questions; the
@@ -822,6 +822,21 @@ access is always granted.  One such function is provided,
 @code{jabber-my-jid-p}, which grants access for JIDs where the
 username and server (not necessarily resource) are equal to those of
 the user.
+
+@node Stanza chains
+@section Stanza chains
+
+If you really need to get under the skin of jabber.el, you can add
+functions to the lists @code{jabber-message-chain},
+@code{jabber-iq-chain} and @code{jabber-presence-chain}.  Normally
+those lists contain only the functions jabber.el needs to do its job,
+i.e. @code{jabber-process-message}, @code{jabber-process-iq} and
+@code{jabber-process-presence}, respectively.
+
+The functions in these lists will be called in order when an XML
+stanza of the corresponding type arrives, with the entire XML stanza
+passed as the only argument.  Earlier functions can modify the stanza
+to change the behaviour of downstream functions.
 
 @node Index,  , Hacking and extending, Top
 @unnumbered Index
