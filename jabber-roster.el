@@ -158,61 +158,63 @@ bring up menus of actions.
     (if (not (eq major-mode 'jabber-roster-mode))
 	(jabber-roster-mode))
     (setq buffer-read-only nil)
-    (erase-buffer)
-    (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
-    (let ((map (make-sparse-keymap)))
-      (define-key map [mouse-2] #'jabber-send-presence)
-      (insert (jabber-propertize (concat (format " - %s"
-						 (cdr (assoc *jabber-current-show* jabber-presence-strings)))
-					 (if (not (zerop (length *jabber-current-status*)))
-					     (format " (%s)"
-						     (jabber-fix-status *jabber-current-status*)))
-					 " -")
-				 'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
-					   'jabber-roster-user-online)
-				 ;;'mouse-face (cons 'background-color "light grey")
-				 'keymap map)
-              "\n__________________________________\n\n"))
+    (let ((current-line (line-number-at-pos))
+	  (current-column (current-column)))
+      (erase-buffer)
+      (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
+      (let ((map (make-sparse-keymap)))
+	(define-key map [mouse-2] #'jabber-send-presence)
+	(insert (jabber-propertize (concat (format " - %s"
+						   (cdr (assoc *jabber-current-show* jabber-presence-strings)))
+					   (if (not (zerop (length *jabber-current-status*)))
+					       (format " (%s)"
+						       (jabber-fix-status *jabber-current-status*)))
+					   " -")
+				   'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
+					     'jabber-roster-user-online)
+				   ;;'mouse-face (cons 'background-color "light grey")
+				   'keymap map)
+		"\n__________________________________\n\n"))
 
-    (jabber-sort-roster)
-    (dolist (buddy *jabber-roster*)
-      (let ((buddy-str (format-spec jabber-roster-line-format
-				    (list 
-				     (cons ?c (if (get buddy 'connected) "*" " "))
-				     (cons ?n (if (> (length (get buddy 'name)) 0)
-						  (get buddy 'name)
-						(symbol-name buddy)))
-				     (cons ?j (symbol-name buddy))
-				     (cons ?r (or (get buddy 'resource) ""))
-				     (cons ?s (or
-					       (cdr (assoc (get buddy 'show) jabber-presence-strings))
-					       (get buddy 'show)))
-				     (cons ?S (if (get buddy 'status)
-						  (jabber-fix-status (get buddy 'status))
-						""))))))
-	(add-text-properties 0
-			   (length buddy-str)
-			   (list
-			    'face
-			    (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
-				'jabber-roster-user-online)
-			    ;;'mouse-face
-			    ;;(cons 'background-color "light grey")
-			    'help-echo
-			    (symbol-name buddy)
-			    'jabber-jid
-			    (symbol-name buddy))
-			   buddy-str)
-	;; (let ((map (make-sparse-keymap))
-;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
-;; 	  (fset chat-with-func `(lambda () (interactive) (jabber-chat-with ,(symbol-name buddy))))
-;; 	  (define-key map [mouse-2] chat-with-func)
-;; 	  (put-text-property 0
-;; 			     (length buddy-str)
-;; 			     'keymap 
-;; 			     map
-;; 			     buddy-str))
-	(insert buddy-str))
+      (jabber-sort-roster)
+      (dolist (buddy *jabber-roster*)
+	(let ((buddy-str (format-spec jabber-roster-line-format
+				      (list 
+				       (cons ?c (if (get buddy 'connected) "*" " "))
+				       (cons ?n (if (> (length (get buddy 'name)) 0)
+						    (get buddy 'name)
+						  (symbol-name buddy)))
+				       (cons ?j (symbol-name buddy))
+				       (cons ?r (or (get buddy 'resource) ""))
+				       (cons ?s (or
+						 (cdr (assoc (get buddy 'show) jabber-presence-strings))
+						 (get buddy 'show)))
+				       (cons ?S (if (get buddy 'status)
+						    (jabber-fix-status (get buddy 'status))
+						  ""))))))
+	  (add-text-properties 0
+			       (length buddy-str)
+			       (list
+				'face
+				(or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+				    'jabber-roster-user-online)
+				;;'mouse-face
+				;;(cons 'background-color "light grey")
+				'help-echo
+				(symbol-name buddy)
+				'jabber-jid
+				(symbol-name buddy))
+			       buddy-str)
+	  ;; (let ((map (make-sparse-keymap))
+	  ;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
+	  ;; 	  (fset chat-with-func `(lambda () (interactive) (jabber-chat-with ,(symbol-name buddy))))
+	  ;; 	  (define-key map [mouse-2] chat-with-func)
+	  ;; 	  (put-text-property 0
+	  ;; 			     (length buddy-str)
+	  ;; 			     'keymap 
+	  ;; 			     map
+	  ;; 			     buddy-str))
+	  (insert buddy-str))
 
 	(when (or (eq jabber-show-resources 'always)
 		  (and (eq jabber-show-resources 'sometimes)
@@ -246,11 +248,13 @@ bring up menus of actions.
 				      (format "%s/%s" (symbol-name buddy) (car resource)))
 				     resource-str)
 		(insert resource-str))))))
-    (insert "__________________________________")
-    (goto-char (point-min))
-    (setq buffer-read-only t)
-    (if (interactive-p)
-	(run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))))
+      (insert "__________________________________")
+      (goto-char (point-min))
+      (setq buffer-read-only t)
+      (if (interactive-p)
+	  (run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))
+      (goto-line current-line)
+      (move-to-column current-column))))
 
 (provide 'jabber-roster)
 
