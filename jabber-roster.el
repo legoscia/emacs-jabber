@@ -37,7 +37,7 @@
   :type '(radio (const :tag "Never" nil)
 		(const :tag "When more than one connected resource" sometimes)
 		(const :tag "Always" always))
-  :group 'jabber)
+  :group 'jabber-roster)
 
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
