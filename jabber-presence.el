@@ -46,7 +46,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       ;; getting a "roster push".
       (dolist (item (jabber-xml-get-children (car (jabber-xml-get-children xml-data 'query)) 'item))
 	(let (roster-item
-	      (jid (intern (jabber-jid-user (jabber-xml-get-attribute item 'jid)) jabber-jid-obarray)))
+	      (jid (jabber-jid-symbol (jabber-xml-get-attribute item 'jid))))
 
 	  ;; Find contact if already in roster
 	  (setq roster-item (car (memq jid *jabber-roster*)))
@@ -155,7 +155,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
 (defun jabber-process-subscription-request (from presence-status)
   "process an incoming subscription request"
-  (run-hook-with-args 'jabber-alert-presence-hooks (intern from jabber-jid-obarray) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (intern from jabber-jid-obarray) nil "subscribe" presence-status))
+  (run-hook-with-args 'jabber-alert-presence-hooks (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status))
   (jabber-send-sexp 
    (list 'presence (list (cons 'to from)
 			 (cons 'type (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
@@ -246,7 +246,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	     (cons "Add/modify roster entry" 'jabber-roster-change))
 (defun jabber-roster-change (jid name groups)
   "Add or change a roster item."
-  (interactive (let* ((jid (intern (jabber-read-jid-completing "Add/change JID: ") jabber-jid-obarray))
+  (interactive (let* ((jid (jabber-jid-symbol (jabber-read-jid-completing "Add/change JID: ")))
 		      (name (get jid 'name))
 		      (groups (get jid 'groups)))
 		 (list jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
