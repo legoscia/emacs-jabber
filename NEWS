@@ -2,6 +2,12 @@
 
 * New features in jabber.el 0.7
 
+** Chat buffers rewritten
+New modular design gives increased extensibility.
+(Not documented yet)
+*** Received URLs are displayed
+(Not documented yet)
+
 ** MUC features
 *** Different default nicknames for different MUC rooms
 See jabber-muc-default-nicknames.
@@ -27,6 +33,10 @@ Sawfish, and xmessage added.
 ** Jabber menu in menubar not enabled by default
 Call jabber-menu to have it there.
 (Not documented yet)
+
+** Message alert hooks changed
+They no longer receive the text of the message.  You'll need to
+rewrite your hooks.
 
 * New features in jabber.el 0.6.1
 
