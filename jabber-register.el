@@ -68,7 +68,13 @@
     (dolist (x (jabber-xml-get-children query 'x))
       (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
 	(setq have-xdata t)
-	(jabber-render-xdata-form x)))
+	;; If the registration form obeys JEP-0068, we know
+	;; for sure how to put a default username in it.
+	(jabber-render-xdata-form x
+				  (if (and jabber-register-p
+					   (string= (jabber-xdata-formtype x) "jabber:iq:register"))
+				      (list (cons "username" jabber-username))
+				    nil))))
     (if (not have-xdata)
 	(jabber-render-register-form query))
 
