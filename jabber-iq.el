@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.3 2004/03/09 19:18:05 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -64,27 +64,22 @@
 
      ;; if type is "get" or "set", correct action depends on namespace of request.
      ((and (listp query)
-	   (string= type "get"))
-      (let ((handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) jabber-iq-get-xmlns-alist))))
+	   (or (string= type "get")
+	       (string= type "set")))
+      (let* ((which-alist (eval (cdr (assoc type
+					    (list
+					     (cons "get" 'jabber-iq-get-xmlns-alist)
+					     (cons "set" 'jabber-iq-set-xmlns-alist))))))
+	     (handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) which-alist))))
 	(if handler
 	    (funcall handler xml-data)
 	  (jabber-send-sexp `(iq ((to . ,from)
 				  (type . "error")
 				  (id . ,id))
+				 ,query
 				 (error ((type . "cancel"))
 					(feature-not-implemented
-					 ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))
-     ((and (listp query)
-	   (string= type "set")
-      (let ((handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) jabber-iq-set-xmlns-alist))))
-	(if handler
-	    (funcall handler xml-data)
-	  (jabber-send-sexp `(iq ((to . ,from)
-				  (type . "error")
-				  (id . ,id))
-				 (error ((type . "cancel"))
-					(feature-not-implemented
-					 ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))))))
+					 ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))))))))))))
 
 (defun jabber-send-iq (to type query success-callback success-closure-data
 			  error-callback error-closure-data &optional result-id)
