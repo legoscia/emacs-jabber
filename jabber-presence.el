@@ -111,10 +111,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       (jabber-muc-process-presence xml-data))
 
      (t
-      ;; XXX: now that we have jabber-jid-symbol, maybe this loop should
-      ;; go.  Think about what to do about out-of-roster presences.
-      (dolist (buddy *jabber-roster*)
-	(if (eq (jabber-jid-symbol from) buddy)
+      ;; XXX: Think about what to do about out-of-roster presences.
+      (let ((buddy (jabber-jid-symbol from)))
+	(if (memq buddy *jabber-roster*)
 	    (let* ((oldstatus (get buddy 'show))
 		   (resource (or (jabber-jid-resource from) ""))
 		   (resource-plist (cdr (assoc resource
