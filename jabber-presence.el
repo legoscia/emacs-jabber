@@ -167,7 +167,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	      (jabber-prioritize-resources buddy)
 
 	      (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
-		(run-hook-with-args 'jabber-alert-presence-hooks
+		(run-hook-with-args hook
 				    buddy
 				    oldstatus
 				    newstatus
