@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.1 2004/01/15 00:11:04 legoscia Exp $
+@c $Id: jabber.texi,v 1.2 2004/01/29 13:04:21 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4
@@ -44,14 +44,16 @@ this permission notice are preserved on all copies.
 
 @menu
 * Introduction::                
-* Contact::                     
-* Getting started::             
-* Presence::
+* Basic operation::             
+* Groupchat::                   
+* Services::                    
+* Customization::               
+* Hacking and extending::       
 * Index::                       
 @end menu
 
 
-@node Introduction, Contact, Top, Top
+@node Introduction, Basic operation, Top, Top
 @chapter Introduction
 
 jabber.el is a Jabber client running under Emacs.  For more
@@ -70,18 +72,42 @@ Main unfeatures of jabber.el are SASL, SSL and TLS.  Beyond that,
 there is nearly no support for advanced MUC features required for
 moderation and other things.
 
-@node Contact, Getting started, Introduction, Top
-@chapter Contact
+@menu
+* Contact::                     
+@end menu
+
+@node Contact,  , Introduction, Introduction
+@section Contact
 
 jabber.el is developed by Tom Berger (e-mail
-@email{object@@intellectronica.net}, JID object@@jabber.org.uk) and
+@email{object@@intellectronica.net}, JID @code{object@@jabber.org.uk}) and
 Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
-legoscia@@charente.de).  There is a web page at
+@code{legoscia@@charente.de}).  There is a web page at
 @url{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
 project page at @url{http://sourceforge.net/projects/emacs-jabber}.
 
-@node Getting started, Presence, Contact, Top
-@chapter Getting started
+@node Basic operation, Groupchat, Introduction, Top
+@chapter Basic operation
+
+This chapter is intended as an introduction to basic usage of
+jabber.el.  If you have used Jabber before and are familiar with the
+terminology, you might find it a bit too basic --- in that case, just
+skim it, making sure to pick up the commands mentioned.
+
+@menu
+* Connecting::                  
+* Chatting::                    
+* Presence::                    
+* Presence subscription::       
+@end menu
+
+@node Connecting, Chatting, Basic operation, Basic operation
+@section Connecting
+
+@findex jabber-connect
+@findex jabber-disconnect
+@cindex Connecting
+@cindex Registering with server
 
 I'll assume that you have already successfully installed jabber.el; if
 not, consult the @file{README} file.  Also, make sure you have
@@ -113,6 +139,13 @@ occasionally useful.  To send presence, type @kbd{M-x
 jabber-send-presence}.  You will be asked three questions; the
 defaults will do for now.  @xref{Presence}, for more information.
 
+To disconnect, type @kbd{M-x jabber-disconnect}.
+
+@node Chatting, Presence, Connecting, Basic operation
+@section Chatting
+
+@cindex Chatting
+
 In the roster display, you can access several menus through keystrokes
 or mouse clicks.  You can bring one big menu up by pressing the second
 mouse button, or you can bring up the ``chat menu'' by typing @kbd{C-c
@@ -127,12 +160,203 @@ person sends a message to you.  In any case, go to the buffer
 @code{*-jabber-chat-:-@var{person}-*} and start chatting.  Most
 normal keystrokes open the minibuffer where you can type a message.
 
-To disconnect, type @kbd{M-x jabber-disconnect}.
+@node Presence, Presence subscription, Chatting, Basic operation
+@section Presence
 
-@node Presence, Index, Getting started, Top
-@chapter Presence
+@cindex Presence
+@cindex Sending presence
+@findex jabber-send-presence
 
-@node Index,  , Presence, Top
+``Presence'' is the Jabber term for letting other people know that you
+are online, and additionally how ``available'' you are.  There are
+three elements to presence: availability status (called ``show''),
+status message, and priority.
+
+Your show status may either be empty (meaning simply ``online''), or
+one of @code{away}, @code{xa}, @code{dnd} and @code{chat}, meaning
+``away'', ``extended away'' (i.e. away for an extended period), ``do
+not disturb'', and ``free for chat'', respectively.  This information
+is available to everyone subscribing to your presence, but technically
+it does not restrict anyone's actions.  You can chat with people even
+if you claim to be away.
+
+The status message is a short text complementing your show status,
+such as ``at home'', ``working'', ``phone'', ``playing games'' or
+whatever you want.  It is sent to everyone subscribing to your
+presence, but not all clients prominently display it to the user.
+
+The priority is only interesting if you are running more than one
+Jabber client at a time accessing the same account.  In that case,
+messages sent to you without an indication of which client to send to
+are sent to the client with the highest priority.
+
+To set your presence, use the function @code{jabber-send-presence}.
+It can be called both interactively and in Lisp code.  For the latter
+case, use something like @code{(jabber-send-presence "away" "idle for
+10 minutes" 10)}.
+
+@node Presence subscription,  , Presence, Basic operation
+@section Presence subscription
+
+@cindex Presence subscription
+@findex jabber-send-subscription-request
+
+Having permission to view the presence status of a person is called
+@dfn{subscribing to his presence}.  Presence subscription between two
+persons can be asymmetric.
+
+When jabber.el receives a presence subscription request, it will
+present it to you in an alert requiring immediate response, and offer
+you to send a subscription request back to that person.
+
+To request subscription to someone, type @kbd{M-x
+jabber-send-subscription-request}.  You will be prompted for the JID
+to send it to.  This command can also be accessed through the Roster
+menu, by typing @kbd{C-c C-r} in the roster buffer.
+
+@node Groupchat, Services, Basic operation, Top
+@chapter Groupchat
+
+@cindex Groupchat
+@cindex MUC
+@findex jabber-groupchat-join
+
+The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
+roster buffer.  You can also type the commands directly, as will be
+shown here.
+
+To join a groupchat, type @kbd{M-x jabber-groupchat-join}.  You will
+be prompted for the groupchat to join, and your nickname in the
+groupchat.  This nickname doesn't need to have any correlation to your
+JID; in fact, groupchats are usually (but not always) configured such
+that only moderators can see your JID.
+
+Groupchat messages will be displayed in a buffer called
+@code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
+chat buffer.
+
+To leave a groupchat, type @kbd{M-x jabber-groupchat-leave}.
+
+If you are the owner of a groupchat, you can change its configuration
+by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
+will be rendered in new buffer.
+
+@node Services, Customization, Groupchat, Top
+@chapter Services
+
+Not every Jabber entity is a physical person.  There are many
+automatic entities, called servers, services, components, agents,
+transports and other names.  The use of these is described here.
+
+The functions described in this chapter use @dfn{browse buffers}.
+Browse buffers are named @code{*-jabber-browse-:-@var{service}-*},
+sometimes with a numerical suffix.  They have the same keybindings as
+the roster buffer, and if you call a function operating on a JID while
+point is over a JID, that JID will be the default value, so you don't
+have to type it or copy it yourself.
+
+@menu
+* Service discovery and browsing::  
+* Registering::                 
+* Searching::                   
+@end menu
+
+@node Service discovery and browsing, Registering, Services, Services
+@section Service discovery and browsing
+
+@cindex Service discovery
+@cindex Browsing
+@findex jabber-get-browse
+@findex jabber-get-disco-items
+@findex jabber-get-disco-info
+
+To find services you want to use, you need to discover them first.
+This can be done with either service discovery or browsing.  Service
+discovery is the newer and preferred protocol, while browsing is still
+used by much software.  The use of both is very similar.
+
+The most common use of service discovery is to browse your home
+server, to see what services are provided locally.  Note, however,
+that this is no restriction; you can use services from all over the
+network.
+
+To start browsing, type @kbd{M-x jabber-get-browse} and enter the JID
+you want to browse.  For service discovery there are two commands,
+@code{jabber-get-disco-items} and @code{jabber-get-disco-info},
+depending on whether you want information about that specific JID or
+about services related to it, respectively.
+
+These commands can be accessed from the Info menu, which is opened by
+typing @kbd{C-c C-i}.
+
+@node Registering, Searching, Service discovery and browsing, Services
+@section Registering
+
+@cindex Registration
+@cindex Cancelling registration
+@cindex Changing password
+@cindex Gateway registration
+@cindex Password change
+@findex jabber-get-register
+
+Some services, in particular user directories and gateways to legacy
+IM systems, require registration.  To register with such a service,
+either type @kbd{M-x jabber-get-register} or select it from the
+Service menu, which is opened by typing @kbd{C-c C-s}.  You have to
+know the service's JID, possibly from service discovery.
+(@pxref{Service discovery and browsing})
+
+This is also the way to change your registration details, e.g. your
+password --- just ask to register with that service again.  To change
+the password of your Jabber account, ask to register with your Jabber
+service.
+
+Please note that any passwords sent in this way will be sent in
+cleartext to your Jabber server, as jabber.el doesn't support
+encryption yet, and possibly sent in cleartext from your server to the
+server hosting the service.
+
+jabber.el will then request a registration form from that service.  If
+for some reason the service does not answer (maybe network problems,
+or some services neither support registration nor report errors about
+that) that will be the last thing you saw about it.  jabber.el will
+not report timeout errors, but rather simply wait until you shut it
+down.
+
+Once the response arrives, the form will be rendered in a browse
+buffer.  Just fill out the fields, and hit Submit.  You will receive
+confirmation of your registration in the echo area.
+
+To cancel an existing registration (and also for cancelling your
+Jabber account, if you sent a registration request to your server),
+hit Cancel.  The unregistration will be confirmed in the echo area.
+
+@node Searching,  , Registering, Services
+@section Searching
+
+@cindex Searching
+@findex jabber-get-search
+
+Some services, notably user directories and gateways to legacy IM
+systems, allow searching.  Searching in Jabber generally means
+searching for someone's JID, but the protocol is general enough to
+support most databases.
+
+To search a service, either type @kbd{M-x jabber-get-search} or select
+it from the Service menu, which is opened by typing @kbd{C-c C-s}.
+
+Just like with registration, this command sends a request for a search
+form, and displays it if and when the response arrives.  Enter your
+search and submit it.  Search results will be displayed in a different
+browse buffer.
+
+@node Customization, Hacking and extending, Services, Top
+@chapter Customization
+
+@node Hacking and extending, Index, Customization, Top
+@chapter Hacking and extending
+
+@node Index,  , Hacking and extending, Top
 @unnumbered Index
 
 @printindex cp
