@@ -45,6 +45,7 @@
 (require 'jabber-modeline)
 (require 'jabber-keepalive)
 (require 'jabber-watch)
+(require 'jabber-activity)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
