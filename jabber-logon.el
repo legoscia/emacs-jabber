@@ -74,9 +74,7 @@ CLOSURE-DATA should be t on success and nil on failure."
 			#'jabber-process-roster 'initial
 			#'jabber-report-success "Roster retrieval")
 
-	;; You are by no means forced to send presence when connected.
-	;;(jabber-send-sexp '((presence)))
-	)
+	(run-hooks 'jabber-post-connect-hook))
 
     ;; Logon failure
     (jabber-report-success xml-data "Logon")

@@ -118,6 +118,20 @@
   :type 'string
   :group 'jabber)
 
+(defcustom jabber-default-show ""
+  "default show state"
+  :type '(choice (const :tag "Online" "")
+		 (const :tag "Chatty" "chat")
+		 (const :tag "Away" "away")
+		 (const :tag "Extended away" "xa")
+		 (const :tag "Do not disturb" "dnd"))
+  :group 'jabber)
+
+(defcustom jabber-default-status ""
+  "default status string"
+  :type 'string
+  :group 'jabber)
+
 (defcustom jabber-default-priority 10
   "default priority"
   :type 'integer

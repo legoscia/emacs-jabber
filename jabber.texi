@@ -136,13 +136,9 @@ username in both places, otherwise jabber.el will be confused.
 If you successfully connect, jabber.el will download your roster and
 display it in a buffer called @code{*-jabber-*}.
 
-Now that you are connected, you can send @dfn{initial presence}.  This
-means sending a notification of you being online to everyone on your
-roster.  You don't have to do that, and if you don't no-one can see
-that you are online.  This is usually not what you want, but it is
-occasionally useful.  To send presence, type @kbd{M-x
-jabber-send-presence}.  You will be asked three questions; the
-defaults will do for now.  @xref{Presence}, for more information.
+By default, you will appear as ``online'' to your contacts.  To change
+this to e.g. ``away'', type @kbd{M-x jabber-send-presence}.
+@xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect}.
 
@@ -181,6 +177,10 @@ include a newline in your message, use @kbd{C-j}.
 @cindex Presence
 @cindex Sending presence
 @findex jabber-send-presence
+@findex jabber-send-default-presence
+@vindex jabber-default-show
+@vindex jabber-default-status
+@vindex jabber-default-priority
 
 ``Presence'' is the Jabber term for letting other people know that you
 are online, and additionally how ``available'' you are.  There are
@@ -209,6 +209,13 @@ To set your presence, use the function @code{jabber-send-presence}.
 It can be called both interactively and in Lisp code.  For the latter
 case, use something like @code{(jabber-send-presence "away" "idle for
 10 minutes" 10)}.
+
+By default, jabber.el sets your presence when you connect.  If you
+want it not to do that, remove @code{jabber-send-default-presence}
+from @code{jabber-post-connect-hook}.  If you want to change the
+presence that is sent, change the variables
+@code{jabber-default-show}, @code{jabber-default-status} and
+@code{jabber-default-priority}.
 
 With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 
@@ -495,6 +502,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
 * Customizing alerts::          
+* Hooks::                       
 * Debug options::               
 @end menu
 
@@ -617,7 +625,7 @@ format is identical to that passed to @code{format-time-string}.
 @xref{Time Conversion, , Time Conversion, elisp, GNU Emacs Lisp
 Reference Manual}.
 
-@node Customizing alerts, Debug options, Customizing the chat buffer, Customization
+@node Customizing alerts, Hooks, Customizing the chat buffer, Customization
 @section Customizing alerts
 
 @cindex Alert hooks
@@ -767,7 +775,39 @@ buffer (basically anything except chatting).
 
 The info alert hooks take an extra argument, as could be expected.
 
-@node Debug options,  , Customizing alerts, Customization
+@node Hooks, Debug options, Customizing alerts, Customization
+@section Hooks
+
+@vindex jabber-post-connect-hook
+@vindex jabber-pre-disconnect-hook
+@vindex jabber-post-disconnect-hook
+@vindex jabber-lost-connection-hook
+
+jabber.el provides various hooks that you can use for whatever
+purpose.
+
+@table @code
+@item jabber-post-connect-hook
+This hook is called after successful connection and authentication.
+By default it contains @code{jabber-send-default-presence}
+(@pxref{Presence}).
+
+@item jabber-lost-connection-hook
+This hook is called when you have been disconnected for unknown
+reasons.  Usually this isn't noticed for quite a long time.
+
+@item jabber-pre-disconnect-hook
+This hook is called just before voluntary disconnection.  This might
+be due to failed authentication, so check
+@code{*jabber-authenticated*} if you want to send a stanza.
+
+@item jabber-post-disconnect-hook
+This hook is called after disconnection of any kind, possibly just
+after @code{jabber-lost-connection-hook}.
+
+@end table
+
+@node Debug options,  , Hooks, Customization
 @section Debug options
 
 @vindex jabber-debug-log-xml

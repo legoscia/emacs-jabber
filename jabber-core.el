@@ -43,6 +43,9 @@
 (defvar *jabber-authenticated* nil
   "boolean - are we authenticated")
 
+(defvar *jabber-disconnecting* nil
+  "boolean - are we in the process of disconnecting by free will")
+
 (defvar *xmlq* ""
   "a string with all the incoming xml that is waiting to be parsed")
 
@@ -79,13 +82,24 @@ Used for SASL authentication.")
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
-(defcustom jabber-disconnect-hook nil
-  "*Hooks run just before disconnecting"
+(defcustom jabber-post-connect-hook '(jabber-send-default-presence)
+  "*Hooks run after successful connection and authentication."
+  :type 'hook
+  :group 'jabber-core)
+
+(defcustom jabber-pre-disconnect-hook nil
+  "*Hooks run just before voluntary disconnection
+This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'hook
   :group 'jabber-core)
 
 (defcustom jabber-lost-connection-hook nil
-  "*Hooks run when connection is lost"
+  "*Hooks run after involuntary disconnection"
+  :type 'hook
+  :group 'jabber-core)
+
+(defcustom jabber-post-disconnect-hook nil
+  "*Hooks run after disconnection"
   :type 'hook
   :group 'jabber-core)
 
@@ -146,28 +160,41 @@ tag, or nil if we're connecting to a pre-XMPP server."
 (defun jabber-disconnect ()
   "disconnect from the jabber server and re-initialise the jabber package variables"
   (interactive)
-  (when (eq (process-status *jabber-connection*) 'open)
-    (run-hooks 'jabber-disconnect-hook)
-    (process-send-string *jabber-connection* "</stream:stream>")
-    ;; let the server close the stream
-    (unless (accept-process-output *jabber-connection* 3)
-      (delete-process *jabber-connection*)))
-  (kill-buffer (process-buffer *jabber-connection*))
+  (unless *jabber-disconnecting*	; avoid reentry
+    (let ((*jabber-disconnecting* t))
+      (when (eq (process-status *jabber-connection*) 'open)
+	(run-hooks 'jabber-pre-disconnect-hook)
+	(process-send-string *jabber-connection* "</stream:stream>")
+	;; let the server close the stream
+	(accept-process-output *jabber-connection* 3)
+	;; and do it ourselves as well, just to be sure
+	(delete-process *jabber-connection*))
+      (jabber-disconnected)
+      (if (interactive-p)
+	  (message "Disconnected from Jabber server")))))
+
+(defun jabber-disconnected ()
+  "Re-initialise jabber package variables.
+Call this function after disconnection."
+  (when (and (processp *jabber-connection*)
+	     (process-buffer *jabber-connection*))
+    (kill-buffer (process-buffer *jabber-connection*)))
+  (run-hooks 'jabber-post-disconnect-hook)
+  (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *xmlq* "")
   (setq *jabber-authenticated* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
-  (setq jabber-session-id nil)
-  (if (interactive-p)
-      (message "Disconnected from Jabber server")))
+  (setq jabber-session-id nil))
 
 (defun jabber-sentinel (process event)
   "alert user about lost connection"
-  (beep)
-  (run-hooks 'jabber-lost-connection-hook)
-  (message "Jabber connection lost: `%s'" event)
-  (jabber-disconnect))
+  (unless *jabber-disconnecting*
+    (beep)
+    (run-hooks 'jabber-lost-connection-hook)
+    (message "Jabber connection lost: `%s'" event)
+    (jabber-disconnected)))
 
 (defun jabber-filter (process string)
   "the filter function for the jabber process"
@@ -295,7 +322,9 @@ tag, or nil if we're connecting to a pre-XMPP server."
 		  "get" 
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
-		  #'jabber-report-success "Roster retrieval"))
+		  #'jabber-report-success "Roster retrieval")
+
+  (run-hooks 'jabber-post-connect-hook))
 
 (defun jabber-clear-roster ()
   "Clean up the roster."

@@ -234,6 +234,13 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			       (priority () ,(jabber-escape-xml (int-to-string *jabber-current-priority*)))))
   (jabber-display-roster))
 
+(defun jabber-send-default-presence ()
+  "Send default presence.
+Default presence is specified by `jabber-default-priority', `jabber-default-show',
+and `jabber-default-status'."
+  (interactive)
+  (jabber-send-presence jabber-default-show jabber-default-status jabber-default-priority))
+
 (add-to-list 'jabber-jid-roster-menu
 	     (cons "Send subscription request" 'jabber-send-subscription-request))
 (defun jabber-send-subscription-request (to &optional request)
