@@ -380,12 +380,12 @@ This function is not called directly, but is the default for
 (defun jabber-presence-display (who oldstatus newstatus statustext proposed-alert)
   "Display the roster buffer"
   (when proposed-alert
-    (display-buffer (process-buffer *jabber-connection*))))
+    (display-buffer jabber-roster-buffer)))
 
 (defun jabber-presence-switch (who oldstatus newstatus statustext proposed-alert)
   "Switch to the roster buffer"
   (when proposed-alert
-    (switch-to-buffer (process-buffer *jabber-connection*))))
+    (switch-to-buffer jabber-roster-buffer)))
 
 ;;; Info alert hooks
 

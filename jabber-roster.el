@@ -169,7 +169,7 @@ marking the extent of the roster entry.")
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
-  (with-current-buffer (process-buffer *jabber-connection*)
+  (with-current-buffer jabber-roster-buffer
     (if (not (eq major-mode 'jabber-roster-mode))
 	(jabber-roster-mode))
     (setq buffer-read-only nil)
@@ -308,7 +308,7 @@ marking the extent of the roster entry.")
       (let ((old-start (cadr entry))
 	    (old-end (cddr entry))
 	    (insert-before-this (cadr (memq bare-jid *jabber-roster*))))
-	(with-current-buffer (process-buffer *jabber-connection*)
+	(with-current-buffer jabber-roster-buffer
 	  (delete-region old-start old-end)
 	  (save-excursion
 	    (let ((new-start 
