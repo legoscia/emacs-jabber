@@ -1,0 +1,5 @@
+#!/bin/sh -e
+# /usr/lib/emacsen-common/packages/remove/emacs-jabber
+
+FLAVOR=$1
+PACKAGE=emacs-jabber
