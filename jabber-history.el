@@ -60,6 +60,54 @@ will be logged to the same file."
     (let ((coding-system-for-write 'utf-8))
       (append-to-file (point-min) (point-max) "~/.jabber_global_message_log"))))
 
+(defun jabber-history-query (time-compare-function
+			     time
+			     number
+			     direction
+			     jid-regexp)
+  "Return a list of vectors, one for each message matching the criteria.
+TIME-COMPARE-FUNCTION is either `<' or `>', to be called as
+\(TIME-COMPARE-FUNCTION (float-time time-of-message) TIME), and
+returning non-nil for matching messages.
+NUMBER is the maximum number of messages to return, or t for
+unlimited.
+DIRECTION is either \"in\" or \"out\", or t for no limit on direction.
+JID-REGEXP is a regexp which must match the JID."
+  (with-temp-buffer
+    (let ((coding-system-for-read 'utf-8))
+      (insert-file-contents "~/.jabber_global_message_log"))
+    (let ((from-beginning (eq time-compare-function '<))
+	  collected current-line)
+      (if from-beginning
+	  (goto-char (point-min))
+	(goto-char (point-max))
+	(backward-sexp))
+      (while (progn (setq current-line (car (read-from-string
+					     (buffer-substring
+					      (point)
+					      (save-excursion
+						(forward-sexp)
+						(point))))))
+		    (and (funcall time-compare-function
+				  (float-time (jabber-parse-time
+					       (aref current-line 0)))
+				  time)
+			 (if from-beginning (not (eobp))
+			   (not (bobp)))
+			 (or (eq number t)
+			     (< (length collected) number))))
+	(if (and (or (eq direction t)
+		     (string= direction (aref current-line 1)))
+		 (string-match 
+		  jid-regexp 
+		  (car
+		   (remove "me"
+			   (list (aref current-line 2)
+				 (aref current-line 3))))))
+	    (push current-line collected))
+	(if from-beginning (forward-sexp) (backward-sexp)))
+      collected)))
+
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
 ;; (add-hook 'jabber-alert-message-hooks 'jabber-message-history)
