@@ -141,7 +141,13 @@ With prefix argument, register a new account."
 				      #'jabber-auth-somehow))
     (let ((stream-header (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
-				 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>")))
+				 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'"
+				 ;; Not supporting SASL is not XMPP compliant,
+				 ;; so don't pretend we are.
+				 (if (jabber-have-sasl-p)
+				     " version='1.0'"
+				   "")
+				 ">")))
       (process-send-string *jabber-connection*
 			   stream-header)
       (if jabber-debug-log-xml
