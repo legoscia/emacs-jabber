@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.34 2004/02/10 16:24:28 legoscia Exp $
+;; $Id: jabber.el,v 1.35 2004/02/11 21:37:11 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -398,13 +398,12 @@ properties to add to the result."
 
 ;;; more XEmacs compatibility
 ;;; Preserve input method when entering a minibuffer
-(eval-when-compile
-  (if (featurep 'xemacs)
-      ;; I don't know how to do this
-      (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
-	(read-string prompt initial-contents history default-value))
+(if (featurep 'xemacs)
+    ;; I don't know how to do this
     (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
-      (read-string prompt initial-contents history default-value t))))
+      (read-string prompt initial-contents history default-value))
+  (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
+    (read-string prompt initial-contents history default-value t)))
 
 (defconst jabber-iq-get-xmlns-alist
   (list
@@ -546,14 +545,13 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
   (interactive)
   (customize-group 'jabber))
 
-(eval-when-compile
-  (cond
-   ((fboundp 'replace-in-string)
-    (defsubst jabber-replace-in-string (str regexp newtext)
-      (replace-in-string str regexp newtext t)))
-   ((fboundp 'replace-regexp-in-string)
-    (defsubst jabber-replace-in-string (str regexp newtext)
-      (replace-regexp-in-string regexp newtext str t t)))))
+(cond
+ ((fboundp 'replace-in-string)
+  (defsubst jabber-replace-in-string (str regexp newtext)
+    (replace-in-string str regexp newtext t)))
+ ((fboundp 'replace-regexp-in-string)
+  (defsubst jabber-replace-in-string (str regexp newtext)
+    (replace-regexp-in-string regexp newtext str t t))))
 
 (defun jabber-escape-xml (str)
   "escape strings for xml"
@@ -2266,7 +2264,8 @@ RESULT-ID is the id to be used for a response to a received iq message.
 (defun jabber-message-ratpoison (from buffer text proposed-alert)
   "Show a message through the Ratpoison window manager"
   (if proposed-alert
-      (call-process "ratpoison" nil nil nil "-c" (format "echo %s" proposed-alert))))
+      (let ((process-connection-type nil))
+	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
 
 (defun jabber-message-screen (from buffer text proposed-alert)
   "Show a message through the Screen terminal manager"
@@ -2331,7 +2330,8 @@ This function is not called directly, but is the default for
   "Show a message through the Ratpoison window manager"
 
   (if proposed-alert
-      (call-process "ratpoison" nil nil nil "-c" (concat "echo " proposed-alert))))
+      (let ((process-connection-type))
+	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
 
 (defun jabber-presence-screen (who oldstatus newstatus statustext proposed-alert)
   "Show a message through the Screen terminal manager"
@@ -2367,7 +2367,8 @@ This function uses `jabber-info-message-alist' to find a message."
 (defun jabber-info-ratpoison (infotype buffer proposed-alert)
   "Show a message through the Ratpoison window manager"
   (if proposed-alert
-      (call-process "ratpoison" nil nil nil "-c" (concat "echo " proposed-alert))))
+      (let ((process-connection-type nil))
+	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
 
 (defun jabber-info-screen (infotype buffer proposed-alert)
   "Show a message through the Screen terminal manager"
