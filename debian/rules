@@ -30,7 +30,7 @@ binary-indep: build
 	cat debian/emacsen-install.in debian/emacsen-install.template > debian/emacsen-install
 	cat debian/emacsen-remove.in debian/emacsen-remove.template > debian/emacsen-remove
 	dh_installemacsen
-	dh_installdocs html README filetransfer.txt
+	dh_installdocs html README filetransfer.txt AUTHORS NEWS
 	dh_installinfo jabber.info
 	dh_installchangelogs
 
