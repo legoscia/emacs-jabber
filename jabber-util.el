@@ -75,6 +75,15 @@ properties to add to the result."
     (unless (file-readable-p filename)
       (error error-message))))
 
+(if (fboundp 'float-time)
+    (defalias 'jabber-float-time 'float-time)
+  (defun jabber-float-time (&optional specified-time)
+    (unless specified-time
+      (setq specified-time (current-time)))
+    ;; second precision is good enough for us
+    (+ (* 65536.0 (car specified-time))
+       (cadr specified-time))))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID"
   (string-match "\\(.*\\)@.*\\(/.*\\)?" string)

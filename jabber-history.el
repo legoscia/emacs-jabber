@@ -100,8 +100,8 @@ JID-REGEXP is a regexp which must match the JID."
 						  (forward-sexp)
 						  (point))))))
 		      (and (funcall time-compare-function
-				    (float-time (jabber-parse-time
-						 (aref current-line 0)))
+				    (jabber-float-time (jabber-parse-time
+							(aref current-line 0)))
 				    time)
 			   (if from-beginning (not (eobp))
 			     (not (bobp)))
@@ -134,7 +134,7 @@ JID-REGEXP is a regexp which must match the JID."
 This function is to be called from a chat buffer."
   (interactive)
   (dolist (msg (jabber-history-query 
-		'> (- (float-time) (* jabber-backlog-days 86400.0))
+		'> (- (jabber-float-time) (* jabber-backlog-days 86400.0))
 		jabber-backlog-number
 		t			; both incoming and outgoing
 		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
