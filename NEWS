@@ -2,8 +2,12 @@
 
 * New features in jabber.el 0.7
 
+** Vcard viewer and editor
+(Not documented yet)
+
 ** Easy way to define external notifiers
-See define-jabber-alert.
+See define-jabber-alert.  Alerts for Festival (speech synthesis),
+Sawfish, and xmessage added.
 
 ** Roster display optimized
 
