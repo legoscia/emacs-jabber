@@ -1355,20 +1355,22 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 (defun jabber-process-disco-items (xml-data)
   "Handle results from items disco requests."
 
-  (dolist (item (jabber-xml-get-children (jabber-iq-query xml-data) 'item))
-    (let ((jid (jabber-xml-get-attribute item 'jid))
-	  (name (jabber-xml-get-attribute item 'name))
-	  (node (jabber-xml-get-attribute item 'node)))
-      (insert 
-       (propertize 
-	(concat
-	 (propertize
-	  (concat jid "\n" (if node (format "Node: %s\n" node)))
-	  'face 'jabber-title-medium)
-	 (jabber-unescape-xml name) "\n\n")
-	'jabber-jid jid
-	'jabber-node node))))
-  (insert "No items found.\n"))
+  (let ((items (jabber-xml-get-children (jabber-iq-query xml-data) 'item)))
+    (if items
+	(dolist (item items)
+	  (let ((jid (jabber-xml-get-attribute item 'jid))
+		(name (jabber-xml-get-attribute item 'name))
+		(node (jabber-xml-get-attribute item 'node)))
+	    (insert 
+	     (propertize 
+	      (concat
+	       (propertize
+		(concat jid "\n" (if node (format "Node: %s\n" node)))
+		'face 'jabber-title-medium)
+	       (jabber-unescape-xml name) "\n\n")
+	      'jabber-jid jid
+	      'jabber-node node))))
+      (insert "No items found.\n"))))
 
 (defun jabber-process-version (xml-data)
   "Handle results from jabber:iq:version requests."
