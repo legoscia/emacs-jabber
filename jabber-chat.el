@@ -69,6 +69,8 @@
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname from) "-*"))
+    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
+    
     (goto-char jabber-point-insert)
 
     (let ((inhibit-read-only t))
@@ -82,11 +84,6 @@ TIMESTAMP is timestamp, or nil for now."
       (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t))
  
     (goto-char (point-max))
-
-    ;; Setting the major mode more than once will wipe out buffer-local
-    ;; variables, therefore caution.
-    (if (not (eq major-mode 'jabber-chat-mode))
-	(jabber-chat-mode))
 
     ;; The following means that whenever you receive a message from the
     ;; person you are chatting with, the resource to which messages from
@@ -155,6 +152,7 @@ TIMESTAMP is timestamp, or nil for now."
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-groupchat-:-" group "-*"))
+    (if (not (eq major-mode 'jabber-groupchat-mode)) (jabber-groupchat-mode))
     (goto-char jabber-point-insert)
     (let ((inhibit-read-only t))
       (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
@@ -168,8 +166,6 @@ TIMESTAMP is timestamp, or nil for now."
  
     (goto-char (point-max))
 
-    (if (not (eq major-mode 'jabber-groupchat-mode))
-	(jabber-groupchat-mode))
     (setq jabber-group group)
     (run-hook-with-args 'jabber-alert-message-hooks nick (current-buffer) body (funcall jabber-alert-message-function group (current-buffer) body))))
 
