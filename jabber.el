@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.30 2004/02/03 22:02:09 legoscia Exp $
+;; $Id: jabber.el,v 1.31 2004/02/08 14:13:18 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -2197,7 +2197,8 @@ RESULT-ID is the id to be used for a response to a received iq message.
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (setq jabber-session-id nil)
-  (message "Disconnected from Jabber server"))
+  (if (interactive-p)
+      (message "Disconnected from Jabber server")))
 
 ;; Alert hooks
 
