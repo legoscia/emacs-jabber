@@ -1,4 +1,4 @@
-;; jabber-si-client.el - send file transfer requests, by JEP-0096
+;; jabber-ft-client.el - send file transfer requests, by JEP-0096
 
 ;; Copyright (C) 2004 - Magnus Henoch - mange@freemail.hu
 

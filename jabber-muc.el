@@ -24,6 +24,19 @@
 
 (require 'jabber-widget)
 
+(eval-when-compile
+  (require 'cl))
+
+(defvar *jabber-active-groupchats* nil
+  "alist of groupchats and nicknames
+Keys are strings, the bare JID of the room.
+Values are strings.")
+
+(defvar jabber-muc-participants nil
+  "alist of groupchats and participants
+Keys are strings, the bare JID of the room.
+Values are lists of nickname strings.")
+
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (group)
@@ -77,6 +90,84 @@
 			  (x ((xmlns . "jabber:x:data") (type . "cancel"))))
 		  nil nil nil nil))
 
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Join groupchat" 'jabber-groupchat-join))
+
+(defun jabber-groupchat-join (group nickname)
+  "join a groupchat"
+  (interactive (list (jabber-read-jid-completing "group: ")
+		     (jabber-read-with-input-method (format "Nickname: (default %s) "
+							    jabber-nickname) 
+						    nil nil jabber-nickname)))
+  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))))
+
+  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
+    (if whichgroup
+	(setcdr whichgroup nickname)
+      (add-to-list '*jabber-active-groupchats* (cons group nickname))))
+  
+  (jabber-groupchat-display group))
+
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Leave groupchat" 'jabber-groupchat-leave))
+
+(defun jabber-groupchat-leave (group)
+  "leave a groupchat"
+  (interactive (list (completing-read (format "Leave which group: %s" (if jabber-group (concat "(default: " jabber-group ") ")))
+				      *jabber-active-groupchats*
+				      nil nil nil nil
+				      jabber-group)))
+  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
+    ;; send unavailable presence to our own nick in room
+    (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
+				  (type . "unavailable"))))))
+
+(defun jabber-muc-message-p (message)
+  "Return non-nil if MESSAGE is a groupchat message.
+That does not include private messages in a groupchat."
+  ;; Public groupchat messages have type "groupchat" and are from
+  ;; room@server/nick.  Public groupchat errors have type "error" and
+  ;; are from room@server.
+  (let ((from (jabber-xml-get-attribute message 'from))
+	(type (jabber-xml-get-attribute message 'type)))
+    (or 
+     (string= type "groupchat")
+     (and (string= type "error")
+	  (assoc from *jabber-active-groupchats*)))))
+
+(defun jabber-muc-presence-p (presence)
+  "Return non-nil if PRESENCE is presence from groupchat."
+  (let ((from (jabber-xml-get-attribute presence 'from)))
+    (assoc (jabber-jid-user from) *jabber-active-groupchats*)))
+
+(defun jabber-muc-process-presence (presence)
+  (let ((from (jabber-xml-get-attribute presence 'from))
+	(type (jabber-xml-get-attribute presence 'type)))
+    (let ((group (jabber-jid-user from))
+	  (nickname (jabber-jid-resource from))
+	  (symbol (jabber-jid-symbol from)))
+      ;; handle leaving a room
+      (if (string= type "unavailable")
+	  ;; are we leaving?
+	  (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
+	      (let ((whichgroup (assoc group *jabber-active-groupchats*))
+		    (whichparticipants (assoc group jabber-muc-participants)))
+		(setq *jabber-active-groupchats* 
+		      (delq whichgroup *jabber-active-groupchats*))
+		(setq jabber-muc-participants
+		      (delq whichparticipants jabber-muc-participants)))
+	    ;; or someone else?
+	    (let ((whichparticipants (assoc group jabber-muc-participants)))
+	      (setf (cdr whichparticipants)
+		    (delete nickname (cdr whichparticipants)))))
+	;; someone is entering
+	(let ((participants (assoc group jabber-muc-participants)))
+	  (if participants
+	      ;; either we have a list of participants already...
+	      (push nickname (cdr participants))
+	    ;; or we don't
+	    (push (cons group (list nickname)) jabber-muc-participants)))))))
+	      
 (provide 'jabber-muc)
 
 ;;; arch-tag: 1ff7ab35-1717-46ae-b803-6f5b3fb2cd7d

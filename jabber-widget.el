@@ -23,6 +23,7 @@
 (eval-when-compile
   (require 'wid-edit))
 (require 'jabber-util)
+(require 'jabber-disco)
 
 (defvar jabber-widget-alist nil
   "Alist of widgets currently used")
@@ -249,11 +250,13 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 
 	    (indent-to (plist-get field-plist 'column) 1)
 
-	    ;; Absent values are sometimes "", sometimes nil.  insert doesn't like nil.
+	    ;; Absent values are sometimes "", sometimes nil.  insert
+	    ;; doesn't like nil.
 	    (when value
-	      ;; If there is only one JID field, let the whole row have the jabber-jid
-	      ;; property.  If there are many JID fields, the string belonging to each
-	      ;; field has that property.
+	      ;; If there is only one JID field, let the whole row
+	      ;; have the jabber-jid property.  If there are many JID
+	      ;; fields, the string belonging to each field has that
+	      ;; property.
 	      (if (string= (plist-get field-plist 'type) "jid-single")
 		  (if (not (eq jid-fields 1))
 		      (insert (jabber-propertize value 'jabber-jid value))

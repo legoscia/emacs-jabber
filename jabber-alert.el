@@ -50,7 +50,8 @@ every time."
   :type 'function
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-presence-hooks '(jabber-presence-beep jabber-presence-update-roster jabber-presence-echo)
+(defcustom jabber-alert-presence-hooks 
+  '(jabber-presence-beep jabber-presence-update-roster jabber-presence-echo)
   "Hooks run when a user's presence changes.
 
 Arguments are WHO, OLDSTATUS, NEWSTATUS, STATUSTEXT and
@@ -61,7 +62,14 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
 \"unsubscribed\".  PROPOSED-ALERT is the string returned by
 `jabber-alert-presence-message-function' for these arguments."
   :type 'hook
-  :options '(jabber-presence-beep jabber-presence-wave jabber-presence-update-roster jabber-presence-switch jabber-presence-display jabber-presence-ratpoison jabber-presence-screen jabber-presence-echo)
+  :options '(jabber-presence-beep
+	     jabber-presence-wave
+	     jabber-presence-update-roster
+	     jabber-presence-switch
+	     jabber-presence-display
+	     jabber-presence-ratpoison
+	     jabber-presence-screen
+	     jabber-presence-echo)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-message-function
@@ -87,7 +95,13 @@ browse requests.  Second argument in BUFFER, a buffer containing the result.
 Third argument is PROPOSED-ALERT, containing the string returned by
 `jabber-alert-info-message-function' for these arguments."
   :type 'hook
-  :options '(jabber-info-beep jabber-info-wave jabber-info-ratpoison jabber-info-screen jabber-info-echo jabber-info-switch jabber-info-display)
+  :options '(jabber-info-beep
+	     jabber-info-wave
+	     jabber-info-ratpoison
+	     jabber-info-screen
+	     jabber-info-echo
+	     jabber-info-switch
+	     jabber-info-display)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-info-message-function
@@ -181,10 +195,11 @@ This function is not called directly, but is the default for
 	     (symbol-name who)))
 	  (formattedstatus
 	   (or
-	    (cdr (assoc newstatus '(("subscribe" . " requests subscription to your presence")
-				    ("subscribed" . " has granted presence subscription to you")
-				    ("unsubscribe" . " no longer subscribes to your presence")
-				    ("unsubscribed" . " cancels your presence subscription"))))
+	    (cdr (assoc newstatus
+			'(("subscribe" . " requests subscription to your presence")
+			  ("subscribed" . " has granted presence subscription to you")
+			  ("unsubscribe" . " no longer subscribes to your presence")
+			  ("unsubscribed" . " cancels your presence subscription"))))
 	    (concat " is now "
 		    (or
 		     (cdr (assoc newstatus jabber-presence-strings))

@@ -46,14 +46,14 @@ Use the function `jabber-ahc-add' to add a command to this list.")
 
 ;;; SERVER
 (add-to-list 'jabber-disco-info-nodes
-	     (list "http://jabber.org/protocol/commands" '((identity ((category . "automation")
-								      (type . "command-list")
-								      (name . "Ad-Hoc Command list")))
-							   (feature ((var . "http://jabber.org/protocol/commands")))
-							   (feature ((var . "http://jabber.org/protocol/disco#items")))
-							   (feature
-							    ((var
-							      . "http://jabber.org/protocol/disco#info"))))))
+	     (list "http://jabber.org/protocol/commands"
+		   '((identity ((category . "automation")
+				(type . "command-list")
+				(name . "Ad-Hoc Command list")))
+		     (feature ((var . "http://jabber.org/protocol/commands")))
+		     (feature ((var . "http://jabber.org/protocol/disco#items")))
+		     (feature
+		      ((var . "http://jabber.org/protocol/disco#info"))))))
 
 (defun jabber-ahc-add (node name func acl)
   "Add a command to internal lists.

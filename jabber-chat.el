@@ -22,6 +22,7 @@
 (require 'jabber-core)
 (require 'jabber-keymap)
 (require 'jabber-util)
+(require 'jabber-muc)
 
 (require 'format-spec)
 
@@ -40,16 +41,17 @@ with):
   :type 'string
   :group 'jabber-chat)
 
-(defcustom jabber-chat-header-line-format '(" " (:eval (jabber-jid-displayname jabber-chatting-with))
-					    "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
-							  (propertize 
-							   (or
-							    (cdr (assoc (get buddy 'show) jabber-presence-strings))
-							    (get buddy 'show))
-							   'face
-							   (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
-							       'jabber-roster-user-online))))
-					    "\t" (:eval (get (jabber-jid-symbol jabber-chatting-with) 'status)))
+(defcustom jabber-chat-header-line-format
+  '(" " (:eval (jabber-jid-displayname jabber-chatting-with))
+    "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
+		  (propertize 
+		   (or
+		    (cdr (assoc (get buddy 'show) jabber-presence-strings))
+		    (get buddy 'show))
+		   'face
+		   (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+		       'jabber-roster-user-online))))
+    "\t" (:eval (get (jabber-jid-symbol jabber-chatting-with) 'status)))
   "The specification for the header line of chat buffers.
 
 The format is that of `mode-line-format' and `header-line-format'."
@@ -137,9 +139,6 @@ These fields are available:
 
 (defvar jabber-group nil
   "the groupchat you are participating in")
-
-(defvar *jabber-active-groupchats* nil
-  "alist of groupchats and nicknames")
 
 (defun jabber-chat-mode ()
   "\\{jabber-chat-mode-map}"
@@ -385,41 +384,6 @@ TIMESTAMP is timestamp, or nil for now."
     (setq jabber-group group)
     (run-hook-with-args 'jabber-alert-message-hooks nick (current-buffer) body (funcall jabber-alert-message-function group (current-buffer) body))))
 
-(add-to-list 'jabber-jid-muc-menu
-	     (cons "Leave groupchat" 'jabber-groupchat-leave))
-
-(defun jabber-groupchat-leave (group)
-  "leave a groupchat"
-  (interactive (list (completing-read (format "Leave which group: %s" (if jabber-group (concat "(default: " jabber-group ") ")))
-				      *jabber-active-groupchats*
-				      nil nil nil nil
-				      jabber-group)))
-  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
-    (setq *jabber-active-groupchats* 
-	  (delq whichgroup *jabber-active-groupchats*))
-
-    ;; send unavailable presence to our own nick in room
-    (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
-				  (type . "unavailable"))))))
-
-(add-to-list 'jabber-jid-muc-menu
-	     (cons "Join groupchat" 'jabber-groupchat-join))
-
-(defun jabber-groupchat-join (group nickname)
-  "join a groupchat"
-  (interactive (list (jabber-read-jid-completing "group: ")
-		     (jabber-read-with-input-method (format "Nickname: (default %s) "
-							    jabber-nickname) 
-						    nil nil jabber-nickname)))
-  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))))
-
-  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
-    (if whichgroup
-	(setcdr whichgroup nickname)
-      (add-to-list '*jabber-active-groupchats* (cons group nickname))))
-  
-  (jabber-groupchat-display group))
-
 (add-to-list 'jabber-message-chain 'jabber-process-message)
 
 (defun jabber-process-message (xml-data)
@@ -433,13 +397,7 @@ TIMESTAMP is timestamp, or nil for now."
 	(error (car (jabber-xml-get-children xml-data 'error))))
 
     (cond
-     ;; Public groupchat messages have type "groupchat" and are from room@server/nick.
-     ;; Public groupchat errors have type "error" and are from room@server.
-     ((or 
-       (string= type "groupchat")
-       (and (string= type "error")
-	    (assoc from *jabber-active-groupchats*)))
-
+     ((jabber-muc-message-p xml-data)
       (jabber-groupchat-display (jabber-jid-user from) 
 				(jabber-jid-resource from)
 				(if error

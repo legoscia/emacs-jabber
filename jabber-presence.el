@@ -24,6 +24,7 @@
 (require 'jabber-alert)
 (require 'jabber-util)
 (require 'jabber-menu)
+(require 'jabber-muc)
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (x) (jabber-process-roster x nil)))))
@@ -40,11 +41,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		 (string= (jabber-jid-user from) (concat jabber-username "@" jabber-server))))
 	(message "Roster push with invalid \"from\": \"%s\"" from)
 
-      ;; If *jabber-roster* is empty, we just fill up the roster with the given data.
-      ;; If not, we have received a partial roster update, so just fill in that data.
-      ;; These cases can be differentiated by the type attribute of the iq tag:
-      ;; if type='result', we asked for the whole roster.  If type='set', we are
-      ;; getting a "roster push".
+      ;; If *jabber-roster* is empty, we just fill up the roster with
+      ;; the given data.  If not, we have received a partial roster
+      ;; update, so just fill in that data.  These cases can be
+      ;; differentiated by the type attribute of the iq tag: if
+      ;; type='result', we asked for the whole roster.  If type='set',
+      ;; we are getting a "roster push".
       (dolist (item (jabber-xml-get-children (car (jabber-xml-get-children xml-data 'query)) 'item))
 	(let (roster-item
 	      (jid (jabber-jid-symbol (jabber-xml-get-attribute item 'jid))))
@@ -63,15 +65,17 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (put roster-item 'subscription (jabber-xml-get-attribute item 'subscription))
 	  (put roster-item 'ask (jabber-xml-get-attribute item 'ask))
 
-	  ;; Since roster items can't be changed incrementally, we save the original XML
-	  ;; to be able to modify it, instead of having to reproduce it.  This is for
-	  ;; forwards compatibility.
+	  ;; Since roster items can't be changed incrementally, we
+	  ;; save the original XML to be able to modify it, instead of
+	  ;; having to reproduce it.  This is for forwards
+	  ;; compatibility.
 	  (put roster-item 'xml item)
 
-	  ;; xml-parse-tag will put "" as the only child element of an empty element,
-	  ;; (e.g. <item jid="foo@bar"/> as opposed to <item jid="foo@bar"><group>baz</group></item>)
-	  ;; which xml-get-children subsequently will choke on.  We want to avoid
-	  ;; that with an extra check.
+	  ;; xml-parse-tag will put "" as the only child element of an
+	  ;; empty element, (e.g. <item jid="foo@bar"/> as opposed to
+	  ;; <item jid="foo@bar"><group>baz</group></item>) which
+	  ;; xml-get-children subsequently will choke on.  We want to
+	  ;; avoid that with an extra check.
 	  (put roster-item 'groups (mapcar #'(lambda (foo) (nth 2 foo)) (jabber-xml-get-children item 'group)))
 
 	  ;; If subscripton="remove", contact is to be removed from roster
@@ -91,15 +95,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(to (jabber-xml-get-attribute xml-data 'to))
 	(type (jabber-xml-get-attribute xml-data 'type))
-	(presence-show (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'show)))))
-	(presence-status (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'status)))))
+	(presence-show (car (jabber-xml-node-children
+			     (car (jabber-xml-get-children xml-data 'show)))))
+	(presence-status (car (jabber-xml-node-children
+			       (car (jabber-xml-get-children xml-data 'status)))))
 	(error (car (jabber-xml-get-children xml-data 'error)))
 	(priority (string-to-number (or (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'priority))))
 					"0"))))
     (cond
      ((string= type "subscribe")
       (run-with-idle-timer 0.01 nil #'jabber-process-subscription-request from presence-status))
-   
+
+     ((jabber-muc-presence-p xml-data)
+      (jabber-muc-process-presence xml-data))
+
      (t
       ;; XXX: now that we have jabber-jid-symbol, maybe this loop should
       ;; go.  Think about what to do about out-of-roster presences.
@@ -117,7 +126,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(setq resource-plist
 		      (plist-put resource-plist 'show nil))
 		(setq resource-plist
-		      (plist-put resource-plist 'status (jabber-unescape-xml presence-status))))
+		      (plist-put resource-plist 'status
+				 (jabber-unescape-xml presence-status))))
 
 	       ((string= type "error")
 		(setq newstatus "error")
@@ -126,9 +136,10 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(setq resource-plist
 		      (plist-put resource-plist 'show "error"))
 		(setq resource-plist
-		      (plist-put resource-plist 'status (if error
-							    (jabber-parse-error error)
-							  (jabber-unescape-xml presence-status)))))
+		      (plist-put resource-plist 'status
+				 (if error
+				     (jabber-parse-error error)
+				   (jabber-unescape-xml presence-status)))))
 	       ((or
 		 (string= type "unsubscribe")
 		 (string= type "subscribed")
@@ -142,7 +153,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(setq resource-plist
 		      (plist-put resource-plist 'show (or presence-show "")))
 		(setq resource-plist
-		      (plist-put resource-plist 'status (jabber-unescape-xml presence-status)))
+		      (plist-put resource-plist 'status
+				 (jabber-unescape-xml presence-status)))
 		(setq resource-plist
 		      (plist-put resource-plist 'priority priority))
 		(setq newstatus (or presence-show ""))))
@@ -153,19 +165,31 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
 	      (jabber-prioritize-resources buddy)
 
-	      (run-hook-with-args 'jabber-alert-presence-hooks buddy oldstatus newstatus (jabber-unescape-xml (plist-get resource-plist 'status))
-				  (funcall jabber-alert-presence-message-function buddy oldstatus newstatus (jabber-unescape-xml (plist-get resource-plist 'status)))))))))))
+	      (run-hook-with-args 'jabber-alert-presence-hooks
+				  buddy
+				  oldstatus
+				  newstatus
+				  (jabber-unescape-xml 
+				   (plist-get resource-plist 'status))
+				  (funcall jabber-alert-presence-message-function 
+					   buddy
+					   oldstatus
+					   newstatus
+					   (jabber-unescape-xml
+					    (plist-get resource-plist 'status)))))))))))
 
 (defun jabber-process-subscription-request (from presence-status)
   "process an incoming subscription request"
   (run-hook-with-args 'jabber-alert-presence-hooks (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status))
   (jabber-send-sexp 
-   (list 'presence (list (cons 'to from)
-			 (cons 'type (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
-							   from
-							   (jabber-unescape-xml presence-status)))
-					 "subscribed"
-				       "unsubscribed")))))
+   (list 'presence
+	 (list (cons 'to from)
+	       (cons 'type
+		     (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
+					      from
+					      (jabber-unescape-xml presence-status)))
+			 "subscribed"
+		       "unsubscribed")))))
   (when (yes-or-no-p (format "Do you want to subscribe to %s's presence? " from))
     (jabber-send-sexp
      (list 'presence (list (cons 'to from)
@@ -215,7 +239,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 (defun jabber-send-presence (show status priority)
   "send a presence tag to the server"
   (interactive (list (completing-read "show:"
-				      '(("" . nil) ("away" . nil) ("xa" . nil) ("dnd" . nil) ("chat" . nil)) nil t)
+				      '(("" . nil)
+					("away" . nil)
+					("xa" . nil)
+					("dnd" . nil)
+					("chat" . nil))
+				      nil t)
 		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
 		     (read-string "priority: " (progn
 						 (unless *jabber-current-priority*
@@ -257,7 +286,8 @@ and `jabber-default-status'."
 	     (cons "Add/modify roster entry" 'jabber-roster-change))
 (defun jabber-roster-change (jid name groups)
   "Add or change a roster item."
-  (interactive (let* ((jid (jabber-jid-symbol (jabber-read-jid-completing "Add/change JID: ")))
+  (interactive (let* ((jid (jabber-jid-symbol
+			    (jabber-read-jid-completing "Add/change JID: ")))
 		      (name (get jid 'name))
 		      (groups (get jid 'groups)))
 		 (list jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
