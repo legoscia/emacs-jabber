@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.4 2004/03/09 19:20:53 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.5 2004/03/09 21:46:10 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -217,6 +217,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 						   (setq *jabber-current-priority*
 							 jabber-default-priority))
 						 (int-to-string *jabber-current-priority*)))))
+  (if (numberp priority)
+      (setq priority (int-to-string priority)))
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
   (setq *jabber-current-priority* (string-to-int priority))
