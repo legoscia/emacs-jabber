@@ -158,7 +158,10 @@ bring up menus of actions.
     (if (not (eq major-mode 'jabber-roster-mode))
 	(jabber-roster-mode))
     (setq buffer-read-only nil)
-    (let ((current-line (line-number-at-pos))
+    ;; line-number-at-pos is in Emacs >= 21.4.  Only used to avoid
+    ;; excessive scrolling when updating roster, so not absolutely
+    ;; necessary.
+    (let ((current-line (and (fboundp 'line-number-at-pos) (line-number-at-pos)))
 	  (current-column (current-column)))
       (erase-buffer)
       (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
@@ -253,8 +256,9 @@ bring up menus of actions.
       (setq buffer-read-only t)
       (if (interactive-p)
 	  (run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))
-      (goto-line current-line)
-      (move-to-column current-column))))
+      (when current-line
+	(goto-line current-line)
+	(move-to-column current-column)))))
 
 (provide 'jabber-roster)
 
