@@ -27,22 +27,82 @@
 ;; element is the recipient.  The fifth element is the text
 ;; of the message.
 
+;; FIXME: when rotation is enabled, jabber-history-query won't look
+;; for older history files if the current history file doesn't contain
+;; enough backlog entries.
+
+
 (defcustom jabber-history-enabled nil
-  "Non-nil means message logging is enabled"
+  "Non-nil means message logging is enabled."
   :type 'boolean
   :group 'jabber)
 
-(defcustom jabber-history-file "~/.jabber_global_message_log"
-  "File where messages are logged"
+(defcustom jabber-use-global-history t
+  "Indicate whether Emacs Jabber should use a global file for
+  store messages.  If non-nil, jabber-global-history-filename is
+  used, otherwise, messages are stored in per-user files under
+  the jabber-history-dir directory."
+  :type 'boolean
+  :group 'jabber)
+
+(defcustom jabber-history-dir "~/.emacs-jabber"
+  "Base directory where per-contact history files are stored.
+  Used only when jabber-use-global-history is not true."
+  :type 'directory
+  :group 'jabber)
+
+(defcustom jabber-global-history-filename "~/.jabber_global_message_log"
+  "Global file where all messages are logged.  Used when
+  jabber-use-global-history is non-nil."
   :type 'file
   :group 'jabber)
 
+(defcustom jabber-history-size-limit 1024
+  "Maximum history file size in kilobytes.  When history file
+  reaches this limit, it is renamed to <history-file>-<number>,
+  where <number> is 1 or the smallest number after the last
+  rotation."
+  :type 'integer
+  :group 'jabber)
+
+(defcustom jabber-history-enable-rotation nil
+  "Whether history files should be renamed when reach
+  jabber-history-size-limit kilobytes.  If nil, history files
+  will grow indefinitely, otherwise they'll be renamed to
+  <history-file>-<number>, where <number> is 1 or the smallest
+  number after the last rotation."
+  :type 'boolean
+  :group 'jabber)
+
+(defun jabber-rotate-history-p (history-file)
+  "Return true if HISTORY-FILE should be rotated."
+  (when (and jabber-history-enable-rotation
+	     (file-exists-p history-file))
+    (> (/ (nth 7 (file-attributes history-file)) 1024)
+       jabber-history-size-limit)))
+
+(defun jabber-history-rotate (history-file &optional try)
+  "Rename HISTORY-FILE to HISTORY-FILE-TRY."
+  (let ((suffix (number-to-string (or try 1))))
+    (if (file-exists-p (concat history-file "-"  suffix))
+	(jabber-history-rotate history-file (if try (1+ try) 1))
+      (rename-file history-file (concat history-file "-" suffix)))))
+
 (defun jabber-message-history (from buffer text proposed-alert)
-  "Log message to log file. For now, all messages from all users
-will be logged to the same file."
+  "Log message to log file."
+  (when (and (not jabber-use-global-history)
+	     (not (file-directory-p jabber-history-dir)))
+    (make-directory jabber-history-dir))
   (if jabber-history-enabled
       ;; timestamp is dynamically bound from jabber-display-chat
       (jabber-history-log-message "in" from nil text timestamp)))
+
+(defun jabber-history-filename (contact)
+  "Return a history filename for CONTACT if the per-user file
+  loggin strategy is used or the global history filename."
+  (if jabber-use-global-history
+      jabber-global-history-filename
+    (concat jabber-history-dir "/" (jabber-jid-user contact))))
 
 (defun jabber-history-log-message (direction from to body timestamp)
   "Log a message"
@@ -63,8 +123,14 @@ will be logged to the same file."
 		    (or to
 			"me")
 		    body))
-    (let ((coding-system-for-write 'utf-8))
-      (write-region (point-min) (point-max) jabber-history-file t 'quiet))))
+    (let ((coding-system-for-write 'utf-8)
+	  (history-file (jabber-history-filename (or from to))))
+      (when (and (not jabber-use-global-history)
+		 (not (file-directory-p jabber-history-dir)))
+	(make-directory jabber-history-dir))
+      (when (jabber-rotate-history-p history-file)
+	(jabber-history-rotate history-file))
+      (write-region (point-min) (point-max) history-file t 'quiet))))
 
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
@@ -76,7 +142,8 @@ will be logged to the same file."
 			     time
 			     number
 			     direction
-			     jid-regexp)
+			     jid-regexp
+			     history-file)
   "Return a list of vectors, one for each message matching the criteria.
 TIME-COMPARE-FUNCTION is either `<' or `>', to be called as
 \(TIME-COMPARE-FUNCTION (float-time time-of-message) TIME), and
@@ -85,10 +152,10 @@ NUMBER is the maximum number of messages to return, or t for
 unlimited.
 DIRECTION is either \"in\" or \"out\", or t for no limit on direction.
 JID-REGEXP is a regexp which must match the JID."
-  (when (file-readable-p jabber-history-file)
+  (when (file-readable-p history-file)
     (with-temp-buffer
       (let ((coding-system-for-read 'utf-8))
-	(insert-file-contents jabber-history-file))
+	(insert-file-contents history-file))
       (let ((from-beginning (eq time-compare-function '<))
 	    collected current-line)
 	(if from-beginning
@@ -139,7 +206,8 @@ This function is to be called from a chat buffer."
 		'> (- (jabber-float-time) (* jabber-backlog-days 86400.0))
 		jabber-backlog-number
 		t			; both incoming and outgoing
-		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
+		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")
+		(jabber-history-filename jabber-chatting-with)))
     (if (string= (aref msg 1) "in")
 	(jabber-chat-print (aref msg 2) (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
 			   jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
