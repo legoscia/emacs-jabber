@@ -140,7 +140,7 @@ TIMESTAMP is timestamp, or nil for now."
   (interactive)
   (let ((body (delete-and-extract-region jabber-point-insert (point-max)))
 	(inhibit-read-only t))
-    (jabber-send-chat jabber-group body)
+    (jabber-send-groupchat jabber-group body)
     (goto-char (point-max))
     (setq jabber-point-insert (point-max))
     (set-text-properties jabber-point-insert (point-max) nil)
