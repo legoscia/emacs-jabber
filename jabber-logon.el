@@ -1,5 +1,5 @@
 ;; jabber-logon.el - logon functions
-;; $Id: jabber-logon.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-logon.el,v 1.2 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,6 +21,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-xml)
+(require 'jabber-util)
 (require 'sha1-el)
 
 (defun jabber-get-auth (to)

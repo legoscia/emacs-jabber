@@ -1,5 +1,5 @@
 ;; jabber-widget.el - display various kinds of forms
-;; $Id: jabber-widget.el,v 1.3 2004/03/09 21:51:22 legoscia Exp $
+;; $Id: jabber-widget.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -23,6 +23,7 @@
 (require 'widget)
 (eval-when-compile
   (require 'wid-edit))
+(require 'jabber-util)
 
 (defvar jabber-widget-alist nil
   "Alist of widgets currently used")

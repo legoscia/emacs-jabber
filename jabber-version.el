@@ -1,5 +1,5 @@
 ;; jabber-version.el - version reporting by JEP-0092
-;; $Id: jabber-version.el,v 1.3 2004/03/27 22:35:06 legoscia Exp $
+;; $Id: jabber-version.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,6 +21,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-iq)
+(require 'jabber-util)
 
 (defconst jabber-version "0.5"
   "version returned to those who query us")

@@ -1,5 +1,5 @@
 ;; jabber-alert.el - alert hooks
-;; $Id: jabber-alert.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-alert.el,v 1.3 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(require 'jabber-util)
 
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)

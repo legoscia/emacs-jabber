@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.5 2004/03/09 21:46:10 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.6 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -22,6 +22,8 @@
 
 (require 'jabber-core)
 (require 'jabber-iq)
+(require 'jabber-alert)
+(require 'jabber-util)
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (x) (jabber-process-roster x nil)))))

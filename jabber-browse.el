@@ -1,5 +1,5 @@
 ;; jabber-browse.el - jabber browsing by JEP-0011
-;; $Id: jabber-browse.el,v 1.2 2004/03/27 22:33:16 legoscia Exp $
+;; $Id: jabber-browse.el,v 1.3 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -20,6 +20,9 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 'jabber-iq)
+(require 'jabber-xml)
+(require 'jabber-util)
 
 ;; jabber.el can perform browse requests, but will not answer them.
 

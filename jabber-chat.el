@@ -1,5 +1,5 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.3 2004/03/06 12:54:43 legoscia Exp $
+;; $Id: jabber-chat.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -22,6 +22,7 @@
 
 (require 'jabber-core)
 (require 'jabber-roster)		;for keymap
+(require 'jabber-util)
 
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")

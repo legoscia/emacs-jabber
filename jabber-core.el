@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.4 2004/03/27 22:55:37 legoscia Exp $
+;; $Id: jabber-core.el,v 1.5 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -19,6 +19,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(require 'jabber-util)
+(require 'jabber-logon)
 
 (defvar *jabber-connection* nil
   "the process that does the actual connection")
