@@ -135,7 +135,7 @@ the default is inferred from context."
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
     ;; if the default is not in the allowed subset, it's not a good default
-    (if (not (assoc jid-at-point jid-completion-table))
+    (if (and subset (not (assoc jid-at-point jid-completion-table)))
 	(setq jid-at-point nil))
     (let ((input
 	   (completing-read (concat prompt
