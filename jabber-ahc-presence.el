@@ -1,5 +1,5 @@
 ;; jabber-ahc-presence.el - provide remote control of presence
-;; $Id: jabber-ahc-presence.el,v 1.2 2004/03/10 18:55:24 legoscia Exp $
+;; $Id: jabber-ahc-presence.el,v 1.3 2004/03/13 11:33:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -25,12 +25,8 @@
 (defconst jabber-ahc-presence-node "presence"
   "Node used by jabber-ahc-presence")
 
-(defun jabber-same-jid (jid)
-  (equal (jabber-jid-user jid)
-	 (concat jabber-username "@" jabber-server)))
-
 (jabber-ahc-add jabber-ahc-presence-node "Set presence" 'jabber-ahc-presence
-		'jabber-same-jid)
+		'jabber-my-jid-p)
 
 (defun jabber-ahc-presence (xml-data)
   "Process presence change command."
