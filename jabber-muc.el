@@ -307,6 +307,22 @@ Return nil if nothing known about that combination."
 		    'jabber-report-success "Role change"
 		    'jabber-report-success "Role change")))
 
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Invite someone to chatroom" 'jabber-muc-invite))
+
+(defun jabber-muc-invite (jid group reason)
+  "Invite JID to GROUP, stating REASON."
+  (interactive
+   (list (jabber-read-jid-completing "Invite whom: ")
+	 (jabber-muc-read-completing "To group: ")
+	 (jabber-read-with-input-method "Reason: ")))
+  (jabber-send-sexp
+   `(message ((to . ,group))
+	     (x ((xmlns . "http://jabber.org/protocol/muc#user"))
+		(invite ((to . ,jid))
+			,(unless (zerop (length reason))
+			   `(reason nil ,reason)))))))
+
 (defun jabber-muc-autojoin ()
   "Join rooms specified in variable `jabber-muc-autojoin'."
   (interactive)
