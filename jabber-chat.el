@@ -141,6 +141,9 @@ These fields are available:
 (defvar jabber-group nil
   "the groupchat you are participating in")
 
+(defvar jabber-point-insert nil
+  "Position where the message being composed starts")
+
 (defun jabber-chat-mode ()
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
