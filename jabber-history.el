@@ -130,6 +130,8 @@ Jabber history files."
 (defun jabber-history-log-message (direction from to body timestamp)
   "Log a message"
   (with-temp-buffer
+    ;; Remove properties
+    (set-text-properties 0 (length body) nil body)
     ;; Encode text as Lisp string - get decoding for free
     (setq body (prin1-to-string body))
     ;; Encode LF and CR
