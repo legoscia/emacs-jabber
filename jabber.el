@@ -19,8 +19,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-;;; load Unicode tables
-(if (featurep 'xemacs)
+;;; load Unicode tables if this needed
+(when (and (featurep 'xemacs) (not (emacs-version>= 21 5 5)))
     (require 'un-define))
 
 ;;; guess internal dependencies!
