@@ -258,14 +258,20 @@ Call this function after disconnection."
                   (setq *xmlq* (substring *xmlq* (match-end 0)))
                   (let ((xml-data (xml-parse-region (point-min)
                                                     (point-max))))
-                    (if xml-data
-                        (progn
+                    (when xml-data
+		      ;; If there's a problem with writing the XML log,
+		      ;; make sure the stanza is delivered, at least.
+		      (condition-case e
                           (if jabber-debug-log-xml
 			      (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
 				(save-excursion
 				  (goto-char (point-max))
 				  (insert (format "receive %S\n\n" (car xml-data))))))
-                          (jabber-process-input (car xml-data)))))
+			(error
+			 (ding)
+			 (message "Couldn't write XML log: %s" (error-message-string e))
+			 (sit-for 2)))
+		      (jabber-process-input (car xml-data))))
                   (erase-buffer))
               (throw 'jabber-no-tag t)))))))))
 
@@ -359,11 +365,16 @@ Call this function after disconnection."
 
 (defun jabber-send-sexp (sexp)
   "send the xml corresponding to SEXP to the jabber server"
-  (if jabber-debug-log-xml
-      (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-	(save-excursion
-	  (goto-char (point-max))
-	  (insert (format "sending %S\n\n" sexp)))))
+  (condition-case e
+      (if jabber-debug-log-xml
+	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+	    (save-excursion
+	      (goto-char (point-max))
+	      (insert (format "sending %S\n\n" sexp)))))
+    (error
+     (ding)
+     (message "Couldn't write XML log: %s" (error-message-string e))
+     (sit-for 2)))
   (process-send-string *jabber-connection* (jabber-sexp2xml sexp)))
 
 (provide 'jabber-core)
