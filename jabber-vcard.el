@@ -93,8 +93,11 @@ The top node should be the `vCard' node."
       (push (cons 'N
 		  (let (name)
 		    (dolist (subnode (jabber-xml-node-children node))
-		      (when (memq (jabber-xml-node-name subnode)
-				  '(FAMILY GIVEN MIDDLE PREFIX SUFFIX))
+		      (when (and (memq (jabber-xml-node-name subnode)
+				       '(FAMILY GIVEN MIDDLE PREFIX SUFFIX))
+				 (not (zerop (length
+					      (car (jabber-xml-node-children
+						    subnode))))))
 			(push (cons (jabber-xml-node-name subnode)
 				    (car (jabber-xml-node-children
 					  subnode)))
@@ -113,9 +116,12 @@ The top node should be the `vCard' node."
 
 	  (let (components)
 	    (dolist (component (jabber-xml-node-children adr))
-	      (when (memq (jabber-xml-node-name component)
-			  '(POBOX EXTADR STREET LOCALITY REGION
-				  PCODE CTRY))
+	      (when (and (memq (jabber-xml-node-name component)
+			       '(POBOX EXTADR STREET LOCALITY REGION
+				       PCODE CTRY))
+			 (not (zerop (length
+				      (car (jabber-xml-node-children
+					    component))))))
 		(push (cons (jabber-xml-node-name component)
 			    (car (jabber-xml-node-children component)))
 		      components)))
