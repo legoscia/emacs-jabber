@@ -1,0 +1,21 @@
+-*- mode: outline -*-
+
+* New features in jabber.el 0.6.1
+
+** Activity tracking on the mode line
+Activate it with M-x jabber-activity-mode.
+
+** Receive an alert when a specific person goes online
+Use it with M-x jabber-watch-add.
+
+** Support for /me in chats
+As in "/me laughs" etc.
+
+** Message alerts for current buffer can be disabled
+Set jabber-message-alert-same-buffer to nil to do that.
+
+** MUC alerts are separated from ordinary message alerts
+Customize jabber-alert-muc-hooks to get your desired behaviour.
+
+
+arch-tag: 1CE20E4E-3BD9-11D9-8D64-000A95C2FCD0
