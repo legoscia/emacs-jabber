@@ -1,5 +1,4 @@
 ;; jabber-browse.el - jabber browsing by JEP-0011
-;; $Id: jabber-browse.el,v 1.3 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -95,3 +94,5 @@
 	    (jabber-process-browse item))))))
 
 (provide 'jabber-browse)
+
+;;; arch-tag: be01ab34-96eb-4fcb-aa35-a0d3e6c446c3

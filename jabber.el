@@ -1,5 +1,4 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.44 2004/04/03 20:00:29 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -268,3 +267,5 @@ Offline is represented as nil."
   (info "jabber"))
 
 (provide 'jabber)
+
+;;; arch-tag: 5145153e-4d19-4dc2-800c-b1282feb155d

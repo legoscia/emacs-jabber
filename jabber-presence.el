@@ -1,5 +1,4 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.7 2004/04/06 11:23:04 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -277,3 +276,5 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		  #'jabber-report-success "Roster item removal"))
 
 (provide 'jabber-presence)
+
+;;; arch-tag: b8616d4c-dde8-423e-86c7-da7b4928afc3

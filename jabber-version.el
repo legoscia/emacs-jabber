@@ -1,5 +1,4 @@
 ;; jabber-version.el - version reporting by JEP-0092
-;; $Id: jabber-version.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -69,3 +68,5 @@ determined from the incoming packet passed in XML-DATA."
 		    id)))
 
 (provide 'jabber-version)
+
+;;; arch-tag: 2051dbe7-01b5-401e-bd8a-fe24afb88e1e

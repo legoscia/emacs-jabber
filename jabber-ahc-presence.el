@@ -1,5 +1,4 @@
 ;; jabber-ahc-presence.el - provide remote control of presence
-;; $Id: jabber-ahc-presence.el,v 1.3 2004/03/13 11:33:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -102,3 +101,5 @@
 		(note ((type . "info")) "Presence has been changed."))))))
 
 (provide 'jabber-ahc-presence)
+
+;;; arch-tag: 4b8cbbe7-00a9-4d42-a4ac-b824ab914fba

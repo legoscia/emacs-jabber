@@ -1,5 +1,4 @@
 ;; jabber-logon.el - logon functions
-;; $Id: jabber-logon.el,v 1.2 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -83,3 +82,5 @@ CLOSURE-DATA should be t on success and nil on failure."
     (jabber-disconnect)))
 
 (provide 'jabber-logon)
+
+;;; arch-tag: f24ebe5e-3420-44bb-af81-d4de21f378b0

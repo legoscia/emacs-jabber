@@ -1,5 +1,4 @@
 ;; jabber-menu.el - menu definitions
-;; $Id: jabber-menu.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -75,3 +74,5 @@
   (jabber-popup-menu (append jabber-jid-chat-menu jabber-jid-info-menu jabber-jid-roster-menu jabber-jid-muc-menu)))
 
 (provide 'jabber-menu)
+
+;;; arch-tag: 5147f52f-de47-4348-86ff-b799d7a75e3f

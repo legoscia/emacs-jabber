@@ -1,5 +1,4 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.13 2004/04/02 19:36:09 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.5
@@ -845,3 +844,7 @@ to change the behaviour of downstream functions.
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 995bf3da-0e87-4b15-895a-1e85fac139a2
+@end ignore

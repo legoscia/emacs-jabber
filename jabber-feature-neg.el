@@ -1,5 +1,4 @@
 ;; jabber-feature-neg.el - Feature Negotiation by JEP-0020
-;; $Id: jabber-feature-neg.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -122,3 +121,5 @@ protocols."
 	alist)))
 
 (provide 'jabber-feature-neg)
+
+;;; arch-tag: 65b2cdcc-7a5f-476b-a613-84ec8e590186

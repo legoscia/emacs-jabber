@@ -1,5 +1,4 @@
 ;; jabber-register.el - registration according to JEP-0077
-;; $Id: jabber-register.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -126,3 +125,5 @@ CLOSURE-DATA is either 'success or 'error."
 		      #'jabber-report-success "Unregistration")))
 
 (provide 'jabber-register)
+
+;;; arch-tag: e6b349d6-b1ad-4d19-a412-74459dfae239

@@ -1,5 +1,4 @@
 ;; jabber-ft-server.el - handle incoming file transfers, by JEP-0096
-;; $Id: jabber-ft-server.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -84,3 +83,5 @@ is function to call to get more data."
 	(insert data)))))
 
 (provide 'jabber-ft-server)
+
+;;; arch-tag: 334adcff-6210-496e-8382-8f49ae0248a1

@@ -1,5 +1,4 @@
 ;; jabber-search.el - searching by JEP-0055, with x:data support
-;; $Id: jabber-search.el,v 1.2 2004/03/03 19:24:58 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -112,3 +111,5 @@
 	    (insert "\n"))))))
 
 (provide 'jabber-search)
+
+;;; arch-tag: c39e9241-ab6f-4ac5-b1ba-7908bbae009c

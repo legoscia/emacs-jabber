@@ -1,5 +1,4 @@
 ;; jabber-keymap.el - common keymap for many modes
-;; $Id: jabber-keymap.el,v 1.1 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -33,3 +32,5 @@
   )
 
 (provide 'jabber-keymap)
+
+;;; arch-tag: 22a9993d-a4a7-40ef-a025-7cff6c3f5587

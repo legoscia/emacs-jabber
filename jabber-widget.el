@@ -1,5 +1,4 @@
 ;; jabber-widget.el - display various kinds of forms
-;; $Id: jabber-widget.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -266,3 +265,5 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 	(insert "\n")))))
 
 (provide 'jabber-widget)
+
+;;; arch-tag: da3312f3-1970-41d5-a974-14b8d76156b8

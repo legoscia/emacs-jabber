@@ -1,5 +1,4 @@
 ;; jabber-xml.el - XML functions
-;; $Id: jabber-xml.el,v 1.3 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -118,3 +117,5 @@ is not present, emulate it with `xml-get-attribute'."
 	 (and (> (length result) 0) result))))
 
 (provide 'jabber-xml)
+
+;;; arch-tag: ca206e65-7026-4ee8-9af2-ff6a9c5af98a

@@ -1,5 +1,4 @@
 ;; jabber-roster.el - displaying the roster
-;; $Id: jabber-roster.el,v 1.6 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -146,3 +145,5 @@ bring up menus of actions.
 	(run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))))
 
 (provide 'jabber-roster)
+
+;;; arch-tag: 096af063-0526-4dd2-90fd-bc6b5ba07d32

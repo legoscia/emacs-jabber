@@ -1,5 +1,4 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.9 2004/04/02 19:27:56 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -195,3 +194,5 @@ With prefix argument, register a new account."
   (process-send-string *jabber-connection* (jabber-sexp2xml sexp)))
 
 (provide 'jabber-core)
+
+;;; arch-tag: 9d273ce6-c45a-447b-abf3-21d3ce73a51a

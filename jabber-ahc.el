@@ -1,5 +1,4 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
-;; $Id: jabber-ahc.el,v 1.6 2004/03/31 09:30:09 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -223,3 +222,5 @@ access allowed.  nil means open for everyone."
 		  #'jabber-process-data "Command execution failed"))
 
 (provide 'jabber-ahc)
+
+;;; arch-tag: c0d5ed8c-50cb-44e1-8e0f-4058b79ee353

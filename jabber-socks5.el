@@ -1,5 +1,4 @@
 ;; jabber-socks5.el - SOCKS5 bytestreams by JEP-0065
-;; $Id: jabber-socks5.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -121,3 +120,5 @@ Zeroconf is not supported."
      nil)))
 
 (provide 'jabber-socks5)
+
+;;; arch-tag: 9e70dfea-2522-40c6-a79f-302c8fb82ac5

@@ -1,5 +1,4 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.8 2004/04/06 11:32:12 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -220,3 +219,5 @@ TIMESTAMP is timestamp, or nil for now."
   (jabber-send-message to body nil "chat"))
 
 (provide 'jabber-chat)
+
+;;; arch-tag: a6cca037-2fcd-4e3b-8a40-d00523aebff5

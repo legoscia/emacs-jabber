@@ -1,5 +1,4 @@
 ;; jabber-alert.el - alert hooks
-;; $Id: jabber-alert.el,v 1.3 2004/03/29 20:07:52 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -277,3 +276,5 @@ This function uses `jabber-info-message-alist' to find a message."
   (switch-to-buffer buffer))
 
 (provide 'jabber-alert)
+
+;;; arch-tag: 725bd73e-c613-4fdc-a11d-3392a7598d4f

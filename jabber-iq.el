@@ -1,5 +1,4 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.9 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -161,3 +160,5 @@ See section 9.3 of XMPP Core."
       (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
 
 (provide 'jabber-iq)
+
+;;; arch-tag: 5585dfa3-b59a-42ee-9292-803652c85e26

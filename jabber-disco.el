@@ -1,5 +1,4 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.8 2004/04/03 09:01:08 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -199,3 +198,5 @@ See JEP-0030."
 		  #'jabber-process-data "Info discovery failed"))
 
 (provide 'jabber-disco)
+
+;;; arch-tag: 71f5c76f-2956-4ed2-b871-9f5fe198092d

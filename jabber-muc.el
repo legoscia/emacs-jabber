@@ -1,5 +1,4 @@
 ;; jabber-muc.el - advanced MUC functions
-;; $Id: jabber-muc.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -79,3 +78,5 @@
 		  nil nil nil nil))
 
 (provide 'jabber-muc)
+
+;;; arch-tag: 1ff7ab35-1717-46ae-b803-6f5b3fb2cd7d
