@@ -50,7 +50,7 @@
     (jabber-keepalive-stop))
 
   (setq jabber-keepalive-timer
-	(run-with-timer jabber-keepalive-interval
+	(run-with-timer 5
 			jabber-keepalive-interval
 			'jabber-keepalive-do)))
 
