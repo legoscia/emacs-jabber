@@ -736,17 +736,32 @@ The query child is often but not always <query/>."
   "Return the namespace of an IQ stanza, i.e. the namespace of its query part."
   (jabber-xml-get-attribute (jabber-iq-query xml-data) 'xmlns))
 
-(defun jabber-process-message (from subject body thread type)
+(defun jabber-process-message (xml-data)
   "process incoming messages"
-  (cond
-   ((string= type "groupchat")
-    (jabber-groupchat-display (jabber-jid-user from) 
-                              (jabber-jid-resource from)
-                              (jabber-unescape-xml body))
-    )
-   (t
-    (jabber-chat-display from 
-                         (jabber-unescape-xml body)))))
+  (let ((from (xml-get-attribute xml-data 'from))
+	(type (xml-get-attribute xml-data 'type))
+	(subject (if (xml-get-children xml-data 'subject)
+		     (car (xml-node-children (car (xml-get-children xml-data 'subject))))))
+	(body (if (xml-get-children xml-data 'body)
+		  (car (xml-node-children (car (xml-get-children xml-data 'body))))))
+	(thread (if (xml-get-children xml-data 'thread)
+		    (car (xml-node-children (car (xml-get-children xml-data 'thread))))))
+	(error (car (xml-get-children xml-data 'error))))
+    ;; XXX: The present division by type does not properly handle
+    ;; groupchat error messages.
+    (cond
+     ((string= type "groupchat")
+      (jabber-groupchat-display (jabber-jid-user from) 
+				(jabber-jid-resource from)
+				(jabber-unescape-xml body))
+      )
+     (t
+      (if error
+	  (jabber-chat-display from
+			       (concat "ERROR: "
+				       (jabber-parse-error error)))
+	(jabber-chat-display from 
+			     (jabber-unescape-xml body)))))))
 
 
 (defun jabber-process-subscription-request (from presence-status)
@@ -1306,15 +1321,7 @@ CLOSURE-DATA is either 'success or 'error."
        (jabber-process-iq xml-data))
       
       ((eq tag 'message)
-       (let ((from (xml-get-attribute xml-data 'from))
-             (type (xml-get-attribute xml-data 'type))
-             (subject (if (xml-get-children xml-data 'subject)
-                          (car (xml-node-children (car (xml-get-children xml-data 'subject))))))
-             (body (if (xml-get-children xml-data 'body)
-                       (car (xml-node-children (car (xml-get-children xml-data 'body))))))
-             (thread (if (xml-get-children xml-data 'thread)
-			 (car (xml-node-children (car (xml-get-children xml-data 'thread)))))))
-         (jabber-process-message from subject body thread type)))
+         (jabber-process-message xml-data))
 
       ((eq tag 'presence)
        (let ((from (xml-get-attribute xml-data 'from))
