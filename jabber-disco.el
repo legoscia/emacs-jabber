@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.7 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.8 2004/04/03 09:01:08 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -28,6 +28,7 @@
 
 (require 'jabber-iq)
 (require 'jabber-xml)
+(require 'jabber-menu)
 
 ;; Advertise your features here.  Add the namespace to this list.
 (defvar jabber-advertised-features
