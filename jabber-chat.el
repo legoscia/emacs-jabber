@@ -198,7 +198,7 @@ JID is the bare JID."
 						resource
 						jid)
 			  'face face)
-       (jabber-propertize (concat (jabber-replace-me body jabber-nickname)
+       (jabber-propertize (concat (jabber-replace-me body nick)
 				  "\n")
 			  'face 'jabber-chat-prompt-system))
     (concat (jabber-propertize (jabber-format-prompt prompt
