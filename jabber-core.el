@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-core.el,v 1.3 2004/03/09 19:23:53 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -80,8 +80,8 @@ With prefix argument, register a new account."
 
     (setq jabber-register-p registerp)
     (setq jabber-call-on-connection (if registerp
-					(lambda () (jabber-get-register jabber-server))
-				      (lambda () (jabber-get-auth jabber-server))))
+					#'(lambda () (jabber-get-register jabber-server))
+				      #'(lambda () (jabber-get-auth jabber-server))))
     (process-send-string *jabber-connection*
 			 (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
@@ -163,8 +163,8 @@ With prefix argument, register a new account."
 (defun jabber-clear-roster ()
   "Clean up the roster.
 This is made complicated by the fact that the JIDs are symbols with properties."
-  (mapatoms (lambda (x)
-	      (unintern x jabber-jid-obarray))
+  (mapatoms #'(lambda (x)
+		(unintern x jabber-jid-obarray))
 	    jabber-jid-obarray)
   (setq *jabber-roster* nil))
 

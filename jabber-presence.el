@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.3 2004/03/03 18:30:39 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.4 2004/03/09 19:20:53 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -24,7 +24,7 @@
 (require 'jabber-iq)
 
 (add-to-list 'jabber-iq-set-xmlns-alist
-	     (cons "jabber:iq:roster" (lambda (x) (jabber-process-roster x nil))))
+	     (cons "jabber:iq:roster" (function (lambda (x) (jabber-process-roster x nil)))))
 (defun jabber-process-roster (xml-data closure-data)
   "process an incoming roster infoquery result
 CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
@@ -70,7 +70,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  ;; (e.g. <item jid="foo@bar"/> as opposed to <item jid="foo@bar"><group>baz</group></item>)
 	  ;; which xml-get-children subsequently will choke on.  We want to avoid
 	  ;; that with an extra check.
-	  (put roster-item 'groups (mapcar (lambda (foo) (nth 2 foo)) (jabber-xml-get-children item 'group)))
+	  (put roster-item 'groups (mapcar #'(lambda (foo) (nth 2 foo)) (jabber-xml-get-children item 'group)))
 
 	  ;; If subscripton="remove", contact is to be removed from roster
 	  (when (string= (get roster-item 'subscription) "remove")
@@ -176,26 +176,26 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (put buddy 'connected nil)
     (put buddy 'show nil)
     (put buddy 'status nil)
-    (mapc (lambda (resource)
-	    (let* ((resource-plist (cdr resource))
-		   (priority (plist-get resource-plist 'priority)))
-	      (if (plist-get resource-plist 'connected)
-		  (when (or (null highest-priority)
-			    (and priority
-				 (> priority highest-priority)))
-		    ;; if no priority specified, interpret as zero
-		    (setq highest-priority (or priority 0))
-		    (put buddy 'connected (plist-get resource-plist 'connected))
-		    (put buddy 'show (plist-get resource-plist 'show))
-		    (put buddy 'status (plist-get resource-plist 'status)))
-
-		;; if we have not found a connected resource yet, but this
-		;; disconnected resource has a status message, display it.
-		(when (not (get buddy 'connected))
-		  (if (plist-get resource-plist 'status)
+    (mapc #'(lambda (resource)
+	      (let* ((resource-plist (cdr resource))
+		     (priority (plist-get resource-plist 'priority)))
+		(if (plist-get resource-plist 'connected)
+		    (when (or (null highest-priority)
+			      (and priority
+				   (> priority highest-priority)))
+		      ;; if no priority specified, interpret as zero
+		      (setq highest-priority (or priority 0))
+		      (put buddy 'connected (plist-get resource-plist 'connected))
+		      (put buddy 'show (plist-get resource-plist 'show))
 		      (put buddy 'status (plist-get resource-plist 'status)))
-		  (if (plist-get resource-plist 'show)
-		      (put buddy 'show (plist-get resource-plist 'show)))))))
+
+		  ;; if we have not found a connected resource yet, but this
+		  ;; disconnected resource has a status message, display it.
+		  (when (not (get buddy 'connected))
+		    (if (plist-get resource-plist 'status)
+			(put buddy 'status (plist-get resource-plist 'status)))
+		    (if (plist-get resource-plist 'show)
+			(put buddy 'show (plist-get resource-plist 'show)))))))
 	  resource-alist)))
 
 (defun jabber-count-connected-resources (buddy)
@@ -256,7 +256,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 				     (list (cons 'jid (symbol-name jid)))
 				     (if (and name (> (length name) 0))
 					 (list (cons 'name name))))
-			      (mapcar (lambda (x) `(group () ,x))
+			      (mapcar #'(lambda (x) `(group () ,x))
 				      groups))) 
 		  #'jabber-report-success "Roster item change"
 		  #'jabber-report-success "Roster item change"))

@@ -1,5 +1,5 @@
 ;; jabber-roster.el - displaying the roster
-;; $Id: jabber-roster.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-roster.el,v 1.2 2004/03/09 19:21:32 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -51,11 +51,11 @@ bring up menus of actions.
   "sort roster according to online status"
   (setq *jabber-roster*
 	(sort *jabber-roster*
-	      (lambda (a b)
-		(let ((a-show (and (get a 'connected) (get a 'show)))
-		      (b-show (and (get b 'connected) (get b 'show))))
-		  (> (length (member a-show jabber-sort-order))
-		     (length (member b-show jabber-sort-order))))))))
+	      #'(lambda (a b)
+		  (let ((a-show (and (get a 'connected) (get a 'show)))
+			(b-show (and (get b 'connected) (get b 'show))))
+		    (> (length (member a-show jabber-sort-order))
+		       (length (member b-show jabber-sort-order))))))))
 
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
