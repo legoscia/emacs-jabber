@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.31 2004/02/08 14:13:18 legoscia Exp $
+;; $Id: jabber.el,v 1.32 2004/02/09 21:35:51 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -1869,7 +1869,7 @@ CLOSURE-DATA is either 'success or 'error."
       (with-temp-buffer
         (setq *xmlq* (concat *xmlq* string))
         (if (string-match " \\w+=''" *xmlq*)
-            (replace-match ""))
+            (setq *xmlq* (replace-match "" nil nil *xmlq*)))
         (catch 'jabber-no-tag
           (while (string-match "<\\([a-zA-Z0-9\:]+\\)\\s-" *xmlq*)
             (if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
