@@ -140,10 +140,10 @@ properties to add to the result."
 			     (format "(default %s) " node-at-point)))
 		 node-at-point)))
 
-(defun jabber-read-passwd ()
+(defun jabber-read-passwd (&optional prompt)
   "Read Jabber password, either from customized variable or from minibuffer.
 See `jabber-password'."
-  (or jabber-password (read-passwd "Jabber password: ")))
+  (or jabber-password (read-passwd (or prompt "Jabber password: "))))
 
 (defun jabber-iq-query (xml-data)
   "Return the query part of an IQ stanza.

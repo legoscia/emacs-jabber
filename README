@@ -20,6 +20,12 @@ net-utils and mule-ucs packages.  jabber.el basically works on XEmacs,
 but some features are missing (in particular mouse support).  Testing
 and patches are very welcome.
 
+SASL
+====
+jabber.el will use the SASL library of FLIM (Faithful Library about
+Internet Message) if it's present.  If not, it will fall back to
+JEP-0077 authentication.
+
 Installation
 ============
 To install, put all .el files somewhere in your load-path (or have

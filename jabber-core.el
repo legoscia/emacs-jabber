@@ -22,6 +22,12 @@
 (require 'jabber-util)
 (require 'jabber-logon)
 
+;; SASL depends on FLIM.
+(eval-and-compile
+  (condition-case nil
+      (require 'jabber-sasl)
+    (error nil)))
+
 (defvar *jabber-connection* nil
   "the process that does the actual connection")
 
@@ -34,6 +40,9 @@
 (defvar *jabber-connected* nil
   "boolean - are we connected")
 
+(defvar *jabber-authenticated* nil
+  "boolean - are we authenticated")
+
 (defvar *xmlq* ""
   "a string with all the incoming xml that is waiting to be parsed")
 
@@ -43,6 +52,9 @@
 (defvar jabber-session-id nil
   "id of the current session")
 
+(defvar jabber-stream-version nil
+  "Stream version indicated by server")
+
 (defvar jabber-register-p nil
   "Is account registration occurring in this session?")
 
@@ -50,6 +62,10 @@
   "Function to be called on connection.
 This is set by `jabber-connect' on each call, and later picked up in
 `jabber-filter'.")
+
+(defvar jabber-short-circuit-input nil
+  "Function that receives all stanzas, instead of the usual ones.
+Used for SASL authentication.")
 
 (defvar jabber-message-chain nil
   "Incoming messages are sent to these functions, in order.")
@@ -73,6 +89,10 @@ This is set by `jabber-connect' on each call, and later picked up in
   :type 'hook
   :group 'jabber-core)
 
+(defsubst jabber-have-sasl-p ()
+  "Return non-nil if SASL functions are available."
+  (fboundp 'jabber-sasl-start-auth))
+
 (defun jabber-connect (&optional registerp)
   "connect to the jabber server and start a jabber xml stream
 With prefix argument, register a new account."
@@ -80,6 +100,7 @@ With prefix argument, register a new account."
   (if *jabber-connected*
       (message "Already connected")
     (setq *xmlq* "")
+    (setq *jabber-authenticated* nil)
     (jabber-clear-roster)
     (let ((coding-system-for-read 'utf-8)
 	  (coding-system-for-write 'utf-8))
@@ -90,18 +111,37 @@ With prefix argument, register a new account."
     (set-process-filter *jabber-connection* #'jabber-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
 
+    (setq jabber-short-circuit-input nil)
     (setq jabber-register-p registerp)
+
     (setq jabber-call-on-connection (if registerp
-					#'(lambda () (jabber-get-register jabber-server))
-				      #'(lambda () (jabber-get-auth jabber-server))))
-    (process-send-string *jabber-connection*
-			 (concat "<?xml version='1.0'?><stream:stream to='" 
+					#'(lambda (features) (jabber-get-register jabber-server))
+				      #'jabber-auth-somehow))
+    (let ((stream-header (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
-				 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>"))
+				 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>")))
+      (process-send-string *jabber-connection*
+			   stream-header)
+      (if jabber-debug-log-xml
+	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+	    (save-excursion
+	      (goto-char (point-max))
+	      (insert (format "sending %S\n\n" stream-header))))))
     ;; Next thing happening is the server sending its own <stream:stream> start tag.
     ;; That is handled in jabber-filter.
 
     (setq *jabber-connected* t)))
+
+(defun jabber-auth-somehow (features)
+  "Start authentication with SASL if the server supports it,
+otherwise JEP-0077.  The FEATURES argument is the stream features
+tag, or nil if we're connecting to a pre-XMPP server."
+  (if (and features
+	   (jabber-have-sasl-p)
+	   jabber-stream-version
+	   (>= (string-to-number jabber-stream-version) 1.0))
+      (jabber-sasl-start-auth features)
+    (jabber-get-auth jabber-server)))
 
 (defun jabber-disconnect ()
   "disconnect from the jabber server and re-initialise the jabber package variables"
@@ -115,6 +155,7 @@ With prefix argument, register a new account."
   (kill-buffer (process-buffer *jabber-connection*))
   (jabber-clear-roster)
   (setq *xmlq* "")
+  (setq *jabber-authenticated* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (setq jabber-session-id nil)
@@ -133,12 +174,32 @@ With prefix argument, register a new account."
   (cond
    ((string-match "</stream:stream>" string)
     (jabber-disconnect))
-   ((string-match "<stream:stream" string)
-    (setq jabber-session-id
-          (progn (string-match "id='\\([A-Za-z0-9]+\\)'" string)
-               (match-string 1 string)))
-    ;; Now proceed with logon.
-    (funcall jabber-call-on-connection))
+   ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" string)
+    (let ((stream-header (match-string 1 string))
+	  (rest (match-string 2 string)))
+      (setq jabber-session-id
+	    (progn (string-match "id='\\([A-Za-z0-9]+\\)'" stream-header)
+		   (match-string 1 stream-header)))
+      (setq jabber-stream-version
+	    (and (string-match "version='\\([0-9.]+\\)'" stream-header)
+		 (match-string 1 stream-header)))
+      (if jabber-debug-log-xml
+	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+	    (save-excursion
+	      (goto-char (point-max))
+	      (insert (format "receive %S\n\n" string)))))
+
+      ;; If the server is XMPP compliant, i.e. there is a version attribute
+      ;; and it's >= 1.0, there will be a stream:features tag shortly,
+      ;; so just wait for that.
+      (unless (and jabber-stream-version
+		   (>= (string-to-number jabber-stream-version) 1.0))
+	;; Logon or register
+	(funcall jabber-call-on-connection nil))
+
+      ;; If we got more than the stream header, pass it on.
+      (if (not (zerop (length rest)))
+	  (jabber-filter process rest))))
    (t
     (if (active-minibuffer-window)
         (run-with-idle-timer 0.01 nil #'jabber-filter process string)
@@ -173,8 +234,68 @@ With prefix argument, register a new account."
 	 (functions (eval (cdr (assq tag '((iq . jabber-iq-chain)
 					   (presence . jabber-presence-chain)
 					   (message . jabber-message-chain)))))))
-    (dolist (f functions)
-      (funcall f xml-data))))
+    ;; Special treatment of the stream:features tag.  The first time we get it,
+    ;; it means that we should authenticate.  The second time, we should
+    ;; establish a session.  (The zeroth time it's STARTTLS, but that's not
+    ;; implemented yet.)
+    (if (eq tag 'stream:features)
+	(if *jabber-authenticated*
+	    (jabber-bind-and-establish-session xml-data)
+	  (funcall jabber-call-on-connection xml-data))
+      (if jabber-short-circuit-input
+	  (funcall jabber-short-circuit-input xml-data)
+	(dolist (f functions)
+	  (funcall f xml-data))))))
+
+(defun jabber-bind-and-establish-session (xml-data)
+  ;; Now we have a stream:features tag.  We expect it to contain bind and
+  ;; session tags.  If it doesn't, the server we are connecting to is no
+  ;; IM server.
+  (unless (and (jabber-xml-get-children xml-data 'bind)
+	       (jabber-xml-get-children xml-data 'session))
+    (jabber-disconnect)
+    (error "Server doesn't permit resource binding and session establishing"))
+
+  ;; So let's bind a resource.  We can either pick a resource ourselves,
+  ;; or have the server pick one for us.
+  (jabber-send-iq nil "set"
+		  `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+			 (resource () ,jabber-resource))
+		  #'jabber-process-bind t
+		  #'jabber-process-bind nil))
+
+(defun jabber-process-bind (xml-data successp)
+  (unless successp
+    (jabber-disconnect)
+    (error "Resource binding failed: %s" 
+	   (jabber-parse-error (car (jabber-xml-get-children xml-data 'error)))))
+
+  (let ((jid (car
+	      (jabber-xml-node-children
+	       (car
+		(jabber-xml-get-children
+		 (jabber-iq-query xml-data) 'jid))))))
+    ;; Maybe this isn't the resource we asked for.
+    (setq jabber-resource (jabber-jid-resource jid)))
+
+  ;; Been there, done that.  Time to establish a session.
+  (jabber-send-iq nil "set"
+		  '(session ((xmlns . "urn:ietf:params:xml:ns:xmpp-session")))
+		  #'jabber-process-session t
+		  #'jabber-process-session nil))
+
+(defun jabber-process-session (xml-data successp)
+  (unless successp
+    (jabber-disconnect)
+    (error "Session establishing failed: %s" 
+	   (jabber-parse-error (car (jabber-xml-get-children xml-data 'error)))))
+
+  ;; Now, request roster.
+  (jabber-send-iq jabber-server
+		  "get" 
+		  '(query ((xmlns . "jabber:iq:roster")))
+		  #'jabber-process-roster 'initial
+		  #'jabber-report-success "Roster retrieval"))
 
 (defun jabber-clear-roster ()
   "Clean up the roster."
