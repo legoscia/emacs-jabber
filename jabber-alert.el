@@ -305,7 +305,7 @@ Examples:
   ;;    the end of the buffer.  We advance it to the end.
   ;; 3. The user was perusing history in this window.  There is no
   ;;    simple way to distinguish this from 2, so the user loses.
-  (let ((windows (get-buffer-window-list buffer))
+  (let ((windows (get-buffer-window-list buffer nil t))
 	(new-point-max (with-current-buffer buffer (point-max))))
     (dolist (w windows)
       (unless (eq w (selected-window))
