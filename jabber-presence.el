@@ -189,7 +189,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	 (list (cons 'to from)
 	       (cons 'type
 		     (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
-					      from
+					      (jabber-jid-displayname from)
 					      (jabber-unescape-xml presence-status)))
 			 "subscribed"
 		       "unsubscribed")))))
