@@ -36,8 +36,6 @@
 ;; - When there's activity in a buffer it would be nice with a hook which
 ;;   does the opposite of bury-buffer, so switch-to-buffer will show that
 ;;   buffer first.
-;; - Run `jabber-activity-make-name-alist' when `jabber-activity-make-string'
-;;   or `jabber-activity-make-strings' is changed using M-x customize
 
 ;;; Code:
 
@@ -52,6 +50,11 @@
 (defcustom jabber-activity-make-string 'jabber-activity-make-string-default
   "Function to call, for making the string to put in the mode
 line.  The default function returns the nick of the user."
+  :set #'(lambda (var val)
+	   (custom-set-default var val)
+	   (when (fboundp 'jabber-activity-make-name-alist)
+	     (jabber-activity-make-name-alist)
+	     (jabber-activity-mode-line-update)))
   :type 'function
   :group 'jabber-activity)
 
@@ -62,7 +65,13 @@ at least this long, when possible."
   :type 'number)
 
 (defcustom jabber-activity-make-strings 'jabber-activity-make-strings-default
-  "Function which should return a list of strings when given a list of jids."
+  "Function which should return an alist of JID -> string when given a list of
+JIDs."
+  :set #'(lambda (var val)
+	   (custom-set-default var val)
+	   (when (fboundp 'jabber-activity-make-name-alist)
+	     (jabber-activity-make-name-alist)
+	     (jabber-activity-mode-line-update)))
   :type '(choice (function-item :tag "Keep strings"
 				:value jabber-activity-make-strings-default)
 		 (function-item :tag "Shorten strings"
@@ -132,7 +141,7 @@ least `jabber-activity-shorten-minimum' long."
 		jids)
 	       #'(lambda (x y) (string-lessp (cdr x) (cdr y))))))
     (loop for ((prev-jid . prev) (cur-jid . cur) (next-jid . next))
-	  on (cons nil strings)
+	  on (cons nil alist)
 	  until (null cur)
 	  collect
 	  (cons
