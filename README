@@ -1,4 +1,4 @@
-This is jabber.el 0.4.1, a Jabber client for Emacs.  If you don't know
+This is jabber.el 0.5, a Jabber client for Emacs.  If you don't know
 what Jabber is, see http://www.jabber.org .
 
 GNU Emacs
@@ -39,5 +39,4 @@ disconnect, type M-x jabber-disconnect.
 For a less terse description, read the enclosed manual.
 
 
-WWW: http://intellectronica.net/emacs-jabber
-Sourceforge project page: http://sourceforge.net/projects/emacs-jabber
+WWW: http://emacs-jabber.sourceforge.net
