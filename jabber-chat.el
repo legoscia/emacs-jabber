@@ -191,8 +191,7 @@ TIMESTAMP is timestamp, or nil for now."
      ;; Public groupchat messages have type "groupchat" and are from room@server/nick.
      ;; Public groupchat errors have type "error" and are from room@server.
      ((or 
-       (and (string= type "groupchat")
-	    (assoc (jabber-jid-user from) *jabber-active-groupchats*))
+       (string= type "groupchat")
        (and (string= type "error")
 	    (assoc from *jabber-active-groupchats*)))
 
