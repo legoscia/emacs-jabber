@@ -33,7 +33,7 @@
 (defvar jabber-sasl-client nil)
 (defvar jabber-sasl-step nil)
 
-(defun jabber-sasl-start-auth (features)
+(defun jabber-sasl-start-auth (stream-features)
   ;; This shouldn't be necessary
   ;;(setq jabber-call-on-connection nil)
 
@@ -46,7 +46,7 @@
   (setq jabber-short-circuit-input #'jabber-sasl-process-input)
 
   ;; Find a suitable common mechanism.
-  (let ((mechanisms (car (jabber-xml-get-children xml-data 'mechanisms))))
+  (let ((mechanisms (car (jabber-xml-get-children stream-features 'mechanisms))))
     (setq jabber-sasl-mechanism
 	  (sasl-find-mechanism 
 	   (mapcar

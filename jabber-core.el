@@ -115,7 +115,7 @@ With prefix argument, register a new account."
     (setq jabber-register-p registerp)
 
     (setq jabber-call-on-connection (if registerp
-					#'(lambda (features) (jabber-get-register jabber-server))
+					#'(lambda (stream-features) (jabber-get-register jabber-server))
 				      #'jabber-auth-somehow))
     (let ((stream-header (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
@@ -132,15 +132,15 @@ With prefix argument, register a new account."
 
     (setq *jabber-connected* t)))
 
-(defun jabber-auth-somehow (features)
+(defun jabber-auth-somehow (stream-features)
   "Start authentication with SASL if the server supports it,
-otherwise JEP-0077.  The FEATURES argument is the stream features
+otherwise JEP-0077.  The STREAM-FEATURES argument is the stream features
 tag, or nil if we're connecting to a pre-XMPP server."
-  (if (and features
+  (if (and stream-features
 	   (jabber-have-sasl-p)
 	   jabber-stream-version
 	   (>= (string-to-number jabber-stream-version) 1.0))
-      (jabber-sasl-start-auth features)
+      (jabber-sasl-start-auth stream-features)
     (jabber-get-auth jabber-server)))
 
 (defun jabber-disconnect ()

@@ -56,7 +56,7 @@ Each entry is a list, containing:
 	 (query (jabber-iq-query xml-data))
 	 (profile (jabber-xml-get-attribute query 'profile))
 	 (si-id (jabber-xml-get-attribute query 'id))
-	 (features (car (jabber-xml-get-children query 'feature))))
+	 (feature (car (jabber-xml-get-children query 'feature))))
     (message "Receiving SI with profile '%s'" profile)
 
     (let (stream-method
@@ -66,7 +66,7 @@ Each entry is a list, containing:
       ;; don't match JEP-0095, so convert)
       (condition-case err
 	  (setq stream-method (jabber-fn-intersection
-			       (jabber-fn-parse features 'request)
+			       (jabber-fn-parse feature 'request)
 			       (list (cons "stream-method" (mapcar 'car jabber-si-stream-methods)))))
 	(jabber-error
 	 (jabber-signal-error "cancel" 'bad-request nil
