@@ -22,16 +22,28 @@
 ;;; Commentary:
 
 ;; Allows tracking messages from buddies using the global mode line
+;; See (info "(jabber)Tracking activity")
 
 ;;; TODO:
 
-;; - Add a hook which notifies the user about unread messages when she
-;;   tries to close emacs
+;; - Make it possible to enable this mode using M-x customize
+;; - When Emacs is on another desktop, (get-buffer-window buf 'visible)
+;;   returns nil.  We need to know when the user selects the frame again
+;;   so we can remove the string from the mode line.  (Or just run
+;;   jabber-activity-clean often).
+;; - jabber-activity-switch-to needs a keybinding.  In which map?
+;; - Is there any need for having defcustom jabber-activity-make-string?
+;; - When there's activity in a buffer it would be nice with a hook which
+;;   does the opposite of bury-buffer, so switch-to-buffer will show that
+;;   buffer first.
+;; - Run `jabber-activity-make-name-alist' when `jabber-activity-make-string'
+;;   or `jabber-activity-make-strings' is changed using M-x customize
 
 ;;; Code:
 
 (require 'jabber-alert)
 (require 'jabber-util)
+(require 'cl)
 
 (defgroup jabber-activity nil
   "activity tracking options"
@@ -43,25 +55,47 @@ line.  The default function returns the nick of the user."
   :type 'function
   :group 'jabber-activity)
 
+(defcustom jabber-activity-shorten-minimum 1
+  "All strings returned by `jabber-activity-make-strings-shorten' will be
+at least this long, when possible."
+  :group 'jabber-activity
+  :type 'number)
+
+(defcustom jabber-activity-make-strings 'jabber-activity-make-strings-default
+  "Function which should return a list of strings when given a list of jids."
+  :type '(choice (function-item :tag "Keep strings"
+				:value jabber-activity-make-strings-default)
+		 (function-item :tag "Shorten strings"
+				:value jabber-activity-make-strings-shorten)
+		 (function :tag "Other function"))
+  :group 'jabber-activity)
+
 (defcustom jabber-activity-show-p 'jabber-activity-show-p-default
   "Predicate function to call to check if the given JID should be
 shown in the mode line or not."
   :type 'function
   :group 'jabber-activity)
 
+(defcustom jabber-activity-query-unread t
+  "Query the user as to whether killing Emacs should be cancelled when
+there are unread messages which otherwise would be lost.")
+
 (defface jabber-activity-face
-  '((t (:foreground "blue" :weight bold)))
+  '((t (:foreground "red" :weight bold)))
   "The face for displaying jabber-activity-string in the mode line"
   :group 'jabber-activity)
 
 (defvar jabber-activity-jids nil
   "A list of JIDs which have caused activity")
 
-;; Protect this variable from being set in Local variables etc.
-(put 'jabber-activity-mode-string 'risky-local-variable t)
+(defvar jabber-activity-name-alist nil
+  "Alist of mode line names for bare JIDs")
 
 (defvar jabber-activity-mode-string ""
   "The mode string for jabber activity")
+
+;; Protect this variable from being set in Local variables etc.
+(put 'jabber-activity-mode-string 'risky-local-variable t)
 
 (defun jabber-activity-make-string-default (jid)
   "Return the nick of the JID.	If no nick is available, return
@@ -73,6 +107,43 @@ the user name part of the JID."
 	username
       nick)))
 
+(defun jabber-activity-make-strings-default (jids)
+  "Apply `jabber-activity-make-string' on JIDS"
+  (mapcar #'(lambda (jid) (cons jid (funcall jabber-activity-make-string jid)))
+	  jids))
+
+(defun jabber-activity-common-prefix (s1 s2)
+  "Return length of common prefix string shared by S1 and S2"
+  (let ((len (min (length s1) (length s2))))
+    (or (dotimes (i len)
+	  (when (not (eq (aref s1 i) (aref s2 i)))
+	    (return i)))
+	;; Substrings, equal, nil, or empty ("")
+	len)))
+
+(defun jabber-activity-make-strings-shorten (jids)
+  "Return an alist of JID -> names acquired by running
+`jabber-activity-make-string' on JIDS, and then shortening the names
+as much as possible such that all strings still are unique and at
+least `jabber-activity-shorten-minimum' long."
+  (let ((alist
+	 (sort (mapcar
+		#'(lambda (x) (cons x (funcall jabber-activity-make-string x)))
+		jids)
+	       #'(lambda (x y) (string-lessp (cdr x) (cdr y))))))
+    (loop for ((prev-jid . prev) (cur-jid . cur) (next-jid . next))
+	  on (cons nil strings)
+	  until (null cur)
+	  collect
+	  (cons
+	   cur-jid
+	   (substring
+	    cur
+	    0 (min (length cur)
+		  (max jabber-activity-shorten-minimum
+		       (1+ (jabber-activity-common-prefix cur prev))
+		       (1+ (jabber-activity-common-prefix cur next)))))))))
+
 (defun jabber-activity-show-p-default (jid)
   "Returns t only if there is an invisible buffer for JID"
   (let ((buffer (or (get-buffer (jabber-chat-get-buffer jid))
@@ -80,20 +151,42 @@ the user name part of the JID."
     (and (buffer-live-p buffer)
 	 (not (get-buffer-window buffer 'visible)))))
 
+(defun jabber-activity-make-name-alist ()
+  "Rebuild `jabber-activity-name-alist' based on currently known JIDs"
+  (let ((jids (or (mapcar #'car jabber-activity-name-alist)
+		  (mapcar #'symbol-name *jabber-roster*))))
+    (setq jabber-activity-name-alist
+	  (funcall jabber-activity-make-strings jids))))
+
+(defun jabber-activity-lookup-name (jid)
+  "Lookup name in `jabber-activity-name-alist', creates an entry
+if needed, and returns a string suitable for the mode line"
+  (let ((elm (assoc jid jabber-activity-name-alist)))
+    (if elm
+	(cdr elm)
+      (progn
+	;; Remake alist with the new JID
+	(setq jabber-activity-name-alist
+	      (funcall jabber-activity-make-strings
+		       (cons jid (mapcar #'car jabber-activity-name-alist))))
+	(jabber-activity-lookup-name jid)))))
+
 (defun jabber-activity-mode-line-update ()
   "Update the string shown in the mode line using `jabber-activity-make-string'
 on JIDs where `jabber-activity-show-p'"
   (setq jabber-activity-mode-string
-	(if jabber-activity-jids
-	    (concat " "
-		    (jabber-propertize (mapconcat jabber-activity-make-string
-						  jabber-activity-jids
-						  ",")
-				       'face 'jabber-activity-face))
-	  ""))
+  	(if jabber-activity-jids
+  	    (concat
+  	     " "
+  	     (mapconcat
+  	      (lambda (x) (jabber-propertize x 'face 'jabber-activity-face))
+  	      (mapcar #'jabber-activity-lookup-name
+		      jabber-activity-jids)
+  	      ","))
+  	  ""))
   (force-mode-line-update 'all))
 
-(require 'cl)
+;;; Hooks
 
 (defun jabber-activity-clean ()
   "Remove JIDs where `jabber-activity-show-p' no longer is true"
@@ -113,6 +206,18 @@ on JIDs where `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p group)
     (add-to-list 'jabber-activity-jids group)
     (jabber-activity-mode-line-update)))
+
+(defun jabber-activity-kill-hook ()
+  "Query the user as to whether killing Emacs should be cancelled
+when there are unread messages which otherwise would be lost, if
+`jabber-activity-query-unread' is t"
+  (if (and jabber-activity-jids
+	   jabber-activity-query-unread)
+      (yes-or-no-p
+       "You have unread Jabber messages, are you sure you want to quit?")
+    t))
+
+;;; Interactive functions
 
 (defun jabber-activity-switch-to ()
   "Switch to a jabber chat buffer which have had activity.  If no
@@ -140,8 +245,12 @@ With a numeric arg, enable this display if arg is positive."
 		  'jabber-activity-add)
 	(add-hook 'jabber-alert-muc-hooks
 		  'jabber-activity-add-muc)
+	(add-hook 'jabber-post-connect-hook
+		  'jabber-activity-make-name-alist)
+	(add-to-list 'kill-emacs-query-functions
+		     'jabber-activity-kill-hook)
 	(add-to-list 'global-mode-string
-		     'jabber-activity-mode-string t))
+		     '(t jabber-activity-mode-string)))
     (progn
       (remove-hook 'window-configuration-change-hook
 		   'jabber-activity-remove-visible)
@@ -149,7 +258,9 @@ With a numeric arg, enable this display if arg is positive."
 		   'jabber-activity-add)
       (remove-hook 'jabber-alert-muc-hooks
 		   'jabber-activity-add-muc)
-      (setq global-mode-string (delete 'jabber-activity-mode-string
+      (remove-hook 'jabber-post-connect-hook
+		   'jabber-activity-make-name-alist)
+      (setq global-mode-string (delete '(t jabber-activity-mode-string)
 				       global-mode-string)))))
 
 (provide 'jabber-activity)
