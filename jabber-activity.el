@@ -88,7 +88,9 @@ shown in the mode line or not."
 
 (defcustom jabber-activity-query-unread t
   "Query the user as to whether killing Emacs should be cancelled when
-there are unread messages which otherwise would be lost.")
+there are unread messages which otherwise would be lost."
+  :type 'boolean
+  :group 'jabber-activity)
 
 (defface jabber-activity-face
   '((t (:foreground "red" :weight bold)))
