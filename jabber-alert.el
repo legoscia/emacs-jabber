@@ -130,7 +130,8 @@ and BUFFER, a buffer containing the result."
 
 (defun jabber-message-beep (from buffer text proposed-alert)
   "Beep when a message arrives"
-  (beep))
+  (when proposed-alert
+    (beep)))
 
 (defun jabber-message-echo (from buffer text proposed-alert)
   "Show a message in the echo area when a message arrives"
@@ -139,15 +140,18 @@ and BUFFER, a buffer containing the result."
 
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
-  (jabber-play-sound-file jabber-alert-message-wave))
+  (when proposed-alert
+    (jabber-play-sound-file jabber-alert-message-wave)))
 
 (defun jabber-message-display (from buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
-  (display-buffer buffer))
+  (when proposed-alert
+    (display-buffer buffer)))
 
 (defun jabber-message-switch (from buffer text proposed-alert)
   "Switch to the buffer where a new message has arrived."
-  (switch-to-buffer buffer))
+  (when proposed-alert
+    (switch-to-buffer buffer)))
 
 (defun jabber-message-ratpoison (from buffer text proposed-alert)
   "Show a message through the Ratpoison window manager"
@@ -212,11 +216,13 @@ This function is not called directly, but is the default for
 
 (defun jabber-presence-display (who oldstatus newstatus statustext proposed-alert)
   "Display the roster buffer"
-  (display-buffer (process-buffer *jabber-connection*)))
+  (when proposed-alert
+    (display-buffer (process-buffer *jabber-connection*))))
 
 (defun jabber-presence-switch (who oldstatus newstatus statustext proposed-alert)
   "Switch to the roster buffer"
-  (switch-to-buffer (process-buffer *jabber-connection*)))
+  (when proposed-alert
+    (switch-to-buffer (process-buffer *jabber-connection*))))
 
 (defun jabber-presence-ratpoison (who oldstatus newstatus statustext proposed-alert)
   "Show a message through the Ratpoison window manager"
@@ -269,11 +275,13 @@ This function uses `jabber-info-message-alist' to find a message."
 
 (defun jabber-info-display (infotype buffer proposed-alert)
   "Display buffer of completed request"
-  (switch-to-buffer buffer))
+  (when proposed-alert
+    (display-buffer buffer)))
 
 (defun jabber-info-switch (infotype buffer proposed-alert)
   "Switch to buffer of completed request"
-  (switch-to-buffer buffer))
+  (when proposed-alert
+    (switch-to-buffer buffer)))
 
 (provide 'jabber-alert)
 
