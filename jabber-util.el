@@ -229,8 +229,9 @@ TIME is in a format accepted by `format-time-string'."
     (let ((timezone-seconds
 	   (if (string= timezone "Z")
 	       0
-	     (* 60 (+ (* 60 (string-to-number (substring timezone 0 3)))
-		      (string-to-number (substring timezone 4 6)))))))
+	     (* (if (eq (aref timezone 0) ?+) 1 -1)
+		(* 60 (+ (* 60 (string-to-number (substring timezone 1 3)))
+			 (string-to-number (substring timezone 4 6))))))))
       (encode-time second minute hour day month year timezone-seconds))))
 
 (defun jabber-report-success (xml-data context)
