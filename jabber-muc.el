@@ -190,13 +190,14 @@ Return nil if nothing known about that combination."
   (jabber-groupchat-display 
    group nil
    (apply 'concat "Participants:\n"
-	  (format "%-15s %-15s %-10s\n" "Nickname" "Role" "Affiliation")
+	  (format "%-15s %-15s %-11s %s\n" "Nickname" "Role" "Affiliation" "JID")
 	  (mapcar (lambda (x)
 		    (let ((plist (cdr x)))
-		      (format "%-15s %-15s %-10s\n"
+		      (format "%-15s %-15s %-11s %s\n"
 			      (car x)
 			      (plist-get plist 'role)
-			      (plist-get plist 'affiliation))))
+			      (plist-get plist 'affiliation)
+			      (or (plist-get plist 'jid) ""))))
 		  (cdr (assoc group jabber-muc-participants))))))
 
 (add-to-list 'jabber-jid-muc-menu
