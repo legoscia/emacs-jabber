@@ -51,7 +51,10 @@ every time."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-hooks 
-  '(jabber-presence-beep jabber-presence-update-roster jabber-presence-echo)
+  '(jabber-presence-beep 
+    jabber-presence-update-roster
+    jabber-presence-echo
+    jabber-presence-watch)
   "Hooks run when a user's presence changes.
 
 Arguments are WHO, OLDSTATUS, NEWSTATUS, STATUSTEXT and
@@ -69,7 +72,8 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
 	     jabber-presence-display
 	     jabber-presence-ratpoison
 	     jabber-presence-screen
-	     jabber-presence-echo)
+	     jabber-presence-echo
+	     jabber-presence-watch)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-message-function

@@ -48,6 +48,7 @@ this permission notice are preserved on all copies.
 * Services::                    
 * Modeline status::             
 * Keepalive::                   
+* Watch buddies::               
 * Customization::               
 * Hacking and extending::       
 * Concept index::               
@@ -456,7 +457,7 @@ status in mode lines.  The information is your own presence status,
 and six numbers indicating the number of chatty, online, away,
 extended away, dnd, and offline contacts, respectively.
 
-@node Keepalive, Customization, Modeline status, Top
+@node Keepalive, Watch buddies, Modeline status, Top
 @chapter Keepalive
 
 @cindex keepalive
@@ -483,7 +484,24 @@ You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.
 
-@node Customization, Hacking and extending, Keepalive, Top
+@node Watch buddies, Customization, Keepalive, Top
+@chapter Watch buddies
+
+@cindex watch
+@findex jabber-watch-add
+@findex jabber-watch-remove
+
+Sometimes you might be waiting for a certain person to come online,
+and you don't want that occasion to get lost in the noise.  To get an
+obtrusive message when that happens, type @kbd{M-x jabber-watch-add}
+and select the person in question.
+
+You will get a message whenever that person goes from offline to
+online.  jabber.el will remember this for the rest of your Emacs
+session (it's not saved to disk, though), but if you want to get rid
+of it, type @kbd{M-x jabber-watch-remove}.
+
+@node Customization, Hacking and extending, Watch buddies, Top
 @chapter Customization
 
 @findex jabber-customize
