@@ -1,5 +1,5 @@
 ;; jabber-version.el - version reporting by JEP-0092
-;; $Id: jabber-version.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-version.el,v 1.2 2004/03/06 12:53:42 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(require 'jabber-iq)
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request software version" 'jabber-get-version))
@@ -42,7 +44,7 @@
 	(when data
 	  (insert (cdr x) data "\n"))))))
 
-(add-to-list 'jabber-iq-get-xmlns-alist 'jabber-return-version)
+(add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:version" 'jabber-return-version))
 (add-to-list 'jabber-advertised-features "jabber:iq:version")
 (defun jabber-return-version (xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
