@@ -1,5 +1,5 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.7 2004/04/04 12:46:23 legoscia Exp $
+;; $Id: jabber-chat.el,v 1.8 2004/04/06 11:32:12 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -186,7 +186,7 @@ TIMESTAMP is timestamp, or nil for now."
 	(body (car (xml-node-children (car (jabber-xml-get-children xml-data 'body)))))
 	(thread (car (xml-node-children (car (jabber-xml-get-children xml-data 'thread)))))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x)))))
-	(error (car (xml-get-children xml-data 'error))))
+	(error (car (jabber-xml-get-children xml-data 'error))))
 
     (cond
      ;; Public groupchat messages have type "groupchat" and are from room@server/nick.
