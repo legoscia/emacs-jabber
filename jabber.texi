@@ -1,0 +1,140 @@
+\input texinfo          @c -*-texinfo-*-
+@c $Id: jabber.texi,v 1.1 2004/01/15 00:11:04 legoscia Exp $
+@c %**start of header
+@setfilename jabber.info
+@settitle jabber.el manual 0.4
+@c %**end of header
+@syncodeindex fn cp
+
+@dircategory Emacs
+@direntry
+* jabber.el: (jabber).             Emacs Jabber client
+@end direntry
+
+@copying
+This manual is for jabber.el, version 0.4.
+
+Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
+
+@quotation
+Permission is granted to make and distribute verbatim copies or
+modified versions of this manual, provided the copyright notice and
+this permission notice are preserved on all copies.
+@end quotation
+@end copying
+
+@titlepage
+@sp 10
+@titlefont{jabber.el}
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top jabber.el manual
+
+@insertcopying
+
+@end ifnottex
+
+@menu
+* Introduction::                
+* Contact::                     
+* Getting started::             
+* Presence::
+* Index::                       
+@end menu
+
+
+@node Introduction, Contact, Top, Top
+@chapter Introduction
+
+jabber.el is a Jabber client running under Emacs.  For more
+information on the open-protocol instant messaging network Jabber,
+please visit @url{http://www.jabber.org}.
+
+As a Jabber client, jabber.el is mostly just a face in the crowd,
+except that it uses buffers where GUI clients have windows.  There is
+a roster buffer, and to chat with someone you open a chat buffer, and
+there are browse buffers (increasingly inexactly named) for
+interaction with servers and services.  Then again, jabber.el delivers
+excellent console performance and customizable hooks (if you have
+speech synthesizer software, hook it up to your presence alerts).
+
+Main unfeatures of jabber.el are SASL, SSL and TLS.  Beyond that,
+there is nearly no support for advanced MUC features required for
+moderation and other things.
+
+@node Contact, Getting started, Introduction, Top
+@chapter Contact
+
+jabber.el is developed by Tom Berger (e-mail
+@email{object@@intellectronica.net}, JID object@@jabber.org.uk) and
+Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
+legoscia@@charente.de).  There is a web page at
+@url{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
+project page at @url{http://sourceforge.net/projects/emacs-jabber}.
+
+@node Getting started, Presence, Contact, Top
+@chapter Getting started
+
+I'll assume that you have already successfully installed jabber.el; if
+not, consult the @file{README} file.  Also, make sure you have
+@code{(require 'jabber.el)} in your @file{.emacs}.
+
+Now, type @kbd{M-x jabber-customize}.  This brings up a customize
+buffer for jabber.el.  The most important variables to customize are
+@code{jabber-username} and @code{jabber-server}.  If for some reason
+the JID of your server is not the same as its network name, change
+@code{jabber-network-server} also.  Save your changes, and type
+@kbd{M-x jabber-connect} to connect.
+
+If you do not yet have a Jabber account, you can register one.  Enter
+your desired username for @code{jabber-username} and the server you
+wish to use for @code{jabber-server}, save, and type @kbd{C-u M-x
+jabber-connect}.  If the server supports in-band registration, you
+will be presented with a registration form to fill out and send.
+There you will have to enter your username again.  Enter the same
+username in both places, otherwise jabber.el will be confused.
+
+If you successfully connect, jabber.el will download your roster and
+display it in a buffer called @code{*-jabber-*}.
+
+Now that you are connected, you can send @dfn{initial presence}.  This
+means sending a notification of you being online to everyone on your
+roster.  You don't have to do that, and if you don't noone can see
+that you are online.  This is usually not what you want, but it is
+occasionally useful.  To send presence, type @kbd{M-x
+jabber-send-presence}.  You will be asked three questions; the
+defaults will do for now.  @xref{Presence}, for more information.
+
+In the roster display, you can access several menus through keystrokes
+or mouse clicks.  You can bring one big menu up by pressing the second
+mouse button, or you can bring up the ``chat menu'' by typing @kbd{C-c
+C-c}.  If you do the latter while point is on a roster entry, that
+entry will be the default value when you are asked for whom to chat
+with.
+
+Now, try opening a chat with someone.  In the default configuration,
+you will hear a beep and see ``Message from @var{person}'' in the echo
+area.  This is exactly the same message you receive if the other
+person sends a message to you.  In any case, go to the buffer
+@code{*-jabber-chat-:-@var{person}-*} and start chatting.  Most
+normal keystrokes open the minibuffer where you can type a message.
+
+To disconnect, type @kbd{M-x jabber-disconnect}.
+
+@node Presence, Index, Getting started, Top
+@chapter Presence
+
+@node Index,  , Presence, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
