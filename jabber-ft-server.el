@@ -68,6 +68,8 @@
       (message "Starting download of %s..." (file-name-nondirectory file-name))
       (with-current-buffer buffer
 	(setq buffer-file-coding-system 'binary)
+	(if (fboundp 'set-buffer-multibyte)
+	    (set-buffer-multibyte nil))
 	(set-visited-file-name file-name t))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
