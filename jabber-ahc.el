@@ -1,5 +1,5 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
-;; $Id: jabber-ahc.el,v 1.5 2004/03/23 21:15:29 legoscia Exp $
+;; $Id: jabber-ahc.el,v 1.6 2004/03/31 09:30:09 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -188,8 +188,16 @@ access allowed.  nil means open for everyone."
 	  (jabber-render-xdata-form xdata)
 
 	  (when (string= status "executing")
-	    ;; TODO: parse <actions/>
-	    (let ((button-titles '(complete cancel)))
+	    (let ((button-titles 
+		   (cond
+		    ((null actions)
+		     '(complete cancel))
+		    (t
+		     (let ((children (mapcar #'jabber-xml-node-name (jabber-xml-node-children actions)))
+			   (default-action (jabber-xml-get-attribute actions 'execute)))
+		       (if (memq (intern default-action) children)
+			   children
+			 (cons (intern default-action) children)))))))
 	      (dolist (button-title button-titles)
 		(widget-create 'push-button :notify `(lambda (&rest ignore) (jabber-ahc-submit (quote ,button-title))) (symbol-name button-title))
 		(widget-insert "\t")))
