@@ -348,9 +348,10 @@ This function is not called directly, but is the default for
   (if proposed-alert
       (jabber-play-sound-file jabber-alert-presence-wave)))
 
-(defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
-  "Update the roster display by calling `jabber-display-roster'"
-  (jabber-display-roster))
+;; This is now defined in jabber-roster.el.
+;; (defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
+;;   "Update the roster display by calling `jabber-display-roster'"
+;;   (jabber-display-roster))
 
 (defun jabber-presence-display (who oldstatus newstatus statustext proposed-alert)
   "Display the roster buffer"

@@ -160,6 +160,11 @@ bring up menus of actions.
       (setq status (replace-match " " t t status))))
   status)
 
+(defvar jabber-roster-positions nil
+  "Alist tracking positions of items in the roster.
+Keys are bare JID symbols.  Values are conses of markers,
+marking the extent of the roster entry.")
+
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
@@ -173,6 +178,7 @@ bring up menus of actions.
     (let ((current-line (and (fboundp 'line-number-at-pos) (line-number-at-pos)))
 	  (current-column (current-column)))
       (erase-buffer)
+      (setq jabber-roster-positions nil)
       (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
       (let ((map (make-sparse-keymap)))
 	(define-key map [mouse-2] #'jabber-send-presence)
@@ -190,76 +196,20 @@ bring up menus of actions.
 
       (jabber-sort-roster)
       (dolist (buddy *jabber-roster*)
-	(let ((buddy-str (format-spec jabber-roster-line-format
-				      (list 
-				       (cons ?c (if (get buddy 'connected) "*" " "))
-				       (cons ?n (if (> (length (get buddy 'name)) 0)
-						    (get buddy 'name)
-						  (symbol-name buddy)))
-				       (cons ?j (symbol-name buddy))
-				       (cons ?r (or (get buddy 'resource) ""))
-				       (cons ?s (or
-						 (cdr (assoc (get buddy 'show) jabber-presence-strings))
-						 (get buddy 'show)))
-				       (cons ?S (if (get buddy 'status)
-						    (jabber-fix-status (get buddy 'status))
-						  ""))))))
-	  (add-text-properties 0
-			       (length buddy-str)
-			       (list
-				'face
-				(or (cdr (assoc (get buddy 'show) jabber-presence-faces))
-				    'jabber-roster-user-online)
-				;;'mouse-face
-				;;(cons 'background-color "light grey")
-				'help-echo
-				(symbol-name buddy)
-				'jabber-jid
-				(symbol-name buddy))
-			       buddy-str)
-	  ;; (let ((map (make-sparse-keymap))
-	  ;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
-	  ;; 	  (fset chat-with-func `(lambda () (interactive) (jabber-chat-with ,(symbol-name buddy))))
-	  ;; 	  (define-key map [mouse-2] chat-with-func)
-	  ;; 	  (put-text-property 0
-	  ;; 			     (length buddy-str)
-	  ;; 			     'keymap 
-	  ;; 			     map
-	  ;; 			     buddy-str))
-	  (insert buddy-str))
+	(let ((entry-start (point)))
+	  (jabber-display-roster-entry buddy)
 
-	(when (or (eq jabber-show-resources 'always)
-		  (and (eq jabber-show-resources 'sometimes)
-		       (> (jabber-count-connected-resources buddy) 1)))
-	  (dolist (resource (get buddy 'resources))
-	    (when (plist-get (cdr resource) 'connected)
-	      (let ((resource-str (format-spec jabber-resource-line-format
-					       (list
-						(cons ?c "*")
-						(cons ?n (if (> (length (get buddy 'name)) 0)
-							     (get buddy 'name)
-							   (symbol-name buddy)))
-						(cons ?j (symbol-name buddy))
-						(cons ?r (if (> (length (car resource)) 0)
-							     (car resource)
-							   "empty"))
-						(cons ?s (or
-							  (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
-							  (plist-get (cdr resource) 'show)))
-						(cons ?S (if (plist-get (cdr resource) 'status)
-							     (jabber-fix-status (plist-get (cdr resource) 'status))
-							   ""))
-						(cons ?p (number-to-string (plist-get (cdr resource) 'priority)))))))
-		(add-text-properties 0
-				     (length resource-str)
-				     (list
-				      'face
-				      (or (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-faces))
-					  'jabber-roster-user-online)
-				      'jabber-jid
-				      (format "%s/%s" (symbol-name buddy) (car resource)))
-				     resource-str)
-		(insert resource-str))))))
+	  ;; Keep track of this roster entry's position
+	  (let ((entry (assq buddy jabber-roster-positions)))
+	    (unless entry
+	      (setq entry (cons buddy nil))
+	      (push entry jabber-roster-positions))
+	      (let ((marker-start (set-marker (make-marker) entry-start))
+		    (marker-end (set-marker (make-marker) (point))))
+		;; Text is inserted before start markers, but after
+		;; end markers.
+		(set-marker-insertion-type marker-start t)
+		(setcdr entry (cons marker-start marker-end))))))
       (insert "__________________________________")
       (goto-char (point-min))
       (setq buffer-read-only t)
@@ -269,6 +219,114 @@ bring up menus of actions.
       (when current-line
 	(goto-line current-line)
 	(move-to-column current-column)))))
+
+(defun jabber-display-roster-entry (buddy)
+  "Format and insert a roster entry for BUDDY at point."
+  (let ((buddy-str (format-spec jabber-roster-line-format
+				(list 
+				 (cons ?c (if (get buddy 'connected) "*" " "))
+				 (cons ?n (if (> (length (get buddy 'name)) 0)
+					      (get buddy 'name)
+					    (symbol-name buddy)))
+				 (cons ?j (symbol-name buddy))
+				 (cons ?r (or (get buddy 'resource) ""))
+				 (cons ?s (or
+					   (cdr (assoc (get buddy 'show) jabber-presence-strings))
+					   (get buddy 'show)))
+				 (cons ?S (if (get buddy 'status)
+					      (jabber-fix-status (get buddy 'status))
+					    ""))))))
+    (add-text-properties 0
+			 (length buddy-str)
+			 (list
+			  'face
+			  (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+			      'jabber-roster-user-online)
+			  ;;'mouse-face
+			  ;;(cons 'background-color "light grey")
+			  'help-echo
+			  (symbol-name buddy)
+			  'jabber-jid
+			  (symbol-name buddy))
+			 buddy-str)
+    ;; (let ((map (make-sparse-keymap))
+    ;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
+    ;; 	  (fset chat-with-func `(lambda () (interactive) (jabber-chat-with ,(symbol-name buddy))))
+    ;; 	  (define-key map [mouse-2] chat-with-func)
+    ;; 	  (put-text-property 0
+    ;; 			     (length buddy-str)
+    ;; 			     'keymap 
+    ;; 			     map
+    ;; 			     buddy-str))
+    (insert buddy-str)
+
+    (when (or (eq jabber-show-resources 'always)
+	      (and (eq jabber-show-resources 'sometimes)
+		   (> (jabber-count-connected-resources buddy) 1)))
+      (dolist (resource (get buddy 'resources))
+	(when (plist-get (cdr resource) 'connected)
+	  (let ((resource-str (format-spec jabber-resource-line-format
+					   (list
+					    (cons ?c "*")
+					    (cons ?n (if (> (length (get buddy 'name)) 0)
+							 (get buddy 'name)
+						       (symbol-name buddy)))
+					    (cons ?j (symbol-name buddy))
+					    (cons ?r (if (> (length (car resource)) 0)
+							 (car resource)
+						       "empty"))
+					    (cons ?s (or
+						      (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
+						      (plist-get (cdr resource) 'show)))
+					    (cons ?S (if (plist-get (cdr resource) 'status)
+							 (jabber-fix-status (plist-get (cdr resource) 'status))
+						       ""))
+					    (cons ?p (number-to-string (plist-get (cdr resource) 'priority)))))))
+	    (add-text-properties 0
+				 (length resource-str)
+				 (list
+				  'face
+				  (or (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-faces))
+				      'jabber-roster-user-online)
+				  'jabber-jid
+				  (format "%s/%s" (symbol-name buddy) (car resource)))
+				 resource-str)
+	    (insert resource-str)))))))
+
+(defun jabber-presence-update-roster (who &rest ignore)
+  "Update roster without redrawing all of it, if possible."
+  
+  (let* ((bare-jid (jabber-jid-symbol 
+		    (jabber-jid-user
+		     (symbol-name who))))
+	 (entry (assq bare-jid jabber-roster-positions))
+	 (inhibit-read-only t))
+    (jabber-sort-roster)
+    (if (null entry)
+	(jabber-display-roster)
+      (let ((old-start (cadr entry))
+	    (old-end (cddr entry))
+	    (insert-before-this (cadr (memq bare-jid *jabber-roster*))))
+	(with-current-buffer (process-buffer *jabber-connection*)
+	  (delete-region old-start old-end)
+	  (save-excursion
+	    (let ((new-start 
+		   (marker-position
+		    (if insert-before-this
+			;; If this is not the last entry, go to start
+			;; position of next entry.
+			(cadr (assq insert-before-this jabber-roster-positions))
+		      ;; If this is the last entry, go to end position of second
+		      ;; to last entry.
+		      (cddr (car (last jabber-roster-positions 2)))))))
+	      (goto-char new-start)
+	      (jabber-display-roster-entry bare-jid)
+	      (let ((marker-start (set-marker (make-marker) new-start))
+		    (marker-end (set-marker (make-marker) (point))))
+		;; Text is inserted before start markers, but after
+		;; end markers.
+		(set-marker-insertion-type marker-start t)
+		(setcdr entry (cons marker-start marker-end))))))))))
 
 (provide 'jabber-roster)
 
