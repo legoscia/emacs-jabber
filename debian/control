@@ -2,12 +2,12 @@ Source: emacs-jabber
 Section: net
 Priority: optional
 Maintainer: Magnus Henoch <mange@freemail.hu>
-Build-Depends: debhelper (>> 3.0.0), texinfo
+Build-Depends: debhelper (>= 4.0.0), texinfo
 Standards-Version: 3.6.1
 
 Package: emacs-jabber
 Architecture: all
-Depends: emacs21 | xemacs21, gnus (>= 5.10)
+Depends: emacsen-common, emacs21 | xemacs21-basesupport (>= 2004.02.02)
 Description: Jabber client for Emacs/XEmacs
  jabber.el (emacs-jabber) is a Jabber client for Emacs and XEmacs.
  .
