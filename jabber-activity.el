@@ -248,8 +248,12 @@ With a numeric arg, enable this display if arg is positive."
   :group 'jabber-activity
   (if jabber-activity-mode
       (progn
-	(add-hook 'window-configuration-change-hook
-		  'jabber-activity-clean)
+	;; XEmacs compatibilty hack from erc-track
+	(if (featurep 'xemacs)
+	    (defadvice switch-to-buffer (after jabber-activity-update (&rest args) activate)
+	      (jabber-activity-clean))
+	  (add-hook 'window-configuration-change-hook
+		    'jabber-activity-clean))
 	(add-hook 'jabber-message-hooks
 		  'jabber-activity-add)
 	(add-hook 'jabber-muc-hooks
@@ -261,8 +265,10 @@ With a numeric arg, enable this display if arg is positive."
 	(add-to-list 'global-mode-string
 		     '(t jabber-activity-mode-string)))
     (progn
-      (remove-hook 'window-configuration-change-hook
-		   'jabber-activity-remove-visible)
+      (if (featurep 'xemacs)
+	  (ad-disable-advice 'switch-to-buffer 'after 'jabber-activity-update)
+	(remove-hook 'window-configuration-change-hook
+		     'jabber-activity-remove-visible))
       (remove-hook 'jabber-message-hooks
 		   'jabber-activity-add)
       (remove-hook 'jabber-muc-hooks
