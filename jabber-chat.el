@@ -232,22 +232,7 @@ JID is the bare JID."
     ;; no message should be sent.
     (unless (zerop (length body))
       (jabber-send-chat jabber-chatting-with body)
-      (goto-char (point-max))
-      (let ((inhibit-read-only t))
-	(insert (jabber-format-body body
-				    jabber-chat-local-prompt-format
-				    'jabber-chat-prompt-local
-				    (format-time-string jabber-chat-time-format)
-				    jabber-nickname
-				    jabber-username
-				    jabber-resource
-				    (concat jabber-username "@" jabber-server)))
-					       
-	(setq jabber-point-insert (point))
-	(set-text-properties jabber-point-insert (point-max) nil)
-	(put-text-property (point-min) (point-max) 'read-only t)
-	(put-text-property (point-min) (point-max) 'front-sticky t)
-	(put-text-property (point-min) (point-max) 'rear-nonsticky t)))))
+      (jabber-chat-print nil body nil jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
 
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
@@ -271,27 +256,35 @@ This function is idempotent."
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (jabber-chat-create-buffer from)
-    (goto-char jabber-point-insert)
-
-    (let ((inhibit-read-only t))
-      (if body (insert (jabber-format-body body
-					   jabber-chat-foreign-prompt-format
-					   'jabber-chat-prompt-foreign
-					   (format-time-string jabber-chat-time-format timestamp)
-					   (jabber-jid-displayname from)
-					   (jabber-jid-username from)
-					   (jabber-jid-resource from)
-					   (jabber-jid-user from))))
-      (setq jabber-point-insert (point))
-      (set-text-properties jabber-point-insert (point-max) nil)
-      (put-text-property (point-min) jabber-point-insert 'read-only t)
-      (put-text-property (point-min) jabber-point-insert 'front-sticky t)
-      (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t))
+    (jabber-chat-print from body timestamp jabber-chat-foreign-prompt-format
+		       'jabber-chat-prompt-foreign)
  
     (goto-char (point-max))
 
     (unless (boundp 'jabber-backlog-p)
       (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body)))))
+
+(defun jabber-chat-print (from body timestamp prompt-format prompt-face)
+  "Format and print a message in the current chat buffer.
+FROM is the full JID of sender, or nil if it's our user."
+  (goto-char jabber-point-insert)
+  (let ((inhibit-read-only t))
+    (if body
+	(insert (jabber-format-body body
+				    prompt-format
+				    prompt-face
+				    (format-time-string jabber-chat-time-format timestamp)
+				    (if from (jabber-jid-displayname from) jabber-nickname)
+				    (if from (jabber-jid-username from) jabber-username)
+				    (if from (jabber-jid-resource from) jabber-resource)
+				    (if from (jabber-jid-user from)
+				      (concat jabber-username "@" jabber-server)))))
+					       
+    (setq jabber-point-insert (point))
+    (set-text-properties jabber-point-insert (point-max) nil)
+    (put-text-property (point-min) (point-max) 'read-only t)
+    (put-text-property (point-min) (point-max) 'front-sticky t)
+    (put-text-property (point-min) (point-max) 'rear-nonsticky t)))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
