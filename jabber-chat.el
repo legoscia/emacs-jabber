@@ -60,7 +60,16 @@ The format is that of `mode-line-format' and `header-line-format'."
   :group 'jabber-chat)
 
 (defcustom jabber-chat-time-format "%H:%M"
-  "The format specification for time displayed in the chat buffer.
+  "The format specification for instant messages in the chat buffer.
+See also `jabber-chat-delayed-time-format'.
+
+See `format-time-string' for valid values."
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-chat-delayed-time-format "%Y-%m-%d %H:%M"
+  "The format specification for delayed messages in the chat buffer.
+See also `jabber-chat-time-format'.
 
 See `format-time-string' for valid values."
   :type 'string
@@ -72,6 +81,7 @@ See `format-time-string' for valid values."
 These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
+     or `jabber-chat-delayed-time-format'
 %n   Nickname (`jabber-nickname')
 %u   Username
 %r   Resource
@@ -85,6 +95,7 @@ These fields are available:
 These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
+     or `jabber-chat-delayed-time-format'
 %n   Nickname, or JID if no nickname set
 %u   Username
 %r   Resource
@@ -268,7 +279,11 @@ This function is idempotent."
     (insert (jabber-propertize 
 	     (format-spec jabber-chat-foreign-prompt-format
 			  (list
-			   (cons ?t (format-time-string jabber-chat-time-format timestamp))
+			   (cons ?t (format-time-string 
+				     (if timestamp
+					 jabber-chat-delayed-time-format
+				       jabber-chat-time-format)
+				     timestamp))
 			   (cons ?n (jabber-jid-displayname from))
 			   (cons ?u (or (jabber-jid-username from) from))
 			   (cons ?r (jabber-jid-resource from))
@@ -281,7 +296,11 @@ TIMESTAMP is the timestamp to print, or nil for now."
   (insert (jabber-propertize 
 	   (format-spec jabber-chat-local-prompt-format
 			(list
-			 (cons ?t (format-time-string jabber-chat-time-format timestamp))
+			 (cons ?t (format-time-string 
+				   (if timestamp
+				       jabber-chat-delayed-time-format
+				     jabber-chat-time-format)
+				   timestamp))
 			 (cons ?n jabber-nickname)
 			 (cons ?u jabber-username)
 			 (cons ?r jabber-resource)

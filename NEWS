@@ -48,6 +48,10 @@ rewrite your hooks.
 Flyspell will only spell check what you're currently writing.
 (Not documented yet)
 
+** Different time formats for instant and delayed messages
+See `jabber-chat-time-format' and `jabber-chat-delayed-time-format'.
+(Not documented yet)
+
 * New features in jabber.el 0.6.1
 
 ** Message history
