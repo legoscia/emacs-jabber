@@ -274,6 +274,9 @@ TIMESTAMP is timestamp, or nil for now."
 	  (setq pieces (list (cons 'body body)))
 	(dolist (node (jabber-xml-node-children xml-data))
 	  (cond
+	   ((not (listp node))
+	    ;; Psi inserts newlines... ignore them
+	    nil)
 	   ((eq (jabber-xml-node-name node) 'subject)
 	    (push
 	     (cons 'subject
