@@ -858,7 +858,9 @@ The query child is often but not always <query/>."
 (defun jabber-popup-menu ()
   "Popup menu of things commonly done to JIDs"
   (interactive)
-  (call-interactively (widget-choose "Actions" jabber-jid-menu last-command-event)))
+  (let ((choice (widget-choose "Actions" jabber-jid-menu (and (listp last-input-event) last-input-event))))
+    (if choice
+	(call-interactively choice))))
 
 (defun jabber-sort-roster ()
   "sort roster according to online status"
