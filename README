@@ -7,7 +7,9 @@ at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/ .
 
 To install, put all .el files somewhere in your load-path (or have
 your load-path include the directory they're in) and put
-(require 'jabber) in your .emacs file.
+(require 'jabber) in your .emacs file.  To install the Info
+documentation, copy jabber.info to /usr/local/info and run
+"install-info /usr/local/info/jabber.info".
 
 To start using it, type M-x jabber-customize and set your username and
 server.  Then, type M-x jabber-connect to connect (with prefix
@@ -15,8 +17,9 @@ argument, register new account) and M-x jabber-send-presence to send
 presence (when asked for "show", an empty string means "online", and
 the other choices can be found via tab completion).
 
-Your roster is displayed in a buffer called *-jabber-*.  You can get a
-menu of actions by typing C-c C-c or pressing the second mouse button
-in that buffer; any JID argument will default to what's at the point.
+Your roster is displayed in a buffer called *-jabber-*.  To
+disconnect, type M-x jabber-disconnect.
 
-To disconnect, type M-x jabber-disconnect.
+For a less terse description, read the enclosed manual.
+
+WWW: http://intellectronica.net/emacs-jabber
