@@ -1,5 +1,5 @@
 ;; jabber-widget.el - display various kinds of forms
-;; $Id: jabber-widget.el,v 1.2 2004/03/03 19:24:58 legoscia Exp $
+;; $Id: jabber-widget.el,v 1.3 2004/03/09 21:51:22 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -34,6 +34,8 @@
 
 (defvar jabber-submit-to nil
   "JID of the entity to which form data is to be sent")
+
+(add-to-list 'jabber-advertised-features "jabber:x:data")
 
 (defun jabber-init-widget-buffer (submit-to)
   "Setup buffer-local variables for widgets."
