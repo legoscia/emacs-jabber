@@ -1,4 +1,4 @@
-;; jabber-sawfish.el - emacs-jabber interface to sawfish
+;; jabber-xmessage.el - emacs-jabber interface to xmessage
 
 ;; Copyright (C) 2005 - Mario Domenech Goulart
 
@@ -18,23 +18,13 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-(defcustom jabber-sawfish-display-time 3
-  "Time in seconds for displaying a jabber message through the
-Sawfish window manager."
-  :type 'integer
-  :group 'jabber-alerts)
-
-(defun jabber-sawfish-display-message (message)
-  "Displays MESSAGE through the Sawfish window manager."
+(defun jabber-xmessage-display-message (message)
+  "Displays MESSAGE using the xmessage program."
   (let ((process-connection-type nil))
-    (start-process-shell-command 
-     "jabber-sawfish" nil "echo" 
-     (concat "'(progn (display-message \"" 
-	     message
-	     "\")(make-timer (lambda () (display-message nil)) 3))' | sawfish-client - &> /dev/null"))))
+    (start-process "xmessage" nil "xmessage" message)))
 
-(define-jabber-alert sawfish "Display a message through the Sawfish window manager"
-  'jabber-sawfish-display-message)
+(define-jabber-alert xmessage "Display a message using the xmessage program."
+  'jabber-xmessage-display-message)
 
-(provide 'jabber-sawfish)
-;; arch-tag: 4F0154ED-5D05-11D9-9E6B-000A95C2FCD0
+(provide 'jabber-xmessage)
+;; arch-tag: 10A74D00-5D2C-11D9-A294-000A95C2FCD0

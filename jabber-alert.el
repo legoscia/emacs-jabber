@@ -254,10 +254,12 @@ Examples:
 (define-jabber-alert beep "Beep on event"
   (lambda (&rest ignore) (beep)))
 
-(require 'jabber-screen)
-(require 'jabber-ratpoison)
-(require 'jabber-sawfish)
-(require 'jabber-festival)
+;; XXX: ugly subdirectory hack
+(require 'jabber-screen "external-notifiers/jabber-screen")
+(require 'jabber-ratpoison "external-notifiers/jabber-ratpoison")
+(require 'jabber-sawfish "external-notifiers/jabber-sawfish")
+(require 'jabber-festival "external-notifiers/jabber-festival")
+(require 'jabber-xmessage "external-notifiers/jabber-xmessage")
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)
