@@ -86,7 +86,7 @@ JIDs."
   :group 'jabber-activity
   :set #'(lambda (var val)
 	   (custom-set-default var val)
-	   (when jabber-activity-mode
+	   (when (bound-and-true-p jabber-activity-mode)
 	     (jabber-activity-mode -1)
 	     (jabber-activity-mode 1))))
 
@@ -97,7 +97,7 @@ Same syntax as `mode-line-format'."
   :type 'sexp
   :group 'jabber-activity
   :set #'(lambda (var val)
-	   (if (not jabber-activity-mode)
+	   (if (not (bound-and-true-p jabber-activity-mode))
 	       (custom-set-default var val)
 	     (jabber-activity-mode -1)
 	     (custom-set-default var val)
