@@ -157,10 +157,13 @@ Return nil if nothing known about that combination."
 
 (defun jabber-groupchat-leave (group)
   "leave a groupchat"
-  (interactive (list (completing-read (format "Leave which group: %s" (if jabber-group (concat "(default: " jabber-group ") ")))
-				      *jabber-active-groupchats*
-				      nil nil nil nil
-				      jabber-group)))
+  (interactive (list (jabber-read-jid-completing "Leave which group: "
+						 (if (null *jabber-active-groupchats*)
+						     (error "You haven't joined any group")
+						   (mapcar (lambda (x) (jabber-jid-symbol (car x)))
+							   *jabber-active-groupchats*))
+						 t
+						 jabber-group)))
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     ;; send unavailable presence to our own nick in room
     (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
