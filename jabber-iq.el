@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.4 2004/03/21 12:33:41 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.5 2004/03/21 14:05:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -74,6 +74,9 @@
 	(if handler
 	    (condition-case error-var
 		(funcall handler xml-data)
+	      (jabber-error
+	       (message "error-var is %s" error-var)
+	       (apply 'jabber-send-iq-error from id query (cdr error-var)))
 	      (error (jabber-send-iq-error from id query "wait" 'internal-server-error (error-message-string error-var))))
 	  (jabber-send-iq-error from id query "cancel" 'feature-not-implemented)))))))
 
