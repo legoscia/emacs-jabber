@@ -188,7 +188,8 @@ NICK is the nickname.
 USER is the username (usually the username portion of a JID).
 RESOURCE is the resource.
 JID is the bare JID."
-  (if (string-equal (substring body 0 3) "/me")
+  (if (and (>= (length body) 3)
+	   (string-equal (substring body 0 3) "/me"))
       (concat
        (jabber-propertize (jabber-format-prompt prompt
 						time
@@ -369,9 +370,9 @@ TIMESTAMP is timestamp, or nil for now."
 					   jabber-groupchat-prompt-format
 					   'jabber-chat-prompt-foreign
 					   (format-time-string jabber-chat-time-format timestamp)
-					   nick
-					   nick
-					   nick
+					   (or nick "")
+					   (or nick "")
+					   (or nick "")
 					   (concat group "/" nick))))
       (setq jabber-point-insert (point))
       (set-text-properties jabber-point-insert (point-max) nil)
