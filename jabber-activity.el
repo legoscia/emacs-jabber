@@ -39,6 +39,7 @@
 
 ;;; Code:
 
+(require 'jabber-core)
 (require 'jabber-alert)
 (require 'jabber-util)
 (require 'cl)
