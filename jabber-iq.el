@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.6 2004/03/21 14:08:39 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.7 2004/03/26 13:38:06 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -50,17 +50,16 @@
          (type (jabber-xml-get-attribute xml-data 'type))
          (from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
-         (callback (cdr (assoc id *jabber-open-info-queries*))))
+         (callback (assoc id *jabber-open-info-queries*)))
     (cond
      ;; if type is "result" or "error", this is a response to a query we sent.
-     ((string= type "result")
-      (let ((callback-cons (nth 0 callback)))
+     ((or (string= type "result")
+	  (string= type "error"))
+      (let ((callback-cons (nth (cdr (assoc type '(("result" . 0)
+						   ("error" . 1)))) (cdr callback))))
 	(if (consp callback-cons)
-	    (funcall (car callback-cons) xml-data (cdr callback-cons)))))
-     ((string= type "error")
-      (let ((callback-cons (nth 1 callback)))
-	(if (consp callback-cons)
-	    (funcall (car callback-cons) xml-data (cdr callback-cons)))))
+	    (funcall (car callback-cons) xml-data (cdr callback-cons))))
+      (setq *jabber-open-info-queries* (delq callback *jabber-open-info-queries*)))
 
      ;; if type is "get" or "set", correct action depends on namespace of request.
      ((and (listp query)
