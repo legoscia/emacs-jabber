@@ -85,7 +85,8 @@ Used for SASL authentication.")
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
-(defcustom jabber-post-connect-hook '(jabber-send-default-presence)
+(defcustom jabber-post-connect-hook '(jabber-send-default-presence
+				      jabber-muc-autojoin)
   "*Hooks run after successful connection and authentication."
   :type 'hook
   :group 'jabber-core)

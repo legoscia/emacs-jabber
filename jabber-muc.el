@@ -40,8 +40,14 @@ Values are lists of nickname strings.")
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
   :type '(repeat
-	  (cons (string :tag "JID of room")
+	  (cons :format "%v"
+		(string :tag "JID of room")
 		(string :tag "Nickname"))))
+
+(defcustom jabber-muc-autojoin nil
+  "List of MUC rooms to automatically join on connection."
+  :group 'jabber-chat
+  :type '(repeat (string :tag "JID of room")))
 
 (defun jabber-muc-add-groupchat (group nickname)
   "Remember participating in GROUP under NICKNAME."
@@ -233,6 +239,14 @@ Return nil if nothing known about that combination."
 				     `(reason () ,reason))))
 		    'jabber-report-success "Role change"
 		    'jabber-report-success "Role change")))
+
+(defun jabber-muc-autojoin ()
+  "Join rooms specified in variable `jabber-muc-autojoin'."
+  (interactive)
+  (dolist (group jabber-muc-autojoin)
+    (jabber-groupchat-join group (or
+				  (cdr (assoc group jabber-muc-default-nicknames))
+				  jabber-nickname))))
 
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.

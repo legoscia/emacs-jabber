@@ -5,6 +5,8 @@
 ** MUC features
 *** Different default nicknames for different MUC rooms
 See jabber-muc-default-nicknames.
+*** Autojoin MUC rooms on connection
+See jabber-muc-autojoin.
 
 ** Vcard viewer and editor
 (Not documented yet)
