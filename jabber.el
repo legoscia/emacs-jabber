@@ -658,12 +658,13 @@ is not present, emulate it with `xml-get-attribute'."
 			  (jabber-groupchat-mode))))
     (define-key jabber-groupchat-mode-map (char-to-string key) send-fun)))
 
-(defun jabber-groupchat-display (group &optional nick body)
-  "display the groupchat window and an incoming message, if there is one"
+(defun jabber-groupchat-display (group &optional nick body timestamp)
+  "display the groupchat window and an incoming message, if there is one.
+TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-groupchat-:-" group "-*"))
     (goto-char (point-max))
     (setq buffer-read-only nil)
-    (if body (insert (propertize (concat "[" (substring (current-time-string) 11 16) "] " nick)
+    (if body (insert (propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
                                  'face 'jabber-chat-prompt-foreign)
                      "> " body "\n"))
     (if (not (eq major-mode 'jabber-groupchat-mode))
@@ -697,12 +698,13 @@ is not present, emulate it with `xml-get-attribute'."
 		      (setq buffer-read-only t)))
     (define-key jabber-chat-mode-map (char-to-string key) send-fun)))
 
-(defun jabber-chat-display (&optional from body)
-  "display the chat window and a new message, if there is one"
+(defun jabber-chat-display (&optional from body timestamp)
+  "display the chat window and a new message, if there is one.
+TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname from) "-*"))
     (goto-char (point-max))
     (setq buffer-read-only nil)
-    (if body (insert (propertize (concat "[" (substring (current-time-string) 11 16) "] " (jabber-jid-displayname from))
+    (if body (insert (propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " (jabber-jid-displayname from))
 				 'face 'jabber-chat-prompt-foreign)
 		     "> " body "\n"))
     (setq buffer-read-only t)
@@ -767,13 +769,34 @@ The query child is often but not always <query/>."
   "Return the namespace of an IQ stanza, i.e. the namespace of its query part."
   (jabber-xml-get-attribute (jabber-iq-query xml-data) 'xmlns))
 
+(defun jabber-x-delay (xml-data)
+  "Return timestamp given a <x/> tag in namespace jabber:x:delay.
+Return nil if no such data available."
+  (when (and (eq (jabber-xml-node-name xml-data) 'x)
+	     (string= (jabber-xml-get-attribute xml-data 'xmlns) "jabber:x:delay"))
+    (let ((stamp (jabber-xml-get-attribute xml-data 'stamp)))
+      (if (and (stringp stamp)
+	       (= (length stamp) 17))
+	  (jabber-parse-legacy-time stamp)))))
+      
+(defun jabber-parse-legacy-time (timestamp)
+  "Parse timestamp in ccyymmddThh:mm:ss format (UTC) and return as internal time value."
+  (let ((year (string-to-number (substring timestamp 0 4)))
+	(month (string-to-number (substring timestamp 4 6)))
+	(day (string-to-number (substring timestamp 6 8)))
+	(hour (string-to-number (substring timestamp 9 11)))
+	(minute (string-to-number (substring timestamp 12 14)))
+	(second (string-to-number (substring timestamp 15 17))))
+    (encode-time second minute hour day month year 0)))
+
 (defun jabber-process-message (xml-data)
   "process incoming messages"
   (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(type (jabber-xml-get-attribute xml-data 'type))
-	(subject(car (xml-node-children (car (xml-get-children xml-data 'subject)))))
-	(body (car (xml-node-children (car (xml-get-children xml-data 'body)))))
-	(thread (car (xml-node-children (car (xml-get-children xml-data 'thread)))))
+	(subject (car (xml-node-children (car (jabber-xml-get-children xml-data 'subject)))))
+	(body (car (xml-node-children (car (jabber-xml-get-children xml-data 'body)))))
+	(thread (car (xml-node-children (car (jabber-xml-get-children xml-data 'thread)))))
+	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x)))))
 	(error (car (xml-get-children xml-data 'error))))
     ;; XXX: The present division by type does not properly handle
     ;; groupchat error messages.
@@ -781,7 +804,8 @@ The query child is often but not always <query/>."
      ((string= type "groupchat")
       (jabber-groupchat-display (jabber-jid-user from) 
 				(jabber-jid-resource from)
-				(jabber-unescape-xml body))
+				(jabber-unescape-xml body)
+				timestamp)
       )
      (t
       (if error
@@ -789,7 +813,8 @@ The query child is often but not always <query/>."
 			       (concat "ERROR: "
 				       (jabber-parse-error error)))
 	(jabber-chat-display from 
-			     (jabber-unescape-xml body)))))))
+			     (jabber-unescape-xml body)
+			     timestamp))))))
 
 
 (defun jabber-process-subscription-request (from presence-status)
