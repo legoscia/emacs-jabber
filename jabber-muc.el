@@ -24,8 +24,7 @@
 
 (require 'jabber-widget)
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 
 (defvar *jabber-active-groupchats* nil
   "alist of groupchats and nicknames
@@ -140,41 +139,62 @@ That does not include private messages in a groupchat."
   (let ((from (jabber-xml-get-attribute presence 'from)))
     (assoc (jabber-jid-user from) *jabber-active-groupchats*)))
 
+(defun jabber-muc-parse-affiliation (x-muc)
+  "Parse X-MUC in the muc#user namespace and return a plist.
+Return nil if X-MUC is nil."
+  ;; XXX: parse <actor/> and <reason/> tags?  or maybe elsewhere?
+  (apply 'nconc (mapcar (lambda (prop) (list (car prop) (cdr prop)))
+			(jabber-xml-node-attributes
+			 (car (jabber-xml-get-children x-muc 'item))))))
+
 (defun jabber-muc-process-presence (presence)
   (let ((from (jabber-xml-get-attribute presence 'from))
-	(type (jabber-xml-get-attribute presence 'type)))
+	(type (jabber-xml-get-attribute presence 'type))
+	(x-muc (find-if 
+		(lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
+				   "http://jabber.org/protocol/muc#user"))
+		(jabber-xml-get-children presence 'x))))
     (let ((group (jabber-jid-user from))
 	  (nickname (jabber-jid-resource from))
 	  (symbol (jabber-jid-symbol from)))
       ;; handle leaving a room
-      (if (string= type "unavailable")
-	  ;; are we leaving?
-	  (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
-	      (let ((whichgroup (assoc group *jabber-active-groupchats*))
-		    (whichparticipants (assoc group jabber-muc-participants)))
-		(setq *jabber-active-groupchats* 
-		      (delq whichgroup *jabber-active-groupchats*))
-		(setq jabber-muc-participants
-		      (delq whichparticipants jabber-muc-participants))
-		(jabber-groupchat-display group nil "You have left the chatroom"))
-	    ;; or someone else?
-	    (let ((whichparticipants (assoc group jabber-muc-participants)))
-	      (setf (cdr whichparticipants)
-		    (delete nickname (cdr whichparticipants)))
-	      (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname))))
+      (cond 
+       ((string= type "unavailable")
+	;; are we leaving?
+	(if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
+	    (let ((whichgroup (assoc group *jabber-active-groupchats*))
+		  (whichparticipants (assoc group jabber-muc-participants)))
+	      (setq *jabber-active-groupchats* 
+		    (delq whichgroup *jabber-active-groupchats*))
+	      (setq jabber-muc-participants
+		    (delq whichparticipants jabber-muc-participants))
+	      (jabber-groupchat-display group nil "You have left the chatroom"))
+	  ;; or someone else?
+	  (let ((whichparticipants (assoc group jabber-muc-participants)))
+	    (setf (cdr whichparticipants)
+		  (delete* nickname (cdr whichparticipants) :key 'car :test 'string=))
+	    (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname)))))
+       ;; XXX: add errors here
+       (t 
 	;; someone is entering
 	(let ((participants (assoc group jabber-muc-participants))
-	      (new-participant t))
+	      (new-participant t)
+	      (new-plist (jabber-muc-parse-affiliation x-muc)))
+	  ;; either we have a list of participants already...
 	  (if participants
-	      ;; either we have a list of participants already...
-	      (if (member nickname participants)
-		  ;; and maybe this participant is already in the list
-		  (setq new-participant nil)
-		(push nickname (cdr participants)))
+	      (let ((participant (assoc nickname participants)))
+		;; and maybe this participant is already in the list
+		(if participant
+		    ;; if so, just update role, affiliation, etc.
+		    ;; XXX: calculate delta and report to user? e.g. "X was given voice"
+		    (progn
+		      (setq new-participant nil)
+		      (setf (cdr participant) new-plist))
+		  (push (cons nickname new-plist) (cdr participants))))
 	    ;; or we don't
-	    (push (cons group (list nickname)) jabber-muc-participants))
+	    (push (cons group (list (cons nickname new-plist))) jabber-muc-participants))
 	  (when new-participant
-	    (jabber-groupchat-display group nil (format "%s enters the chatroom" nickname))))))))
+	    (jabber-groupchat-display group nil (format "%s enters the chatroom" nickname)))))))))
 	      
 (provide 'jabber-muc)
 
