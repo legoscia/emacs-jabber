@@ -111,8 +111,10 @@
 	   (widget-value (cdr widget-cons))))
    jabber-widget-alist))
 
-(defun jabber-render-xdata-form (x)
-  "Display widgets from <x/> element in jabber:x:data namespace."
+(defun jabber-render-xdata-form (x &optional defaults)
+  "Display widgets from <x/> element in jabber:x:data namespace.
+DEFAULTS is an alist associating variable names with default values.
+DEFAULTS takes precedence over values specified in the form."
   (make-local-variable 'jabber-widget-alist)
   (setq jabber-widget-alist nil)
   (make-local-variable 'jabber-form-type)
@@ -126,13 +128,14 @@
 	(widget-insert "Instructions: " instructions "\n\n")))
 
   (dolist (field (jabber-xml-get-children x 'field))
-    (let ((var (jabber-xml-get-attribute field 'var))
-	  (label (jabber-xml-get-attribute field 'label))
-	  (type (jabber-xml-get-attribute field 'type))
-	  (required (jabber-xml-get-children field 'required))
-	  (values (jabber-xml-get-children field 'value))
-	  (options (jabber-xml-get-children field 'option))
-	  (desc (car (jabber-xml-get-children field 'desc))))
+    (let* ((var (jabber-xml-get-attribute field 'var))
+	   (label (jabber-xml-get-attribute field 'label))
+	   (type (jabber-xml-get-attribute field 'type))
+	   (required (jabber-xml-get-children field 'required))
+	   (values (jabber-xml-get-children field 'value))
+	   (options (jabber-xml-get-children field 'option))
+	   (desc (car (jabber-xml-get-children field 'desc)))
+	   (default-value (assoc var defaults)))
       ;; "required" not implemented yet
 
       (cond
@@ -143,7 +146,9 @@
 	(if (or label var)
 	    (widget-insert (or label var) ":\n"))
 	(push (cons (cons var type)
-		    (widget-create 'text (or (car (jabber-xml-node-children (car values))) "")))
+		    (widget-create 'text (or (cdr default-value)
+					     (car (jabber-xml-node-children (car values)))
+					     "")))
 	      jabber-widget-alist))
 
        ((string= type "list-single")
@@ -152,7 +157,8 @@
 	(push (cons (cons var type)
 		    (apply 'widget-create
 			   'radio-button-choice 
-			   :value (car (xml-node-children (car values)))
+			   :value (or (cdr default-value)
+				      (car (xml-node-children (car values))))
 			   (mapcar (lambda (option)
 				     `(item :tag ,(jabber-xml-get-attribute option 'label)
 					    :value ,(car (jabber-xml-node-children (car (jabber-xml-get-children option 'value))))))
@@ -161,12 +167,16 @@
 				    
        ((string= type "boolean")
 	(push (cons (cons var type)
-		    (widget-create 'checkbox :tag (or label var) :value (not (string= (car (xml-node-children (car values))) "0"))))
+		    (widget-create 'checkbox 
+				   :tag (or label var)
+				   :value (if default-value
+					      (cdr default-value)
+					    (not (string= (car (xml-node-children (car values))) "0")))))
 	      jabber-widget-alist)
 	(if (or label var)
 	    (widget-insert " " (or label var) "\n")))
 
-       (t				; in particular including text-single and text-private
+       (t	; in particular including text-single and text-private
 	(if (or label var)
 	    (widget-insert (or label var) ": "))
 	(setq jabber-widget-alist
@@ -174,7 +184,8 @@
 	       (cons (cons var type)
 		     (widget-create 'editable-field
 				    :secret (if (string= type "text-private") ?* nil)
-				    (or (car (jabber-xml-node-children (car values)))
+				    (or (cdr default-value)
+					(car (jabber-xml-node-children (car values)))
 					"")))
 	       jabber-widget-alist))))
       (when desc
