@@ -53,7 +53,7 @@
 	(run-with-timer 5
 			jabber-keepalive-interval
 			'jabber-keepalive-do))
-  (add-hook 'jabber-keepalive-stop 'jabber-post-disconnect-hook))
+  (add-hook 'jabber-post-disconnect-hook 'jabber-keepalive-stop))
 
 (defun jabber-keepalive-stop()
   "Deactivate keepalive"
