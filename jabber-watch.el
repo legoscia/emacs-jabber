@@ -21,43 +21,51 @@
 
 (require 'jabber-util)
 
-(defvar jabber-watch-list nil
-  "List of buddies for which an extra notification should be sent
-when they come online")
+(defvar jabber-watch-alist nil
+  "Alist of buddies for which an extra notification should be sent
+when they come online, with comment strings as values.")
 
 (defun jabber-presence-watch (who oldstatus newstatus
 				  statustext proposed-alert)
   "Checks if one of your extra-important buddies comes online and
 sends a message if that happens. The buddies are stored in
-`jabber-watch-list' and are added and removed by calling
+`jabber-watch-alist' and are added and removed by calling
 `jabber-watch-add' and `jabber-watch-remove.'"
   ;; check that buddy was previously offline and now online
   (if (and (null oldstatus)
            (not (null newstatus)))
-      (when (memq who jabber-watch-list)
-	;; Give an intrusive message.  With a window system,
-	;; that's easy.
-	(if window-system
-	    (message-box "%s" proposed-alert)
-	  ;; Without a window system, yes-or-no-p should be
-	  ;; sufficient.
-	  (while (not
-		  (yes-or-no-p (format "%s  Got that? " proposed-alert))))))))
+      (let ((entry (assq who jabber-watch-alist)))
+	(when entry
+	  ;; Give an intrusive message.  With a window system,
+	  ;; that's easy.
+	  (if window-system
+	      (message-box "%s%s" proposed-alert
+			   (if (cdr entry) (format ": %s" (cdr entry)) ""))
+	    ;; Without a window system, yes-or-no-p should be
+	    ;; sufficient.
+	    (while (not
+		    (yes-or-no-p (format "%s%s  Got that? " proposed-alert
+					 (if (cdr entry) (format ": %s" (cdr entry)) ""))))))))))
 
-(defun jabber-watch-add (buddy)
-  (interactive (list (jabber-read-jid-completing "Add buddy to watch list: ")))
+(defun jabber-watch-add (buddy &optional comment)
+  (interactive (list (jabber-read-jid-completing "Add buddy to watch list: ")
+		     (read-string "Comment: ")))
   (unless (memq 'jabber-presence-watch jabber-alert-presence-hooks)
     (error "jabber-presence-watch is not in jabber-alert-presence-hooks"))
-  (add-to-list 'jabber-watch-list (jabber-jid-symbol buddy)))
+  (add-to-list 'jabber-watch-alist (cons
+				    (jabber-jid-symbol buddy)
+				    (and (not (zerop (length comment)))
+					 comment))))
 
 (defun jabber-watch-remove (buddy)
   (interactive
    (list (jabber-read-jid-completing "Remove buddy from watch list: "
-				     (or jabber-watch-list
+				     (or (mapcar 'car jabber-watch-alist)
 					 (error "Watch list is empty"))
 				     t)))
-  (setq jabber-watch-list
-        (delq (jabber-jid-symbol buddy) jabber-watch-list)))
+  (setq jabber-watch-alist
+        (delq (assq (jabber-jid-symbol buddy) jabber-watch-alist)
+	      jabber-watch-alist)))
 
 (provide 'jabber-watch)
 
