@@ -243,7 +243,7 @@ Call this function after disconnection."
         (if (string-match " \\w+=''" *xmlq*)
             (setq *xmlq* (replace-match "" nil nil *xmlq*)))
         (catch 'jabber-no-tag
-          (while (string-match "<\\([a-zA-Z0-9\:]+\\)[>[:space:]]" *xmlq*)
+          (while (string-match "<\\([a-zA-Z0-9\:]+\\)[> ]" *xmlq*)
             (if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
                     (string-match (concat "<" (match-string 1 *xmlq*) ".*?>[^\0]+?</" (match-string 1 *xmlq*) ">") *xmlq*))
                 (progn
