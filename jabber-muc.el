@@ -155,18 +155,26 @@ That does not include private messages in a groupchat."
 		(setq *jabber-active-groupchats* 
 		      (delq whichgroup *jabber-active-groupchats*))
 		(setq jabber-muc-participants
-		      (delq whichparticipants jabber-muc-participants)))
+		      (delq whichparticipants jabber-muc-participants))
+		(jabber-groupchat-display group nil "You have left the chatroom"))
 	    ;; or someone else?
 	    (let ((whichparticipants (assoc group jabber-muc-participants)))
 	      (setf (cdr whichparticipants)
-		    (delete nickname (cdr whichparticipants)))))
+		    (delete nickname (cdr whichparticipants)))
+	      (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname))))
 	;; someone is entering
-	(let ((participants (assoc group jabber-muc-participants)))
+	(let ((participants (assoc group jabber-muc-participants))
+	      (new-participant t))
 	  (if participants
 	      ;; either we have a list of participants already...
-	      (push nickname (cdr participants))
+	      (if (member nickname participants)
+		  ;; and maybe this participant is already in the list
+		  (setq new-participant nil)
+		(push nickname (cdr participants)))
 	    ;; or we don't
-	    (push (cons group (list nickname)) jabber-muc-participants)))))))
+	    (push (cons group (list nickname)) jabber-muc-participants))
+	  (when new-participant
+	    (jabber-groupchat-display group nil (format "%s enters the chatroom" nickname))))))))
 	      
 (provide 'jabber-muc)
 
