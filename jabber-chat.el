@@ -191,7 +191,7 @@ JID is the bare JID."
   (if (and (>= (length body) 3)
 	   (string-equal (substring body 0 3) "/me"))
       (concat
-       (jabber-propertize (jabber-format-prompt prompt
+       (jabber-propertize (jabber-format-prompt jabber-chat-system-prompt-format
 						time
 						""
 						user
