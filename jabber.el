@@ -19,6 +19,7 @@
 
 (require 'xml)
 (require 'sha1-el)
+(require 'widget)
 
 (defvar *jabber-connection* nil
   "the process that does the actual connection")
@@ -70,6 +71,17 @@
 
 (defvar jabber-group nil
   "the groupchat you are participating in")
+
+(defvar jabber-widget-alist nil
+  "Alist of widgets currently used")
+
+(defvar jabber-form-type nil
+  "Type of form.  One of:
+'x-data, jabber:x:data
+'register, as used in jabber:iq:register and jabber:iq:search")
+
+(defvar jabber-submit-to nil
+  "JID of the entity to which form data is to be sent")
 
 (defgroup jabber nil "Jabber instant messaging"
   :group 'emacs)
@@ -1092,6 +1104,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(xmlns (jabber-iq-xmlns xml-data))
 	(type (jabber-xml-get-attribute xml-data 'type)))
     (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
+      (if (not (eq major-mode 'jabber-browse-mode))
+	  (jabber-browse-mode))
+
       (setq buffer-read-only nil)
       (goto-char (point-max))
 
@@ -1109,7 +1124,6 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        (t
 	(insert (format "%S\n\n" xml-data))))
 
-      (jabber-browse-mode)
       (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
 
 (defun jabber-process-browse (xml-data)
@@ -1219,6 +1233,113 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(when data
 	  (insert (cdr x) data "\n"))))))
 
+(defun jabber-render-register-form (query)
+  "Display widgets from <query/> element in jabber:iq:{register,search} namespace."
+  (make-local-variable 'jabber-widget-alist)
+  (setq jabber-widget-alist nil)
+  (make-local-variable 'jabber-form-type)
+  (setq jabber-form-type 'register)
+
+  (if (jabber-xml-get-children query 'instructions)
+      (widget-insert "Instructions: " (car (jabber-xml-node-children (car (jabber-xml-get-children query 'instructions)))) "\n"))
+  (if (jabber-xml-get-children query 'registered)
+      (widget-insert "You are already registered.  You can change your details here.\n"))
+  (widget-insert "\n")
+
+  (let ((possible-fields
+	 ;; taken from JEP-0077
+	 '((username . "Username")
+	   (nick . "Nickname")
+	   (password . "Password")
+	   (name . "Full name")
+	   (first . "First name")
+	   (last . "Last name")
+	   (email . "E-mail")
+	   (address . "Address")
+	   (city . "City")
+	   (state . "State")
+	   (zip . "Zip")
+	   (phone . "Telephone")
+	   (url . "Web page")
+	   (date . "Birth date"))))
+    (dolist (field (jabber-xml-node-children query))
+      (let ((entry (assq (jabber-xml-node-name field) possible-fields)))
+	(when entry
+	  (widget-insert (cdr entry) "\t")
+	  (setq jabber-widget-alist 
+		(cons
+		 (cons (car entry)
+		       (widget-create 'editable-field
+				      :secret  (if (eq (car entry) 'password)
+						   ?* nil)
+				      (or (car (jabber-xml-node-children
+						field)) "")))
+		 jabber-widget-alist))
+	  (widget-insert "\n"))))))
+
+(defun jabber-parse-register-form ()
+  "Return children of a <query/> tag containing information entered in the widgets of the current buffer."
+  (mapcar
+   (lambda (widget-cons)
+     (list (car widget-cons)
+	   nil
+	   (widget-value (cdr widget-cons))))
+   jabber-widget-alist))
+
+(defun jabber-process-register (xml-data)
+  "Display results from jabber:iq:register query as a form."
+
+  (let ((query (jabber-iq-query xml-data)))
+    (make-local-variable 'jabber-widget-alist)
+    (make-local-variable 'jabber-submit-to)
+    (setq jabber-widget-alist nil)
+    (setq jabber-submit-to (jabber-xml-get-attribute xml-data 'from))
+    (setq buffer-read-only nil)
+
+    ;; This is because data from other queries would otherwise be
+    ;; appended to this buffer, which would fail since widget buffers
+    ;; are read-only... or something like that.  Maybe there's a better
+    ;; way.
+    (rename-uniquely)
+
+    (widget-insert "Register with " jabber-submit-to "\n")
+
+    (jabber-render-register-form query)
+
+    (widget-create 'push-button :notify #'jabber-submit-register "Submit")
+    (widget-insert "\t")
+    (widget-create 'push-button :notify #'jabber-remove-register "Cancel registration")
+    (widget-insert "\n")
+    (widget-setup)
+    (widget-minor-mode 1)))
+
+(defun jabber-submit-register (&rest ignore)
+  "Submit registration input.  See `jabber-process-register'."
+  
+  (let ((handler (if jabber-register-p 
+		     #'jabber-process-register-secondtime
+		   #'jabber-report-success))
+	(text (concat "Registration with " jabber-submit-to)))
+    (jabber-send-iq jabber-submit-to
+		    "set"
+		    `(query ((xmlns . "jabber:iq:register"))
+			    @,(jabber-parse-register-form "jabber:iq:register"))
+		    handler (if jabber-register-p 'success text)
+		    handler (if jabber-register-p 'failure text)))
+
+  (message "Registration sent"))
+
+(defun jabber-remove-register (&rest ignore)
+  "Cancel registration.  See `jabber-process-register'."
+
+  (if (yes-or-no-p (concat "Are you sure that you want to cancel your registration to " jabber-submit-to "? "))
+      (jabber-send-iq jabber-submit-to
+		      "set"
+		      '(query ((xmlns . "jabber:iq:register"))
+			      (remove))
+		      #'jabber-report-success "Unregistration"
+		      #'jabber-report-success "Unregistration")))
+
 (defun jabber-return-version (xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
 determined from the incoming packet passed in XML-DATA."
@@ -1258,45 +1379,6 @@ See JEP-0030."
 			      jabber-advertised-features))
 		    nil nil nil nil id)))
 
-(defun jabber-do-register (xml-data closure-data)
-  "Register new account with a Jabber server.
-Call upon receiving \"result\" response to an \"jabber:iq:register\" get
-request."
-  ;; This should be implemented with widgets under jabber-process-data,
-  ;; and it should support registering with other things than your own
-  ;; jabber server (e.g. JUDs).  It should probably support jabber:x:data
-  ;; too.
-  (setq jabber-register-p nil)
-  (let* ((query (jabber-iq-query xml-data))
-	 (instructions (car (jabber-xml-node-children (car (jabber-xml-get-children query 'instructions)))))
-	 (registered (jabber-xml-get-children xml-data 'registered))
-	 (form nil))
-    (if registered
-	(progn
-	  (message "%s@%s is already registered." jabber-username jabber-server)
-	  (sit-for 2))
-      (message "Registration instructions: %s" instructions)
-      (sit-for 5)
-      (dolist (x (jabber-xml-node-children query))
-	(cond
-	 ((eq (jabber-xml-node-name x) 'instructions)
-	  ;; already handled
-	  )
-	 ((eq (jabber-xml-node-name x) 'username)
-	  (message "Using %s as username" jabber-username)
-	  (setq form (cons `(username nil ,jabber-username) form))
-	  (sit-for 2))
-	 ((eq (jabber-xml-node-name x) 'password)
-	  (setq form (cons `(password nil ,(jabber-read-passwd)) form)))
-	 (t
-	  (setq form (cons `(,x nil ,(read-string (format "%s: " x))) form)))))
-      (jabber-send-iq jabber-server
-		      "set"
-		      `(query ((xmlns . "jabber:iq:register"))
-			      ,form)
-		      #'jabber-process-register 'success
-		      #'jabber-process-register 'error))))
-	    
 (defun jabber-do-logon (xml-data closure-data)
   "send username and password in logon attempt"
   (cond
@@ -1342,9 +1424,10 @@ request."
    (t
     (error "Logon error ended up in the wrong place"))))
 
-(defun jabber-process-register (xml-data closure-data)
-  "Receive registration success of failure.
+(defun jabber-process-register-secondtime (xml-data closure-data)
+  "Receive registration success or failure.
 CLOSURE-DATA is either 'success or 'error."
+  (setq jabber-register-p nil)
   (cond
    ((eq closure-data 'success)
     (message "Registration successful.  Your JID is %s@%s."
@@ -1476,7 +1559,7 @@ This is made complicated by the fact that the JIDs are symbols with properties."
 (defun jabber-connect (&optional registerp)
   "connect to the jabber server and start a jabber xml stream
 With prefix argument, register a new account."
-  (interactive "p")
+  (interactive "P")
   (if *jabber-connected*
       (message "Already connected")
     (setq *xmlq* "")
@@ -1491,7 +1574,7 @@ With prefix argument, register a new account."
     (set-process-filter *jabber-connection* #'jabber-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
 
-    (setq jabber-register-p (> registerp 1))
+    (setq jabber-register-p (not (null registerp)))
     (process-send-string *jabber-connection*
 			 (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
@@ -1654,11 +1737,12 @@ RESULT-ID is the id to be used for a response to a received iq message.
 
 (defun jabber-get-register (to)
   "Send IQ get request in namespace \"jabber:iq:register\"."
+  (interactive (list (jabber-read-jid-completing "Register with: ")))
   (jabber-send-iq to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:register")))
-		  #'jabber-do-register nil
-		  #'jabber-report-success "Account registration"))
+		  #'jabber-process-data #'jabber-process-register
+		  #'jabber-report-success "Registration"))
 
 (defun jabber-get-browse (to)
   "send a browse infoquery request to someone"
