@@ -277,6 +277,8 @@ call @code{jabber-display-roster} manually.
 @findex jabber-groupchat-join
 @findex jabber-groupchat-leave
 @findex jabber-groupchat-get-config
+@findex jabber-muc-names
+@findex jabber-muc-set-role
 
 The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
@@ -298,10 +300,18 @@ If you are the owner of a groupchat, you can change its configuration
 by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
 will be rendered in new buffer.
 
-Currently, there is no user-friendly way to see which people are in a
-groupchat.  A possible workaround is to add the groupchat to your
-roster before you join it; that way the participants will show up as
-resources of a user.
+To see which people are in a groupchat, type @kbd{M-x
+jabber-muc-names}.  This gives a list of nicknames, ``roles'',
+``affiliations'', and possibly JIDs.  The possible roles are
+``moderator'', ``participant'' (has voice), ``visitor'' (doesn't have
+voice), and ``none'' (not in room).  Affiliations are ``owner'',
+``admin'', ``member'', ``outcast'' (banned), and ``none''.
+
+If you have moderator privileges, you can change the role of a
+participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
+the role to ``none''.  Granting and revoking voice are ``participant''
+and ``visitor'', respectively.  Changing affiliations is not yet
+supported.
 
 @node Services, Modeline status, Groupchat, Top
 @chapter Services
@@ -1238,7 +1248,11 @@ Publishing items is not supported.
 @node JEP-0045 (Multi-User Chat), JEP-0050 (Ad-Hoc Commands), JEP-0030 (Service Discovery), Protocol support
 @section JEP-0045 (Multi-User Chat)
 
-There is more to say about this...
+jabber.el supports parts of JEP-0045.  Entering, leaving and chatting
+work.  Invitations don't.  Private messages are handled quite
+unintuitively.  Changing roles of participants (basic moderation) is
+implemented, but changing affiliations is not.  Room configuration is
+supported.
 
 @node JEP-0050 (Ad-Hoc Commands), JEP-0055 (Jabber Search), JEP-0045 (Multi-User Chat), Protocol support
 @section JEP-0050 (Ad-Hoc Commands)
