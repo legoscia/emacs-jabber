@@ -123,7 +123,7 @@ If REQUIRE-MATCH is non-nil, the JID must be in the list used."
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
 				      (or subset *jabber-roster*))))
-    (dolist (item *jabber-roster*)
+    (dolist (item (or subset *jabber-roster*))
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
     (let ((input
