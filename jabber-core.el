@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.8 2004/04/02 19:13:58 legoscia Exp $
+;; $Id: jabber-core.el,v 1.9 2004/04/02 19:27:56 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -58,7 +58,7 @@ This is set by `jabber-connect' on each call, and later picked up in
 (defvar jabber-iq-chain nil
   "Incoming infoqueries are sent to these functions, in order.")
 
-(defvar jabber-presence-chain (list 'jabber-process-presence)
+(defvar jabber-presence-chain nil
   "Incoming presence notifications are sent to these functions, in order.")
 
 (defgroup jabber-core nil "customize core functionality"
