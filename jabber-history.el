@@ -19,26 +19,13 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-
-;;
-;; Changes
-;;
-;; 2004-11-22, Mathias Dahl
-
-;;  Changed "(jabber-jid-displayname from)" to "from" as it is more
-;;  "raw"
-
-;;  Added new logging function jabber-message-log-log-message
-
-;;  Changed (temporarily) jabber-send-chat to log outgoing messages
-;;  too
-
-;;  Now encoding \n and \r in message to keep it on one line
-
-;;  Added "direction" data to the log
-
-;;  Using format-time-string to get ISO 8601 date and time format.
-;;  See http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+;;; Log format:
+;; Each message is on one separate line, represented as a vector with
+;; five elements.  The first element is time encoded according to
+;; JEP-0082.  The second element is direction, "in" or "out".
+;; The third element is the sender, "me" or a JID.  The fourth
+;; element is the recipient.  The fifth element is the text
+;; of the message.
 
 (defcustom jabber-history-enabled nil
   "Non-nil means message logging is enabled"
@@ -61,8 +48,8 @@ will be logged to the same file."
       (setq body (replace-match "\\n" nil t body nil)))
     (while (string-match "\r" body)
       (setq body (replace-match "\\r" nil t body nil)))
-    (insert (format "%s: %s: %s: %s: %s\n"
-		    (format-time-string "%Y-%m-%d %T %z")
+    (insert (format "[\"%s\" \"%s\" \"%s\" \"%s\" %s]\n"
+		    (jabber-encode-time (current-time))
 		    (or direction
 			"in")
 		    (or from
@@ -72,27 +59,6 @@ will be logged to the same file."
 		    body))
     (let ((coding-system-for-write 'utf-8))
       (append-to-file (point-min) (point-max) "~/.jabber_global_message_log"))))
-
-;; maybe use this for conversion later...
-;; (defun jabber-parse-time-string (time)
-;;   "Parse output of (format-time-string \"%Y-%m-%d %T %z\")"
-;;   (list (string-to-number (substring time 17 19))
-;; 	       (string-to-number (substring time 14 16))
-;; 	       (string-to-number (substring time 11 13))
-;; 	       (string-to-number (substring time 8 10))
-;; 	       (string-to-number (substring time 5 7))
-;; 	       (string-to-number (substring time 0 4))
-;; 	       (substring time 20)))
-
-;; Changed version of jabber-send-chat just to test concept. I don't
-;; know if placing the message loggin for outgoing messages here is
-;; the best place.
-
-;; (defun jabber-send-chat (to body)
-;;   "send a chat message to someone"
-;;   (jabber-send-message to nil body "chat")
-;;   (if jabber-history-enabled
-;;       (jabber-history-log-message "out" nil to body)))
 
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
