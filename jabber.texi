@@ -451,11 +451,19 @@ self-explanatory.
 @cindex modeline
 @findex jabber-mode-line-mode
 @vindex jabber-mode-line-mode
+@vindex jabber-mode-line-compact
 
 By typing @kbd{M-x jabber-mode-line-mode} you toggle display of some
 status in mode lines.  The information is your own presence status,
-and six numbers indicating the number of chatty, online, away,
-extended away, dnd, and offline contacts, respectively.
+and some numbers showing the status of your roster contacts.  By
+default, there are three numbers, for ``online'' (chatty and online),
+``away'' (away, extended away and do not disturb) and offline
+contacts.
+
+If you set @code{jabber-mode-line-compact} to nil, you get a complete
+breakdown of presence status.  That gives you six numbers indicating
+the number of chatty, online, away, extended away, dnd, and offline
+contacts, respectively.
 
 @node Keepalive, Watch buddies, Modeline status, Top
 @chapter Keepalive

@@ -26,6 +26,11 @@
   "Display Jabber status in mode line"
   :group 'jabber)
 
+(defcustom jabber-mode-line-compact t
+  "Count contacts in fewer categories for compact view"
+  :group 'jabber-mode-line
+  :type 'boolean)
+
 (defvar jabber-mode-line-string nil)
 (defvar jabber-mode-line-presence nil)
 (defvar jabber-mode-line-contacts nil)
@@ -50,8 +55,16 @@
       (when (assoc (get buddy 'show) count)
 	(incf (cdr (assoc (get buddy 'show) count)))))
     (setq jabber-mode-line-contacts
-	  (apply 'format "(%d/%d/%d/%d/%d/%d)"
-		 (mapcar 'cdr count)))))
+	  (if jabber-mode-line-compact
+	      (format "(%d/%d/%d)"
+		      (+ (cdr (assoc "chat" count))
+			 (cdr (assoc "" count)))
+		      (+ (cdr (assoc "away" count))
+			 (cdr (assoc "xa" count))
+			 (cdr (assoc "dnd" count)))
+		      (cdr (assoc nil count)))
+	    (apply 'format "(%d/%d/%d/%d/%d/%d)"
+		   (mapcar 'cdr count))))))
 
 (define-minor-mode jabber-mode-line-mode
   "Toggle display of Jabber status in mode lines.
