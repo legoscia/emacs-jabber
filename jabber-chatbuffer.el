@@ -53,6 +53,12 @@ what kind of chat buffer is being created.")
 
 (put 'jabber-chat-mode 'mode-class 'special)
 
+;; Spell check only what you're currently writing
+(defun jabber-chat-mode-flyspell-verify ()
+  (>= (point) jabber-point-insert))
+(put 'jabber-chat-mode 'flyspell-mode-predicate
+  'jabber-chat-mode-flyspell-verify)
+
 (defvar jabber-chat-mode-map (copy-keymap jabber-common-keymap))
 
 (define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send)
