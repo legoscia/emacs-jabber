@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.6 2004/02/03 13:22:26 legoscia Exp $
+@c $Id: jabber.texi,v 1.7 2004/02/11 21:37:28 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4
@@ -513,8 +513,10 @@ harm if called when you don't use Screen.
 The @code{ratpoison} alerts send a message through the Ratpoison
 window manager (see @uref{http://ratpoison.sourceforge.net/}).  They
 do no harm if used when you're not running X, but if you are running X
-with another window manager, the calls to ratpoison will stall
-indefinitely.  Avoid that.
+with another window manager, the ratpoison processes will never exit.
+You can look at them with @code{list-processes}.@footnote{In jabber.el
+0.4, ratpoison alerts were sent synchronously, which meant that Emacs
+would stall if ratpoison wasn't there to answer.}
 
 All these functions are near the end of the @file{jabber.el} file.
 You can use them as templates or inspiration for your own alerts.
