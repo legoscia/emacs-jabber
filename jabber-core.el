@@ -208,7 +208,7 @@ tag, or nil if we're connecting to a pre-XMPP server."
         (if (string-match " \\w+=''" *xmlq*)
             (setq *xmlq* (replace-match "" nil nil *xmlq*)))
         (catch 'jabber-no-tag
-          (while (string-match "<\\([a-zA-Z0-9\:]+\\)\\s-" *xmlq*)
+          (while (string-match "<\\([a-zA-Z0-9\:]+\\)[>[:space:]]" *xmlq*)
             (if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
                     (string-match (concat "<" (match-string 1 *xmlq*) ".*?>[^\0]+?</" (match-string 1 *xmlq*) ">") *xmlq*))
                 (progn
