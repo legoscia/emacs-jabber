@@ -168,7 +168,7 @@ Return nil if nothing known about that combination."
 	     (cons "Join groupchat" 'jabber-groupchat-join))
 
 (defun jabber-groupchat-join (group nickname)
-  "join a groupchat"
+  "join a groupchat, or change nick"
   (interactive 
    (let* ((group (jabber-read-jid-completing "group: "))
 	  (default-nickname (or
@@ -192,8 +192,7 @@ Return nil if nothing known about that combination."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Change nickname" 'jabber-muc-nick))
 
-(defalias 'jabber-muc-nick 'jabber-groupchat-join
-  "Change nickname in MUC room.")
+(defalias 'jabber-muc-nick 'jabber-groupchat-join)
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Leave groupchat" 'jabber-groupchat-leave))
