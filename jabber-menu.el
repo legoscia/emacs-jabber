@@ -19,6 +19,59 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(defvar jabber-menu (make-sparse-keymap "jabber-menu"))
+
+(defun jabber-menu (&optional remove)
+  "Put \"Jabber\" menu on menubar.
+With prefix argument, remove it."
+  (interactive "P")
+  (define-key global-map
+    [menu-bar jabber-menu]
+    (and (not remove) (cons "Jabber" jabber-menu))))
+
+(define-key jabber-menu
+  [jabber-menu-connect]
+  '("Connect" . jabber-connect))
+
+(define-key jabber-menu
+  [jabber-menu-disconnect]
+  '("Disconnect" . jabber-disconnect))
+
+(define-key jabber-menu
+  [jabber-menu-browse]
+  '("Browse" . jabber-get-browse))
+
+(define-key jabber-menu
+  [jabber-menu-customize]
+  '("Customize" . jabber-customize))
+
+(define-key jabber-menu
+  [jabber-menu-info]
+  '("Help" . jabber-info))
+
+(define-key jabber-menu
+  [jabber-menu-status]
+  (cons "Set Status" (make-sparse-keymap "set-status")))
+
+(defmacro jabber-define-status-key (title show)
+  (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
+		   (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
+	(list 'fset 'func `(lambda () (interactive)
+			     (jabber-send-presence ,show
+						   (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
+						   (format "%d" *jabber-current-priority*))))
+	(list 'define-key 'jabber-menu
+	      (list 'vector ''jabber-menu-status 'menu-item)
+	      (list 'cons title 'func))))
+
+;;;(dolist (presence jabber-presence-strings)
+;;;  (jabber-define-status-key (cdr presence) (car presence)))
+(jabber-define-status-key "Online" "")
+(jabber-define-status-key "Chatty" "chat")
+(jabber-define-status-key "Away" "away")
+(jabber-define-status-key "Extended Away" "xa")
+(jabber-define-status-key "Do not Disturb" "dnd")
+
 (defvar jabber-jid-chat-menu nil
   "Menu items for chat menu")
 

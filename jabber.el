@@ -146,35 +146,6 @@
   :type 'boolean
   :group 'jabber-debug)
 
-
-(define-key global-map
-  [menu-bar jabber-menu]
-  (cons "Jabber" (make-sparse-keymap "jabber-menu")))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-connect]
-  '("Connect" . jabber-connect))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-disconnect]
-  '("Disconnect" . jabber-disconnect))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-browse]
-  '("Browse" . jabber-get-browse))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-customize]
-  '("Customize" . jabber-customize))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-info]
-  '("Help" . jabber-info))
-
-(define-key global-map
-  [menu-bar jabber-menu jabber-menu-status]
-  (cons "Set Status" (make-sparse-keymap "set-status")))
-
 (defconst jabber-presence-faces
  '(("" . jabber-roster-user-online)
    ("away" . jabber-roster-user-away)
@@ -194,25 +165,6 @@
     ("error" . "Error")
     (nil . "Offline"))
   "Mapping from presence types to readable strings")
-
-(defmacro jabber-define-status-key (title show)
-  (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
-		   (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
-	(list 'fset 'func `(lambda () (interactive)
-			     (jabber-send-presence ,show
-						   (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-						   (format "%d" *jabber-current-priority*))))
-	(list 'define-key 'global-map
-	      (list 'vector ''menu-bar ''jabber-menu ''jabber-menu-status 'menu-item)
-	      (list 'cons title 'func))))
-
-;;;(dolist (presence jabber-presence-strings)
-;;;  (jabber-define-status-key (cdr presence) (car presence)))
-(jabber-define-status-key "Online" "")
-(jabber-define-status-key "Chatty" "chat")
-(jabber-define-status-key "Away" "away")
-(jabber-define-status-key "Extended Away" "xa")
-(jabber-define-status-key "Do not Disturb" "dnd")
 
 (defun jabber-customize ()
   "customize jabber options"
