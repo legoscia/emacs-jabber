@@ -1,5 +1,5 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
-;; $Id: jabber-ahc.el,v 1.3 2004/03/21 14:03:20 legoscia Exp $
+;; $Id: jabber-ahc.el,v 1.4 2004/03/23 21:04:20 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -98,7 +98,6 @@ access allowed.  nil means open for everyone."
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/commands" 'jabber-ahc-process))
 (defun jabber-ahc-process (xml-data)
-  ;; XXX: no way for command functions to return errors.
 
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id))
@@ -116,14 +115,14 @@ access allowed.  nil means open for everyone."
 			      (funcall func xml-data)
 			      nil nil nil nil id)
 	    ;; ...or failed
-	    (jabber-send-iq-error to id (jabber-iq-query xml-data) "cancel" 'not-allowed))
+	    (jabber-signal-error "cancel" 'not-allowed))
 	;; No such node
-	(jabber-send-iq-error to id (jabber-iq-query xml-data) "cancel" 'item-not-found)))))
+	(jabber-signal-error "cancel" 'item-not-found)))))
 
 ;;; CLIENT
 (add-to-list 'jabber-jid-service-menu
-	     (cons "Request command list" 'jabber-get-ahc-list))
-(defun jabber-get-ahc-list (to)
+	     (cons "Request command list" 'jabber-ahc-get-list))
+(defun jabber-ahc-get-list (to)
   "Request list of ad-hoc commands.  (JEP-0050)"
   (interactive (list (jabber-read-jid-completing "Request command list from: ")))
   (jabber-get-disco-items to "http://jabber.org/protocol/commands"))
