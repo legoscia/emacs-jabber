@@ -932,7 +932,10 @@ Return nil if no such data available."
 (defun jabber-popup-menu ()
   "Popup menu of things commonly done to JIDs"
   (interactive)
-  (let ((choice (widget-choose "Actions" jabber-jid-menu (and (listp last-input-event) last-input-event))))
+  (let* ((mouse-event (and (listp last-input-event) last-input-event))
+	 (choice (widget-choose "Actions" jabber-jid-menu mouse-event)))
+    (if mouse-event
+	(mouse-set-point mouse-event))
     (if choice
 	(call-interactively choice))))
 
