@@ -111,15 +111,18 @@ properties to add to the result."
   (equal (jabber-jid-user jid)
 	 (concat jabber-username "@" jabber-server)))
 
-(defun jabber-read-jid-completing (prompt)
-  "read a jid out of the current roster from the minibuffer."
+(defun jabber-read-jid-completing (prompt &optional subset require-match)
+  "read a jid out of the current roster from the minibuffer.
+If SUBSET is non-nil, it should be a list of symbols from which
+the JID is to be selected, instead of using the entire roster.
+If REQUIRE-MATCH is non-nil, the JID must be in the list used."
   (let ((jid-at-point (or (get-text-property (point) 'jabber-jid)
 			  (bound-and-true-p jabber-chatting-with)
 			  (bound-and-true-p jabber-group)))
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
-				      *jabber-roster*)))
+				      (or subset *jabber-roster*))))
     (dolist (item *jabber-roster*)
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
@@ -128,7 +131,7 @@ properties to add to the result."
 				    (if jid-at-point
 					(format "(default %s) " jid-at-point)))
 			    jid-completion-table
-			    nil nil nil 'jabber-jid-history jid-at-point)))
+			    nil require-match nil 'jabber-jid-history jid-at-point)))
       (if (and input (assoc-ignore-case input jid-completion-table))
 	  (symbol-name (cdr (assoc-ignore-case input jid-completion-table)))
 	input))))
