@@ -1,7 +1,7 @@
 ;; jabber-alert.el - alert hooks
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2005 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -38,7 +38,11 @@ hooks do not have to call it themselves.
 This hook is meant for user customization of message alerts.  For
 other uses, see `jabber-message-hooks'."
   :type 'hook
-  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen)
+  :options '(jabber-message-beep 
+	     jabber-message-wave
+	     jabber-message-echo
+	     jabber-message-switch
+	     jabber-message-display)
   :group 'jabber-alerts)
 
 (defvar jabber-message-hooks '(jabber-message-history)
@@ -75,9 +79,7 @@ so that hooks do not have to call it themselves."
 	     jabber-muc-wave
 	     jabber-muc-echo
 	     jabber-muc-switch
-	     jabber-muc-display
-	     jabber-muc-ratpoison
-	     jabber-muc-screen)
+	     jabber-muc-display)
   :group 'jabber-alerts)
 
 (defvar jabber-muc-hooks '()
@@ -119,8 +121,6 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
 	     jabber-presence-update-roster
 	     jabber-presence-switch
 	     jabber-presence-display
-	     jabber-presence-ratpoison
-	     jabber-presence-screen
 	     jabber-presence-echo)
   :group 'jabber-alerts)
 
@@ -155,8 +155,6 @@ Third argument is PROPOSED-ALERT, containing the string returned by
   :type 'hook
   :options '(jabber-info-beep
 	     jabber-info-wave
-	     jabber-info-ratpoison
-	     jabber-info-screen
 	     jabber-info-echo
 	     jabber-info-switch
 	     jabber-info-display)
@@ -207,6 +205,10 @@ and BUFFER, a buffer containing the result."
 
 (defmacro define-jabber-alert (name docstring function)
   "Define a new family of external alert hooks.
+Use this macro when your hooks do nothing except displaying a string
+in some new innovative way.  You write a string display function, and
+this macro does all the boring and repetitive work.
+
 NAME is the name of the alert family.  The resulting hooks will be
 called jabber-{message,muc,presence,info}-NAME.
 DOCSTRING is the docstring to use for those hooks.
@@ -247,6 +249,15 @@ Examples:
 	 (pushnew (quote ,info) (get 'jabber-alert-info-message-hooks 'custom-options))))))
 
 ;; Alert hooks
+(define-jabber-alert echo "Show a message in the echo area"
+  (lambda (msg) (message "%s" msg)))
+(define-jabber-alert beep "Beep on event"
+  (lambda (&rest ignore) (beep)))
+
+(require 'jabber-screen)
+(require 'jabber-ratpoison)
+(require 'jabber-sawfish)
+(require 'jabber-festival)
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)
@@ -258,16 +269,6 @@ Examples:
   "If nil, don't display message alerts for the current buffer."
   :type 'boolean
   :group 'jabber-alerts)
-
-(defun jabber-message-beep (from buffer text proposed-alert)
-  "Beep when a message arrives"
-  (when proposed-alert
-    (beep)))
-
-(defun jabber-message-echo (from buffer text proposed-alert)
-  "Show a message in the echo area when a message arrives"
-  (if proposed-alert
-      (message "%s" proposed-alert)))
 
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
@@ -284,17 +285,6 @@ Examples:
   (when proposed-alert
     (switch-to-buffer buffer)))
 
-(defun jabber-message-ratpoison (from buffer text proposed-alert)
-  "Show a message through the Ratpoison window manager"
-  (if proposed-alert
-      (let ((process-connection-type nil))
-	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
-
-(defun jabber-message-screen (from buffer text proposed-alert)
-  "Show a message through the Screen terminal manager"
-  (if proposed-alert
-      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
-
 ;; MUC alert hooks
 (defun jabber-muc-default-message (nick group buffer text)
   (when (or jabber-message-alert-same-buffer
@@ -303,16 +293,6 @@ Examples:
 	(format "Message from %s in %s" nick (jabber-jid-displayname
 					      group))
       (format "Message in %s" (jabber-jid-displayname group)))))
-
-(defun jabber-muc-beep (nick group buffer text proposed-alert)
-  "Beep when a MUC message arrives"
-  (when proposed-alert
-    (beep)))
-
-(defun jabber-muc-echo (nick group buffer text proposed-alert)
-  "Show a message in the echo area when a MUC message arrives"
-  (if proposed-alert
-      (message "%s" proposed-alert)))
 
 (defun jabber-muc-wave (nick group buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-muc-wave'"
@@ -328,17 +308,6 @@ Examples:
   "Switch to the buffer where a new message has arrived."
   (when proposed-alert
     (switch-to-buffer buffer)))
-
-(defun jabber-muc-ratpoison (nick group buffer text proposed-alert)
-  "Show a message through the Ratpoison window manager"
-  (if proposed-alert
-      (let ((process-connection-type nil))
-	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
-
-(defun jabber-muc-screen (nick group buffer text proposed-alert)
-  "Show a message through the Screen terminal manager"
-  (if proposed-alert
-      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
 
 ;; Presence alert hooks
 (defun jabber-presence-default-message (who oldstatus newstatus statustext)
@@ -372,16 +341,6 @@ This function is not called directly, but is the default for
 	     "")))
       (concat formattedname formattedstatus formattedtext)))))
 
-(defun jabber-presence-beep (who oldstatus newstatus statustext proposed-alert)
-  "Beep when someone's presence changes"
-  (if proposed-alert
-      (beep)))
-
-(defun jabber-presence-echo (who oldstatus newstatus statustext proposed-alert)
-  "Show a message in the echo area"
-  (if proposed-alert
-      (message "%s" proposed-alert)))
-
 (defun jabber-presence-wave (who oldstatus newstatus statustext proposed-alert)
   "Play the wave file specified in `jabber-alert-presence-wave'"
   (if proposed-alert
@@ -401,19 +360,6 @@ This function is not called directly, but is the default for
   (when proposed-alert
     (switch-to-buffer (process-buffer *jabber-connection*))))
 
-(defun jabber-presence-ratpoison (who oldstatus newstatus statustext proposed-alert)
-  "Show a message through the Ratpoison window manager"
-
-  (if proposed-alert
-      (let ((process-connection-type))
-	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
-
-(defun jabber-presence-screen (who oldstatus newstatus statustext proposed-alert)
-  "Show a message through the Screen terminal manager"
-
-  (if proposed-alert
-      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
-
 ;;; Info alert hooks
 
 (defun jabber-info-default-message (infotype buffer)
@@ -424,31 +370,10 @@ This function uses `jabber-info-message-alist' to find a message."
   (concat (cdr (assq infotype jabber-info-message-alist))
 	  " (buffer "(buffer-name buffer) ")"))
 
-(defun jabber-info-echo (infotype buffer proposed-alert)
-  "Show a message in the echo area"
-  (if proposed-alert
-	(message "%s" proposed-alert)))
-
-(defun jabber-info-beep (infotype buffer proposed-alert)
-  "Beep on completed info requests"
-  (if proposed-alert
-      (beep)))
-
 (defun jabber-info-wave (infotype buffer proposed-alert)
   "Play the wave file specified in `jabber-alert-info-wave'"
   (if proposed-alert
       (jabber-play-sound-file jabber-alert-info-wave)))
-
-(defun jabber-info-ratpoison (infotype buffer proposed-alert)
-  "Show a message through the Ratpoison window manager"
-  (if proposed-alert
-      (let ((process-connection-type nil))
-	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
-
-(defun jabber-info-screen (infotype buffer proposed-alert)
-  "Show a message through the Screen terminal manager"
-  (if proposed-alert
-      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
 
 (defun jabber-info-display (infotype buffer proposed-alert)
   "Display buffer of completed request"
