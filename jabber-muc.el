@@ -81,11 +81,21 @@ Return nil if nothing known about that combination."
       (let ((participant (assoc nickname (cdr participants))))
 	(setf (cdr participants) (delq participant (cdr participants)))))))
 
+(defun jabber-muc-read-completing (prompt)
+  "Read the name of a joined chatroom."
+  (jabber-read-jid-completing prompt
+			      (if (null *jabber-active-groupchats*)
+				  (error "You haven't joined any group")
+				(mapcar (lambda (x) (jabber-jid-symbol (car x)))
+					*jabber-active-groupchats*))
+			      t
+			      jabber-group))
+
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (group)
   "Ask for MUC configuration form"
-  (interactive (list (jabber-read-jid-completing "group: ")))
+  (interactive (list (jabber-muc-read-completing "Configure group: ")))
   (jabber-send-iq group
 		  "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
@@ -143,7 +153,8 @@ Return nil if nothing known about that combination."
 		     (jabber-read-with-input-method (format "Nickname: (default %s) "
 							    jabber-nickname) 
 						    nil nil jabber-nickname)))
-  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))))
+  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
+			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
 
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     (if whichgroup
@@ -157,13 +168,7 @@ Return nil if nothing known about that combination."
 
 (defun jabber-groupchat-leave (group)
   "leave a groupchat"
-  (interactive (list (jabber-read-jid-completing "Leave which group: "
-						 (if (null *jabber-active-groupchats*)
-						     (error "You haven't joined any group")
-						   (mapcar (lambda (x) (jabber-jid-symbol (car x)))
-							   *jabber-active-groupchats*))
-						 t
-						 jabber-group)))
+  (interactive (list (jabber-muc-read-completing "Leave which group: ")))
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     ;; send unavailable presence to our own nick in room
     (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
