@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.32 2004/02/09 21:35:51 legoscia Exp $
+;; $Id: jabber.el,v 1.33 2004/02/10 15:48:19 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,6 +21,10 @@
 (require 'xml)
 (require 'sha1-el)
 (require 'widget)
+
+;;; load Unicode tables
+(if (featurep 'xemacs)
+    (require 'un-define))
 
 (eval-when-compile
   (require 'wid-edit))
@@ -375,6 +379,33 @@ and BUFFER, a buffer containing the result."
 ;;;(jabber-define-status-key "Do not Disturb" "dnd")
 ;;;(jabber-define-status-key "Unavailable" "na")
 
+;;; XEmacs compatibility.  Stolen from ibuffer.el
+(if (fboundp 'propertize)
+    (defalias 'jabber-propertize 'propertize)
+  (defun jabber-propertize (string &rest properties)
+    "Return a copy of STRING with text properties added.
+
+ [Note: this docstring has been copied from the Emacs 21 version]
+
+First argument is the string to copy.
+Remaining arguments form a sequence of PROPERTY VALUE pairs for text
+properties to add to the result."
+    (let ((str (copy-sequence string)))
+      (add-text-properties 0 (length str)
+			   properties
+			   str)
+      str)))
+
+;;; more XEmacs compatibility
+;;; Preserve input method when entering a minibuffer
+(eval-when-compile
+  (if (featurep 'xemacs)
+      ;; I don't know how to do this
+      (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
+	(read-string prompt initial-contents history default-value))
+    (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
+      (read-string prompt initial-contents history default-value t))))
+
 (defconst jabber-iq-get-xmlns-alist
   (list
    (cons "jabber:iq:version" 'jabber-return-version)
@@ -515,15 +546,24 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
   (interactive)
   (customize-group 'jabber))
 
+(eval-when-compile
+  (cond
+   ((fboundp 'replace-in-string)
+    (defsubst jabber-replace-in-string (str regexp newtext)
+      (replace-in-string str regexp newtext t)))
+   ((fboundp 'replace-regexp-in-string)
+    (defsubst jabber-replace-in-string (str regexp newtext)
+      (replace-regexp-in-string regexp newtext str t t)))))
+
 (defun jabber-escape-xml (str)
   "escape strings for xml"
   (if (stringp str)
-      (let ((newstr str))
-	(setq newstr (replace-regexp-in-string "&" "&amp;" newstr t t))
-	(setq newstr (replace-regexp-in-string "<" "&lt;" newstr t t))
-	(setq newstr (replace-regexp-in-string ">" "&gt;" newstr t t))
-	(setq newstr (replace-regexp-in-string "'" "&apos;" newstr t t))
-	(setq newstr (replace-regexp-in-string "\"" "&quot;" newstr t t))
+      (let ((newstr (concat str)))
+	(setq newstr (jabber-replace-in-string newstr "&" "&amp;"))
+	(setq newstr (jabber-replace-in-string newstr "<" "&lt;"))
+	(setq newstr (jabber-replace-in-string newstr ">" "&gt;"))
+	(setq newstr (jabber-replace-in-string newstr "'" "&apos;"))
+	(setq newstr (jabber-replace-in-string newstr "\"" "&quot;"))
 	newstr)
     str))
 
@@ -533,11 +573,11 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
   ;; version in xml.el of GNU Emacs 21.3 is buggy.
   (if (stringp str)
       (let ((newstr str))
-	(setq newstr (replace-regexp-in-string "&quot;" "\"" newstr t t))
-	(setq newstr (replace-regexp-in-string "&apos;" "'" newstr t t))
-	(setq newstr (replace-regexp-in-string "&gt;" ">" newstr t t))
-	(setq newstr (replace-regexp-in-string "&lt;" "<" newstr t t))
-	(setq newstr (replace-regexp-in-string "&amp;" "&" newstr t t))
+	(setq newstr (jabber-replace-in-string newstr "&quot;" "\""))
+	(setq newstr (jabber-replace-in-string newstr "&apos;" "'"))
+	(setq newstr (jabber-replace-in-string newstr "&gt;" ">"))
+	(setq newstr (jabber-replace-in-string newstr "&lt;" "<"))
+	(setq newstr (jabber-replace-in-string newstr "&amp;" "&"))
 	newstr)
     str))
 
@@ -725,7 +765,7 @@ TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-groupchat-:-" group "-*"))
     (goto-char (point-max))
     (setq buffer-read-only nil)
-    (if body (insert (propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
+    (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
                                  'face 'jabber-chat-prompt-foreign)
                      "> " body "\n"))
     (if (not (eq major-mode 'jabber-groupchat-mode))
@@ -754,7 +794,7 @@ TIMESTAMP is timestamp, or nil for now."
 		      (jabber-send-chat jabber-chatting-with body)
 		      (setq buffer-read-only nil)
 		      (goto-char (point-max))
-		      (insert (propertize (concat "[" (substring (current-time-string) 11 16) "] " jabber-username)
+		      (insert (jabber-propertize (concat "[" (substring (current-time-string) 11 16) "] " jabber-username)
                                           'face 'jabber-chat-prompt-local) "> " body "\n")
 		      (setq buffer-read-only t)))
     (define-key jabber-chat-mode-map (char-to-string key) send-fun)))
@@ -765,7 +805,7 @@ TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname from) "-*"))
     (goto-char (point-max))
     (setq buffer-read-only nil)
-    (if body (insert (propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " (jabber-jid-displayname from))
+    (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " (jabber-jid-displayname from))
 				 'face 'jabber-chat-prompt-foreign)
 		     "> " body "\n"))
     (setq buffer-read-only t)
@@ -1051,15 +1091,15 @@ Return nil if no such data available."
 	(jabber-roster-mode))
     (setq buffer-read-only nil)
     (erase-buffer)
-    (insert (propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
+    (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] #'jabber-send-presence)
-      (insert (propertize (format " - %s (%s) -"
+      (insert (jabber-propertize (format " - %s (%s) -"
 				  (cdr (assoc *jabber-current-show* jabber-presence-strings))
                                   *jabber-current-status*)
                           'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
 				    'jabber-roster-user-online)
-                          'mouse-face (cons 'background-color "light grey")
+                          ;;'mouse-face (cons 'background-color "light grey")
                           'keymap map)
               "\n__________________________________\n\n"))
 
@@ -1085,8 +1125,8 @@ Return nil if no such data available."
 			    'face
 			    (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
 				'jabber-roster-user-online)
-			    'mouse-face
-			    (append '(:background-color "light grey") (get-text-property 0 'face buddy-str))
+			    ;;'mouse-face
+			    ;;(cons 'background-color "light grey")
 			    'help-echo
 			    (symbol-name buddy)
 			    'jabber-jid
@@ -1205,7 +1245,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       (setq buffer-read-only nil)
       (goto-char (point-max))
 
-      (insert (propertize from
+      (insert (jabber-propertize from
 			  'face 'jabber-title-large) "\n\n")
 
       ;; If closure-data is a function, call it.  If it is a string,
@@ -1239,8 +1279,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (if have-xdata
 	(let ((title (car (jabber-xml-get-children xdata 'title))))
 	  (when title
-	    (insert (propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
-      (insert (propertize "Search results" 'face 'jabber-title-medium) "\n"))
+	    (insert (jabber-propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
+      (insert (jabber-propertize "Search results" 'face 'jabber-title-medium) "\n"))
 	
     (if have-xdata
 	(let ((reported (car (jabber-xml-get-children xdata 'reported)))
@@ -1269,7 +1309,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
     (dolist (field-cons fields)
       (indent-to (plist-get (cdr field-cons) 'column) 1)
-      (insert (propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
+      (insert (jabber-propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
     (insert "\n\n")
 
     ;; Now, the items
@@ -1293,7 +1333,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		  ;; field has that property.
 		  (if (string= (plist-get field-plist 'type) "jid-single")
 		      (if (not (eq jid-fields 1))
-			  (insert (propertize value 'jabber-jid value))
+			  (insert (jabber-propertize value 'jabber-jid value))
 			(setq jid value)
 			(insert value))
 		    (insert value))))
@@ -1322,19 +1362,19 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	 ((or
 	   (eq (jabber-xml-node-name item) 'user)
 	   (string= (jabber-xml-get-attribute item 'category) "user"))
-	  (insert (propertize "$ USER"
+	  (insert (jabber-propertize "$ USER"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
 	 ((or
 	   (eq (jabber-xml-node-name item) 'service)
 	   (string= (jabber-xml-get-attribute item 'category) "service"))
-	  (insert (propertize "* SERVICE"
+	  (insert (jabber-propertize "* SERVICE"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
 	 ((or
 	   (eq (jabber-xml-node-name item) 'conference)
 	   (string= (jabber-xml-get-attribute item 'category) "conference"))
-	  (insert (propertize "@ CONFERENCE"
+	  (insert (jabber-propertize "@ CONFERENCE"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
 	 (t
@@ -1345,7 +1385,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (let ((category (jabber-xml-get-attribute item 'category)))
 	    (if (= (length category) 0)
 		(setq category (jabber-xml-node-name item)))
-	    (insert (propertize (format "! OTHER: %s" category)
+	    (insert (jabber-propertize (format "! OTHER: %s" category)
 				'face 'jabber-title-medium)
 		    "\n\n"))))
 	(dolist (attr '((type . "Type:\t\t")
@@ -1378,7 +1418,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(let ((name (jabber-xml-get-attribute x 'name))
 	      (category (jabber-xml-get-attribute x 'category))
 	      (type (jabber-xml-get-attribute x 'type)))
-	  (insert (propertize (if name
+	  (insert (jabber-propertize (if name
 				  (jabber-unescape-xml name)
 				"Unnamed") ; tsk, tsk... name is _required_
 			      'face 'jabber-title-medium)
@@ -1401,9 +1441,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(name (jabber-xml-get-attribute item 'name))
 		(node (jabber-xml-get-attribute item 'node)))
 	    (insert 
-	     (propertize 
+	     (jabber-propertize 
 	      (concat
-	       (propertize
+	       (jabber-propertize
 		(concat jid "\n" (if node (format "Node: %s\n" node)))
 		'face 'jabber-title-medium)
 	       (jabber-unescape-xml name) "\n\n")
@@ -1482,7 +1522,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
   (let ((title (car (jabber-xml-node-children (car (jabber-xml-get-children x 'title))))))
     (if (stringp title)
-	(widget-insert (propertize title 'face 'jabber-title-medium) "\n\n")))
+	(widget-insert (jabber-propertize title 'face 'jabber-title-medium) "\n\n")))
   (let ((instructions (car (jabber-xml-node-children (car (jabber-xml-get-children x 'instructions))))))
     (if (stringp instructions)
 	(widget-insert "Instructions: " instructions "\n\n")))
@@ -1949,7 +1989,7 @@ With prefix argument, register a new account."
 (defun jabber-send-subscription-request (to &optional request)
   "send a subscription request to jid, showing him your request text, if specified"
   (interactive (list (jabber-read-jid-completing "to: ")
-		     (read-string "request: " nil nil nil t)))
+		     (jabber-read-with-input-method "request: ")))
   (jabber-send-sexp `(presence ((to . ,to)
                                 (type . "subscribe"))
                                ,(if (and request (> (length request) 0))
@@ -1958,9 +1998,9 @@ With prefix argument, register a new account."
 (defun jabber-send-message (to body subject type)
   "send a message tag to the server"
   (interactive (list (jabber-read-jid-completing "to: ")
-		     (read-string "body: " nil nil nil t)
-		     (read-string "subject: " nil nil nil t)
-		     (read-string "type: " nil nil nil t)))
+		     (jabber-read-with-input-method "body: ")
+		     (jabber-read-with-input-method "subject: ")
+		     (read-string "type: ")))
   (jabber-send-sexp `(message ((to . ,to)
                                ,(if (> (length type) 0)
                                     `(type . ,type)))
@@ -1984,7 +2024,7 @@ With prefix argument, register a new account."
   (interactive (let* ((jid (intern (jabber-read-jid-completing "Add/change JID: ") jabber-jid-obarray))
 		      (name (get jid 'name))
 		      (groups (get jid 'groups)))
-		 (list jid (read-string (format "Name: (default `%s') " name) nil nil name t)
+		 (list jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
 		       (read-from-minibuffer (format "Groups: (default `%S') " groups) nil nil t nil (format "%S" groups) t))))
   ;; If new fields are added to the roster XML structure in a future standard,
   ;; they will be clobbered by this function.
@@ -2022,9 +2062,9 @@ With prefix argument, register a new account."
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat"
   (interactive (list (jabber-read-jid-completing "group: ")
-		     (read-string (format "Nickname: (default %s) "
-					  jabber-nickname) 
-				  nil nil jabber-nickname t)))
+		     (jabber-read-with-input-method (format "Nickname: (default %s) "
+							    jabber-nickname) 
+						    nil nil jabber-nickname)))
   (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))))
 
   (if (not (member group *jabber-active-groupchats*))
@@ -2086,7 +2126,7 @@ With prefix argument, register a new account."
   "send a presence tag to the server"
   (interactive (list (completing-read "show:"
 				      '(("" . nil) ("away" . nil) ("xa" . nil) ("dnd" . nil) ("chat" . nil)) nil t)
-		     (read-string "status: " *jabber-current-status* '*jabber-status-history* nil t)
+		     (jabber-read-with-input-method "status: " *jabber-current-status* '*jabber-status-history*)
 		     (read-string "priority: " (int-to-string *jabber-current-priority*))))
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
