@@ -86,8 +86,8 @@ properties to add to the result."
 
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
-  (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
-  (match-string 1 string))
+  (when (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
+    (match-string 1 string)))
 
 (defun jabber-jid-user (string)
   "return the user (username@server) portion of a JID"
@@ -106,9 +106,9 @@ properties to add to the result."
 	(symbol-name user)))))
 
 (defun jabber-jid-resource (string)
-  "return the resource portion of a JID"
-  (string-match "\\(.*@.*\\)/\\(.*\\)" string)
-  (match-string 2 string))
+  "return the resource portion of a JID, or nil if there is none."
+  (when (string-match "\\(.*@.*\\)/\\(.*\\)" string)
+    (match-string 2 string)))
 
 (defun jabber-jid-symbol (string)
   "return the symbol for the given JID"
