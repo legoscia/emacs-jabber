@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.4 2004/03/09 19:50:43 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.5 2004/03/16 21:16:19 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -86,8 +86,7 @@ nil, access is always granted.")
 	      (type (jabber-xml-get-attribute x 'type)))
 	  (insert (jabber-propertize (if name
 				  (jabber-unescape-xml name)
-					; tsk, tsk... name is _required_
-				"Unnamed (remote entity violates JEP-0030)")
+				  "Unnamed")
 			      'face 'jabber-title-medium)
 		  "\n\nCategory:\t" category "\n")
 	  (if type
