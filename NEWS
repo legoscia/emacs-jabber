@@ -2,6 +2,14 @@
 
 * New features in jabber.el 0.7
 
+** Easy way to define external notifiers
+See define-jabber-alert.
+
+** Roster display optimized
+
+** Optionally use per-contact history files
+(Not documented yet)
+
 ** Jabber menu in menubar not enabled by default
 Call jabber-menu to have it there.
 (Not documented yet)
