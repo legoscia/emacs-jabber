@@ -1,5 +1,5 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
-;; $Id: jabber-ahc.el,v 1.4 2004/03/23 21:04:20 legoscia Exp $
+;; $Id: jabber-ahc.el,v 1.5 2004/03/23 21:15:29 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -128,8 +128,8 @@ access allowed.  nil means open for everyone."
   (jabber-get-disco-items to "http://jabber.org/protocol/commands"))
 
 (add-to-list 'jabber-jid-service-menu
-	     (cons "Execute command" 'jabber-execute-ahc-command))
-(defun jabber-execute-ahc-command (to node)
+	     (cons "Execute command" 'jabber-ahc-execute-command))
+(defun jabber-ahc-execute-command (to node)
   "Execute ad-hoc command.  (JEP-0050)"
   (interactive (list (jabber-read-jid-completing "Execute command of: ")
 		     (jabber-read-node "Node of command: ")))
