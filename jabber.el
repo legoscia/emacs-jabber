@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.36 2004/02/15 19:00:36 legoscia Exp $
+;; $Id: jabber.el,v 1.37 2004/02/16 20:49:22 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -47,7 +47,7 @@
 (defvar *jabber-connected* nil
   "boolean - are we connected")
 
-(defvar *jabber-current-status* "na"
+(defvar *jabber-current-status* ""
   "the users current presence staus")
 
 (defvar *jabber-current-show* ""
@@ -366,7 +366,9 @@ and BUFFER, a buffer containing the result."
   (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
          (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
      (list 'fset 'func `(lambda () (interactive)
-                           (jabber-send-presence ,show (read-string "status: ") (format "%d" *jabber-current-priority*))))
+                           (jabber-send-presence ,show
+						 (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
+						 (format "%d" *jabber-current-priority*))))
      (list 'define-key 'global-map
            (list 'vector ''menu-bar ''jabber-menu ''jabber-menu-status 'menu-item)
            (list 'cons title 'func))))
@@ -1092,13 +1094,16 @@ Return nil if no such data available."
     (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] #'jabber-send-presence)
-      (insert (jabber-propertize (format " - %s (%s) -"
-				  (cdr (assoc *jabber-current-show* jabber-presence-strings))
-                                  *jabber-current-status*)
-                          'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
-				    'jabber-roster-user-online)
-                          ;;'mouse-face (cons 'background-color "light grey")
-                          'keymap map)
+      (insert (jabber-propertize (concat (format " - %s"
+						 (cdr (assoc *jabber-current-show* jabber-presence-strings)))
+					 (if (not (zerop (length *jabber-current-status*)))
+					     (format " (%s)"
+						     *jabber-current-status*))
+					 " -")
+				 'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
+					   'jabber-roster-user-online)
+				 ;;'mouse-face (cons 'background-color "light grey")
+				 'keymap map)
               "\n__________________________________\n\n"))
 
     (jabber-sort-roster)
@@ -2124,7 +2129,7 @@ With prefix argument, register a new account."
   "send a presence tag to the server"
   (interactive (list (completing-read "show:"
 				      '(("" . nil) ("away" . nil) ("xa" . nil) ("dnd" . nil) ("chat" . nil)) nil t)
-		     (jabber-read-with-input-method "status: " *jabber-current-status* '*jabber-status-history*)
+		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
 		     (read-string "priority: " (int-to-string *jabber-current-priority*))))
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
