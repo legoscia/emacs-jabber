@@ -1,5 +1,5 @@
 ;; jabber-xml.el - XML functions
-;; $Id: jabber-xml.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-xml.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(require 'xml)
 
 (defun jabber-escape-xml (str)
   "escape strings for xml"

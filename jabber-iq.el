@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -30,6 +30,18 @@
 
 (defvar jabber-iq-set-xmlns-alist nil
   "Mapping from XML namespace to handler for IQ SET requests.")
+
+(defun jabber-browse-mode ()
+"\\{jabber-browse-mode-map}"
+  (kill-all-local-variables)
+  (setq major-mode 'jabber-browse-mode
+        mode-name "jabber-browse")
+  (use-local-map jabber-browse-mode-map)
+  (setq buffer-read-only t))
+
+(put 'jabber-browse-mode 'mode-class 'special)
+
+(defvar jabber-browse-mode-map (copy-keymap jabber-roster-mode-map))
 
 (add-to-list 'jabber-iq-chain 'jabber-process-iq)
 (defun jabber-process-iq (xml-data)
@@ -99,5 +111,33 @@ RESULT-ID is the id to be used for a response to a received iq message.
 				 (list (cons 'type type))
 				 (list (cons 'id id)))
 			    query))))
+
+(defun jabber-process-data (xml-data closure-data)
+  "Process random results from various requests."
+  (let ((from (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
+	(xmlns (jabber-iq-xmlns xml-data))
+	(type (jabber-xml-get-attribute xml-data 'type)))
+    (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
+      (if (not (eq major-mode 'jabber-browse-mode))
+	  (jabber-browse-mode))
+
+      (setq buffer-read-only nil)
+      (goto-char (point-max))
+
+      (insert (jabber-propertize from
+			  'face 'jabber-title-large) "\n\n")
+
+      ;; If closure-data is a function, call it.  If it is a string,
+      ;; output it along with a description of the error.  For other
+      ;; values (e.g. nil), just dump the XML.
+      (cond
+       ((functionp closure-data)
+	(funcall closure-data xml-data))
+       ((stringp closure-data)
+	(insert closure-data ": " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n"))
+       (t
+	(insert (format "%S\n\n" xml-data))))
+
+      (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
 
 (provide 'jabber-iq)

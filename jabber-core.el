@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-core.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -41,6 +41,14 @@
 (defvar jabber-session-id nil
   "id of the current session")
 
+(defvar jabber-register-p nil
+  "Is account registration occurring in this session?")
+
+(defvar jabber-call-on-connection nil
+  "Function to be called on connection.
+This is set by `jabber-connect' on each call, and later picked up in
+`jabber-filter'.")
+
 ;; (defgroup jabber-core nil "customize core functionality"
 ;;   :group 'jabber)
 
@@ -60,7 +68,6 @@ With prefix argument, register a new account."
   (if *jabber-connected*
       (message "Already connected")
     (setq *xmlq* "")
-    (setq *jabber-current-priority* jabber-default-priority)
     (jabber-clear-roster)
     (let ((coding-system-for-read 'utf-8)
 	  (coding-system-for-write 'utf-8))
@@ -71,7 +78,10 @@ With prefix argument, register a new account."
     (set-process-filter *jabber-connection* #'jabber-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
 
-    (setq jabber-register-p (not (null registerp)))
+    (setq jabber-register-p registerp)
+    (setq jabber-call-on-connection (if registerp
+					(lambda () (jabber-get-register jabber-server))
+				      (lambda () (jabber-get-auth jabber-server))))
     (process-send-string *jabber-connection*
 			 (concat "<?xml version='1.0'?><stream:stream to='" 
 				 jabber-server 
@@ -112,9 +122,7 @@ With prefix argument, register a new account."
           (progn (string-match "id='\\([A-Za-z0-9]+\\)'" string)
                (match-string 1 string)))
     ;; Now proceed with logon.
-    (if jabber-register-p
-	(jabber-get-register jabber-server)
-      (jabber-get-auth jabber-server)))
+    (funcall jabber-call-on-connection))
    (t
     (if (active-minibuffer-window)
         (run-with-idle-timer 0.01 nil #'jabber-filter process string)

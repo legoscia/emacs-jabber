@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.8 2004/02/16 21:03:17 legoscia Exp $
+@c $Id: jabber.texi,v 1.9 2004/03/02 13:08:25 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4.1
@@ -501,6 +501,11 @@ The @code{switch} alerts switch to the buffer where the event occurred
 changes, browse buffer for completed queries).  They are disabled by
 default.  Take care when using them, as they may interrupt your
 editing.
+
+The @code{display} alerts display but do not select the buffer in
+question, using the function @code{display-buffer}.  @xref{Choosing
+Window, , Choosing a Window for Display, elisp, GNU Emacs Lisp
+Reference Manual}, for information about customizing its behaviour.
 
 The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,

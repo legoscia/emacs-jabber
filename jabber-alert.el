@@ -1,5 +1,5 @@
 ;; jabber-alert.el - alert hooks
-;; $Id: jabber-alert.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-alert.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -32,7 +32,7 @@ and TEXT is the text of the message.  PROPOSED-ALERT is the string
 returned by `jabber-alert-message-function' for these arguments, so that
 hooks do not have to call it themselves."
   :type 'hook
-  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-ratpoison jabber-message-screen)
+  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-message-function
@@ -60,7 +60,7 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
 \"unsubscribed\".  PROPOSED-ALERT is the string returned by
 `jabber-alert-presence-message-function' for these arguments."
   :type 'hook
-  :options '(jabber-presence-beep jabber-presence-wave jabber-presence-update-roster jabber-presence-switch jabber-presence-ratpoison jabber-presence-screen jabber-presence-echo)
+  :options '(jabber-presence-beep jabber-presence-wave jabber-presence-update-roster jabber-presence-switch jabber-presence-display jabber-presence-ratpoison jabber-presence-screen jabber-presence-echo)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-message-function
@@ -86,7 +86,7 @@ browse requests.  Second argument in BUFFER, a buffer containing the result.
 Third argument is PROPOSED-ALERT, containing the string returned by
 `jabber-alert-info-message-function' for these arguments."
   :type 'hook
-  :options '(jabber-info-beep jabber-info-wave jabber-info-ratpoison jabber-info-screen jabber-info-echo jabber-info-switch)
+  :options '(jabber-info-beep jabber-info-wave jabber-info-ratpoison jabber-info-screen jabber-info-echo jabber-info-switch jabber-info-display)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-info-message-function
@@ -139,6 +139,10 @@ and BUFFER, a buffer containing the result."
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
   (jabber-play-sound-file jabber-alert-message-wave))
+
+(defun jabber-message-display (from buffer text proposed-alert)
+  "Display the buffer where a new message has arrived."
+  (display-buffer buffer))
 
 (defun jabber-message-switch (from buffer text proposed-alert)
   "Switch to the buffer where a new message has arrived."
@@ -205,6 +209,10 @@ This function is not called directly, but is the default for
   "Update the roster display by calling `jabber-display-roster'"
   (jabber-display-roster))
 
+(defun jabber-presence-display (who oldstatus newstatus statustext proposed-alert)
+  "Display the roster buffer"
+  (display-buffer (process-buffer *jabber-connection*)))
+
 (defun jabber-presence-switch (who oldstatus newstatus statustext proposed-alert)
   "Switch to the roster buffer"
   (switch-to-buffer (process-buffer *jabber-connection*)))
@@ -257,6 +265,10 @@ This function uses `jabber-info-message-alist' to find a message."
   "Show a message through the Screen terminal manager"
   (if proposed-alert
       (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
+
+(defun jabber-info-display (infotype buffer proposed-alert)
+  "Display buffer of completed request"
+  (switch-to-buffer buffer))
 
 (defun jabber-info-switch (infotype buffer proposed-alert)
   "Switch to buffer of completed request"

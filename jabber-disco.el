@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -101,6 +101,8 @@ See JEP-0030."
 			      jabber-advertised-features))
 		    nil nil nil nil id)))
 
+(add-to-list 'jabber-jid-info-menu
+	     (cons "Send items disco query" 'jabber-get-disco-items))
 (defun jabber-get-disco-items (to &optional node)
   "Send a service discovery request for items"
   (interactive (list (jabber-read-jid-completing "Send items disco request to: ")
@@ -113,6 +115,8 @@ See JEP-0030."
 		  #'jabber-process-data #'jabber-process-disco-items
 		  #'jabber-process-data "Item discovery failed"))
 
+(add-to-list 'jabber-jid-info-menu
+	     (cons "Send info disco query" 'jabber-get-disco-info))
 (defun jabber-get-disco-info (to &optional node)
   "Send a service discovery request for info"
   (interactive (list (jabber-read-jid-completing "Send info disco request to: ")

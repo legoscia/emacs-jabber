@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.2 2004/03/02 13:08:25 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -212,8 +212,11 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (interactive (list (completing-read "show:"
 				      '(("" . nil) ("away" . nil) ("xa" . nil) ("dnd" . nil) ("chat" . nil)) nil t)
 		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-		     (read-string "priority: " (and *jabber-current-priority*
-						    (int-to-string *jabber-current-priority*)))))
+		     (read-string "priority: " (progn
+						 (unless *jabber-current-priority*
+						   (setq *jabber-current-priority*
+							 jabber-default-priority))
+						 (int-to-string *jabber-current-priority*)))))
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
   (setq *jabber-current-priority* (string-to-int priority))
@@ -225,6 +228,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			       (priority () ,(jabber-escape-xml (int-to-string *jabber-current-priority*)))))
   (jabber-display-roster))
 
+(add-to-list 'jabber-jid-roster-menu
+	     (cons "Send subscription request" 'jabber-send-subscription-request))
 (defun jabber-send-subscription-request (to &optional request)
   "send a subscription request to jid, showing him your request text, if specified"
   (interactive (list (jabber-read-jid-completing "to: ")
@@ -233,5 +238,38 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
                                 (type . "subscribe"))
                                ,(if (and request (> (length request) 0))
                                    request))))
+
+(add-to-list 'jabber-jid-roster-menu
+	     (cons "Add/modify roster entry" 'jabber-roster-change))
+(defun jabber-roster-change (jid name groups)
+  "Add or change a roster item."
+  (interactive (let* ((jid (intern (jabber-read-jid-completing "Add/change JID: ") jabber-jid-obarray))
+		      (name (get jid 'name))
+		      (groups (get jid 'groups)))
+		 (list jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
+		       (read-from-minibuffer (format "Groups: (default `%S') " groups) nil nil t nil (format "%S" groups) t))))
+  ;; If new fields are added to the roster XML structure in a future standard,
+  ;; they will be clobbered by this function.
+  (jabber-send-iq nil "set" 
+		  (list 'query (list (cons 'xmlns "jabber:iq:roster"))
+			(list 'item (append
+				     (list (cons 'jid (symbol-name jid)))
+				     (if (and name (> (length name) 0))
+					 (list (cons 'name name))))
+			      (mapcar (lambda (x) `(group () ,x))
+				      groups))) 
+		  #'jabber-report-success "Roster item change"
+		  #'jabber-report-success "Roster item change"))
+
+(add-to-list 'jabber-jid-roster-menu
+	     (cons "Delete roster entry" 'jabber-roster-delete))
+(defun jabber-roster-delete (jid)
+  (interactive (list (jabber-read-jid-completing "Delete from roster: ")))
+  (jabber-send-iq nil "set"
+		  `(query ((xmlns . "jabber:iq:roster"))
+			  (item ((jid . ,jid)
+				 (subscription . "remove"))))
+		  #'jabber-report-success "Roster item removal"
+		  #'jabber-report-success "Roster item removal"))
 
 (provide 'jabber-presence)
