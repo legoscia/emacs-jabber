@@ -1,5 +1,5 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.4 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-chat.el,v 1.5 2004/03/29 23:12:42 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -37,6 +37,8 @@
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
   (make-local-variable 'jabber-chatting-with)
+  (make-local-variable 'scroll-conservatively)
+  (setq scroll-conservatively 5)
   (setq major-mode 'jabber-chat-mode
         mode-name "jabber-chat")
   (use-local-map jabber-chat-mode-map))
@@ -107,6 +109,8 @@ TIMESTAMP is timestamp, or nil for now."
   "\\{jabber-groupchat-mode-map}"
   (kill-all-local-variables)
   (make-local-variable 'jabber-group)
+  (make-local-variable 'scroll-conservatively)
+  (setq scroll-conservatively 5)
   (setq major-mode 'jabber-groupchat-mode
         mode-name "jabber-groupchat")
   (use-local-map jabber-groupchat-mode-map)
