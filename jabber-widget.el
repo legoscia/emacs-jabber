@@ -249,15 +249,17 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 
 	    (indent-to (plist-get field-plist 'column) 1)
 
-	    ;; If there is only one JID field, let the whole row have the jabber-jid
-	    ;; property.  If there are many JID fields, the string belonging to each
-	    ;; field has that property.
-	    (if (string= (plist-get field-plist 'type) "jid-single")
-		(if (not (eq jid-fields 1))
-		    (insert (jabber-propertize value 'jabber-jid value))
-		  (setq jid value)
-		  (insert value))
-	      (insert value))))
+	    ;; Absent values are sometimes "", sometimes nil.  insert doesn't like nil.
+	    (when value
+	      ;; If there is only one JID field, let the whole row have the jabber-jid
+	      ;; property.  If there are many JID fields, the string belonging to each
+	      ;; field has that property.
+	      (if (string= (plist-get field-plist 'type) "jid-single")
+		  (if (not (eq jid-fields 1))
+		      (insert (jabber-propertize value 'jabber-jid value))
+		    (setq jid value)
+		    (insert value))
+		(insert value)))))
 	      
 	(if jid
 	    (put-text-property start-of-line (point)
