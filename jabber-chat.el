@@ -269,7 +269,8 @@ TIMESTAMP is timestamp, or nil for now."
 				 'jabber-chat-prompt-foreign)))
       (goto-char jabber-point-insert))
  
-    (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))
+    (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
+      (run-hook-with-args hook from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body)))))
 
 (defun jabber-chat-print (from body timestamp prompt-format prompt-face)
   "Format and print a message in the current chat buffer.
@@ -406,7 +407,8 @@ TIMESTAMP is timestamp, or nil for now."
     (goto-char (point-max))
 
     (setq jabber-group group)
-    (run-hook-with-args 'jabber-alert-muc-hooks nick group (current-buffer) body (funcall jabber-alert-muc-function nick group (current-buffer) body))))
+    (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
+      (run-hook-with-args hook nick group (current-buffer) body (funcall jabber-alert-muc-function nick group (current-buffer) body)))))
 
 (add-to-list 'jabber-message-chain 'jabber-process-message)
 

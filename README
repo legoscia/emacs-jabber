@@ -35,6 +35,12 @@ your load-path include the directory they're in) and put
 documentation, copy jabber.info to /usr/local/info and run
 "install-info /usr/local/info/jabber.info".
 
+If you've been using a post-0.6 CVS version of jabber.el, you might
+need to remove some redundant hook functions.  Make sure that
+jabber-alert-message-hooks doesn't contain jabber-message-history, and
+that jabber-alert-presence-hooks doesn't contain
+jabber-presence-watch.
+
 Usage
 =====
 To start using it, type M-x jabber-customize and set your username and

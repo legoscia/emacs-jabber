@@ -750,6 +750,13 @@ argument.
 Alert hook contributions are very welcome.  Either submit them to the
 Sourceforge patch tracker, or contact us directly.
 
+Alert hooks are meant for optional UI things, that are subject to
+varying user tastes, and that can be toggled by simply adding or
+removing the function from/to the hook.  For other things, there are
+corresponding general hooks, that are defvars instead of defcustoms,
+and that are to be managed by Lisp code.  They have the same name as
+the alert hooks minus the @code{-alert} part.
+
 @menu
 * Standard alerts::             
 * Presence alerts::             

@@ -264,7 +264,8 @@ bring up menus of actions.
       (goto-char (point-min))
       (setq buffer-read-only t)
       (if (interactive-p)
-	  (run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))
+	  (dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
+	    (run-hook-with-args hook 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer)))))
       (when current-line
 	(goto-line current-line)
 	(move-to-column current-column)))))

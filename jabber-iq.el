@@ -165,7 +165,8 @@ See section 9.3 of XMPP Core."
        (t
 	(insert (format "%S\n\n" xml-data))))
 
-      (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
+      (dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
+	(run-hook-with-args hook 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer)))))))
 
 (provide 'jabber-iq)
 

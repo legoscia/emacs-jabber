@@ -250,9 +250,9 @@ With a numeric arg, enable this display if arg is positive."
       (progn
 	(add-hook 'window-configuration-change-hook
 		  'jabber-activity-clean)
-	(add-hook 'jabber-alert-message-hooks
+	(add-hook 'jabber-message-hooks
 		  'jabber-activity-add)
-	(add-hook 'jabber-alert-muc-hooks
+	(add-hook 'jabber-muc-hooks
 		  'jabber-activity-add-muc)
 	(add-hook 'jabber-post-connect-hook
 		  'jabber-activity-make-name-alist)
@@ -263,9 +263,9 @@ With a numeric arg, enable this display if arg is positive."
     (progn
       (remove-hook 'window-configuration-change-hook
 		   'jabber-activity-remove-visible)
-      (remove-hook 'jabber-alert-message-hooks
+      (remove-hook 'jabber-message-hooks
 		   'jabber-activity-add)
-      (remove-hook 'jabber-alert-muc-hooks
+      (remove-hook 'jabber-muc-hooks
 		   'jabber-activity-add-muc)
       (remove-hook 'jabber-post-connect-hook
 		   'jabber-activity-make-name-alist)

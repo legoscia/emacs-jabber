@@ -50,8 +50,8 @@ sends a message if that happens. The buddies are stored in
 (defun jabber-watch-add (buddy &optional comment)
   (interactive (list (jabber-read-jid-completing "Add buddy to watch list: ")
 		     (read-string "Comment: ")))
-  (unless (memq 'jabber-presence-watch jabber-alert-presence-hooks)
-    (error "jabber-presence-watch is not in jabber-alert-presence-hooks"))
+  (unless (memq 'jabber-presence-watch jabber-presence-hooks)
+    (error "jabber-presence-watch is not in jabber-presence-hooks"))
   (add-to-list 'jabber-watch-alist (cons
 				    (jabber-jid-symbol buddy)
 				    (and (not (zerop (length comment)))

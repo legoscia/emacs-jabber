@@ -166,22 +166,24 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
 	      (jabber-prioritize-resources buddy)
 
-	      (run-hook-with-args 'jabber-alert-presence-hooks
-				  buddy
-				  oldstatus
-				  newstatus
-				  (jabber-unescape-xml 
-				   (plist-get resource-plist 'status))
-				  (funcall jabber-alert-presence-message-function 
-					   buddy
-					   oldstatus
-					   newstatus
-					   (jabber-unescape-xml
-					    (plist-get resource-plist 'status)))))))))))
+	      (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
+		(run-hook-with-args 'jabber-alert-presence-hooks
+				    buddy
+				    oldstatus
+				    newstatus
+				    (jabber-unescape-xml 
+				     (plist-get resource-plist 'status))
+				    (funcall jabber-alert-presence-message-function 
+					     buddy
+					     oldstatus
+					     newstatus
+					     (jabber-unescape-xml
+					      (plist-get resource-plist 'status))))))))))))
 
 (defun jabber-process-subscription-request (from presence-status)
   "process an incoming subscription request"
-  (run-hook-with-args 'jabber-alert-presence-hooks (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status))
+  (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
+    (run-hook-with-args hook (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status)))
   (jabber-send-sexp 
    (list 'presence
 	 (list (cons 'to from)

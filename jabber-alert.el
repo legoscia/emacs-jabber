@@ -24,17 +24,26 @@
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
-(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo jabber-message-history)
+(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo)
   "Hooks run when a new message arrives.
 
 Arguments are FROM, BUFFER, TEXT and PROPOSED-ALERT.  FROM is the JID
 of the sender, BUFFER is the the buffer where the message can be read,
 and TEXT is the text of the message.  PROPOSED-ALERT is the string
 returned by `jabber-alert-message-function' for these arguments, so that
-hooks do not have to call it themselves."
+hooks do not have to call it themselves.
+
+This hook is meant for user customization of message alerts.  For
+other uses, see `jabber-message-hooks'."
   :type 'hook
-  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen jabber-message-history)
+  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen)
   :group 'jabber-alerts)
+
+(defvar jabber-message-hooks '(jabber-message-history)
+  "Internal hooks run when a new message arrives.
+
+This hook works just like `jabber-alert-message-hooks', except that
+it's not meant to be customized by the user.")
 
 (defcustom jabber-alert-message-function
   'jabber-message-default-message
@@ -51,7 +60,7 @@ every time."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-muc-hooks '(jabber-muc-echo)
-  "Hooks run when a new message arrives.
+  "Hooks run when a new MUC message arrives.
 
 Arguments are NICK, GROUP, BUFFER, TEXT and PROPOSED-ALERT.  NICK
 is the nickname of the sender.  GROUP is the JID of the group.
@@ -68,6 +77,12 @@ so that hooks do not have to call it themselves."
 	     jabber-muc-ratpoison
 	     jabber-muc-screen)
   :group 'jabber-alerts)
+
+(defvar jabber-muc-hooks '()
+  "Internal hooks run when a new MUC message arrives.
+
+This hook works just like `jabber-alert-muc-hooks', except that
+it's not meant to be customized by the user.")
 
 (defcustom jabber-alert-muc-function
   'jabber-muc-default-message
@@ -86,8 +101,7 @@ every time."
 (defcustom jabber-alert-presence-hooks 
   '(jabber-presence-beep 
     jabber-presence-update-roster
-    jabber-presence-echo
-    jabber-presence-watch)
+    jabber-presence-echo)
   "Hooks run when a user's presence changes.
 
 Arguments are WHO, OLDSTATUS, NEWSTATUS, STATUSTEXT and
@@ -105,9 +119,14 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
 	     jabber-presence-display
 	     jabber-presence-ratpoison
 	     jabber-presence-screen
-	     jabber-presence-echo
-	     jabber-presence-watch)
+	     jabber-presence-echo)
   :group 'jabber-alerts)
+
+(defvar jabber-presence-hooks '(jabber-presence-watch)
+  "Internal hooks run when a user's presence changes.
+
+This hook works just like `jabber-alert-presence-hooks', except that
+it's not meant to be customized by the user.")
 
 (defcustom jabber-alert-presence-message-function
   'jabber-presence-default-message
@@ -140,6 +159,12 @@ Third argument is PROPOSED-ALERT, containing the string returned by
 	     jabber-info-switch
 	     jabber-info-display)
   :group 'jabber-alerts)
+
+(defvar jabber-info-message-hooks '()
+  "Internal hooks run when an info request is completed.
+
+This hook works just like `jabber-alert-info-message-hooks',
+except that it's not meant to be customized by the user.")
 
 (defcustom jabber-alert-info-message-function
   'jabber-info-default-message

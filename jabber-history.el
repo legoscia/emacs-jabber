@@ -68,7 +68,9 @@ will be logged to the same file."
 
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
-;; (add-hook 'jabber-alert-message-hooks 'jabber-message-history)
+;; (add-hook 'jabber-message-hooks 'jabber-message-history)
+;;
+;; The hook is now there by default, set in jabber-alert.el.
 
 (defun jabber-history-query (time-compare-function
 			     time
