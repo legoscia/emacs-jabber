@@ -28,6 +28,29 @@
 (defgroup jabber-chat nil "chat display options"
   :group 'jabber)
 
+(defcustom jabber-chat-buffer-format "*-jabber-chat-%n-*"
+  "The format specification for the name of chat buffers.
+
+These fields are available (all are about the person you are chatting
+with):
+
+%n   Nickname, or JID if no nickname set
+%j   Bare JID (without resource)
+%r   Resource"
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
+  "The format specification for the name of groupchat buffers.
+
+These fields are available (all are about the person you are chatting
+with):
+
+%n   Roster name of group, or JID if no nickname set
+%j   Bare JID (without resource)"
+  :type 'string
+  :group 'jabber-chat)
+
 (defcustom jabber-chat-time-format "%H:%M"
   "The format specification for time displayed in the chat buffer.
 
@@ -117,7 +140,11 @@ These fields are available:
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
 Either a string or a buffer is returned, so use `get-buffer' or
 `get-buffer-create'."
-  (concat "*-jabber-chat-:-" (jabber-jid-displayname chat-with) "-*"))
+  (format-spec jabber-chat-buffer-format
+	       (list
+		(cons ?n (jabber-jid-displayname chat-with))
+		(cons ?j (jabber-jid-user chat-with))
+		(cons ?r (jabber-jid-resource chat-with)))))
 
 (defun jabber-chat-create-buffer (chat-with)
   "Prepare a buffer for chatting with CHAT-WITH.
@@ -220,7 +247,10 @@ Signal an error if there is no JID at point."
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
 Either a string or a buffer is returned, so use `get-buffer' or
 `get-buffer-create'."
-  (concat "*-jabber-groupchat-:-" group "-*"))
+  (format-spec jabber-groupchat-buffer-format
+	       (list
+		(cons ?n (jabber-jid-displayname group))
+		(cons ?j (jabber-jid-user group)))))
 
 (defun jabber-groupchat-create-buffer (group)
   "Prepare a buffer for groupchat in GROUP.
