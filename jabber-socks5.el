@@ -29,26 +29,28 @@
 Each entry is a list, containing:
  * Stream ID
  * Full JID of initiator
- * Profile start function, to be called when session is activated")
+ * Profile data function, to be called when data is received")
 
 (defvar jabber-socks5-active-sessions nil
   "List of active sessions.
 
-This is an alist where the keys are (sid jid) and the values are
-network streams.")
+Each entry is a list, containing:
+ * Network connection
+ * Stream ID
+ * Full JID of initiator
+ * Profile data function")
 
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/bytestreams")
 
 (add-to-list 'jabber-si-stream-methods
 	     (list "http://jabber.org/protocol/bytestreams"
-		   'jabber-socks5-accept
-		   'jabber-socks5-read))
+		   'jabber-socks5-accept))
 
-(defun jabber-socks5-accept (jid sid profile-start-function)
+(defun jabber-socks5-accept (jid sid profile-data-function)
   "Remember that we are waiting for connection from JID, with stream id SID"
   ;; asking the user for permission is done in the profile
   (add-to-list 'jabber-socks5-pending-sessions
-	       (list sid jid profile-start-function)))
+	       (list sid jid profile-data-function)))
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/bytestreams" 'jabber-socks5-process))
@@ -61,7 +63,8 @@ network streams.")
 	 (session (dolist (pending-session jabber-socks5-pending-sessions)
 		    (when (and (equal sid (nth 0 pending-session))
 			       (equal jid (nth 1 pending-session)))
-		      (return pending-session)))))
+		      (return pending-session))))
+	 (profile-data-function (nth 2 session)))
     ;; check that we really are expecting this session
     (unless session
       (jabber-signal-error "auth" 'not-acceptable))
@@ -70,7 +73,7 @@ network streams.")
     ;; find streamhost to connect to
     (let* ((streamhosts (jabber-xml-get-children query 'streamhost))
 	   (streamhost (dolist (streamhost streamhosts)
-			 (if (jabber-socks5-connect streamhost jid sid)
+			 (if (jabber-socks5-connect streamhost sid jid profile-data-function)
 			     (return streamhost)))))
       (unless streamhost
 	(jabber-signal-error "cancel" 'item-not-found))
@@ -80,11 +83,10 @@ network streams.")
 		      `(query ((xmlns . "http://jabber.org/protocol/bytestreams"))
 			      (streamhost-used ((jid . ,(jabber-xml-get-attribute streamhost 'jid)))))
 		      nil nil nil nil id)
-      ;; tell profile to start reading data
-      (run-with-idle-timer 3 nil 
-			   (nth 2 session) jid sid #'jabber-socks5-read))))
+      ;; now, as data is sent, it will be passed to the profile.
+      )))
 
-(defun jabber-socks5-connect (streamhost jid sid)
+(defun jabber-socks5-connect (streamhost sid jid profile-data-function)
   "Attempt to connect to STREAMHOST, authenticating with JID and SID.
 Return nil on error.  On success, store details in
 `jabber-socks5-active-sessions'.
@@ -125,6 +127,8 @@ Zeroconf is not supported."
 	    (unless (string= (buffer-substring 3 5) (string 5 0))
 	      (error "SOCKS5 failure"))
 
+	    (message "SOCKS5 connection established")
+
 	    ;; The information returned here is exactly the same that we sent...
 	    ;; Not very exciting.  Anyway, this part is done, we have a connection.
 	    (let* ((address-type (aref (buffer-substring 6 7) 0))
@@ -139,50 +143,46 @@ Zeroconf is not supported."
 	      ;; Delete all SOCKS5 data, leave room for the stream.
 	      (delete-region 1 (+ 8 address-length 2)))
 
-	    (set-process-sentinel socks5-connection #'jabber-socks5-sentinel)
-	    (push (cons (list jid sid) socks5-connection)
-		  jabber-socks5-active-sessions))))
+	    ;; We immediately claim that, now that this connection is
+	    ;; successfully established, it is the one to use for this
+	    ;; transfer.  This is usually what we want, but
+	    ;; theoretically those two facts are orthogonal.
+	    (push (list socks5-connection sid jid profile-data-function)
+		  jabber-socks5-active-sessions)
+
+	    ;; If more data than the SOCKS5 response has arrived, pass it to the filter.
+	    ;; This shouldn't happen, as we are supposed to send a confirmation first,
+	    ;; but you never know...
+	    (when (not (zerop (buffer-size)))
+	      (jabber-socks5-filter socks5-connection (buffer-string))
+	      (erase-buffer))
+
+	    ;; Now set the filter, for the rest of the output
+	    (set-process-filter socks5-connection #'jabber-socks5-filter)
+	    (set-process-sentinel socks5-connection #'jabber-socks5-sentinel))))
     (error
      (message "SOCKS5 connection failed: %s" e))))
 
-(defun jabber-socks5-read (jid sid)
-  "Read chunk of data from the stream identified by JID and SID.
-Return nil on EOF."
-  (let ((session (assoc (list jid sid) jabber-socks5-active-sessions)))
-    (if session
-	(let ((stream (cdr session)))
-	  (cond
-	   ((stringp stream)
-	    ;; The stream has been closed; return the remaining data.
-	    (setcdr session nil)
-	    stream)
-
-	   ((null stream)
-	    ;; The stream was closed the last time.  Remove it from
-	    ;; the session table and return nil.
-	    (setq jabber-socks5-active-sessions
-		  (delq session jabber-socks5-active-sessions))
-	    nil)
-
-	   ((processp stream)
-	    ;;(accept-process-output stream 5)
-	    (let ((data (buffer-string (process-buffer stream))))
-	      (delete-region 1 (1+ (length data)) (process-buffer stream))
-	      data))))
-
-      (if (assoc (list jid sid) jabber-socks5-pending-sessions)
-	  ""
-	(error "SOCKS5 session doesn't exist")))))
+(defun jabber-socks5-filter (connection data)
+  "Pass data from connection to profile data function"
+  (let* ((session (assq connection jabber-socks5-active-sessions))
+	 (sid (nth 1 session))
+	 (jid (nth 2 session))
+	 (profile-data-function (nth 3 session)))
+    (funcall profile-data-function jid sid data)))
 
 (defun jabber-socks5-sentinel (process event-string)
   ;; Connection terminated.  Shuffle together the remaining data,
   ;; and kill the buffer.
-  (let ((session (rassq process jabber-socks5-active-sessions))
-	(buffer (process-buffer process)))
-    (with-current-buffer buffer
-      (setcdr session (buffer-string)))
+  (let* ((session (assq process jabber-socks5-active-sessions))
+	 (buffer (process-buffer process))
+	 (sid (nth 1 session))
+	 (jid (nth 2 session))
+	 (profile-data-function (nth 3 session)))
     (kill-buffer buffer)
-    (delete-process process)))
+    (delete-process process)
+    (funcall profile-data-function jid sid nil)
+    (setq jabber-socks5-active-sessions (delq session jabber-socks5-pending-sessions))))
 
 (provide 'jabber-socks5)
 

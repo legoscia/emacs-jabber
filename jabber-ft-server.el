@@ -30,7 +30,7 @@
 (add-to-list 'jabber-si-profiles
 	     (list "http://jabber.org/protocol/si/profile/file-transfer"
 		   'jabber-ft-accept
-		   'jabber-ft-start))
+		   'jabber-ft-data))
 
 (defun jabber-ft-accept (xml-data)
   "Receive IQ stanza containing file transfer request, ask user"
@@ -65,6 +65,7 @@
     ;; maybe that's bad; maybe should be customizable.
     (let* ((file-name (read-file-name "Download to: " nil nil nil name))
 	   (buffer (create-file-buffer file-name)))
+      (message "Starting download of %s..." (file-name-nondirectory file-name))
       (with-current-buffer buffer
 	(setq buffer-file-coding-system 'binary)
 	(set-visited-file-name file-name t))
@@ -74,19 +75,16 @@
     ;; to support range, return something sensible here
     nil))
 
-(defun jabber-ft-start (jid sid stream-read-function)
-  "Fetch file from other user.
-JID is JID of other user.  SID is stream ID.  STREAM-READ-FUNCTION
-is function to call to get more data."
+(defun jabber-ft-data (jid sid data)
+  "Receive chunk of transferred file."
   (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions)))
 	data)
     (with-current-buffer buffer
-      (message "Starting download of %s..." (file-name-nondirectory buffer-file-name))
-      (goto-char (point-max))
-      (while (setq data (funcall stream-read-function jid sid))
-	(insert data))
-      (basic-save-buffer)
-      (message "%s downloaded" (file-name-nondirectory buffer-file-name)))))
+      ;; If data is nil, there is no more data
+      (if data
+	  (insert data)
+	(basic-save-buffer)
+	(message "%s downloaded" (file-name-nondirectory buffer-file-name))))))
 
 (provide 'jabber-ft-server)
 
