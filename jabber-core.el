@@ -248,32 +248,47 @@ Call this function after disconnection."
         (setq *xmlq* (concat *xmlq* string))
         (if (string-match " \\w+=''" *xmlq*)
             (setq *xmlq* (replace-match "" nil nil *xmlq*)))
-        (catch 'jabber-no-tag
-          (while (string-match "<\\([a-zA-Z0-9\:]+\\)[> ]" *xmlq*)
-            (if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
-                    (string-match (concat "<" (match-string 1 *xmlq*) ".*?>[^\0]+?</" (match-string 1 *xmlq*) ">") *xmlq*))
-                (progn
-                  (insert (match-string 0 *xmlq*))
-                  (goto-char (point-min))
-                  (setq *xmlq* (substring *xmlq* (match-end 0)))
-                  (let ((xml-data (xml-parse-region (point-min)
-                                                    (point-max))))
-                    (when xml-data
-		      ;; If there's a problem with writing the XML log,
-		      ;; make sure the stanza is delivered, at least.
-		      (condition-case e
-                          (if jabber-debug-log-xml
-			      (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-				(save-excursion
-				  (goto-char (point-max))
-				  (insert (format "receive %S\n\n" (car xml-data))))))
-			(error
-			 (ding)
-			 (message "Couldn't write XML log: %s" (error-message-string e))
-			 (sit-for 2)))
-		      (jabber-process-input (car xml-data))))
-                  (erase-buffer))
-              (throw 'jabber-no-tag t)))))))))
+	(unwind-protect
+	    (catch 'jabber-no-tag
+	      (while (string-match "<\\([a-zA-Z0-9\:]+\\)[> ]" *xmlq*)
+		(if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
+			(string-match (concat "<" (match-string 1 *xmlq*) ".*?>[^\0]+?</" (match-string 1 *xmlq*) ">") *xmlq*))
+		    (progn
+		      (insert (match-string 0 *xmlq*))
+		      (goto-char (point-min))
+		      (setq *xmlq* (substring *xmlq* (match-end 0)))
+		      (let ((xml-data (xml-parse-region (point-min)
+							(point-max))))
+			(when xml-data
+			  ;; If there's a problem with writing the XML log,
+			  ;; make sure the stanza is delivered, at least.
+			  (condition-case e
+			      (if jabber-debug-log-xml
+				  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+				    (save-excursion
+				      (goto-char (point-max))
+				      (insert (format "receive %S\n\n" (car xml-data))))))
+			    (error
+			     (ding)
+			     (message "Couldn't write XML log: %s" (error-message-string e))
+			     (sit-for 2)))
+			  (jabber-process-input (car xml-data))))
+		      (erase-buffer))
+		  (throw 'jabber-no-tag t))))
+	  ;; unwindforms of unwind-protect
+	  (when (not (zerop (length *xmlq*)))
+	    ;; If there is XML data remaining to be parsed,
+	    ;; and an error aborted the loop, continue processing
+	    ;; after one second.  Otherwise the data would sit in *xmlq*
+	    ;; until the next time jabber-filter is called.
+	    ;;
+	    ;; We could just catch the error, but that would make noticing and
+	    ;; debugging errors harder; "Error in process filter" is a good
+	    ;; reminder that something's not right.  Concerning data loss,
+	    ;; there's not much we can do here, as the error-causing stanza
+	    ;; could be any kind of information.  The jabber-process-*
+	    ;; functions should catch their own errors if they need to.
+	    (run-with-idle-timer 1 nil #'jabber-filter process ""))))))))
 
 (defun jabber-process-input (xml-data)
   "process an incoming parsed tag"
