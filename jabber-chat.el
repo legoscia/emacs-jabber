@@ -27,6 +27,15 @@
 
 (require 'format-spec)
 
+(defvar jabber-chat-xmlns-alist nil
+  "Mapping from XML namespace to handler for message attachments")
+
+(defvar jabber-chat-alternative-bodies '(body)
+  "List of symbols representing things that replace body contents")
+
+(defvar jabber-chat-display-order '(subject body)
+  "List of symbols defining the order to display parts of a message")
+
 (defgroup jabber-chat nil "chat display options"
   :group 'jabber)
 
@@ -196,7 +205,7 @@ These fields are available:
 
 (defun jabber-format-body (body prompt face time nick user resource jid)
   "Format a string for a chat buffer according to user's preferences.
-BODY is the text to format.
+BODY is the text to format.  It should end in a newline.
 PROMPT is a format string for the prompt, like
 `jabber-chat-local-prompt-format'.
 FACE is the face to use for the prompt.
@@ -221,8 +230,7 @@ JID is the bare JID."
 		      'face face)
    (if nick
        body
-     (jabber-propertize body 'face 'jabber-chat-prompt-system))
-   "\n"))
+     (jabber-propertize body 'face 'jabber-chat-prompt-system))))
 
 (defun jabber-chat-buffer-send ()
   (interactive)
@@ -232,7 +240,7 @@ JID is the bare JID."
     ;; no message should be sent.
     (unless (zerop (length body))
       (jabber-send-chat jabber-chatting-with body)
-      (jabber-chat-print nil body nil jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
+      (jabber-chat-print nil (concat body "\n") nil jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
 
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
@@ -254,23 +262,75 @@ This function is idempotent."
       (jabber-history-backlog))
     (current-buffer)))
 
-(defun jabber-chat-display (from body &optional timestamp)
+(defun jabber-chat-display (from body &optional timestamp xml-data)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (jabber-chat-create-buffer from)
-    ;; If user is typing a message, point will be moved along so
-    ;; typing is not disturbed.
-    ;; If user is looking at previous messages, point is not moved.
-    ;; If user hasn't typed anything, we need to move point ourselves.
-    (when (prog1
-	      (eq (point) jabber-point-insert)
-	    (save-excursion
-	      (jabber-chat-print from body timestamp jabber-chat-foreign-prompt-format
-				 'jabber-chat-prompt-foreign)))
-      (goto-char jabber-point-insert))
+    ;; First, parse the message and find what pieces make sense to us.
+    (let (pieces 
+	  (text ""))
+      ;; XXX: should this check remain?
+      (if (and body (not xml-data))
+	  (setq pieces (list (cons 'body body)))
+	(dolist (node (jabber-xml-node-children xml-data))
+	  (cond
+	   ((eq (jabber-xml-node-name node) 'subject)
+	    (push
+	     (cons 'subject
+		   (concat (jabber-propertize 
+			    "Subject: "
+			    'face 'jabber-chat-prompt-system)
+			   (car (jabber-xml-node-children node))))
+	     pieces))
+	   ((eq (jabber-xml-node-name node) 'body)
+	    (push (cons 'body (car (jabber-xml-node-children node))) pieces))
+	   ((eq (jabber-xml-node-name node) 'error)
+	    (push 
+	     (cons 'error
+		   (concat (jabber-propertize 
+			    "Error: "
+			    'face 'jabber-chat-prompt-system)
+			   (jabber-parse-error node)))
+	     pieces))
+	   ;; XXX: add thread here
+	   (t
+	    (let* ((xmlns (jabber-xml-get-attribute node 'xmlns))
+		   (handler (cdr (assoc xmlns jabber-chat-xmlns-alist))))
+	      (when handler
+		(push (funcall handler node) pieces)))))))
+
+      ;; Now, figure out how to display all this
+      (cond
+       ;; If there's an error message, display only that
+       ((assq 'error pieces)
+	(setq text (concat (cdr (assq 'error pieces)) "\n")))
+       ;; Else, use the defined order
+       (t
+	(dolist (part jabber-chat-display-order)
+	  (let ((part-text
+		 ;; If it's time to display the body, find the most
+		 ;; preferred one.
+		 (if (eq part 'body)
+		     (dolist (alt-body jabber-chat-alternative-bodies)
+		       (when (assq alt-body pieces)
+			 (return (cdr (assq alt-body pieces)))))
+		   (cdr (assq part pieces)))))
+	    (when part-text
+	      (setq text (concat text part-text "\n")))))))
+
+      ;; If user is typing a message, point will be moved along so
+      ;; typing is not disturbed.
+      ;; If user is looking at previous messages, point is not moved.
+      ;; If user hasn't typed anything, we need to move point ourselves.
+      (when (prog1
+		(eq (point) jabber-point-insert)
+	      (save-excursion
+		(jabber-chat-print from text timestamp jabber-chat-foreign-prompt-format
+				   'jabber-chat-prompt-foreign)))
+	(goto-char jabber-point-insert))
  
-    (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
-      (run-hook-with-args hook from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body)))))
+      (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
+	(run-hook-with-args hook from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))))
 
 (defun jabber-chat-print (from body timestamp prompt-format prompt-face)
   "Format and print a message in the current chat buffer.
@@ -381,7 +441,7 @@ This function is idempotent."
     (setq jabber-group group)
     (current-buffer)))
 
-(defun jabber-groupchat-display (group &optional nick body timestamp)
+(defun jabber-groupchat-display (group &optional nick body timestamp xml-data)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (jabber-groupchat-create-buffer group)
@@ -429,17 +489,16 @@ TIMESTAMP is timestamp, or nil for now."
 				(if error
 				    (concat "ERROR: " (jabber-parse-error error))
 				  (jabber-unescape-xml body))
-				timestamp))
+				timestamp
+				xml-data))
      ;; Here go normal one-to-one messages and private groupchat messages.
      (t
-      ;; If there is no body, we can't display it (yet), so ignore the message.
-      ;; Error messages should not be ignored.
-      (when (or body (string= type "error"))
-	(jabber-chat-display from 
-			     (if error
-				 (concat "ERROR: " (jabber-parse-error error))
-			       (jabber-unescape-xml body))
-			     timestamp))))))
+      (jabber-chat-display from 
+			   (if error
+			       (concat "ERROR: " (jabber-parse-error error))
+			     (jabber-unescape-xml body))
+			   timestamp
+			   xml-data)))))
 
 (defun jabber-send-groupchat (group body)
   "send a message to a groupchat"

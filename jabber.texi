@@ -1259,8 +1259,6 @@ Most of RFC 3921 is supported, with the following exceptions.
 
 Messages of type ``headline'' are not treated in any special way.
 
-The subject of a received message is not displayed.
-
 The @code{<thread/>} element is not used or generated.
 
 Neither sending nor receiving ``directed presence'' is supported.
