@@ -137,8 +137,8 @@
   :type 'integer
   :group 'jabber)
 
-(defcustom jabber-nickname "emacs"
-  "jabber groupchat nickname" 
+(defcustom jabber-nickname jabber-username
+  "jabber nickname, used in chat buffer prompts and as default groupchat nickname." 
   :type 'string
   :group 'jabber)
 

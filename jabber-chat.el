@@ -80,7 +80,9 @@ See `format-time-string' for valid values."
 These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
-%n   Nickname (actually username part of your JID)
+%n   Nickname (`jabber-nickname')
+%u   Username
+%r   Resource
 %j   Bare JID (without resource)"
   :type 'string
   :group 'jabber-chat)
@@ -92,6 +94,8 @@ These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
 %n   Nickname, or JID if no nickname set
+%u   Username
+%r   Resource
 %j   Bare JID (without resource)"
   :type 'string
   :group 'jabber-chat)
@@ -148,13 +152,15 @@ These fields are available:
       (jabber-send-chat jabber-chatting-with body)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
-	(insert (jabber-propertize (format-spec jabber-chat-local-prompt-format
-						(list
-						 (cons ?t (format-time-string jabber-chat-time-format))
-						 (cons ?n jabber-username)
-						 (cons ?j (concat jabber-username "@" jabber-server))))
-				   'face 'jabber-chat-prompt-local)
-		body "\n")
+      (insert (jabber-propertize (format-spec jabber-chat-local-prompt-format
+					      (list
+					       (cons ?t (format-time-string jabber-chat-time-format))
+					       (cons ?n jabber-nickname)
+					       (cons ?u jabber-username)
+					       (cons ?r jabber-resource)
+					       (cons ?j (concat jabber-username "@" jabber-server))))
+				 'face 'jabber-chat-prompt-local)
+	      body "\n")
 	(setq jabber-point-insert (point))
 	(set-text-properties jabber-point-insert (point-max) nil)
 	(put-text-property (point-min) (point-max) 'read-only t)
@@ -190,6 +196,8 @@ TIMESTAMP is timestamp, or nil for now."
 						       (list
 							(cons ?t (format-time-string jabber-chat-time-format timestamp))
 							(cons ?n (jabber-jid-displayname from))
+							(cons ?u (jabber-jid-username from))
+							(cons ?r (jabber-jid-resource from))
 							(cons ?j (jabber-jid-user from))))
 					  'face 'jabber-chat-prompt-foreign)
 		       body "\n"))
