@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.42 2004/03/27 22:34:05 legoscia Exp $
+;; $Id: jabber.el,v 1.43 2004/03/27 22:55:37 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -122,10 +122,18 @@
   "face for displaying the chat prompt for what they send"
   :group 'jabber-faces)
 
-(defcustom jabber-debug nil 
-  "show debugging information." 
-  :type 'boolean
+(defgroup jabber-debug nil "debugging options"
   :group 'jabber)
+
+(defcustom jabber-debug-roster nil 
+  "show debugging information on roster" 
+  :type 'boolean
+  :group 'jabber-debug)
+
+(defcustom jabber-debug-log-xml nil
+  "log all XML i/o in *-jabber-xml-log-*"
+  :type 'boolean
+  :group 'jabber-debug)
 
 (defcustom jabber-username "emacs"
   "jabber username (user part of JID)" 

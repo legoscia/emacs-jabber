@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.3 2004/03/09 19:23:53 legoscia Exp $
+;; $Id: jabber-core.el,v 1.4 2004/03/27 22:55:37 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -142,7 +142,7 @@ With prefix argument, register a new account."
                                                     (point-max))))
                     (if xml-data
                         (progn
-                          (if jabber-debug
+                          (if jabber-debug-log-xml
 			      (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
 				(save-excursion
 				  (goto-char (point-max))
@@ -170,7 +170,7 @@ This is made complicated by the fact that the JIDs are symbols with properties."
 
 (defun jabber-send-sexp (sexp)
   "send the xml corresponding to SEXP to the jabber server"
-  (if jabber-debug
+  (if jabber-debug-log-xml
       (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
 	(save-excursion
 	  (goto-char (point-max))

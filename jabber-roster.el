@@ -1,5 +1,5 @@
 ;; jabber-roster.el - displaying the roster
-;; $Id: jabber-roster.el,v 1.2 2004/03/09 19:21:32 legoscia Exp $
+;; $Id: jabber-roster.el,v 1.3 2004/03/27 22:55:37 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -93,7 +93,7 @@ bring up menus of actions.
 						(get buddy 'show)))
 			       (if (get buddy 'status)
 				   (format " (%s)" (get buddy 'status)))
-			       (if jabber-debug
+			       (if jabber-debug-roster
 				   (format " --- [%S] ---" (symbol-plist buddy)))
 			       )))
 	(add-text-properties 0
