@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.41 2004/03/21 11:42:10 legoscia Exp $
+;; $Id: jabber.el,v 1.42 2004/03/27 22:34:05 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -40,6 +40,7 @@
 (require 'jabber-register)
 (require 'jabber-search)
 (require 'jabber-browse)
+(require 'jabber-muc)
 (require 'jabber-version)
 (require 'jabber-ahc-presence)
 
