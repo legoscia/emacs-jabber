@@ -32,6 +32,11 @@
   :type 'boolean
   :group 'jabber)
 
+(defcustom jabber-history-file "~/.jabber_global_message_log"
+  "File where messages are logged"
+  :type 'file
+  :group 'jabber)
+
 (defun jabber-message-history (from buffer text proposed-alert)
   "Log message to log file. For now, all messages from all users
 will be logged to the same file."
@@ -59,7 +64,7 @@ will be logged to the same file."
 			"me")
 		    body))
     (let ((coding-system-for-write 'utf-8))
-      (append-to-file (point-min) (point-max) "~/.jabber_global_message_log"))))
+      (append-to-file (point-min) (point-max) jabber-history-file))))
 
 (defun jabber-history-query (time-compare-function
 			     time
@@ -76,7 +81,7 @@ DIRECTION is either \"in\" or \"out\", or t for no limit on direction.
 JID-REGEXP is a regexp which must match the JID."
   (with-temp-buffer
     (let ((coding-system-for-read 'utf-8))
-      (insert-file-contents "~/.jabber_global_message_log"))
+      (insert-file-contents jabber-history-file))
     (let ((from-beginning (eq time-compare-function '<))
 	  collected current-line)
       (if from-beginning
