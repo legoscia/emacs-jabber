@@ -308,7 +308,7 @@ TIMESTAMP is timestamp, or nil for now."
                                    `(subject () ,(jabber-escape-xml subject)))
                               ,(if (> (length body) 0)
                                    `(body () ,(jabber-escape-xml body)))))
-  (if jabber-history-enabled
+  (if (and jabber-history-enabled (not (string= type "groupchat")))
       (jabber-history-log-message "out" nil to body (current-time))))
 
 (add-to-list 'jabber-jid-chat-menu
