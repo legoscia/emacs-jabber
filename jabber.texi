@@ -746,6 +746,13 @@ function.  This last argument is usually the only one they use.
 
 @vindex jabber-alerts-message-function
 @findex jabber-message-default-message
+@vindex jabber-message-alert-same-buffer
+
+If you don't want message alerts when the chat buffer in question is
+already the current buffer, set
+@code{jabber-message-alert-same-buffer} to nil.  This affects the
+behaviour of the default message function, so you'll have to
+reimplement this functionality if you create an own message function.
 
 Set @code{jabber-alerts-message-function} to your desired
 function.@footnote{Logically it should be
