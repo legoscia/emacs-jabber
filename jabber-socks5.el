@@ -34,7 +34,8 @@ Each entry is a list, containing:
 (defvar jabber-socks5-active-sessions nil
   "List of active sessions.
 
-This is an alist where the keys are (sid jid).")
+This is an alist where the keys are (sid jid) and the values are
+network streams.")
 
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/bytestreams")
 
@@ -77,10 +78,11 @@ This is an alist where the keys are (sid jid).")
       ;; tell initiator which streamhost we use
       (jabber-send-iq jid "result"
 		      `(query ((xmlns . "http://jabber.org/protocol/bytestreams"))
-			      (streamhost-used ((jid . ,streamhost))))
+			      (streamhost-used ((jid . ,(jabber-xml-get-attribute streamhost 'jid)))))
 		      nil nil nil nil id)
       ;; tell profile to start reading data
-      (funcall (nth 2 session) jid sid #'jabber-socks5-read))))
+      (run-with-idle-timer 3 nil 
+			   (nth 2 session) jid sid #'jabber-socks5-read))))
 
 (defun jabber-socks5-connect (streamhost jid sid)
   "Attempt to connect to STREAMHOST, authenticating with JID and SID.
@@ -92,22 +94,24 @@ STREAMHOST has the form
 	     (port . PORT)))
 
 Zeroconf is not supported."
-  (condition-case nil
+  (message "Attempting SOCKS5 connection to %s (%s %s)" streamhost jid sid)
+  (condition-case e
       (let ((coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary)
 	    (host (jabber-xml-get-attribute streamhost 'host))
 	    (port (string-to-number (jabber-xml-get-attribute streamhost 'port))))
 	;; is this the best way to send binary network output?
-	(let ((socks5-connection (open-network-stream "socks5" "socks5" host port)))
+	(let ((socks5-connection (open-network-stream "socks5" (generate-new-buffer-name "socks5") host port)))
 	  (with-current-buffer (process-buffer socks5-connection)
 	    ;; version: 5.  number of auth methods supported: 1.
 	    ;; which one: no authentication.
 	    (process-send-string socks5-connection (string 5 1 0))
 	    ;; wait for response
 	    (accept-process-output socks5-connection 15)
-	    (unless (string= (buffer-substring 2 3) (string 0))
+	    ;; should return:
+	    ;; version: 5.  auth method to use: none
+	    (unless (string= (buffer-substring 1 3) (string 5 0))
 	      (error "SOCKS5 authentication required"))
-	    (delete-region 1 3)
 
 	    ;; send connect command
 	    (let ((hash (sha1-string (concat sid jid jabber-username "@" jabber-server "/" jabber-resource))))
@@ -118,20 +122,67 @@ Zeroconf is not supported."
 		       (string 0 0))))
 
 	    (accept-process-output socks5-connection 15)
-	    (unless (string= (buffer-substring 2 3) (string 0))
+	    (unless (string= (buffer-substring 3 5) (string 5 0))
 	      (error "SOCKS5 failure"))
 
-	    (let ((atyp (buffer-substring 4 5))
-		  (address (buffer-substring 5 (point-max))))
-	      (message "%s" (concat (mapcar #'(lambda (x) (format "%d " x))
-					    (append atyp address nil)))))
-	    )))
+	    ;; The information returned here is exactly the same that we sent...
+	    ;; Not very exciting.  Anyway, this part is done, we have a connection.
+	    (let* ((address-type (aref (buffer-substring 6 7) 0))
+		   (address-length (aref (buffer-substring 7 8) 0))
+		   (address (buffer-substring 8 (+ 8 address-length)))
+		   (address-port-string (buffer-substring (+ 8 address-length) (+ 8 address-length 2)))
+		   (address-port (+
+				  (* 256 (aref address-port-string 0))
+				  (*   1 (aref address-port-string 1)))))
+	      ;;(message "Address type: %d\nAddress: %s\nPort: %d" address-type address address-port)
+
+	      ;; Delete all SOCKS5 data, leave room for the stream.
+	      (delete-region 1 (+ 8 address-length 2)))
+
+	    (set-process-sentinel socks5-connection #'jabber-socks5-sentinel)
+	    (push (cons (list jid sid) socks5-connection)
+		  jabber-socks5-active-sessions))))
     (error
-     nil)))
+     (message "SOCKS5 connection failed: %s" e))))
 
 (defun jabber-socks5-read (jid sid)
-  ;; to be implemented
-  )
+  "Read chunk of data from the stream identified by JID and SID.
+Return nil on EOF."
+  (let ((session (assoc (list jid sid) jabber-socks5-active-sessions)))
+    (if session
+	(let ((stream (cdr session)))
+	  (cond
+	   ((stringp stream)
+	    ;; The stream has been closed; return the remaining data.
+	    (setcdr session nil)
+	    stream)
+
+	   ((null stream)
+	    ;; The stream was closed the last time.  Remove it from
+	    ;; the session table and return nil.
+	    (setq jabber-socks5-active-sessions
+		  (delq session jabber-socks5-active-sessions))
+	    nil)
+
+	   ((processp stream)
+	    ;;(accept-process-output stream 5)
+	    (let ((data (buffer-string (process-buffer stream))))
+	      (delete-region 1 (1+ (length data)) (process-buffer stream))
+	      data))))
+
+      (if (assoc (list jid sid) jabber-socks5-pending-sessions)
+	  ""
+	(error "SOCKS5 session doesn't exist")))))
+
+(defun jabber-socks5-sentinel (process event-string)
+  ;; Connection terminated.  Shuffle together the remaining data,
+  ;; and kill the buffer.
+  (let ((session (rassq process jabber-socks5-active-sessions))
+	(buffer (process-buffer process)))
+    (with-current-buffer buffer
+      (setcdr session (buffer-string)))
+    (kill-buffer buffer)
+    (delete-process process)))
 
 (provide 'jabber-socks5)
 

@@ -64,7 +64,9 @@
     ;; default is to save with given name, in current directory.
     ;; maybe that's bad; maybe should be customizable.
     (let* ((file-name (read-file-name "Download to: " nil nil nil name))
-	   (buffer (find-file-noselect file-name t t)))
+	   (buffer (create-file-buffer file-name)))
+      (with-current-buffer buffer
+	(set-visited-file-name file-name t))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
       
@@ -78,9 +80,12 @@ is function to call to get more data."
   (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions)))
 	data)
     (with-current-buffer buffer
+      (message "Starting download of %s..." (file-name-nondirectory buffer-file-name))
       (goto-char (point-max))
       (while (setq data (funcall stream-read-function jid sid))
-	(insert data)))))
+	(insert data))
+      (basic-save-buffer)
+      (message "%s downloaded" (file-name-nondirectory buffer-file-name)))))
 
 (provide 'jabber-ft-server)
 
