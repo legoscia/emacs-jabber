@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.2 2004/01/29 13:04:21 legoscia Exp $
+@c $Id: jabber.texi,v 1.3 2004/01/30 21:25:13 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4
@@ -58,7 +58,7 @@ this permission notice are preserved on all copies.
 
 jabber.el is a Jabber client running under Emacs.  For more
 information on the open-protocol instant messaging network Jabber,
-please visit @url{http://www.jabber.org}.
+please visit @uref{http://www.jabber.org}.
 
 As a Jabber client, jabber.el is mostly just a face in the crowd,
 except that it uses buffers where GUI clients have windows.  There is
@@ -83,8 +83,8 @@ jabber.el is developed by Tom Berger (e-mail
 @email{object@@intellectronica.net}, JID @code{object@@jabber.org.uk}) and
 Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
 @code{legoscia@@charente.de}).  There is a web page at
-@url{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
-project page at @url{http://sourceforge.net/projects/emacs-jabber}.
+@uref{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
+project page at @uref{http://sourceforge.net/projects/emacs-jabber}.
 
 @node Basic operation, Groupchat, Introduction, Top
 @chapter Basic operation
@@ -99,6 +99,7 @@ skim it, making sure to pick up the commands mentioned.
 * Chatting::                    
 * Presence::                    
 * Presence subscription::       
+* Roster buffer::               
 @end menu
 
 @node Connecting, Chatting, Basic operation, Basic operation
@@ -195,7 +196,7 @@ It can be called both interactively and in Lisp code.  For the latter
 case, use something like @code{(jabber-send-presence "away" "idle for
 10 minutes" 10)}.
 
-@node Presence subscription,  , Presence, Basic operation
+@node Presence subscription, Roster buffer, Presence, Basic operation
 @section Presence subscription
 
 @cindex Presence subscription
@@ -213,6 +214,36 @@ To request subscription to someone, type @kbd{M-x
 jabber-send-subscription-request}.  You will be prompted for the JID
 to send it to.  This command can also be accessed through the Roster
 menu, by typing @kbd{C-c C-r} in the roster buffer.
+
+@node Roster buffer,  , Presence subscription, Basic operation
+@section The roster buffer
+
+@cindex Roster buffer
+@cindex Menus
+@cindex Key bindings
+@findex jabber-display-roster
+
+The roster buffer is called @code{*-jabber-*}.  It simply contains a
+list of the contacts on your roster.
+
+In the roster buffer, any command which requires a JID will default to
+the JID under point when called.  These commands can be called through
+either keyboard menus or mouse menus.  To open a menu with the mouse,
+simply press the second mouse button over the JID in question.  This
+will bring up a menu with all available actions.  The keyboard menus
+are split into categories: Chat, Roster, Information, MUC (Multi-User
+Chat, or groupchat) and Services, opened by @kbd{C-c C-c}, @kbd{C-c
+C-r}, @kbd{C-c C-i}, @kbd{C-c C-m} and @kbd{C-c C-s}, respectively.
+
+You can call @code{jabber-display-roster} to redisplay your roster
+according to changed preferences (@pxref{Customizing the roster
+buffer}).  This will not refetch your roster from the server.
+Refetching the roster is usually not needed, since updates are pushed
+to clients automatically.
+
+You can choose not to have the roster updated automatically on
+presence changes (@pxref{Presence alerts}).  In that case, you need to
+call @code{jabber-display-roster} manually.
 
 @node Groupchat, Services, Basic operation, Top
 @chapter Groupchat
@@ -353,8 +384,184 @@ browse buffer.
 @node Customization, Hacking and extending, Services, Top
 @chapter Customization
 
+jabber.el is intended to be customizable for many tastes.  After all,
+this is Emacs.  To open a customization buffer for jabber.el, type
+@kbd{M-x jabber-customize}.
+
+@menu
+* Connection settings::         
+* Customizing the roster buffer::  
+* Customizing alerts::          
+@end menu
+
+@node Connection settings, Customizing the roster buffer, Customization, Customization
+@section Connection settings
+
+@code{jabber-username} is the username part of your JID.
+
+@code{jabber-server} is the JID of your server, i.e. the hostname part
+of your JID.  This is usually, but not necessarily, the same as the
+hostname of the server.
+
+@code{jabber-network-server} is the hostname or IP address of your
+server.  If it is set to @code{nil}, jabber.el will use the name in
+@code{jabber-server}.
+
+@code{jabber-port} is the TCP port of the server to connect to.  This
+is 5222 in almost all cases.
+
+@code{jabber-password} is your password.  You have the option to set
+it here, in which case it will be stored in cleartext in your
+@file{.emacs} file.  If this is set to @code{nil}, you will be prompted for
+your password every time you connect.
+
+@code{jabber-resource} is the resource you want to log in under.  This
+only matters if you are connected to the same account from different
+clients or different computers, since each connection must have a
+unique resource.  You might want to set this to your hostname.
+
+@code{jabber-default-priority} is the default priority sent with your
+presence.  Regardless of what you have here, you can change your
+priority during a session with @code{jabber-send-presence}.
+@xref{Presence}, for more information on priority.
+
+@code{jabber-nickname} is your default nickname for groupchats.
+
+@node Customizing the roster buffer, Customizing alerts, Connection settings, Customization
+@section Customizing the roster buffer
+
+@code{jabber-debug} toggles extended debug output.  Currently, this
+means two things.  In the roster buffer, you can see the properties of
+each contact.  All XML stanzas sent and received are logged in the
+buffer @code{*-jabber-xml-log-*} in list format.  @xref{XML
+representation}.
+
+@code{jabber-sort-order} controls how roster items are sorted by
+presence.  It is a list containing strings corresponding to show
+status (@pxref{Presence}) or @code{nil}, which represents offline.
+
+@code{jabber-show-resources} controls when your contacts' resources
+are shown in the roster buffer.  The default is to show resources when
+a contact has more than one connected resource.
+
+@node Customizing alerts,  , Customizing the roster buffer, Customization
+@section Customizing alerts
+
+When an event happens (currently including presence changes, incoming
+messages, and completed queries) you will usually want to be
+notified.  Since tastes in this area vary wildly, these alerts are
+implemented as hooks, so you can choose which ones you want, or write
+your own if none fit.
+
+Actually, if you don't want to write your own, stop reading this
+section and just read @ref{Provided alerts}.
+
+Many kinds of alerts consist in displaying a text message through a
+certain mechanism.  This text message is provided by a function which
+you can rewrite or replace.  If this function returns @code{nil}, no
+message is displayed, and non-textual alerts refrain from action.
+
+The hooks take different arguments depending on category.  However,
+they all have in common that the last argument is the result of the
+message function.  The message function for each category takes the
+same arguments as the corresponding hooks, except for that last
+argument.
+
+Was that confusing enough?  The preceding paragraph will be expressed
+in code in the following subsections.
+
+@menu
+* Provided alerts::             
+* Presence alerts::             
+* Message alerts::              
+* Info alerts::                 
+@end menu
+
+@node Standard alerts, Presence alerts, Customizing alerts, Customizing alerts
+@subsection Standard alerts
+
+Six alerts are already written for all three alert categories.  These
+all obey the result from the corresponding message function.
+
+The @code{beep} alerts simply sound the terminal bell by calling
+@code{ding}.  They are enabled by default.
+
+The @code{echo} alerts display a message in the echo area by calling
+@code{message}.  They are enabled by default.
+
+The @code{switch} alerts switch to the buffer where the event occurred
+(chat buffer for incoming messages, roster buffer for presence
+changes, browse buffer for completed queries).  They are disabled by
+default.  Take care when using them, as they may interrupt your
+editing.
+
+The @code{wave} alerts play a sound file by calling
+@code{play-sound-file}.  No sound files are provided.  To use this,
+enter the names of the sound files in
+@code{jabber-alert-message-wave}, @code{jabber-alert-presence-wave}
+and @code{jabber-alert-info-wave}, respectively.
+
+The @code{screen} alerts send a message through the Screen terminal
+manager (see @uref{http://www.gnu.org/software/screen/}).  They do no
+harm if called when you don't use Screen.
+
+The @code{ratpoison} alerts send a message through the Ratpoison
+window manager (see @uref{http://ratpoison.sourceforge.net/}).  They
+do no harm if used when you're not running X, but if you are running X
+with another window manager, the calls to ratpoison will stall
+indefinitely.  Avoid that.
+
+All these functions are near the end of the @file{jabber.el} file.
+You can use them as templates or inspiration for your own alerts.
+
+@node Presence alerts, Message alerts, Provided alerts, Customizing alerts
+@subsection Presence alerts
+
+Set @code{jabber-alerts-presence-message-function} to your desired
+function.  This function should take four arguments, @var{who},
+@var{oldstatus}, @var{newstatus} and @var{statustext}.  @var{who} is
+the JID symbol (@pxref{Roster structure}), @var{oldstatus} and
+@var{newstatus} are the previous and current stati, respectively, and
+@var{statustext} is the status message if provided, otherwise nil.
+
+@var{newstatus} can also be one of @code{"subscribe"},
+@code{"subscribed"}, @code{"unsubscribe"} and @code{"unsubscribed"}.
+
+The default function, @code{jabber-presence-default-message}, returns
+@code{nil} if @var{oldstatus} and @var{newstatus} are the same, and in
+other cases constructs a message from the given data.
+
+All presence alert hooks take the same arguments plus the additional
+@var{proposed-alert}, which is the result of the specified message
+function.  This last argument is usually the only one they use.
+
+@node Message alerts, Info alerts, Presence alerts, Customizing alerts
+@subsection Message alerts
+
+@node Info alerts,  , Message alerts, Customizing alerts
+@subsection Info alerts
+
 @node Hacking and extending, Index, Customization, Top
 @chapter Hacking and extending
+
+@menu
+* XML representation::          
+* Roster structure::            
+* Listening for new requests::  
+* Sending new requests::        
+@end menu
+
+@node XML representation, Roster structure, Hacking and extending, Hacking and extending
+@section XML representation
+
+@node Roster structure, Listening for new requests, XML representation, Hacking and extending
+@section Roster structure
+
+@node Listening for new requests, Sending new requests, Roster structure, Hacking and extending
+@section Listening for new requests
+
+@node Sending new requests,  , Listening for new requests, Hacking and extending
+@section Sending new requests
 
 @node Index,  , Hacking and extending, Top
 @unnumbered Index
