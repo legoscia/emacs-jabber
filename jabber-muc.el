@@ -343,12 +343,13 @@ Return nil if X-MUC is nil."
 
 (defun jabber-muc-print-prompt (xml-data)
   "Print MUC prompt for message in XML-DATA."
-  (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from))))
+  (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
+	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
     (if (stringp nick)
 	(insert (jabber-propertize
 		 (format-spec jabber-groupchat-prompt-format
 			      (list
-			       (cons ?t (format-time-string jabber-chat-time-format))
+			       (cons ?t (format-time-string jabber-chat-time-format timestamp))
 			       (cons ?n nick)
 			       (cons ?u nick)
 			       (cons ?r nick)
