@@ -87,23 +87,27 @@ OUTPUT-FUNCTIONS is a list of functions that may or may not print something
 at point.  They are called in order with OUTPUT-DATA as argument.
 If the OUTPUT-FUNCTIONS produce any output, PROMPT-FUNCTION is called
 with point before that output.  If there is no output, there is
-no prompt.
+no prompt.  Return non-nil if there is output.
 
 If point is at or after jabber-point-insert, it is advanced.
 If point is before jabber-point-insert, it is not moved."
-  (let ((at-insert-point (eq (point) jabber-point-insert)))
+  (let ((at-insert-point (eq (point) jabber-point-insert))
+	outputp)
     (save-excursion
       (goto-char jabber-point-insert)
-      (jabber-chat-buffer-display-at-point prompt-function prompt-data output-functions output-data)
+      (setq outputp
+	    (jabber-chat-buffer-display-at-point prompt-function prompt-data output-functions output-data))
       (setq jabber-point-insert (point))
       (set-text-properties jabber-point-insert (point-max) nil))
 
     (when at-insert-point
-      (goto-char jabber-point-insert))))
+      (goto-char jabber-point-insert))
+    outputp))
 
 (defun jabber-chat-buffer-display-at-point (prompt-function prompt-data output-functions output-data)
   "Display a message at point.
-Arguments are as to `jabber-chat-buffer-display'."
+Arguments are as to `jabber-chat-buffer-display'.
+Return non-nil if any data was inserted."
   (let ((inhibit-read-only t)
 	(beg (point))
 	(point-insert (set-marker (make-marker) jabber-point-insert)))
@@ -126,6 +130,7 @@ Arguments are as to `jabber-chat-buffer-display'."
 	  (save-restriction
 	    (narrow-to-region beg end)
 	    (jabber-chat-buffer-fill-long-lines)))
+	;; this is always non-nil, so we return that
 	(setq jabber-point-insert (marker-position point-insert))))))
 
 (defun jabber-chat-buffer-fill-long-lines ()

@@ -246,18 +246,20 @@ This function is idempotent."
     (let ((from (jabber-xml-get-attribute xml-data 'from))
 	  (error-p (jabber-xml-get-children xml-data 'error)))
       (with-current-buffer (jabber-chat-create-buffer from)
-	(jabber-chat-buffer-display 'jabber-chat-print-prompt
-				    xml-data
-				    (if error-p
-					'(jabber-chat-print-error)
-				      jabber-chat-printers)
-				    xml-data)
+	;; Call alert hooks only when something is output
+	(when
+	    (jabber-chat-buffer-display 'jabber-chat-print-prompt
+					xml-data
+					(if error-p
+					    '(jabber-chat-print-error)
+					  jabber-chat-printers)
+					xml-data)
 
-	(dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
-	  (run-hook-with-args hook
-			      from (current-buffer)
-			      (funcall jabber-alert-message-function 
-				       from (current-buffer))))))))
+	  (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
+	    (run-hook-with-args hook
+				from (current-buffer)
+				(funcall jabber-alert-message-function 
+					 from (current-buffer)))))))))
 
 (defun jabber-chat-send (body)
   "Send BODY, and display it in chat buffer."

@@ -462,18 +462,20 @@ Return nil if X-MUC is nil."
 	   (nick (jabber-jid-resource from))
 	   (error-p (jabber-xml-get-children xml-data 'error)))
       (with-current-buffer (jabber-muc-create-buffer group)
-	(jabber-chat-buffer-display 'jabber-muc-print-prompt
-				    xml-data
-				    (if error-p
-					'(jabber-chat-print-error)
-				      jabber-chat-printers)
-				    xml-data)
-
-	(dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
-	  (run-hook-with-args hook
-			      nick group (current-buffer)
-			      (funcall jabber-alert-muc-function
-				       nick group (current-buffer))))))))
+	;; Call alert hooks only when something is output
+	(when
+	    (jabber-chat-buffer-display 'jabber-muc-print-prompt
+					xml-data
+					(if error-p
+					    '(jabber-chat-print-error)
+					  jabber-chat-printers)
+					xml-data)
+	  
+	  (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
+	    (run-hook-with-args hook
+				nick group (current-buffer)
+				(funcall jabber-alert-muc-function
+					 nick group (current-buffer)))))))))
 
 (defun jabber-muc-process-presence (presence)
   (let* ((from (jabber-xml-get-attribute presence 'from))
