@@ -64,6 +64,12 @@ properties to add to the result."
   (defsubst jabber-read-with-input-method (prompt &optional initial-contents history default-value)
     (read-string prompt initial-contents history default-value t)))
 
+(unless (fboundp 'delete-and-extract-region)
+  (defsubst delete-and-extract-region (start end)
+    (prog1
+	(buffer-substring start end)
+      (delete-region start end))))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID"
   (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
