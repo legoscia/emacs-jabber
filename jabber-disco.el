@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.5 2004/03/16 21:16:19 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.6 2004/03/21 14:10:38 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -140,14 +140,7 @@ See JEP-0030."
     (if return-list
 	(if (and (functionp access-control)
 		 (not (funcall access-control to)))
-	    (jabber-send-sexp `(iq ((to . ,to)
-				    (type . "error")
-				    (id . ,id))
-				   ,(jabber-iq-query xml-data)
-				   (error ((type . "cancel"))
-					  (not-allowed
-					   ((xmlns
-					     . "urn:ietf:params:xml:ns:xmpp-stanzas"))))))
+	    (jabber-signal-error "cancel" 'not-allowed)
 	  ;; Access control passed
 	  (let ((result (if (functionp func)
 			    (funcall func xml-data)
@@ -158,13 +151,7 @@ See JEP-0030."
 			    nil nil nil nil id)))
 
       ;; No such node
-      (jabber-send-sexp `(iq ((to . ,to)
-			      (type . "error")
-			      (id . ,id))
-			     ,(jabber-iq-query xml-data)
-			     (error ((type . "cancel"))
-				    (item-not-found
-				     ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))
+      (jabber-signal-error "cancel" 'item-not-found))))
 
 (defun jabber-disco-return-client-info (xml-data)
   `(
