@@ -150,13 +150,6 @@ Zeroconf is not supported."
 	    (push (list socks5-connection sid jid profile-data-function)
 		  jabber-socks5-active-sessions)
 
-	    ;; If more data than the SOCKS5 response has arrived, pass it to the filter.
-	    ;; This shouldn't happen, as we are supposed to send a confirmation first,
-	    ;; but you never know...
-	    (when (not (zerop (buffer-size)))
-	      (jabber-socks5-filter socks5-connection (buffer-string))
-	      (erase-buffer))
-
 	    ;; Now set the filter, for the rest of the output
 	    (set-process-filter socks5-connection #'jabber-socks5-filter)
 	    (set-process-sentinel socks5-connection #'jabber-socks5-sentinel))))
