@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.5 2004/02/03 12:33:27 legoscia Exp $
+@c $Id: jabber.texi,v 1.6 2004/02/03 13:22:26 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4
@@ -272,6 +272,10 @@ To leave a groupchat, type @kbd{M-x jabber-groupchat-leave}.
 If you are the owner of a groupchat, you can change its configuration
 by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
 will be rendered in new buffer.
+
+Currently, there is no user-friendly way to see which people are in a
+groupchat.  If you really want to know, set @code{jabber-debug} to
+@code{t} and look in the buffer @code{*-jabber-xml-log-*}.
 
 @node Services, Customization, Groupchat, Top
 @chapter Services
