@@ -111,14 +111,22 @@ properties to add to the result."
   (equal (jabber-jid-user jid)
 	 (concat jabber-username "@" jabber-server)))
 
-(defun jabber-read-jid-completing (prompt &optional subset require-match)
+(defun jabber-read-jid-completing (prompt &optional subset require-match default)
   "read a jid out of the current roster from the minibuffer.
 If SUBSET is non-nil, it should be a list of symbols from which
 the JID is to be selected, instead of using the entire roster.
-If REQUIRE-MATCH is non-nil, the JID must be in the list used."
-  (let ((jid-at-point (or (get-text-property (point) 'jabber-jid)
-			  (bound-and-true-p jabber-chatting-with)
-			  (bound-and-true-p jabber-group)))
+If REQUIRE-MATCH is non-nil, the JID must be in the list used.
+If DEFAULT is non-nil, it's used as the default value, otherwise
+the default is inferred from context."
+  (let ((jid-at-point (or 
+		       (and default
+			    ;; default can be either a symbol or a string
+			    (if (symbolp default)
+				(symbol-name default)
+			      default))
+		       (get-text-property (point) 'jabber-jid)
+		       (bound-and-true-p jabber-chatting-with)
+		       (bound-and-true-p jabber-group)))
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
@@ -126,6 +134,9 @@ If REQUIRE-MATCH is non-nil, the JID must be in the list used."
     (dolist (item (or subset *jabber-roster*))
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
+    ;; if the default is not in the allowed subset, it's not a good default
+    (if (not (assoc jid-at-point jid-completion-table))
+	(setq jid-at-point nil))
     (let ((input
 	   (completing-read (concat prompt
 				    (if jid-at-point
