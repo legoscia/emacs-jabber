@@ -74,6 +74,8 @@ and offline contacts, respectively."
 	(jabber-mode-line-presence-update)
 	(jabber-mode-line-count-contacts)
 	(ad-activate 'jabber-send-presence)
+	(add-hook 'jabber-disconnect-hook
+		  'jabber-mode-line-presence-update)
 	(add-hook 'jabber-alert-presence-hooks
 		  'jabber-mode-line-count-contacts))))
 
