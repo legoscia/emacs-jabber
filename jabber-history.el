@@ -83,40 +83,41 @@ NUMBER is the maximum number of messages to return, or t for
 unlimited.
 DIRECTION is either \"in\" or \"out\", or t for no limit on direction.
 JID-REGEXP is a regexp which must match the JID."
-  (with-temp-buffer
-    (let ((coding-system-for-read 'utf-8))
-      (insert-file-contents jabber-history-file))
-    (let ((from-beginning (eq time-compare-function '<))
-	  collected current-line)
-      (if from-beginning
-	  (goto-char (point-min))
-	(goto-char (point-max))
-	(backward-sexp))
-      (while (progn (setq current-line (car (read-from-string
-					     (buffer-substring
-					      (point)
-					      (save-excursion
-						(forward-sexp)
-						(point))))))
-		    (and (funcall time-compare-function
-				  (float-time (jabber-parse-time
-					       (aref current-line 0)))
-				  time)
-			 (if from-beginning (not (eobp))
-			   (not (bobp)))
-			 (or (eq number t)
-			     (< (length collected) number))))
-	(if (and (or (eq direction t)
-		     (string= direction (aref current-line 1)))
-		 (string-match 
-		  jid-regexp 
-		  (car
-		   (remove "me"
-			   (list (aref current-line 2)
-				 (aref current-line 3))))))
-	    (push current-line collected))
-	(if from-beginning (forward-sexp) (backward-sexp)))
-      collected)))
+  (when (file-readable-p jabber-history-file)
+    (with-temp-buffer
+      (let ((coding-system-for-read 'utf-8))
+	(insert-file-contents jabber-history-file))
+      (let ((from-beginning (eq time-compare-function '<))
+	    collected current-line)
+	(if from-beginning
+	    (goto-char (point-min))
+	  (goto-char (point-max))
+	  (backward-sexp))
+	(while (progn (setq current-line (car (read-from-string
+					       (buffer-substring
+						(point)
+						(save-excursion
+						  (forward-sexp)
+						  (point))))))
+		      (and (funcall time-compare-function
+				    (float-time (jabber-parse-time
+						 (aref current-line 0)))
+				    time)
+			   (if from-beginning (not (eobp))
+			     (not (bobp)))
+			   (or (eq number t)
+			       (< (length collected) number))))
+	  (if (and (or (eq direction t)
+		       (string= direction (aref current-line 1)))
+		   (string-match 
+		    jid-regexp 
+		    (car
+		     (remove "me"
+			     (list (aref current-line 2)
+				   (aref current-line 3))))))
+	      (push current-line collected))
+	  (if from-beginning (forward-sexp) (backward-sexp)))
+	collected))))
 
 (defcustom jabber-backlog-days 3.0
   "Age limit on messages in chat buffer backlog, in days"
