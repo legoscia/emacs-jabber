@@ -222,15 +222,8 @@ Return nil if nothing known about that combination."
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat, or change nick"
   (interactive 
-   (let* ((group (jabber-read-jid-completing "group: "))
-	  (default-nickname (or
-			     (cdr (assoc group jabber-muc-default-nicknames))
-			     jabber-nickname)))
-     (list 
-      group
-      (jabber-read-with-input-method (format "Nickname: (default %s) "
-					    default-nickname) 
-				     nil nil default-nickname))))
+   (let ((group (jabber-read-jid-completing "group: ")))
+     (list group (jabber-muc-read-my-nickname group))))
   ;; Remember that this is a groupchat _before_ sending the stanza.
   ;; The response might come quicker than you think.
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
@@ -245,6 +238,15 @@ Return nil if nothing known about that combination."
     ;; We don't want to switch to autojoined groupchats
     (when (interactive-p)
       (switch-to-buffer buffer))))
+
+(defun jabber-muc-read-my-nickname (group)
+  "Read nickname for joining GROUP."
+  (let ((default-nickname (or
+			   (cdr (assoc group jabber-muc-default-nicknames))
+			   jabber-nickname)))
+    (jabber-read-with-input-method (format "Nickname: (default %s) "
+					   default-nickname) 
+				   nil nil default-nickname)))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Change nickname" 'jabber-muc-nick))
@@ -322,6 +324,65 @@ Return nil if nothing known about that combination."
 		(invite ((to . ,jid))
 			,(unless (zerop (length reason))
 			   `(reason nil ,reason)))))))
+
+(add-to-list 'jabber-body-printers 'jabber-muc-print-invite)
+
+(defun jabber-muc-print-invite (xml-data)
+  "Print MUC invitation"
+  (dolist (x (jabber-xml-get-children xml-data 'x))
+    (when (string= (jabber-xml-get-attribute x 'xmlns) "http://jabber.org/protocol/muc#user")
+      (let ((invitation (car (jabber-xml-get-children x 'invite))))
+	(when invitation
+	  (let ((group (jabber-xml-get-attribute xml-data 'from))
+		(inviter (jabber-xml-get-attribute invitation 'from))
+		(reason (car (jabber-xml-node-children (car (jabber-xml-get-children invitation 'reason))))))
+	    ;; XXX: password
+	    (insert "You have been invited to MUC room " (jabber-jid-displayname group))
+	    (when inviter
+	      (insert " by " (jabber-jid-displayname inviter)))
+	    (insert ".")
+	    (when reason
+	      (insert "  Reason: " reason))
+	    (insert "\n\n")
+
+	    (let ((action
+		   `(lambda (&rest ignore) (interactive)
+		      (jabber-groupchat-join ,group
+					     (jabber-muc-read-my-nickname ,group)))))
+	      (if (featurep 'button)
+		  (insert-button "Accept"
+				 'action action)
+	      ;; Simple button replacement
+	      (let ((keymap (make-keymap)))
+		(define-key keymap "\r" action)
+		(insert (jabber-propertize "Accept"
+					   'keymap keymap))))
+
+	    (insert "\t")
+
+	    (let ((action
+		   `(lambda (&rest ignore) (interactive)
+		      (let ((reason
+			     (jabber-read-with-input-method
+			      "Reason: ")))
+			(jabber-send-sexp
+			 (list 'message
+			       (list (cons 'to ,group))
+			       (list 'x
+				     (list (cons 'xmlns "http://jabber.org/protocol/muc#user"))
+				     (list 'decline
+					   (list (cons 'to ,inviter))
+					   (unless (zerop (length reason))
+					     (list 'reason nil reason))))))))))
+	      (if (featurep 'button)
+		  (insert-button "Decline"
+				 'action action)
+		;; Simple button replacement
+		(let ((keymap (make-keymap)))
+		  (define-key keymap "\r" action)
+		  (insert (jabber-propertize "Decline"
+					     'keymap keymap)))))))
+	  (return t))))))
 
 (defun jabber-muc-autojoin ()
   "Join rooms specified in variable `jabber-muc-autojoin'."
