@@ -115,8 +115,14 @@ These fields are available:
 
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
-If there is no such buffer, one is created and properly set up."
-  (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname chat-with) "-*"))
+Either a string or a buffer is returned, so use `get-buffer' or
+`get-buffer-create'."
+  (concat "*-jabber-chat-:-" (jabber-jid-displayname chat-with) "-*"))
+
+(defun jabber-chat-create-buffer (chat-with)
+  "Prepare a buffer for chatting with CHAT-WITH.
+This function is idempotent."
+  (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
     (setq jabber-chatting-with chat-with)
     (current-buffer)))
@@ -124,7 +130,7 @@ If there is no such buffer, one is created and properly set up."
 (defun jabber-chat-display (from body &optional timestamp)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
-  (with-current-buffer (jabber-chat-get-buffer from)
+  (with-current-buffer (jabber-chat-create-buffer from)
     (goto-char jabber-point-insert)
 
     (let ((inhibit-read-only t))
@@ -168,7 +174,7 @@ TIMESTAMP is timestamp, or nil for now."
 (defun jabber-chat-with (jid)
   "open an empty chat window for chatting with JID"
   (interactive (list (jabber-read-jid-completing "chat with:")))
-  (switch-to-buffer (jabber-chat-get-buffer jid)))
+  (switch-to-buffer (jabber-chat-create-buffer jid)))
 
 (defun jabber-chat-with-jid-at-point ()
   "Start chat with JID at point.
