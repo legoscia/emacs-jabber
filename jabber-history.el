@@ -64,7 +64,7 @@ will be logged to the same file."
 			"me")
 		    body))
     (let ((coding-system-for-write 'utf-8))
-      (append-to-file (point-min) (point-max) jabber-history-file))))
+      (write-region (point-min) (point-max) jabber-history-file t 'quiet))))
 
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
