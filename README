@@ -1,4 +1,4 @@
-This is jabber.el, a Jabber client for Emacs.
+This is jabber.el 0.4, a Jabber client for Emacs.
 
 jabber.el depends on GNU Emacs 21, in particular xml.el, and some
 files from Gnus 5.10.  If you don't have Gnus 5.10 (M-x gnus-version
