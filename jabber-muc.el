@@ -174,6 +174,24 @@ Return nil if nothing known about that combination."
     (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
 				  (type . "unavailable"))))))
 
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "List participants" 'jabber-muc-names))
+
+(defun jabber-muc-names (group)
+  "Print names, affiliations, and roles of participants in GROUP."
+  (interactive (list (jabber-muc-read-completing "Group: ")))
+  (jabber-groupchat-display 
+   group nil
+   (apply 'concat "Participants:\n"
+	  (format "%-15s %-15s %-10s\n" "Nickname" "Role" "Affiliation")
+	  (mapcar (lambda (x)
+		    (let ((plist (cdr x)))
+		      (format "%-15s %-15s %-10s\n"
+			      (car x)
+			      (plist-get plist 'role)
+			      (plist-get plist 'affiliation))))
+		  (cdr (assoc group jabber-muc-participants))))))
+
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
 That does not include private messages in a groupchat."
