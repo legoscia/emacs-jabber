@@ -1295,10 +1295,62 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	   (widget-value (cdr widget-cons))))
    jabber-widget-alist))
 
+(defun jabber-render-xdata-form (x)
+  "Display widgets from <x/> element in jabber:x:data namespace."
+  (make-local-variable 'jabber-widget-alist)
+  (setq jabber-widget-alist nil)
+  (make-local-variable 'jabber-form-type)
+  (setq jabber-form-type 'xdata)
+
+  (let ((title (car (jabber-xml-node-children (car (jabber-xml-get-children x 'title))))))
+    (if (stringp title)
+	(widget-insert (propertize title 'face 'jabber-title-medium) "\n\n")))
+  (let ((instructions (car (jabber-xml-node-children (car (jabber-xml-get-children x 'instructions))))))
+    (if (stringp instructions)
+	(widget-insert "Instructions: " instructions "\n\n")))
+
+  (dolist (field (jabber-xml-get-children x 'field))
+    (let ((var (jabber-xml-get-attribute field 'var))
+	  (label (jabber-xml-get-attribute field 'label))
+	  (type (jabber-xml-get-attribute field 'type))
+	  (required (jabber-xml-get-children field 'required))
+	  (values (jabber-xml-get-children field 'value))
+	  (options (jabber-xml-get-children field 'option))
+	  (desc (car (jabber-xml-get-children field 'desc))))
+
+      (if (or label var)
+	  (widget-insert (or label var) ": "))
+      (cond
+       ((string= type "fixed")
+	(widget-insert (car (jabber-xml-node-children (car values)))))
+       (t				; in particular including text-single and text-private
+	(setq jabber-widget-alist
+	      (cons
+	       (cons var
+		     (widget-create 'editable-field
+				    :secret (if (string= type "text-private") ?* nil)
+				    (or (car (jabber-xml-node-children (car values)))
+					"")))
+	       jabber-widget-alist))))
+      (when desc
+	(widget-insert "\n" (car (jabber-xml-node-children desc))))
+      (widget-insert "\n\n"))))
+
+(defun jabber-parse-xdata-form ()
+  "Return an <x/> tag containing information entered in the widgets of the current buffer."
+  `(x ((xmlns . "jabber:x:data")
+       (type . "submit"))
+      ,@(mapcar
+	 (lambda (widget-cons)
+	   `(field ((var . ,(car widget-cons)))
+		   (value nil ,(widget-value (cdr widget-cons)))))
+	 jabber-widget-alist)))
+
 (defun jabber-process-register (xml-data)
   "Display results from jabber:iq:register query as a form."
 
-  (let ((query (jabber-iq-query xml-data)))
+  (let ((query (jabber-iq-query xml-data))
+	(have-xdata nil))
     (make-local-variable 'jabber-widget-alist)
     (make-local-variable 'jabber-submit-to)
     (setq jabber-widget-alist nil)
@@ -1306,15 +1358,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (setq jabber-submit-to (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
     (setq buffer-read-only nil)
 
-    ;; This is because data from other queries would otherwise be
+    ;; XXX: This is because data from other queries would otherwise be
     ;; appended to this buffer, which would fail since widget buffers
-    ;; are read-only... or something like that.  Maybe there's a better
-    ;; way.
+    ;; are read-only... or something like that.  Maybe there's a
+    ;; better way.
     (rename-uniquely)
 
     (widget-insert "Register with " jabber-submit-to "\n")
 
-    (jabber-render-register-form query)
+    (dolist (x (jabber-xml-get-children query 'x))
+      (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
+	(setq have-xdata t)
+	(jabber-render-xdata-form x)))
+    (if (not have-xdata)
+	(jabber-render-register-form query))
 
     (widget-create 'push-button :notify #'jabber-submit-register "Submit")
     (widget-insert "\t")
@@ -1332,8 +1389,16 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(text (concat "Registration with " jabber-submit-to)))
     (jabber-send-iq jabber-submit-to
 		    "set"
-		    `(query ((xmlns . "jabber:iq:register"))
-			    ,@(jabber-parse-register-form))
+
+		    (cond
+		     ((eq jabber-form-type 'register)
+		      `(query ((xmlns . "jabber:iq:register"))
+			      ,@(jabber-parse-register-form)))
+		     ((eq jabber-form-type 'xdata)
+		      `(query ((xmlns . "jabber:iq:register"))
+			      ,(jabber-parse-xdata-form)))
+		     (t
+		      (error "Unknown form type: %s" jabber-form-type)))
 		    handler (if jabber-register-p 'success text)
 		    handler (if jabber-register-p 'failure text)))
 
