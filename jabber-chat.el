@@ -22,7 +22,10 @@
 (require 'jabber-chatbuffer)
 (require 'jabber-history)
 
-(require 'button)
+;; button was introduced in Emacs 22
+(condition-case e
+    (require 'button)
+  (error nil))
 
 (defgroup jabber-chat nil "chat display options"
   :group 'jabber)
@@ -325,13 +328,25 @@ TIMESTAMP is the timestamp to print, or nil for now."
 			(car (jabber-xml-get-children x 'desc))))))
 	(insert (jabber-propertize
 		 "URL: " 'face 'jabber-chat-prompt-system))
-	(insert-button (if (not (zerop (length desc)))
-			   (format "%s <%s>" desc url)
-			 url)
-		       'url url
-		       'action
-		       #'(lambda (button) 
-			   (browse-url (button-get button 'url))))
+
+	(if (featurep 'button)
+	    (insert-button (if (not (zerop (length desc)))
+			       (format "%s <%s>" desc url)
+			     url)
+			   'url url
+			   'action
+			   #'(lambda (button) 
+			       (browse-url (button-get button 'url))))
+	  ;; Simple button replacement
+	  (let ((keymap (make-keymap)))
+	    (define-key keymap "\r" 
+	      `(lambda () (interactive)
+		 (browse-url ,url)))
+	    (insert (jabber-propertize
+		     (if (not (zerop (length desc)))
+			 (format "%s <%s>" desc url)
+		       url)
+		     'keymap keymap))))
 	(insert "\n")))))
 
 (add-to-list 'jabber-jid-chat-menu
