@@ -908,12 +908,14 @@ function.@footnote{Logically it should be
 really ugly.}  This function should look like:
 
 @example
-(@var{function} @var{from} @var{buffer} @var{text})
+(@var{function} @var{from} @var{buffer})
 @end example
 
-@var{from} is the JID symbol (@pxref{Roster structure}), @var{buffer}
-is the buffer where the message is displayed, and @var{text} is the
-text of the message.
+@var{from} is the JID symbol (@pxref{Roster structure}) and @var{buffer}
+is the buffer where the message is displayed.\footnote{Up to version
+0.6.1 there was a @var{text} argument as well.  If you feel you need
+it, maybe you should write a display function or a message chain
+function (@pxref{Stanza chains}) instead.}
 
 The default function, @code{jabber-message-default-message}, returns
 ``Message from @var{person}'', where @var{person} is the name of the
@@ -933,12 +935,11 @@ Set @code{jabber-alert-muc-function} to your desired
 function.  This function should look like:
 
 @example
-(@var{function} @var{nick} @var{group} @var{buffer} @var{text})
+(@var{function} @var{nick} @var{group} @var{buffer})
 @end example
 
-@var{nick} is the nickname, @var{group} is the JID of the group,
-@var{buffer} is the buffer where the message is displayed, and
-@var{text} is the text of the message.
+@var{nick} is the nickname, @var{group} is the JID of the group, and
+@var{buffer} is the buffer where the message is displayed.
 
 The default function, @code{jabber-muc-default-message}, returns
 ``Message from @var{nick} in @var{group}'' or ``Message in

@@ -157,7 +157,7 @@ least `jabber-activity-shorten-minimum' long."
 (defun jabber-activity-show-p-default (jid)
   "Returns t only if there is an invisible buffer for JID"
   (let ((buffer (or (get-buffer (jabber-chat-get-buffer jid))
-		    (get-buffer (jabber-groupchat-get-buffer jid)))))
+		    (get-buffer (jabber-muc-get-buffer jid)))))
     (and (buffer-live-p buffer)
 	 (not (get-buffer-window buffer 'visible)))))
 
@@ -204,14 +204,14 @@ on JIDs where `jabber-activity-show-p'"
 					    jabber-activity-jids))
   (jabber-activity-mode-line-update))
 
-(defun jabber-activity-add (from buffer text proposed-alert)
+(defun jabber-activity-add (from buffer proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (let ((jid (jabber-jid-user from)))
     (when (funcall jabber-activity-show-p jid)
       (add-to-list 'jabber-activity-jids jid)
       (jabber-activity-mode-line-update))))
 
-(defun jabber-activity-add-muc (nick group buffer text proposed-alert)
+(defun jabber-activity-add-muc (nick group buffer proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p group)
     (add-to-list 'jabber-activity-jids group)
@@ -236,7 +236,7 @@ such buffer exists, switch back to most recently used buffer."
   (if jabber-activity-jids
       (let ((jid (car jabber-activity-jids)))
 	(switch-to-buffer (or (get-buffer (jabber-chat-get-buffer jid))
-			      (get-buffer (jabber-groupchat-get-buffer jid)))))
+			      (get-buffer (jabber-muc-get-buffer jid)))))
     ;; Switch back to the buffer used last
     (switch-to-buffer nil)))
 

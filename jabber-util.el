@@ -209,6 +209,10 @@ Return nil if no such data available."
 	(second (string-to-number (substring timestamp 15 17))))
     (encode-time second minute hour day month year 0)))
 
+(defun jabber-encode-legacy-time (timestamp)
+  "Parse TIMESTAMP as internal time value and encode as ccyymmddThh:mm:ss (UTC)."
+  (format-time-string "%Y%m%dT%H:%M:%S" timestamp t))
+    
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.
 TIME is in a format accepted by `format-time-string'."

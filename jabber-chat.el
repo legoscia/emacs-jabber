@@ -1,7 +1,6 @@
-;; jabber-chat.el - chat buffer display, basic groupchat functions
+;; jabber-chat.el - one-to-one chats
 
-;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2005 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -20,21 +19,10 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-core)
-(require 'jabber-keymap)
-(require 'jabber-util)
-(require 'jabber-muc)
+(require 'jabber-chatbuffer)
 (require 'jabber-history)
 
-(require 'format-spec)
-
-(defvar jabber-chat-xmlns-alist nil
-  "Mapping from XML namespace to handler for message attachments")
-
-(defvar jabber-chat-alternative-bodies '(body)
-  "List of symbols representing things that replace body contents")
-
-(defvar jabber-chat-display-order '(subject body)
-  "List of symbols defining the order to display parts of a message")
+(require 'button)
 
 (defgroup jabber-chat nil "chat display options"
   :group 'jabber)
@@ -66,17 +54,6 @@ with):
 
 The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
-  :group 'jabber-chat)
-
-(defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
-  "The format specification for the name of groupchat buffers.
-
-These fields are available (all are about the person you are chatting
-with):
-
-%n   Roster name of group, or JID if no nickname set
-%j   Bare JID (without resource)"
-  :type 'string
   :group 'jabber-chat)
 
 (defcustom jabber-chat-time-format "%H:%M"
@@ -117,28 +94,6 @@ These fields are available:
   :type 'string
   :group 'jabber-chat)
 
-(defcustom jabber-groupchat-prompt-format "[%t] %n> "
-  "The format specification for lines in groupchat.
-
-These fields are available:
-
-%t   Time, formatted according to `jabber-chat-time-format'
-%n, %u, %r
-     Nickname in groupchat
-%j   Full JID (room@server/nick)"
-  :type 'string
-  :group 'jabber-chat)
-
-(defcustom jabber-chat-mode-hook nil
-  "Hook run when entering Chat mode."
-  :group 'jabber-chat
-  :type 'hook)
-
-(defcustom jabber-groupchat-mode-hook nil
-  "Hook run when entering Groupchat mode."
-  :group 'jabber-chat
-  :type 'hook)
-
 (defface jabber-chat-prompt-local
   '((t (:foreground "blue" :weight bold)))
   "face for displaying the chat prompt for what you type in"
@@ -154,93 +109,44 @@ These fields are available:
   "face used for system and special messages"
   :group 'jabber-chat)
 
+(defface jabber-chat-text-local nil
+  "Face used for text you write"
+  :group 'jabber-chat)
+
+(defface jabber-chat-text-foreign nil
+  "Face used for text others write"
+  :group 'jabber-chat)
+
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")
 
-(defvar jabber-group nil
-  "the groupchat you are participating in")
+(defvar jabber-chat-printers '(jabber-chat-print-subject
+			       jabber-chat-print-body
+			       jabber-chat-print-url)
+  "List of functions that may be able to print part of a message.
+Each function receives the entire <message/> stanza as argument.")
 
-(defvar jabber-point-insert nil
-  "Position where the message being composed starts")
+(defvar jabber-body-printers '(jabber-chat-normal-body)
+  "List of functions that may be able to print a body for a message.
+Each function receives the entire <message/> stanza as argument, and
+should either output a representation of the body part of the message
+and return non-nil, or output nothing and return nil.  These functions
+are called in order, until one of them returns non-nil.
 
-(defun jabber-chat-mode ()
-  "\\{jabber-chat-mode-map}"
-  (kill-all-local-variables)
-  (make-local-variable 'jabber-chatting-with)
+Add a function to the beginning of this list if the tag it handles
+replaces the contents of the <body/> tag.")
 
-  (make-local-variable 'scroll-conservatively)
-  (setq scroll-conservatively 5)
+(defvar jabber-chat-send-hooks nil
+  "List of functions called when a chat message is sent.
+The arguments are the text to send, and the id attribute of the
+message.
 
-  (make-local-variable 'jabber-point-insert)
-  (setq jabber-point-insert (point-min))
+The functions should return a list of XML nodes they want to be
+added to the outgoing message.")
 
-  (setq header-line-format jabber-chat-header-line-format)
-
-  (setq major-mode 'jabber-chat-mode
-        mode-name "jabber-chat")
-  (use-local-map jabber-chat-mode-map)
-
-  (if (fboundp 'run-mode-hooks)
-      (run-mode-hooks 'jabber-chat-mode-hook)
-    (run-hooks 'jabber-chat-mode-hook)))
-
-(put 'jabber-chat-mode 'mode-class 'special)
-
-(defvar jabber-chat-mode-map (copy-keymap jabber-common-keymap))
-
-(define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send)
-
-(defun jabber-replace-me (body nick)
-  "Replaces /me with NICK if it occurs at the beginning of BODY"
-  (replace-regexp-in-string "^/me" nick body))
-
-(defun jabber-format-prompt (prompt time n u r j)
-  (format-spec prompt
-	       (list
-		(cons ?t time)
-		(cons ?n n)
-		(cons ?u u)
-		(cons ?r r)
-		(cons ?j j))))
-
-(defun jabber-format-body (body prompt face time nick user resource jid)
-  "Format a string for a chat buffer according to user's preferences.
-BODY is the text to format.  It should end in a newline.
-PROMPT is a format string for the prompt, like
-`jabber-chat-local-prompt-format'.
-FACE is the face to use for the prompt.
-TIME is the time to present, as a string.
-NICK is the nickname.
-USER is the username (usually the username portion of a JID).
-RESOURCE is the resource.
-JID is the bare JID."
-  (when (and (>= (length body) 3)
-	     (string-equal (substring body 0 3) "/me"))
-    (setq body (jabber-replace-me body nick))
-    (setq nick nil))
-  (concat
-   (jabber-propertize (jabber-format-prompt (if nick
-						prompt
-					      jabber-chat-system-prompt-format)
-					    time
-					    (or nick "")
-					    user
-					    resource
-					    jid)
-		      'face face)
-   (if nick
-       body
-     (jabber-propertize body 'face 'jabber-chat-prompt-system))))
-
-(defun jabber-chat-buffer-send ()
-  (interactive)
-  (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
-    ;; If user accidentally hits RET without writing anything,
-    ;; delete-and-extract-region returns "".  In that case,
-    ;; no message should be sent.
-    (unless (zerop (length body))
-      (jabber-send-chat jabber-chatting-with body)
-      (jabber-chat-print nil (concat body "\n") nil jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
+(defvar jabber-chat-earliest-backlog nil
+  "Float-time of earliest backlog entry inserted into buffer.
+nil if no backlog has been inserted.")
 
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
@@ -257,105 +163,176 @@ Either a string or a buffer is returned, so use `get-buffer' or
 This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
+    (make-local-variable 'jabber-chatting-with)
     (setq jabber-chatting-with chat-with)
+    (setq jabber-send-function 'jabber-chat-send)
+    (setq header-line-format jabber-chat-header-line-format)
+
+    (make-local-variable 'jabber-chat-earliest-backlog)
+
+    ;; insert backlog
     (when (zerop (buffer-size))
-      (jabber-history-backlog))
+      (let ((backlog-entries (jabber-history-backlog chat-with)))
+	(when backlog-entries
+	  (setq jabber-chat-earliest-backlog 
+		(jabber-float-time (jabber-parse-time
+				    (aref (car backlog-entries) 0))))
+	  (mapc 'jabber-chat-insert-backlog-entry backlog-entries))))
+    
     (current-buffer)))
 
-(defun jabber-chat-display (from body &optional timestamp xml-data)
-  "display the chat window and a new message, if there is one.
-TIMESTAMP is timestamp, or nil for now."
-  (with-current-buffer (jabber-chat-create-buffer from)
-    ;; First, parse the message and find what pieces make sense to us.
-    (let (pieces 
-	  (text ""))
-      ;; XXX: should this check remain?
-      (if (and body (not xml-data))
-	  (setq pieces (list (cons 'body body)))
-	(dolist (node (jabber-xml-node-children xml-data))
-	  (cond
-	   ((not (listp node))
-	    ;; Psi inserts newlines... ignore them
-	    nil)
-	   ((eq (jabber-xml-node-name node) 'subject)
-	    (push
-	     (cons 'subject
-		   (concat (jabber-propertize 
-			    "Subject: "
-			    'face 'jabber-chat-prompt-system)
-			   (car (jabber-xml-node-children node))))
-	     pieces))
-	   ((eq (jabber-xml-node-name node) 'body)
-	    (push (cons 'body (car (jabber-xml-node-children node))) pieces))
-	   ((eq (jabber-xml-node-name node) 'error)
-	    (push 
-	     (cons 'error
-		   (concat (jabber-propertize 
-			    "Error: "
-			    'face 'jabber-chat-prompt-system)
-			   (jabber-parse-error node)))
-	     pieces))
-	   ;; XXX: add thread here
-	   (t
-	    (let* ((xmlns (jabber-xml-get-attribute node 'xmlns))
-		   (handler (cdr (assoc xmlns jabber-chat-xmlns-alist))))
-	      (when handler
-		(push (funcall handler node) pieces)))))))
+(defun jabber-chat-insert-backlog-entry (msg)
+  "Insert backlog entry MSG at point."
+  (if (string= (aref msg 1) "in")
+      (let ((fake-stanza `(message ((from . ,(aref msg 2)))
+				   (body nil ,(aref msg 4))
+				   (x ((xmlns . "jabber:x:delay")
+				       (stamp . ,(jabber-encode-legacy-time (jabber-parse-time (aref msg 0)))))))))
+	(jabber-chat-buffer-display-at-point 'jabber-chat-print-prompt
+					     fake-stanza
+					     jabber-chat-printers
+					     fake-stanza))
+    (jabber-chat-buffer-display-at-point 'jabber-chat-self-prompt
+					 (jabber-parse-time (aref msg 0))
+					 '(insert)
+					 (jabber-propertize
+					  (aref msg 4)
+					  'face 'jabber-chat-text-local))))
 
-      ;; Now, figure out how to display all this
-      (cond
-       ;; If there's an error message, display only that
-       ((assq 'error pieces)
-	(setq text (concat (cdr (assq 'error pieces)) "\n")))
-       ;; Else, use the defined order
-       (t
-	(dolist (part jabber-chat-display-order)
-	  (let ((part-text
-		 ;; If it's time to display the body, find the most
-		 ;; preferred one.
-		 (if (eq part 'body)
-		     (dolist (alt-body jabber-chat-alternative-bodies)
-		       (when (assq alt-body pieces)
-			 (return (cdr (assq alt-body pieces)))))
-		   (cdr (assq part pieces)))))
-	    (when part-text
-	      (setq text (concat text part-text "\n")))))))
+(add-to-list 'jabber-jid-chat-menu
+	     (cons "Display more context" 'jabber-chat-display-more-backlog))
 
-      ;; If user is typing a message, point will be moved along so
-      ;; typing is not disturbed.
-      ;; If user is looking at previous messages, point is not moved.
-      ;; If user hasn't typed anything, we need to move point ourselves.
-      (when (prog1
-		(eq (point) jabber-point-insert)
-	      (save-excursion
-		(jabber-chat-print from text timestamp jabber-chat-foreign-prompt-format
-				   'jabber-chat-prompt-foreign)))
-	(goto-char jabber-point-insert))
- 
-      (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
-	(run-hook-with-args hook from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))))
+(defun jabber-chat-display-more-backlog (how-many)
+  (interactive "nHow many more messages? ")
+  (let* ((inhibit-read-only t)
+	 (jabber-backlog-days nil)
+	 (jabber-backlog-number how-many)
+	 (backlog-entries (jabber-history-backlog
+			   jabber-chatting-with jabber-chat-earliest-backlog)))
+    (when backlog-entries
+      (setq jabber-chat-earliest-backlog 
+	    (jabber-float-time (jabber-parse-time
+				(aref (car backlog-entries) 0))))
+      (save-excursion
+	(goto-char (point-min))
+	(mapc 'jabber-chat-insert-backlog-entry backlog-entries)))))
 
-(defun jabber-chat-print (from body timestamp prompt-format prompt-face)
-  "Format and print a message in the current chat buffer.
-FROM is the full JID of sender, or nil if it's our user."
-  (goto-char jabber-point-insert)
-  (let ((inhibit-read-only t))
-    (if body
-	(insert (jabber-format-body body
-				    prompt-format
-				    prompt-face
-				    (format-time-string jabber-chat-time-format timestamp)
-				    (if from (jabber-jid-displayname from) jabber-nickname)
-				    (if from (jabber-jid-username from) jabber-username)
-				    (if from (jabber-jid-resource from) jabber-resource)
-				    (if from (jabber-jid-user from)
-				      (concat jabber-username "@" jabber-server)))))
-					       
-    (setq jabber-point-insert (point))
-    (set-text-properties jabber-point-insert (point-max) nil)
-    (put-text-property (point-min) jabber-point-insert 'read-only t)
-    (put-text-property (point-min) jabber-point-insert 'front-sticky t)
-    (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t)))
+(add-to-list 'jabber-message-chain 'jabber-process-chat)
+
+(defun jabber-process-chat (xml-data)
+  "If XML-DATA is a one-to-one chat message, handle it as such."
+  ;; XXX: there's more to being a chat message than not being MUC.
+  ;; Maybe make independent predicate.
+  (when (not (jabber-muc-message-p xml-data))
+    (let ((from (jabber-xml-get-attribute xml-data 'from)))
+      (with-current-buffer (jabber-chat-create-buffer from)
+	(jabber-chat-buffer-display 'jabber-chat-print-prompt
+				    xml-data
+				    jabber-chat-printers
+				    xml-data)
+
+	(dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
+	  (run-hook-with-args hook
+			      from (current-buffer)
+			      (funcall jabber-alert-message-function 
+				       from (current-buffer))))))))
+
+(defun jabber-chat-send (body)
+  "Send BODY, and display it in chat buffer."
+  (let* ((id (apply 'format "emacs-msg-%d.%d.%d" (current-time)))
+	 (stanza-to-send `(message 
+			   ((to . ,jabber-chatting-with)
+			    (type . "chat")
+			    (id . ,id))
+			   (body () ,(jabber-escape-xml body)))))
+    (dolist (hook jabber-chat-send-hooks)
+      (nconc stanza-to-send (funcall hook body id)))
+    (jabber-send-sexp stanza-to-send))
+
+  ;; Note that we pass a string, not an XML stanza,
+  ;; to the print functions.
+  (jabber-chat-buffer-display 'jabber-chat-self-prompt
+			      nil
+			      '(insert)
+			      (jabber-propertize
+			       body
+			       'face 'jabber-chat-text-local)))
+
+(defun jabber-chat-print-prompt (xml-data)
+  "Print prompt for received message in XML-DATA."
+  (let ((from (jabber-xml-get-attribute xml-data 'from))
+	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+    (insert (jabber-propertize 
+	     (format-spec jabber-chat-foreign-prompt-format
+			  (list
+			   (cons ?t (format-time-string jabber-chat-time-format timestamp))
+			   (cons ?n (jabber-jid-displayname from))
+			   (cons ?u (or (jabber-jid-username from) from))
+			   (cons ?r (jabber-jid-resource from))
+			   (cons ?j (jabber-jid-user from))))
+	     'face 'jabber-chat-prompt-foreign))))
+
+(defun jabber-chat-self-prompt (timestamp)
+  "Print prompt for sent message.
+TIMESTAMP is the timestamp to print, or nil for now."
+  (insert (jabber-propertize 
+	   (format-spec jabber-chat-local-prompt-format
+			(list
+			 (cons ?t (format-time-string jabber-chat-time-format timestamp))
+			 (cons ?n jabber-nickname)
+			 (cons ?u jabber-username)
+			 (cons ?r jabber-resource)
+			 (cons ?j (concat jabber-username "@" jabber-server))))
+	   'face 'jabber-chat-prompt-local)))
+
+(defun jabber-chat-print-subject (xml-data)
+  "Print subject of given <message/>, if any."
+  (let ((subject (car
+		  (jabber-xml-node-children
+		   (car
+		    (jabber-xml-get-children xml-data 'subject))))))
+    (when (not (zerop (length subject)))
+      (insert (jabber-propertize
+	       "Subject: " 'face 'jabber-chat-prompt-system)
+	      (jabber-propertize
+	       subject
+	       'face 'jabber-chat-text-foreign)
+	      "\n"))))
+
+(defun jabber-chat-print-body (xml-data)
+  (run-hook-with-args-until-success 'jabber-body-printers xml-data))
+
+(defun jabber-chat-normal-body (xml-data)
+  "Print body for received message in XML-DATA."
+  (let ((body (car
+	       (jabber-xml-node-children
+		(car
+		 (jabber-xml-get-children xml-data 'body))))))
+    (when body
+      (insert (jabber-propertize body
+				 'face 'jabber-chat-text-foreign))
+      t)))
+
+(defun jabber-chat-print-url (xml-data)
+  "Print URLs provided in jabber:x:oob namespace."
+  (dolist (x (jabber-xml-node-children xml-data))
+    (when (and (listp x) (eq (jabber-xml-node-name x) 'x)
+	       (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:oob"))
+
+      (let ((url (car (jabber-xml-node-children
+		       (car (jabber-xml-get-children x 'url)))))
+	    (desc (car (jabber-xml-node-children
+			(car (jabber-xml-get-children x 'desc))))))
+	(insert (jabber-propertize
+		 "URL: " 'face 'jabber-chat-prompt-system))
+	(insert-button (if (not (zerop (length desc)))
+			   (format "%s <%s>" desc url)
+			 url)
+		       'url url
+		       'action
+		       #'(lambda (button) 
+			   (browse-url (button-get button 'url))))
+	(insert "\n")))))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
@@ -394,123 +371,6 @@ Signal an error if there is no JID at point."
 	(jabber-chat-with jid-at-point)
       (error "No contact at point"))))
 
-(defun jabber-groupchat-mode ()
-  "\\{jabber-groupchat-mode-map}"
-  (kill-all-local-variables)
-  (make-local-variable 'jabber-group)
-  (make-local-variable 'scroll-conservatively)
-  (setq scroll-conservatively 5)
-  (make-local-variable 'jabber-point-insert)
-  (setq jabber-point-insert (point-min))
-  (setq major-mode 'jabber-groupchat-mode
-        mode-name "jabber-groupchat")
-  (use-local-map jabber-groupchat-mode-map)
-  (if (fboundp 'run-mode-hooks)
-      (run-mode-hooks 'jabber-groupchat-mode-hook)
-    (run-hooks 'jabber-groupchat-mode-hook)))
-
-(put 'jabber-groupchat-mode 'mode-class 'special)
-
-(defvar jabber-groupchat-mode-map (copy-keymap jabber-common-keymap))
-
-(define-key jabber-groupchat-mode-map "\r" 'jabber-groupchat-buffer-send)
-
-(defun jabber-groupchat-buffer-send ()
-  (interactive)
-  (let ((body (delete-and-extract-region jabber-point-insert (point-max)))
-	(inhibit-read-only t))
-    (jabber-send-groupchat jabber-group body)
-    (goto-char (point-max))
-    (setq jabber-point-insert (point-max))
-    (set-text-properties jabber-point-insert (point-max) nil)
-    (put-text-property (point-min) (point-max) 'read-only t)
-    (put-text-property (point-min) (point-max) 'front-sticky t)
-    (put-text-property (point-min) (point-max) 'rear-nonsticky t)))
-
-(defun jabber-groupchat-get-buffer (group)
-  "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
-Either a string or a buffer is returned, so use `get-buffer' or
-`get-buffer-create'."
-  (format-spec jabber-groupchat-buffer-format
-	       (list
-		(cons ?n (jabber-jid-displayname group))
-		(cons ?j (jabber-jid-user group)))))
-
-(defun jabber-groupchat-create-buffer (group)
-  "Prepare a buffer for groupchat in GROUP.
-This function is idempotent."
-  (with-current-buffer (get-buffer-create (jabber-groupchat-get-buffer group))
-    (if (not (eq major-mode 'jabber-groupchat-mode)) (jabber-groupchat-mode))
-    (setq jabber-group group)
-    (current-buffer)))
-
-(defun jabber-groupchat-display (group &optional nick body timestamp xml-data)
-  "display the chat window and a new message, if there is one.
-TIMESTAMP is timestamp, or nil for now."
-  (with-current-buffer (jabber-groupchat-create-buffer group)
-    (goto-char jabber-point-insert)
-    (let ((inhibit-read-only t))
-      ;; If this message comes from the room itself, nick will be nil.
-      ;; jabber-format-body understands that as a system message,
-      ;; and gives it another face.
-      (if body (insert (jabber-format-body (concat body "\n")
-					   jabber-groupchat-prompt-format
-					   'jabber-chat-prompt-foreign
-					   (format-time-string jabber-chat-time-format timestamp)
-					   nick
-					   nick
-					   nick
-					   (concat group "/" nick))))
-      (setq jabber-point-insert (point))
-      (set-text-properties jabber-point-insert (point-max) nil)
-      (put-text-property (point-min) jabber-point-insert 'read-only t)
-      (put-text-property (point-min) jabber-point-insert 'front-sticky t)
-      (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t))
- 
-    (goto-char (point-max))
-
-    (setq jabber-group group)
-    (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
-      (run-hook-with-args hook nick group (current-buffer) body (funcall jabber-alert-muc-function nick group (current-buffer) body)))))
-
-(add-to-list 'jabber-message-chain 'jabber-process-message)
-
-(defun jabber-process-message (xml-data)
-  "process incoming messages"
-  (let ((from (jabber-xml-get-attribute xml-data 'from))
-	(type (jabber-xml-get-attribute xml-data 'type))
-	(subject (car (xml-node-children (car (jabber-xml-get-children xml-data 'subject)))))
-	(body (car (xml-node-children (car (jabber-xml-get-children xml-data 'body)))))
-	(thread (car (xml-node-children (car (jabber-xml-get-children xml-data 'thread)))))
-	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x)))))
-	(error (car (jabber-xml-get-children xml-data 'error))))
-
-    (cond
-     ((jabber-muc-message-p xml-data)
-      (jabber-groupchat-display (jabber-jid-user from) 
-				(jabber-jid-resource from)
-				(if error
-				    (concat "ERROR: " (jabber-parse-error error))
-				  (jabber-unescape-xml body))
-				timestamp
-				xml-data))
-     ;; Here go normal one-to-one messages and private groupchat messages.
-     (t
-      (jabber-chat-display from 
-			   (if error
-			       (concat "ERROR: " (jabber-parse-error error))
-			     (jabber-unescape-xml body))
-			   timestamp
-			   xml-data)))))
-
-(defun jabber-send-groupchat (group body)
-  "send a message to a groupchat"
-  (jabber-send-message group nil body "groupchat"))
-
-(defun jabber-send-chat (to body)
-  "send a chat message to someone"
-  (jabber-send-message to nil body "chat"))
-
 (provide 'jabber-chat)
 
-;;; arch-tag: a6cca037-2fcd-4e3b-8a40-d00523aebff5
+;; arch-tag: f423eb92-aa87-475b-b590-48c93ccba9be

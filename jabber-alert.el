@@ -29,10 +29,10 @@
 (defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo)
   "Hooks run when a new message arrives.
 
-Arguments are FROM, BUFFER, TEXT and PROPOSED-ALERT.  FROM is the JID
-of the sender, BUFFER is the the buffer where the message can be read,
-and TEXT is the text of the message.  PROPOSED-ALERT is the string
-returned by `jabber-alert-message-function' for these arguments, so that
+Arguments are FROM, BUFFER, and PROPOSED-ALERT.  FROM is the JID
+of the sender, and BUFFER is the the buffer where the message can
+be read.  PROPOSED-ALERT is the string returned by
+`jabber-alert-message-function' for these arguments, so that
 hooks do not have to call it themselves.
 
 This hook is meant for user customization of message alerts.  For
@@ -45,7 +45,7 @@ other uses, see `jabber-message-hooks'."
 	     jabber-message-display)
   :group 'jabber-alerts)
 
-(defvar jabber-message-hooks '(jabber-message-history)
+(defvar jabber-message-hooks nil
   "Internal hooks run when a new message arrives.
 
 This hook works just like `jabber-alert-message-hooks', except that
@@ -55,7 +55,7 @@ it's not meant to be customized by the user.")
   'jabber-message-default-message
   "Function for constructing message alert messages.
 
-Arguments are FROM, BUFFER, and TEXT.  This function should return a
+Arguments are FROM and BUFFER.  This function should return a
 string containing an appropriate text message, or nil if no message
 should be displayed.
 
@@ -68,12 +68,12 @@ every time."
 (defcustom jabber-alert-muc-hooks '(jabber-muc-echo)
   "Hooks run when a new MUC message arrives.
 
-Arguments are NICK, GROUP, BUFFER, TEXT and PROPOSED-ALERT.  NICK
-is the nickname of the sender.  GROUP is the JID of the group.
-BUFFER is the the buffer where the message can be read, and TEXT
-is the text of the message.  PROPOSED-ALERT is the string
-returned by `jabber-alert-muc-function' for these arguments,
-so that hooks do not have to call it themselves."
+Arguments are NICK, GROUP, BUFFER and PROPOSED-ALERT.  NICK is
+the nickname of the sender.  GROUP is the JID of the group.
+BUFFER is the the buffer where the message can be read.
+PROPOSED-ALERT is the string returned by
+`jabber-alert-muc-function' for these arguments, so that hooks do
+not have to call it themselves."
   :type 'hook
   :options '(jabber-muc-beep 
 	     jabber-muc-wave
@@ -92,7 +92,7 @@ it's not meant to be customized by the user.")
   'jabber-muc-default-message
   "Function for constructing message alert messages.
 
-Arguments are NICK, GROUP, BUFFER, and TEXT.  This function
+Arguments are NICK, GROUP and BUFFER.  This function
 should return a string containing an appropriate text message, or
 nil if no message should be displayed.
 
@@ -227,12 +227,12 @@ Examples:
 	  (pres (intern (format "jabber-presence-%s" sn)))
 	  (info (intern (format "jabber-info-%s" sn))))
       `(progn
-	 (defun ,msg (from buffer text proposed-alert)
+	 (defun ,msg (from buffer proposed-alert)
 	   ,docstring
 	   (when proposed-alert
 	     (funcall ,function proposed-alert)))
 	 (pushnew (quote ,msg) (get 'jabber-alert-message-hooks 'custom-options))
-	 (defun ,muc (nick group buffer text proposed-alert)
+	 (defun ,muc (nick group buffer proposed-alert)
 	   ,docstring
 	   (when proposed-alert
 	     (funcall ,function proposed-alert)))
@@ -262,7 +262,7 @@ Examples:
 (require 'jabber-xmessage "external-notifiers/jabber-xmessage")
 
 ;; Message alert hooks
-(defun jabber-message-default-message (from buffer text)
+(defun jabber-message-default-message (from buffer)
   (when (or jabber-message-alert-same-buffer
 	    (not (memq (selected-window) (get-buffer-window-list buffer))))
     (format "Message from %s" (jabber-jid-displayname from))))
@@ -272,23 +272,23 @@ Examples:
   :type 'boolean
   :group 'jabber-alerts)
 
-(defun jabber-message-wave (from buffer text proposed-alert)
+(defun jabber-message-wave (from buffer proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
   (when proposed-alert
     (jabber-play-sound-file jabber-alert-message-wave)))
 
-(defun jabber-message-display (from buffer text proposed-alert)
+(defun jabber-message-display (from buffer proposed-alert)
   "Display the buffer where a new message has arrived."
   (when proposed-alert
     (display-buffer buffer)))
 
-(defun jabber-message-switch (from buffer text proposed-alert)
+(defun jabber-message-switch (from buffer proposed-alert)
   "Switch to the buffer where a new message has arrived."
   (when proposed-alert
     (switch-to-buffer buffer)))
 
 ;; MUC alert hooks
-(defun jabber-muc-default-message (nick group buffer text)
+(defun jabber-muc-default-message (nick group buffer)
   (when (or jabber-message-alert-same-buffer
 	    (not (memq (selected-window) (get-buffer-window-list buffer))))
     (if nick
@@ -296,17 +296,17 @@ Examples:
 					      group))
       (format "Message in %s" (jabber-jid-displayname group)))))
 
-(defun jabber-muc-wave (nick group buffer text proposed-alert)
+(defun jabber-muc-wave (nick group buffer proposed-alert)
   "Play the wave file specified in `jabber-alert-muc-wave'"
   (when proposed-alert
     (jabber-play-sound-file jabber-alert-muc-wave)))
 
-(defun jabber-muc-display (nick group buffer text proposed-alert)
+(defun jabber-muc-display (nick group buffer proposed-alert)
   "Display the buffer where a new message has arrived."
   (when proposed-alert
     (display-buffer buffer)))
 
-(defun jabber-muc-switch (nick group buffer text proposed-alert)
+(defun jabber-muc-switch (nick group buffer proposed-alert)
   "Switch to the buffer where a new message has arrived."
   (when proposed-alert
     (switch-to-buffer buffer)))

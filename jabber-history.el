@@ -31,6 +31,8 @@
 ;; for older history files if the current history file doesn't contain
 ;; enough backlog entries.
 
+(require 'jabber-core)
+
 (defgroup jabber-history nil "Customization options for Emacs
 Jabber history files."
   :group 'jabber)
@@ -92,14 +94,31 @@ Jabber history files."
 	(jabber-history-rotate history-file (if try (1+ try) 1))
       (rename-file history-file (concat history-file "-" suffix)))))
 
-(defun jabber-message-history (from buffer text proposed-alert)
+(add-to-list 'jabber-message-chain 'jabber-message-history)
+(defun jabber-message-history (xml-data)
   "Log message to log file."
   (when (and (not jabber-use-global-history)
 	     (not (file-directory-p jabber-history-dir)))
     (make-directory jabber-history-dir))
+  (if (and jabber-history-enabled (not (jabber-muc-message-p xml-data)))
+      (let ((from (jabber-xml-get-attribute xml-data 'from))
+	    (text (car (jabber-xml-node-children
+			(car (jabber-xml-get-children xml-data 'body)))))
+	    (timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+	(when (and from text)
+	  (jabber-history-log-message "in" from nil text timestamp)))))
+
+(add-hook 'jabber-chat-send-hooks 'jabber-history-send-hook)
+
+(defun jabber-history-send-hook (body id)
+  "Log outgoing message to log file."
+  (when (and (not jabber-use-global-history)
+	     (not (file-directory-p jabber-history-dir)))
+    (make-directory jabber-history-dir))
+  ;; This function is called from a chat buffer, so jabber-chatting-with
+  ;; contains the desired value.
   (if jabber-history-enabled
-      ;; timestamp is dynamically bound from jabber-display-chat
-      (jabber-history-log-message "in" from nil text timestamp)))
+      (jabber-history-log-message "out" nil jabber-chatting-with body (current-time))))
 
 (defun jabber-history-filename (contact)
   "Return a history filename for CONTACT if the per-user file
@@ -136,87 +155,87 @@ Jabber history files."
 	(jabber-history-rotate history-file))
       (write-region (point-min) (point-max) history-file t 'quiet))))
 
-;; Try it with:
-;; (setq jabber-history-enabled t)
-;; (add-hook 'jabber-message-hooks 'jabber-message-history)
-;;
-;; The hook is now there by default, set in jabber-alert.el.
-
-(defun jabber-history-query (time-compare-function
-			     time
+(defun jabber-history-query (start-time
+			     end-time
 			     number
 			     direction
 			     jid-regexp
 			     history-file)
   "Return a list of vectors, one for each message matching the criteria.
-TIME-COMPARE-FUNCTION is either `<' or `>', to be called as
-\(TIME-COMPARE-FUNCTION (float-time time-of-message) TIME), and
-returning non-nil for matching messages.
+START-TIME and END-TIME are floats as obtained from `float-time'.
+Either or both may be nil, meaning no restriction.
 NUMBER is the maximum number of messages to return, or t for
 unlimited.
 DIRECTION is either \"in\" or \"out\", or t for no limit on direction.
-JID-REGEXP is a regexp which must match the JID."
+JID-REGEXP is a regexp which must match the JID.
+HISTORY-FILE is the file in which to search.
+
+Currently jabber-history-query performs a linear search from the end
+of the log file."
   (when (file-readable-p history-file)
     (with-temp-buffer
       (let ((coding-system-for-read 'utf-8))
 	(insert-file-contents history-file))
-      (let ((from-beginning (eq time-compare-function '<))
-	    collected current-line)
-	(if from-beginning
-	    (goto-char (point-min))
-	  (goto-char (point-max))
-	  (backward-sexp))
-	(while (progn (setq current-line (car (read-from-string
-					       (buffer-substring
-						(point)
-						(save-excursion
-						  (forward-sexp)
-						  (point))))))
-		      (and (funcall time-compare-function
-				    (jabber-float-time (jabber-parse-time
-							(aref current-line 0)))
-				    time)
-			   (if from-beginning (not (eobp))
-			     (not (bobp)))
-			   (or (eq number t)
-			       (< (length collected) number))))
-	  (if (and (or (eq direction t)
-		       (string= direction (aref current-line 1)))
-		   (string-match 
-		    jid-regexp 
-		    (car
-		     (remove "me"
-			     (list (aref current-line 2)
-				   (aref current-line 3))))))
-	      (push current-line collected))
-	  (if from-beginning (forward-sexp) (backward-sexp)))
+      (let (collected current-line)
+	(goto-char (point-max))
+	(catch 'beginning-of-file
+	    (while (progn
+		     (backward-sexp)
+		     (setq current-line (car (read-from-string
+					      (buffer-substring
+					       (point)
+					       (save-excursion
+						 (forward-sexp)
+						 (point))))))
+		     (and (or (null start-time)
+			      (> (jabber-float-time (jabber-parse-time
+						     (aref current-line 0)))
+				 start-time))
+			  (or (eq number t)
+			      (< (length collected) number))))
+	      (if (and (or (eq direction t)
+			   (string= direction (aref current-line 1)))
+		       (or (null end-time)
+			   (> end-time (jabber-float-time (jabber-parse-time
+							   (aref current-line 0)))))
+		       (string-match
+			jid-regexp 
+			(car
+			 (remove "me"
+				 (list (aref current-line 2)
+				       (aref current-line 3))))))
+		  (push current-line collected))
+	      (when (bobp)
+		(throw 'beginning-of-file nil))))
 	collected))))
 
 (defcustom jabber-backlog-days 3.0
   "Age limit on messages in chat buffer backlog, in days"
   :group 'jabber
-  :type 'float)
+  :type '(choice (float :tag "Number of days")
+		 (const :tag "No limit" nil)))
 
 (defcustom jabber-backlog-number 10
   "Maximum number of messages in chat buffer backlog"
   :group 'jabber
   :type 'integer)
 
-(defun jabber-history-backlog ()
-  "Insert some context from previous chats.
-This function is to be called from a chat buffer."
+(defun jabber-history-backlog (jid &optional before)
+  "Fetch context from previous chats with JID.
+Return a list of history entries (vectors), limited by
+`jabber-backlog-days' and `jabber-backlog-number'.
+If BEFORE is non-nil, it should be a float-time after which
+no entries will be fetched.  `jabber-backlog-days' still
+applies, though."
   (interactive)
-  (dolist (msg (jabber-history-query 
-		'> (- (jabber-float-time) (* jabber-backlog-days 86400.0))
-		jabber-backlog-number
-		t			; both incoming and outgoing
-		(concat "^" (regexp-quote (jabber-jid-user jabber-chatting-with)) "\\(/.*\\)?$")
-		(jabber-history-filename jabber-chatting-with)))
-    (if (string= (aref msg 1) "in")
-	(jabber-chat-print (aref msg 2) (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
-			   jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
-      (jabber-chat-print nil (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
-			 jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
+  (jabber-history-query 
+   (and jabber-backlog-days
+	(- (jabber-float-time) (* jabber-backlog-days 86400.0)))
+   before
+   jabber-backlog-number
+   t					; both incoming and outgoing
+   (concat "^" (regexp-quote (jabber-jid-user jid)) "\\(/.*\\)?$")
+   (jabber-history-filename jid)))
 
 (provide 'jabber-history)
 

@@ -19,9 +19,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-
-;; Basic MUC/groupchat functionality is handled in jabber-chat.el.
-
+(require 'jabber-chat)
 (require 'jabber-widget)
 
 (require 'cl)
@@ -36,6 +34,9 @@ Values are strings.")
 Keys are strings, the bare JID of the room.
 Values are lists of nickname strings.")
 
+(defvar jabber-group nil
+  "the groupchat you are participating in")
+
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
@@ -48,6 +49,57 @@ Values are lists of nickname strings.")
   "List of MUC rooms to automatically join on connection."
   :group 'jabber-chat
   :type '(repeat (string :tag "JID of room")))
+
+(defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
+  "The format specification for the name of groupchat buffers.
+
+These fields are available (all are about the person you are chatting
+with):
+
+%n   Roster name of group, or JID if no nickname set
+%j   Bare JID (without resource)"
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-groupchat-prompt-format "[%t] %n> "
+  "The format specification for lines in groupchat.
+
+These fields are available:
+
+%t   Time, formatted according to `jabber-chat-time-format'
+%n, %u, %r
+     Nickname in groupchat
+%j   Full JID (room@server/nick)"
+  :type 'string
+  :group 'jabber-chat)
+
+(defun jabber-muc-get-buffer (group)
+  "Return the chat buffer for chatroom GROUP.
+Either a string or a buffer is returned, so use `get-buffer' or
+`get-buffer-create'."
+  (format-spec jabber-groupchat-buffer-format
+	       (list
+		(cons ?n (jabber-jid-displayname group))
+		(cons ?j (jabber-jid-user group)))))
+
+(defun jabber-muc-create-buffer (group)
+  "Prepare a buffer for chatroom GROUP.
+This function is idempotent."
+  (with-current-buffer (get-buffer-create (jabber-muc-get-buffer group))
+    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
+    (make-local-variable 'jabber-group)
+    (setq jabber-group group)
+    (setq jabber-send-function 'jabber-muc-send)
+    (current-buffer)))
+
+(defun jabber-muc-send (body)
+  "Send BODY to MUC room in current buffer."
+  ;; There is no need to display the sent message in the buffer, as
+  ;; we will get it back from the MUC server.
+  (jabber-send-sexp `(message
+		      ((to . ,jabber-group)
+		       (type . "groupchat"))
+		      (body () ,(jabber-escape-xml body)))))
 
 (defun jabber-muc-add-groupchat (group nickname)
   "Remember participating in GROUP under NICKNAME."
@@ -187,7 +239,10 @@ Return nil if nothing known about that combination."
 	(setcdr whichgroup nickname)
       (add-to-list '*jabber-active-groupchats* (cons group nickname))))
   
-  (jabber-groupchat-display group))
+  (let ((buffer (jabber-muc-create-buffer group)))
+    ;; We don't want to switch to autojoined groupchats
+    (when (interactive-p)
+      (switch-to-buffer buffer))))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Change nickname" 'jabber-muc-nick))
@@ -211,18 +266,23 @@ Return nil if nothing known about that combination."
 (defun jabber-muc-names (group)
   "Print names, affiliations, and roles of participants in GROUP."
   (interactive (list (jabber-muc-read-completing "Group: ")))
-  (jabber-groupchat-display 
-   group nil
-   (apply 'concat "Participants:\n"
-	  (format "%-15s %-15s %-11s %s\n" "Nickname" "Role" "Affiliation" "JID")
-	  (mapcar (lambda (x)
-		    (let ((plist (cdr x)))
-		      (format "%-15s %-15s %-11s %s\n"
-			      (car x)
-			      (plist-get plist 'role)
-			      (plist-get plist 'affiliation)
-			      (or (plist-get plist 'jid) ""))))
-		  (cdr (assoc group jabber-muc-participants))))))
+  (with-current-buffer (jabber-muc-create-buffer group)
+    (jabber-chat-buffer-display 'jabber-muc-system-prompt nil
+				'(jabber-muc-print-names)
+				(cdr (assoc group jabber-muc-participants)))))
+
+(defun jabber-muc-print-names (participants)
+  "Format and insert data in PARTICIPANTS."
+  (apply 'insert "Participants:\n"
+	 (format "%-15s %-15s %-11s %s\n" "Nickname" "Role" "Affiliation" "JID")
+	 (mapcar (lambda (x)
+		   (let ((plist (cdr x)))
+		     (format "%-15s %-15s %-11s %s\n"
+			     (car x)
+			     (plist-get plist 'role)
+			     (plist-get plist 'affiliation)
+			     (or (plist-get plist 'jid) ""))))
+		 participants)))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set role (kick, voice, op)" 'jabber-muc-set-role))
@@ -279,6 +339,53 @@ Return nil if X-MUC is nil."
 			(jabber-xml-node-attributes
 			 (car (jabber-xml-get-children x-muc 'item))))))
 
+(defun jabber-muc-print-prompt (xml-data)
+  "Print MUC prompt for message in XML-DATA."
+  (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from))))
+    (if (stringp nick)
+	(insert (jabber-propertize
+		 (format-spec jabber-groupchat-prompt-format
+			      (list
+			       (cons ?t (format-time-string jabber-chat-time-format))
+			       (cons ?n nick)
+			       (cons ?u nick)
+			       (cons ?r nick)
+			       (cons ?j (concat jabber-group "/" nick))))
+		 'face 'jabber-chat-prompt-foreign))
+      (jabber-muc-system-prompt))))
+
+(defun jabber-muc-system-prompt (&rest ignore)
+  "Print system prompt for MUC."
+  (insert (jabber-propertize
+	   (format-spec jabber-groupchat-prompt-format
+			(list
+			 (cons ?t (format-time-string jabber-chat-time-format))
+			 (cons ?n "")
+			 (cons ?u "")
+			 (cons ?r "")
+			 (cons ?j jabber-group)))
+	   'face 'jabber-chat-prompt-system)))
+
+(add-to-list 'jabber-message-chain 'jabber-muc-process-message)
+
+(defun jabber-muc-process-message (xml-data)
+  "If XML-DATA is a groupchat message, handle it as such."
+  (when (jabber-muc-message-p xml-data)
+    (let* ((from (jabber-xml-get-attribute xml-data 'from))
+	   (group (jabber-jid-user from))
+	   (nick (jabber-jid-resource from)))
+      (with-current-buffer (jabber-muc-create-buffer group)
+	(jabber-chat-buffer-display 'jabber-muc-print-prompt
+				    xml-data
+				    '(jabber-chat-print-body)
+				    xml-data)
+
+	(dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
+	  (run-hook-with-args hook
+			      nick group (current-buffer)
+			      (funcall jabber-alert-muc-function
+				       nick group (current-buffer))))))))
+
 (defun jabber-muc-process-presence (presence)
   (let ((from (jabber-xml-get-attribute presence 'from))
 	(type (jabber-xml-get-attribute presence 'type))
@@ -296,10 +403,18 @@ Return nil if X-MUC is nil."
 	(if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
 	    (progn
 	      (jabber-muc-remove-groupchat group)
-	      (jabber-groupchat-display group nil "You have left the chatroom"))
+	      (with-current-buffer (jabber-muc-create-buffer group)
+		(jabber-chat-buffer-display 'jabber-muc-system-prompt
+					    nil
+					    '(insert)
+					    "You have left the chatroom")))
 	  ;; or someone else?
 	  (jabber-muc-remove-participant group nickname)
-	  (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname))))
+	  (with-current-buffer (jabber-muc-create-buffer group)
+	    (jabber-chat-buffer-display 'jabber-muc-system-prompt
+					nil
+					'(insert)
+					(format "%s has left the chatroom" nickname)))))
        ;; XXX: add errors here
        (t 
 	;; someone is entering
@@ -307,7 +422,11 @@ Return nil if X-MUC is nil."
 	      (new-plist (jabber-muc-parse-affiliation x-muc)))
 	  (jabber-muc-modify-participant group nickname new-plist)
 	  (when new-participant
-	    (jabber-groupchat-display group nil (format "%s enters the chatroom" nickname)))))))))
+	    (with-current-buffer (jabber-muc-create-buffer group)
+	      (jabber-chat-buffer-display 'jabber-muc-system-prompt
+					  nil
+					  '(insert)
+					  (format "%s enters the chatroom" nickname))))))))))
 	      
 (provide 'jabber-muc)
 
