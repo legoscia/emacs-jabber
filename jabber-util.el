@@ -85,7 +85,7 @@ properties to add to the result."
        (cadr specified-time))))
 
 (defun jabber-jid-username (string)
-  "return the username portion of a JID"
+  "return the username portion of a JID, or nil if no username"
   (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
   (match-string 1 string))
 

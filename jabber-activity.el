@@ -113,7 +113,7 @@ the user name part of the JID."
   (let ((nick (jabber-jid-displayname jid))
 	(user (jabber-jid-user jid))
 	(username (jabber-jid-username jid)))
-    (if (string= nick user)
+    (if (and username (string= nick user))
 	username
       nick)))
 
