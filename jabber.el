@@ -2185,7 +2185,8 @@ RESULT-ID is the id to be used for a response to a received iq message.
   (setq *xmlq* "")
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
-  (setq jabber-session-id nil))
+  (setq jabber-session-id nil)
+  (message "Disconnected from Jabber server"))
 
 ;; Alert hooks
 
