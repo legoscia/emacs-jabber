@@ -486,6 +486,10 @@ status (@pxref{Presence}) or @code{nil}, which represents offline.
 are shown in the roster buffer.  The default is to show resources when
 a contact has more than one connected resource.
 
+@code{jabber-roster-line-spacing} specifies the number of blank lines
+between each roster item.  The default is zero, but you might want a
+less compact look.
+
 @node Customizing alerts,  , Customizing the roster buffer, Customization
 @section Customizing alerts
 

@@ -141,12 +141,6 @@
   :type 'string
   :group 'jabber)
 
-(defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
-  "Sort by status in this order.  Anything not in list goes last.
-Offline is represented as nil."
-  :type '(repeat (restricted-sexp :match-alternatives (stringp nil)))
-  :group 'jabber)
-
 (define-key global-map
   [menu-bar jabber-menu]
   (cons "Jabber" (make-sparse-keymap "jabber-menu")))

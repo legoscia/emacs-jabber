@@ -32,6 +32,12 @@
   :type 'integer
   :group 'jabber-roster)
 
+(defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
+  "Sort by status in this order.  Anything not in list goes last.
+Offline is represented as nil."
+  :type '(repeat (restricted-sexp :match-alternatives (stringp nil)))
+  :group 'jabber-roster)
+
 (defcustom jabber-show-resources 'sometimes
   "Show resources in roster?"
   :type '(radio (const :tag "Never" nil)
