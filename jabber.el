@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.35 2004/02/11 21:37:11 legoscia Exp $
+;; $Id: jabber.el,v 1.36 2004/02/15 19:00:36 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -366,18 +366,18 @@ and BUFFER, a buffer containing the result."
   (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
          (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
      (list 'fset 'func `(lambda () (interactive)
-                           (jabber-send-presence ,show (read-string "status: ") *jabber-current-priority*)))
+                           (jabber-send-presence ,show (read-string "status: ") (format "%d" *jabber-current-priority*))))
      (list 'define-key 'global-map
            (list 'vector ''menu-bar ''jabber-menu ''jabber-menu-status 'menu-item)
            (list 'cons title 'func))))
 
-(dolist (presence jabber-presence-strings)
-  (jabber-define-status-key (cdr presence) (car presence)))
-;;;(jabber-define-status-key "Online" "")
-;;;(jabber-define-status-key "Away" "away")
-;;;(jabber-define-status-key "Extended Away" "xa")
-;;;(jabber-define-status-key "Do not Disturb" "dnd")
-;;;(jabber-define-status-key "Unavailable" "na")
+;;;(dolist (presence jabber-presence-strings)
+;;;  (jabber-define-status-key (cdr presence) (car presence)))
+(jabber-define-status-key "Online" "")
+(jabber-define-status-key "Away" "away")
+(jabber-define-status-key "Extended Away" "xa")
+(jabber-define-status-key "Do not Disturb" "dnd")
+(jabber-define-status-key "Chatty" "chat")
 
 ;;; XEmacs compatibility.  Stolen from ibuffer.el
 (if (fboundp 'propertize)
