@@ -21,6 +21,8 @@
 
 (require 'jabber-util)
 
+(require 'cl)
+
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
@@ -202,6 +204,47 @@ and BUFFER, a buffer containing the result."
   "a sound file to play when an info query result arrived"
   :type 'file
   :group 'jabber-alerts)
+
+(defmacro define-jabber-alert (name docstring function)
+  "Define a new family of external alert hooks.
+NAME is the name of the alert family.  The resulting hooks will be
+called jabber-{message,muc,presence,info}-NAME.
+DOCSTRING is the docstring to use for those hooks.
+FUNCTION is a function that takes one argument, a string,
+and displays it in some meaningful way.  It can be either a
+lambda form or a quoted function name.
+The created functions are inserted as options in Customize.
+
+Examples:
+\(define-jabber-alert foo \"Send foo alert\" 'foo-message)
+\(define-jabber-alert bar \"Send bar alert\" 
+  (lambda (msg) (bar msg 42)))"
+  (let ((sn (symbol-name name)))
+    (let ((msg (intern (format "jabber-message-%s" sn)))
+	  (muc (intern (format "jabber-muc-%s" sn)))
+	  (pres (intern (format "jabber-presence-%s" sn)))
+	  (info (intern (format "jabber-info-%s" sn))))
+      `(progn
+	 (defun ,msg (from buffer text proposed-alert)
+	   ,docstring
+	   (when proposed-alert
+	     (funcall ,function proposed-alert)))
+	 (pushnew (quote ,msg) (get 'jabber-alert-message-hooks 'custom-options))
+	 (defun ,muc (nick group buffer text proposed-alert)
+	   ,docstring
+	   (when proposed-alert
+	     (funcall ,function proposed-alert)))
+	 (pushnew (quote ,muc) (get 'jabber-alert-muc-hooks 'custom-options))
+	 (defun ,pres (who oldstatus newstatus statustext proposed-alert)
+	   ,docstring
+	   (when proposed-alert
+	     (funcall ,function proposed-alert)))
+	 (pushnew (quote ,pres) (get 'jabber-alert-presence-hooks 'custom-options))
+	 (defun ,info (infotype buffer proposed-alert)
+	   ,docstring
+	   (when proposed-alert
+	     (funcall 'function proposed-alert)))
+	 (pushnew (quote ,info) (get 'jabber-alert-info-message-hooks 'custom-options))))))
 
 ;; Alert hooks
 
