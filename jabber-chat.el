@@ -258,11 +258,17 @@ This function is idempotent."
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (jabber-chat-create-buffer from)
-    (jabber-chat-print from body timestamp jabber-chat-foreign-prompt-format
-		       'jabber-chat-prompt-foreign)
+    ;; If user is typing a message, point will be moved along so
+    ;; typing is not disturbed.
+    ;; If user is looking at previous messages, point is not moved.
+    ;; If user hasn't typed anything, we need to move point ourselves.
+    (when (prog1
+	      (eq (point) jabber-point-insert)
+	    (save-excursion
+	      (jabber-chat-print from body timestamp jabber-chat-foreign-prompt-format
+				 'jabber-chat-prompt-foreign)))
+      (goto-char jabber-point-insert))
  
-    (goto-char (point-max))
-
     (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))
 
 (defun jabber-chat-print (from body timestamp prompt-format prompt-face)
