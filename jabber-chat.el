@@ -40,6 +40,22 @@ with):
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-chat-header-line-format '(" " (:eval (jabber-jid-displayname jabber-chatting-with))
+					    "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
+							  (propertize 
+							   (or
+							    (cdr (assoc (get buddy 'show) jabber-presence-strings))
+							    (get buddy 'show))
+							   'face
+							   (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+							       'jabber-roster-user-online))))
+					    "\t" (:eval (get (jabber-jid-symbol jabber-chatting-with) 'status)))
+  "The specification for the header line of chat buffers.
+
+The format is that of `mode-line-format' and `header-line-format'."
+  :type 'sexp
+  :group 'jabber-chat)
+
 (defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
   "The format specification for the name of groupchat buffers.
 
@@ -103,10 +119,15 @@ These fields are available:
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
   (make-local-variable 'jabber-chatting-with)
+
   (make-local-variable 'scroll-conservatively)
   (setq scroll-conservatively 5)
+
   (make-local-variable 'jabber-point-insert)
   (setq jabber-point-insert (point-min))
+
+  (setq header-line-format jabber-chat-header-line-format)
+
   (setq major-mode 'jabber-chat-mode
         mode-name "jabber-chat")
   (use-local-map jabber-chat-mode-map))
