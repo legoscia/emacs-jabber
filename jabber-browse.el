@@ -1,5 +1,5 @@
 ;; jabber-browse.el - jabber browsing by JEP-0011
-;; $Id: jabber-browse.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-browse.el,v 1.2 2004/03/27 22:33:16 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -84,9 +84,8 @@
 	  (if (stringp (car (jabber-xml-node-children ns)))
 	      (insert "Namespace:\t" (car (jabber-xml-node-children ns)) "\n")))
 
-
+	(insert "\n")
 	(put-text-property beginning (point) 'jabber-jid jid)
-	(insert "\n\n")
 
 	;; XXX: Is this kind of recursion really needed?
 	(if (listp (car (jabber-xml-node-children item)))
