@@ -55,7 +55,15 @@
       ;; no such thing here
       (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))))
 
-    (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n")
+    (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n\n")
+    (when (and (eq type 'register)
+	     jabber-register-p)
+	(widget-insert "Don't change the username here unless you also change ")
+	(widget-create 'link
+		       :notify (lambda (&rest ignore)
+				 (customize-variable 'jabber-username))
+		       "jabber-username")
+	(widget-insert ".\n\n"))
 
     (dolist (x (jabber-xml-get-children query 'x))
       (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")

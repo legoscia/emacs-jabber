@@ -84,15 +84,22 @@
       (let ((entry (assq (jabber-xml-node-name field) possible-fields)))
 	(when entry
 	  (widget-insert (cdr entry) "\t")
-	  (setq jabber-widget-alist 
-		(cons
-		 (cons (car entry)
-		       (widget-create 'editable-field
-				      :secret  (if (eq (car entry) 'password)
-						   ?* nil)
-				      (or (car (jabber-xml-node-children
-						field)) "")))
-		 jabber-widget-alist))
+	  ;; Special case: when registering a new account, the default
+	  ;; username is the one specified in jabber-username.  Things
+	  ;; will break if the user changes that name, though...
+	  (let ((default-value (if (and jabber-register-p
+					(eq (jabber-xml-node-name field) 'username))
+				   jabber-username
+				 "")))
+	    (setq jabber-widget-alist 
+		  (cons
+		   (cons (car entry)
+			 (widget-create 'editable-field
+					:secret  (if (eq (car entry) 'password)
+						     ?* nil)
+					(or (car (jabber-xml-node-children
+						  field)) default-value)))
+		   jabber-widget-alist)))
 	  (widget-insert "\n"))))))
 
 (defun jabber-parse-register-form ()
