@@ -390,46 +390,77 @@ Return nil if X-MUC is nil."
 				       nick group (current-buffer))))))))
 
 (defun jabber-muc-process-presence (presence)
-  (let ((from (jabber-xml-get-attribute presence 'from))
+  (let* ((from (jabber-xml-get-attribute presence 'from))
 	(type (jabber-xml-get-attribute presence 'type))
 	(x-muc (find-if 
 		(lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
 				   "http://jabber.org/protocol/muc#user"))
-		(jabber-xml-get-children presence 'x))))
-    (let ((group (jabber-jid-user from))
-	  (nickname (jabber-jid-resource from))
-	  (symbol (jabber-jid-symbol from)))
-      ;; handle leaving a room
-      (cond 
-       ((string= type "unavailable")
-	;; are we leaving?
-	(if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
-	    (progn
-	      (jabber-muc-remove-groupchat group)
-	      (with-current-buffer (jabber-muc-create-buffer group)
-		(jabber-chat-buffer-display 'jabber-muc-system-prompt
-					    nil
-					    '(insert)
-					    "You have left the chatroom")))
-	  ;; or someone else?
-	  (jabber-muc-remove-participant group nickname)
+		(jabber-xml-get-children presence 'x)))
+	(group (jabber-jid-user from))
+	(nickname (jabber-jid-resource from))
+	(symbol (jabber-jid-symbol from))
+	(item (car (jabber-xml-get-children x-muc 'item)))
+	(actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
+	(reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
+	(status-code (jabber-xml-get-attribute
+		      (car (jabber-xml-get-children x-muc 'status))
+		      'code)))
+    ;; handle leaving a room
+    (cond 
+     ((string= type "unavailable")
+      ;; are we leaving?
+      (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
+	  (progn
+	    (jabber-muc-remove-groupchat group)
+	    (with-current-buffer (jabber-muc-create-buffer group)
+	      (jabber-chat-buffer-display 
+	       'jabber-muc-system-prompt
+	       nil
+	       '(insert)
+	       (cond
+		((equal status-code "301")
+		 (concat "You have been banned"
+			 (when actor (concat " by " actor))
+			 (when reason (concat " - '" reason "'"))))
+		((equal status-code "307")
+		 (concat "You have been kicked"
+			 (when actor (concat " by " actor))
+			 (when reason (concat " - '" reason "'"))))
+		(t
+		 "You have left the chatroom")))))
+	;; or someone else?
+	(jabber-muc-remove-participant group nickname)
+	(with-current-buffer (jabber-muc-create-buffer group)
+	  (jabber-chat-buffer-display 
+	   'jabber-muc-system-prompt
+	   nil
+	   '(insert)
+	   (cond
+	    ((equal status-code "301")
+	     (concat nickname " has been banned"
+		     (when actor (concat " by " actor))
+		     (when reason (concat " - '" reason "'"))))
+	    ((equal status-code "307")
+	     (concat nickname " has been kicked"
+		     (when actor (concat " by " actor))
+		     (when reason (concat " - '" reason "'"))))
+	    ((equal status-code "303")
+	     (concat nickname " changes nickname to "
+		     (jabber-xml-get-attribute item 'nick)))
+	    (t
+	     (concat nickname " has left the chatroom")))))))
+     ;; XXX: add errors here
+     (t 
+      ;; someone is entering
+      (let ((new-participant (not (jabber-muc-participant-plist group nickname)))
+	    (new-plist (jabber-muc-parse-affiliation x-muc)))
+	(jabber-muc-modify-participant group nickname new-plist)
+	(when new-participant
 	  (with-current-buffer (jabber-muc-create-buffer group)
 	    (jabber-chat-buffer-display 'jabber-muc-system-prompt
 					nil
 					'(insert)
-					(format "%s has left the chatroom" nickname)))))
-       ;; XXX: add errors here
-       (t 
-	;; someone is entering
-	(let ((new-participant (not (jabber-muc-participant-plist group nickname)))
-	      (new-plist (jabber-muc-parse-affiliation x-muc)))
-	  (jabber-muc-modify-participant group nickname new-plist)
-	  (when new-participant
-	    (with-current-buffer (jabber-muc-create-buffer group)
-	      (jabber-chat-buffer-display 'jabber-muc-system-prompt
-					  nil
-					  '(insert)
-					  (format "%s enters the chatroom" nickname))))))))))
+					(format "%s enters the chatroom" nickname)))))))))
 	      
 (provide 'jabber-muc)
 
