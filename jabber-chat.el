@@ -118,6 +118,16 @@ TIMESTAMP is timestamp, or nil for now."
   (interactive (list (jabber-read-jid-completing "chat with:")))
   (jabber-chat-display jid nil))
 
+(defun jabber-chat-with-jid-at-point ()
+  "Start chat with JID at point.
+Signal an error if there is no JID at point."
+  (interactive)
+  (let ((jid-at-point (get-text-property (point)
+					 'jabber-jid)))
+    (if jid-at-point
+	(jabber-chat-display jid-at-point nil)
+      (error "No contact at point"))))
+
 (defun jabber-groupchat-mode ()
   "\\{jabber-groupchat-mode-map}"
   (kill-all-local-variables)
