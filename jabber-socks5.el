@@ -22,6 +22,7 @@
 (require 'jabber-iq)
 (require 'jabber-disco)
 (require 'jabber-si-server)
+(require 'jabber-si-client)
 
 (defvar jabber-socks5-pending-sessions nil
   "List of pending sessions.
@@ -40,11 +41,67 @@ Each entry is a list, containing:
  * Full JID of initiator
  * Profile data function")
 
+(defcustom jabber-socks5-proxies nil
+  "JIDs of JEP-0065 proxies to use for file transfer."
+  :type '(repeat string)
+  :group 'jabber
+;  :set 'jabber-socks5-set-proxies)
+  )
+
+(defvar jabber-socks5-proxies-data nil
+  "Alist containing information about proxies.
+Keys of the alist are strings, the JIDs of the proxies.
+Values are \"streamhost\" XML nodes.")
+
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/bytestreams")
 
 (add-to-list 'jabber-si-stream-methods
 	     (list "http://jabber.org/protocol/bytestreams"
 		   'jabber-socks5-accept))
+
+(add-to-list 'jabber-si-client-methods
+	     (list "http://jabber.org/protocol/bytestreams"
+		   'jabber-socks5-client-1))
+
+(defun jabber-socks5-set-proxies (symbol value)
+  "Set `jabber-socks5-proxies' and query proxies.
+This is the set function of `jabber-socks5-proxies-data'."
+  (set-default symbol value)
+  (when *jabber-connected*
+    (jabber-socks5-query-all-proxies)))
+
+(defun jabber-socks5-query-all-proxies ()
+  "Ask all proxies in `jabber-socks5-proxies' for connection information."
+  (interactive)
+  (setq jabber-socks5-proxies-data nil)
+  (dolist (proxy jabber-socks5-proxies)
+    (jabber-socks5-query-proxy proxy)))
+
+(defun jabber-socks5-query-proxy (jid)
+  "Query the SOCKS5 proxy specified by JID for IP and port number."
+  (jabber-send-iq jid "get"
+		  '(query ((xmlns . "http://jabber.org/protocol/bytestreams")))
+		  #'jabber-socks5-process-proxy-response t
+		  #'jabber-socks5-process-proxy-response nil))
+
+(defun jabber-socks5-process-proxy-response (xml-data successp)
+  "Process response from proxy query."
+  (let* ((query (jabber-iq-query xml-data))
+	 (from (jabber-xml-get-attribute xml-data 'from))
+	 (streamhost (car (jabber-xml-get-children query 'streamhost))))
+
+    (let ((existing-entry (assoc from jabber-socks5-proxies-data)))
+      (when existing-entry
+	(setq jabber-socks5-proxies-data
+	      (delq existing-entry jabber-socks5-proxies-data))))
+
+    (when successp
+      (setq jabber-socks5-proxies-data
+	    (cons (cons from streamhost)
+		  jabber-socks5-proxies-data)))
+    (message "%s from %s.  %d of %d proxies have answered."
+	     (if successp "Response" "Error") from
+	     (length jabber-socks5-proxies-data) (length jabber-socks5-proxies))))
 
 (defun jabber-socks5-accept (jid sid profile-data-function)
   "Remember that we are waiting for connection from JID, with stream id SID"
@@ -73,8 +130,15 @@ Each entry is a list, containing:
     ;; find streamhost to connect to
     (let* ((streamhosts (jabber-xml-get-children query 'streamhost))
 	   (streamhost (dolist (streamhost streamhosts)
-			 (if (jabber-socks5-connect streamhost sid jid profile-data-function)
-			     (return streamhost)))))
+			 (let ((connection (jabber-socks5-connect streamhost sid jid (concat jabber-username "@" jabber-server "/" jabber-resource))))
+			   (when connection
+			     ;; We select the first streamhost that we are able to connect to.
+			     (push (list connection sid jid profile-data-function)
+				   jabber-socks5-active-sessions)
+			     ;; Now set the filter, for the rest of the output
+			     (set-process-filter connection #'jabber-socks5-filter)
+			     (set-process-sentinel connection #'jabber-socks5-sentinel)
+			     (return streamhost))))))
       (unless streamhost
 	(jabber-signal-error "cancel" 'item-not-found))
       
@@ -86,17 +150,16 @@ Each entry is a list, containing:
       ;; now, as data is sent, it will be passed to the profile.
       )))
 
-(defun jabber-socks5-connect (streamhost sid jid profile-data-function)
-  "Attempt to connect to STREAMHOST, authenticating with JID and SID.
-Return nil on error.  On success, store details in
-`jabber-socks5-active-sessions'.
+(defun jabber-socks5-connect (streamhost sid initiator target)
+  "Attempt to connect to STREAMHOST, authenticating with SID, INITIATOR and TARGET.
+Return nil on error.  Return connection object on success.
 
 STREAMHOST has the form
 \(streamhost ((host . HOST)
 	     (port . PORT)))
 
 Zeroconf is not supported."
-  (message "Attempting SOCKS5 connection to %s (%s %s)" streamhost jid sid)
+  (message "Attempting SOCKS5 connection to %s (%s->%s, %s)" streamhost initiator target sid)
   (condition-case e
       (let ((coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary)
@@ -116,7 +179,7 @@ Zeroconf is not supported."
 	      (error "SOCKS5 authentication required"))
 
 	    ;; send connect command
-	    (let ((hash (sha1-string (concat sid jid jabber-username "@" jabber-server "/" jabber-resource))))
+	    (let ((hash (sha1-string (concat sid initiator target))))
 	      (process-send-string 
 	       socks5-connection
 	       (concat (string 5 1 0 3 (length hash))
@@ -143,16 +206,7 @@ Zeroconf is not supported."
 	      ;; Delete all SOCKS5 data, leave room for the stream.
 	      (delete-region 1 (+ 8 address-length 2)))
 
-	    ;; We immediately claim that, now that this connection is
-	    ;; successfully established, it is the one to use for this
-	    ;; transfer.  This is usually what we want, but
-	    ;; theoretically those two facts are orthogonal.
-	    (push (list socks5-connection sid jid profile-data-function)
-		  jabber-socks5-active-sessions)
-
-	    ;; Now set the filter, for the rest of the output
-	    (set-process-filter socks5-connection #'jabber-socks5-filter)
-	    (set-process-sentinel socks5-connection #'jabber-socks5-sentinel))))
+	    socks5-connection)))
     (error
      (message "SOCKS5 connection failed: %s" e))))
 
@@ -176,6 +230,59 @@ Zeroconf is not supported."
     (delete-process process)
     (funcall profile-data-function jid sid nil)
     (setq jabber-socks5-active-sessions (delq session jabber-socks5-pending-sessions))))
+
+(defun jabber-socks5-client-1 (jid sid profile-function)
+  "Negotiate a SOCKS5 connection with JID.
+This function simply sends a request; the response is handled elsewhere."
+  ;; TODO: start our own server if we can.
+  (unless jabber-socks5-proxies
+    (error "No proxies defined.  Set `jabber-socks5-proxies'."))
+  (unless jabber-socks5-proxies-data
+    (error "No proxy data available.  Run `jabber-socks5-query-all-proxies'."))
+  (jabber-send-iq jid "set"
+		  `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
+			   (sid . ,sid))
+			  ,@(mapcar 
+			     (lambda (streamhost)
+			       (list 'streamhost
+				     (list (cons 'jid (jabber-xml-get-attribute (cdr streamhost) 'jid))
+					   (cons 'host (jabber-xml-get-attribute (cdr streamhost) 'host))
+					   (cons 'port (jabber-xml-get-attribute (cdr streamhost) 'port)))))
+			     jabber-socks5-proxies-data))
+		  `(lambda (xml-data closure-data)
+		     (jabber-socks5-client-2 xml-data ,jid ,sid ,profile-function)) nil
+		  ;; TODO: error handling
+		  #'jabber-report-success "SOCKS5 negotiation"))
+
+(defun jabber-socks5-client-2 (xml-data jid sid profile-function)
+  "Contact has selected a streamhost to use.  Connect to the proxy."
+  (let* ((query (jabber-iq-query xml-data))
+	 (streamhost-used (car (jabber-xml-get-children query 'streamhost-used)))
+	 (proxy-used (jabber-xml-get-attribute streamhost-used 'jid))
+	 (connection (jabber-socks5-connect (cdr (assoc proxy-used jabber-socks5-proxies-data))
+					     sid
+					     (concat jabber-username "@" jabber-server "/" jabber-resource)
+					     jid)))
+    (unless connection
+      (error "Couldn't connect to proxy %s" proxy-used))
+
+    ;; Activation is only needed for proxies.
+    (jabber-send-iq proxy-used "set"
+		    `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
+			     (sid . ,sid))
+			    (activate () ,jid))
+		    `(lambda (xml-data closure-data)
+		       (jabber-socks5-client-3 xml-data ,jid ,sid ,profile-function ,connection)) nil
+		       ;; TODO: report error to contact?
+		       #'jabber-report-success "Proxy activation")))
+
+(defun jabber-socks5-client-3 (xml-data jid sid profile-function proxy-connection)
+  "Proxy is activated.  Start the transfer."
+  ;; The response from the proxy does not contain any interesting
+  ;; information, beyond success confirmation.
+
+  (funcall profile-function jid sid `(lambda (data)
+				       (process-send-string ,proxy-connection data))))
 
 (provide 'jabber-socks5)
 

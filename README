@@ -47,12 +47,5 @@ and forums at the project page mentioned above.
 File transfer
 =============
 This release of jabber.el contains experimental support for file
-transfer (JEPs 65, 95 and 96).  So far only receiving is implemented,
-the user interface could be improved, and more testing is needed.
-This is not enabled by default; to enable it, put
-
-(load-library "cl-seq")
-(require 'jabber-ft-server)
-(require 'jabber-socks5)
-
-in your .emacs file.  Please share your experiences.
+transfer.  It is not enabled by default.  See the file
+filetransfer.txt for details.
