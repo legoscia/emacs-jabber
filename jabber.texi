@@ -46,6 +46,7 @@ this permission notice are preserved on all copies.
 * Basic operation::             
 * Groupchat::                   
 * Services::                    
+* Modeline status::             
 * Customization::               
 * Hacking and extending::       
 * Concept index::               
@@ -69,11 +70,9 @@ interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
 
-XXX: the following paragraph is out of date.
-
-Main unfeatures of jabber.el are SASL, SSL and TLS.  Beyond that,
-there is nearly no support for advanced MUC features required for
-moderation and other things.
+jabber.el does not yet support SSL, STARTTLS, GPG, advanced MUC
+features, sending and receiving roster items, and various other
+things.
 
 @menu
 * Contact::                     
@@ -161,7 +160,8 @@ with.  You can also use the function @code{jabber-chat-with}.
 
 Now, try opening a chat with someone.  In the default configuration,
 you will hear a beep and see ``Message from @var{person}'' in the echo
-area.  This is exactly the same message you receive if the other
+area.\footnote{@xref{Customizing alerts}, to see how to change this.}
+This is exactly the same message you receive if the other
 person sends a message to you.  In any case, go to the buffer
 @code{*-jabber-chat-:-@var{person}-*} and start chatting.  Type your
 message at the end of the buffer, and hit @kbd{RET} to send it.  To
@@ -289,7 +289,7 @@ groupchat.  A possible workaround is to add the groupchat to your
 roster before you join it; that way the participants will show up as
 resources of a user.
 
-@node Services, Customization, Groupchat, Top
+@node Services, Modeline status, Groupchat, Top
 @chapter Services
 
 @cindex Browse buffers
@@ -433,7 +433,46 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-@node Customization, Hacking and extending, Services, Top
+@node Modeline status, Customization, Services, Top
+@chapter Modeline status
+
+@cindex modeline
+@findex jabber-mode-line-mode
+@vindex jabber-mode-line-mode
+
+By typing @kbd{M-x jabber-mode-line-mode} you toggle display of some
+status in mode lines.  The information is your own presence status,
+and six numbers indicating the number of chatty, online, away,
+extended away, dnd, and offline contacts, respectively.
+
+@node Keepalive
+@chapter Keepalive
+
+@cindex keepalive
+@findex jabber-keepalive-start
+@findex jabber-keepalive-stop
+@vindex jabber-keepalive-interval
+@vindex jabber-keepalive-timeout
+
+Sometimes network connections are lost without you noticing.  This is
+especially true with Jabber, as it is quite reasonable to keep the
+connection open for a long time without either sending or receiving
+any data.
+
+If you want to detect a lost connection earlier, you can use the
+keepalive functions.  Type @kbd{M-x jabber-keepalive-start} to start
+it, and @kbd{M-x jabber-keepalive-stop} to stop it.
+
+These functions work by asking your server for the time once in a
+while (by default every ten minutes), and considering the connection
+lost if the server doesn't answer within reasonable time (by default
+20 seconds).
+
+You can customize the interval and the timeout with the variables
+@code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
+respectively.
+
+@node Customization, Hacking and extending, Modeline status, Top
 @chapter Customization
 
 @findex jabber-customize
