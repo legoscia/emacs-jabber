@@ -129,6 +129,11 @@
   "face for displaying chatty users"
   :group 'jabber-faces)
 
+(defface jabber-roster-user-error
+  '((t (:foreground "red" :weight light :slant italic)))
+  "face for displaying users sending presence errors"
+  :group 'jabber-faces)
+
 (defface jabber-roster-user-offline
   '((t (:foreground "grey" :weight light :slant italic)))
   "face for displaying offline users"
@@ -335,6 +340,7 @@ and BUFFER, a buffer containing the result."
    ("xa" . jabber-roster-user-xa)
    ("dnd" . jabber-roster-user-dnd)
    ("chat" . jabber-roster-user-chatty)
+   ("error" . jabber-roster-user-error)
    (nil . jabber-roster-user-offline))
  "Mapping from presence types to faces")
 
@@ -344,6 +350,7 @@ and BUFFER, a buffer containing the result."
     ("xa" . "Extended Away")
     ("dnd" . "Do not Disturb")
     ("chat" . "Chatty")
+    ("error" . "Error")
     (nil . "Offline"))
   "Mapping from presence types to readable strings")
 
@@ -882,7 +889,7 @@ Return nil if no such data available."
 			   (cons 'type "subscribe"))))))
 
 
-(defun jabber-process-presence (from to presence-show presence-status type priority)
+(defun jabber-process-presence (from to presence-show presence-status type priority error)
   "process incoming presence tags"
   (cond
    ((string= type "subscribe")
@@ -897,16 +904,24 @@ Return nil if no such data available."
 					     (get buddy 'resources))))
 		 newstatus)
 	    (cond
-	     ((or
-	       (string= type "unavailable")
-	       (string= type "error"))
+	     ((string= type "unavailable")
 	      (setq resource-plist
 		    (plist-put resource-plist 'connected nil))
 	      (setq resource-plist
 		    (plist-put resource-plist 'show nil))
 	      (setq resource-plist
-		    (plist-put resource-plist 'status (jabber-unescape-xml presence-status)))
-	      )
+		    (plist-put resource-plist 'status (jabber-unescape-xml presence-status))))
+
+	     ((string= type "error")
+	      (setq newstatus "error")
+	      (setq resource-plist
+		    (plist-put resource-plist 'connected nil))
+	      (setq resource-plist
+		    (plist-put resource-plist 'show "error"))
+	      (setq resource-plist
+		    (plist-put resource-plist 'status (if error
+							  (jabber-parse-error error)
+							(jabber-unescape-xml presence-status)))))
 	     ((or
 	       (string= type "unsubscribe")
 	       (string= type "subscribed")
@@ -931,8 +946,8 @@ Return nil if no such data available."
 	      (put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
 	    (jabber-prioritize-resources buddy)
 
-	    (run-hook-with-args 'jabber-alert-presence-hooks buddy oldstatus newstatus (jabber-unescape-xml presence-status) 
-				(funcall jabber-alert-presence-message-function buddy oldstatus newstatus (jabber-unescape-xml presence-status)))))))))
+	    (run-hook-with-args 'jabber-alert-presence-hooks buddy oldstatus newstatus (jabber-unescape-xml (plist-get resource-plist 'status))
+				(funcall jabber-alert-presence-message-function buddy oldstatus newstatus (jabber-unescape-xml (plist-get resource-plist 'status))))))))))
 
 (defun jabber-prioritize-resources (buddy)
   "Set connected, show and status properties for BUDDY from highest-priority resource."
@@ -944,9 +959,9 @@ Return nil if no such data available."
     (put buddy 'show nil)
     (put buddy 'status nil)
     (mapc (lambda (resource)
-	    (when (plist-get (cdr resource) 'connected)
-		(let* ((resource-plist (cdr resource))
-		       (priority (plist-get resource-plist 'priority)))
+	    (let* ((resource-plist (cdr resource))
+		   (priority (plist-get resource-plist 'priority)))
+	      (if (plist-get resource-plist 'connected)
 		  (when (or (null highest-priority)
 			    (and priority
 				 (> priority highest-priority)))
@@ -954,7 +969,15 @@ Return nil if no such data available."
 		    (setq highest-priority (or priority 0))
 		    (put buddy 'connected (plist-get resource-plist 'connected))
 		    (put buddy 'show (plist-get resource-plist 'show))
-		    (put buddy 'status (plist-get resource-plist 'status))))))
+		    (put buddy 'status (plist-get resource-plist 'status)))
+
+		;; if we have not found a connected resource yet, but this
+		;; disconnected resource has a status message, display it.
+		(when (not (get buddy 'connected))
+		  (if (plist-get resource-plist 'status)
+		      (put buddy 'status (plist-get resource-plist 'status)))
+		  (if (plist-get resource-plist 'show)
+		      (put buddy 'show (plist-get resource-plist 'show)))))))
 	  resource-alist)))
 
 (defun jabber-count-connected-resources (buddy)
@@ -1055,10 +1078,8 @@ Return nil if no such data available."
 			   (length buddy-str)
 			   (list
 			    'face
-			    (if (get buddy 'connected)
-				(or (cdr (assoc (get buddy 'show) jabber-presence-faces))
-				    'jabber-roster-user-online)
-			      'jabber-roster-user-offline)
+			    (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+				'jabber-roster-user-online)
 			    'mouse-face
 			    (append '(:background-color "light grey") (get-text-property 0 'face buddy-str))
 			    'help-echo
@@ -1811,9 +1832,10 @@ CLOSURE-DATA is either 'success or 'error."
              (type (jabber-xml-get-attribute xml-data 'type))
              (show (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'show)))))
              (status (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'status)))))
+	     (error (car (jabber-xml-get-children xml-data 'error)))
 	     (priority (or (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'priority))))
 			   "")))
-         (jabber-process-presence from to show status type (string-to-number priority)))))))
+         (jabber-process-presence from to show status type (string-to-number priority) error))))))
    
 
 (defun jabber-filter (process string)
