@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.33 2004/02/10 15:48:19 legoscia Exp $
+;; $Id: jabber.el,v 1.34 2004/02/10 16:24:28 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -143,7 +143,7 @@
   :group 'jabber-faces)
 
 (defface jabber-roster-user-offline
-  '((t (:foreground "grey" :weight light :slant italic)))
+  '((t (:foreground "dark grey" :weight light :slant italic)))
   "face for displaying offline users"
   :group 'jabber-faces)
 
@@ -751,7 +751,7 @@ bring up menus of actions.
 
 (dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
   (let ((send-fun (make-symbol (concat "jabber-groupchat-buffer-send-" (char-to-string key)))))
-    (fset send-fun `(lambda (body) (interactive (list (read-string "" ,(char-to-string key))))
+    (fset send-fun `(lambda (body) (interactive (list (jabber-read-with-input-method "" ,(char-to-string key))))
 		      (jabber-send-groupchat jabber-group body)
 		      (setq buffer-read-only nil)
 		      (goto-char (point-max))
@@ -790,7 +790,7 @@ TIMESTAMP is timestamp, or nil for now."
 
 (dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
   (let ((send-fun (make-symbol (concat "jabber-chat-buffer-send-" (char-to-string key)))))
-    (fset send-fun `(lambda (body) (interactive (list (read-string "" ,(char-to-string key) nil nil t)))
+    (fset send-fun `(lambda (body) (interactive (list (jabber-read-with-input-method "" ,(char-to-string key))))
 		      (jabber-send-chat jabber-chatting-with body)
 		      (setq buffer-read-only nil)
 		      (goto-char (point-max))
