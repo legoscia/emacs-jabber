@@ -23,70 +23,9 @@
 (when (and (featurep 'xemacs) (not (emacs-version>= 21 5 5)))
     (require 'un-define))
 
-;;; guess internal dependencies!
-(require 'jabber-util)
-(require 'jabber-menu)
-(require 'jabber-xml)
-(require 'jabber-core)
-(require 'jabber-logon)
-(require 'jabber-roster)
-(require 'jabber-presence)
-(require 'jabber-alert)
-(require 'jabber-chat)
-(require 'jabber-disco)
-(require 'jabber-iq)
-(require 'jabber-widget)
-(require 'jabber-register)
-(require 'jabber-search)
-(require 'jabber-browse)
-(require 'jabber-muc)
-(require 'jabber-version)
-(require 'jabber-ahc-presence)
-(require 'jabber-modeline)
-(require 'jabber-keepalive)
-(require 'jabber-watch)
-(require 'jabber-activity)
-
-(defvar *jabber-current-status* ""
-  "the users current presence staus")
-
-(defvar *jabber-current-show* ""
-  "the users current presence show")
-
-(defvar *jabber-current-priority* 10
-  "the user's current priority")
-
-(defvar *jabber-status-history* nil
-  "history of status messages")
-
+;;; these customize fields should come first
 (defgroup jabber nil "Jabber instant messaging"
   :group 'applications)
-
-(defgroup jabber-faces nil "faces for displaying jabber instant messaging"
-  :group 'jabber)
-
-(defface jabber-title-small
-  '((t (:weight bold :width semi-expanded :height 1.0)))
-  "face for small titles"
-  :group 'jabber-faces)
-
-(defface jabber-title-medium
-  '((t (:weight bold :width expanded :height 2.0)))
-  "face for medium titles"
-  :group 'jabber-faces)
-
-(defface jabber-title-large
-  '((t (:weight bold :width ultra-expanded :height 3.0)))
-  "face for large titles"
-  :group 'jabber-faces)
-
-(defgroup jabber-debug nil "debugging options"
-  :group 'jabber)
-
-(defcustom jabber-debug-log-xml nil
-  "log all XML i/o in *-jabber-xml-log-*"
-  :type 'boolean
-  :group 'jabber-debug)
 
 (defcustom jabber-username "emacs"
   "jabber username (user part of JID)" 
@@ -143,6 +82,69 @@
   "jabber nickname, used in chat buffer prompts and as default groupchat nickname." 
   :type 'string
   :group 'jabber)
+
+;;; guess internal dependencies!
+(require 'jabber-util)
+(require 'jabber-menu)
+(require 'jabber-xml)
+(require 'jabber-core)
+(require 'jabber-logon)
+(require 'jabber-roster)
+(require 'jabber-presence)
+(require 'jabber-alert)
+(require 'jabber-chat)
+(require 'jabber-disco)
+(require 'jabber-iq)
+(require 'jabber-widget)
+(require 'jabber-register)
+(require 'jabber-search)
+(require 'jabber-browse)
+(require 'jabber-muc)
+(require 'jabber-version)
+(require 'jabber-ahc-presence)
+(require 'jabber-modeline)
+(require 'jabber-keepalive)
+(require 'jabber-watch)
+(require 'jabber-activity)
+
+(defvar *jabber-current-status* ""
+  "the users current presence staus")
+
+(defvar *jabber-current-show* ""
+  "the users current presence show")
+
+(defvar *jabber-current-priority* 10
+  "the user's current priority")
+
+(defvar *jabber-status-history* nil
+  "history of status messages")
+
+(defgroup jabber-faces nil "faces for displaying jabber instant messaging"
+  :group 'jabber)
+
+(defface jabber-title-small
+  '((t (:weight bold :width semi-expanded :height 1.0 :inherit variable-pitch)))
+  "face for small titles"
+  :group 'jabber-faces)
+
+(defface jabber-title-medium
+  '((t (:weight bold :width expanded :height 2.0 :inherit variable-pitch)))
+  "face for medium titles"
+  :group 'jabber-faces)
+
+(defface jabber-title-large
+  '((t (:weight bold :width ultra-expanded :height 3.0 :inherit variable-pitch)))
+  "face for large titles"
+  :group 'jabber-faces)
+
+(defgroup jabber-debug nil "debugging options"
+  :group 'jabber)
+
+(defcustom jabber-debug-log-xml nil
+  "log all XML i/o in *-jabber-xml-log-*"
+  :type 'boolean
+  :group 'jabber-debug)
+
 
 (define-key global-map
   [menu-bar jabber-menu]
