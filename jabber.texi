@@ -124,9 +124,9 @@ not, consult the @file{README} file.  Also, make sure you have
 
 Now, type @kbd{M-x jabber-customize}.  This brings up a customize
 buffer for jabber.el.  The most important variables to customize are
-@code{jabber-username} and @code{jabber-server}.  If for some reason
-the JID of your server is not the same as its network name, change
-@code{jabber-network-server} also.  Save your changes, and type
+@code{jabber-username} and
+@code{jabber-server}.@footnote{@xref{Connection settings}, for other
+things you might have to change.}  Save your changes, and type
 @kbd{M-x jabber-connect} to connect.
 
 If you do not yet have a Jabber account, you can register one.  Enter
@@ -616,6 +616,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @kbd{M-x jabber-customize}.
 
 @menu
+* Account settings::            
 * Connection settings::         
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
@@ -624,13 +625,11 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Debug options::               
 @end menu
 
-@node Connection settings, Customizing the roster buffer, Customization, Customization
-@section Connection settings
+@node Account settings, Connection settings, Customization, Customization
+@section Account settings
 
 @vindex jabber-username
 @vindex jabber-server
-@vindex jabber-network-server
-@vindex jabber-port
 @vindex jabber-password
 @vindex jabber-resource
 @vindex jabber-default-priority
@@ -641,13 +640,6 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @code{jabber-server} is the JID of your server, i.e. the hostname part
 of your JID.  This is usually, but not necessarily, the same as the
 hostname of the server.
-
-@code{jabber-network-server} is the hostname or IP address of your
-server.  If it is set to @code{nil}, jabber.el will use the name in
-@code{jabber-server}.
-
-@code{jabber-port} is the TCP port of the server to connect to.  This
-is 5222 in almost all cases.
 
 @code{jabber-password} is your password.  You have the option to set
 it here, in which case it will be stored in cleartext in your
@@ -665,6 +657,30 @@ priority during a session with @code{jabber-send-presence}.
 @xref{Presence}, for more information on priority.
 
 @code{jabber-nickname} is your default nickname for groupchats.
+
+@node Connection settings, Customizing the roster buffer, Account settings, Customization
+@section Connection settings
+
+@vindex jabber-network-server
+@vindex jabber-port
+@vindex jabber-connection-type
+@cindex SSL
+@cindex TLS
+
+@code{jabber-network-server} is the hostname or IP address of your
+server.  If it is set to @code{nil}, jabber.el will use the name in
+@code{jabber-server}.
+
+@code{jabber-port} is the TCP port of the server to connect to.  If
+@code{nil}, the default port is selected based on the chosen
+connection method.
+
+@code{jabber-connection-type} specifies what kind of connection to
+use.  @code{network} means normal unencrypted network connection
+(usually on port 5222), and @code{ssl} means encrypted connection
+through GnuTLS or OpenSSL (port 5223).  You can change the settings of
+the encryption program through @kbd{M-x customize-group RET tls} or
+@kbd{M-x customize-group RET ssl}, respectively.
 
 @node Customizing the roster buffer, Customizing the chat buffer, Connection settings, Customization
 @section Customizing the roster buffer
@@ -912,7 +928,7 @@ really ugly.}  This function should look like:
 @end example
 
 @var{from} is the JID symbol (@pxref{Roster structure}) and @var{buffer}
-is the buffer where the message is displayed.\footnote{Up to version
+is the buffer where the message is displayed.@footnote{Up to version
 0.6.1 there was a @var{text} argument as well.  If you feel you need
 it, maybe you should write a display function or a message chain
 function (@pxref{Stanza chains}) instead.}
@@ -1367,7 +1383,7 @@ Registration)}.
 JEP-0065 support seems to work, but it is not yet enabled by default.
 
 Currently jabber.el cannot act as a server, not even on on Emacsen
-that support server sockets (GNU Emacs 21.4 and up).  Therefore it
+that support server sockets (GNU Emacs 22 and up).  Therefore it
 relies on proxies.  Proxies have to be entered and queried manually.
 
 Psi's ``fast mode''

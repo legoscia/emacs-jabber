@@ -3,6 +3,9 @@
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
+;; SSL - Support, mostly inspired by Gnus
+;; Copyright (C) 2005 - Georg Lehner - jorge@magma.com.ni
+
 ;; This file is a part of jabber.el.
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,17 +38,6 @@
 (defcustom jabber-server "magaf.org" 
   "jabber server (domain part of JID)" 
   :type 'string
-  :group 'jabber)
-
-(defcustom jabber-network-server nil
-  "hostname or IP address of server to connect to, if different from `jabber-server'."
-  :type '(radio (const :tag "Same as `jabber-server'" nil)
-		(string :tag "Hostname or IP address"))
-  :group 'jabber)
-
-(defcustom jabber-port 5222
-  "jabber port" 
-  :type 'integer
   :group 'jabber)
 
 (defcustom jabber-password nil
@@ -87,6 +79,7 @@
 (require 'jabber-util)
 (require 'jabber-menu)
 (require 'jabber-xml)
+(require 'jabber-conn)
 (require 'jabber-core)
 (require 'jabber-logon)
 (require 'jabber-roster)

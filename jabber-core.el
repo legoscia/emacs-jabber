@@ -3,6 +3,9 @@
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
+;; SSL-Connection Parts:
+;; Copyright (C) 2005 - Georg Lehner - jorge@magma.com.ni
+
 ;; This file is a part of jabber.el.
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -21,15 +24,13 @@
 
 (require 'jabber-util)
 (require 'jabber-logon)
+(require 'jabber-conn)
 
 ;; SASL depends on FLIM.
 (eval-and-compile
   (condition-case nil
       (require 'jabber-sasl)
     (error nil)))
-
-(defvar *jabber-connection* nil
-  "the process that does the actual connection")
 
 (defvar *jabber-roster* nil
   "the roster list")
@@ -125,12 +126,15 @@ With prefix argument, register a new account."
     (setq *xmlq* "")
     (setq *jabber-authenticated* nil)
     (jabber-clear-roster)
-    (let ((coding-system-for-read 'utf-8)
-	  (coding-system-for-write 'utf-8))
-      (setq *jabber-connection* (open-network-stream "jabber"
-						     jabber-roster-buffer
-						     (or jabber-network-server jabber-server)
-						     jabber-port)))
+
+    ;; Call the function responsible for establishing a bidirectional
+    ;; data stream  to the Jabber Server, *jabber-connection* is set
+    ;; afterwards.
+    (jabber-setup-connect-method)
+    (funcall jabber-connect-function)
+    (unless *jabber-connection*
+      (error "Connection failed"))
+
     (set-process-filter *jabber-connection* #'jabber-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
 
@@ -148,14 +152,17 @@ With prefix argument, register a new account."
 				 (if (jabber-have-sasl-p)
 				     " version='1.0'"
 				   "")
-				 ">")))
-      (process-send-string *jabber-connection*
-			   stream-header)
+				 ">
+")))
+
+      (funcall jabber-conn-send-function stream-header)
       (if jabber-debug-log-xml
 	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
 	    (save-excursion
 	      (goto-char (point-max))
-	      (insert (format "sending %S\n\n" stream-header))))))
+	      (insert (format "sending %S\n\n" stream-header)))))
+
+      (accept-process-output *jabber-connection*))
     ;; Next thing happening is the server sending its own <stream:stream> start tag.
     ;; That is handled in jabber-filter.
 
@@ -179,7 +186,7 @@ tag, or nil if we're connecting to a pre-XMPP server."
     (let ((*jabber-disconnecting* t))
       (when (eq (process-status *jabber-connection*) 'open)
 	(run-hooks 'jabber-pre-disconnect-hook)
-	(process-send-string *jabber-connection* "</stream:stream>")
+	(funcall jabber-conn-send-function "</stream:stream>")
 	;; let the server close the stream
 	(accept-process-output *jabber-connection* 3)
 	;; and do it ourselves as well, just to be sure
@@ -213,12 +220,13 @@ Call this function after disconnection."
 
 (defun jabber-filter (process string)
   "the filter function for the jabber process"
+  (setq *xmlq* (concat *xmlq* string))
   (cond
-   ((string-match "^</stream:stream>" string)
+   ((string-match "^</stream:stream>" *xmlq*)
     (jabber-disconnect))
-   ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" string)
-    (let ((stream-header (match-string 1 string))
-	  (rest (match-string 2 string)))
+   ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" *xmlq*)
+    (let ((stream-header (match-string 1 *xmlq*))
+	  (rest (match-string 2 *xmlq*)))
       (setq jabber-session-id
 	    (progn (string-match "id='\\([A-Za-z0-9]+\\)'" stream-header)
 		   (match-string 1 stream-header)))
@@ -240,13 +248,13 @@ Call this function after disconnection."
 	(funcall jabber-call-on-connection nil))
 
       ;; If we got more than the stream header, pass it on.
+      (setq *xmlq* rest)
       (if (not (zerop (length rest)))
-	  (jabber-filter process rest))))
+	  (jabber-filter process ""))))
    (t
     (if (active-minibuffer-window)
         (run-with-idle-timer 0.01 nil #'jabber-filter process string)
       (with-temp-buffer
-        (setq *xmlq* (concat *xmlq* string))
         (if (string-match " \\w+=''" *xmlq*)
             (setq *xmlq* (replace-match "" nil nil *xmlq*)))
 	(unwind-protect
@@ -391,7 +399,7 @@ Call this function after disconnection."
      (ding)
      (message "Couldn't write XML log: %s" (error-message-string e))
      (sit-for 2)))
-  (process-send-string *jabber-connection* (jabber-sexp2xml sexp)))
+  (funcall jabber-conn-send-function (jabber-sexp2xml sexp)))
 
 (provide 'jabber-core)
 

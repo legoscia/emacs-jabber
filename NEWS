@@ -2,6 +2,9 @@
 
 * New features in jabber.el 0.7
 
+** SSL connections possible
+See variable `jabber-connection-type'.
+
 ** Chat buffers rewritten
 New modular design gives increased extensibility.
 (Not documented yet)

@@ -93,11 +93,11 @@
       (jabber-sasl-stop)
 
       ;; Now, we send another stream header.
-      (process-send-string *jabber-connection*
-			   (concat
-			    "<stream:stream to='"
-			    jabber-server
-			    "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"))
+      (funcall jabber-conn-send-function
+	       (concat
+		"<stream:stream to='"
+		jabber-server
+		"' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"))
       ;; now see what happens
 ))))
 
