@@ -27,7 +27,6 @@
 
 (defvar jabber-ft-size nil
   "Size of the file that is being downloaded")
-(make-variable-buffer-local 'jabber-ft-size)
 
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si/profile/file-transfer")
 
@@ -78,6 +77,7 @@
 	(if (fboundp 'set-buffer-multibyte)
 	    (set-buffer-multibyte nil))
 	(set-visited-file-name file-name t)
+	(make-local-variable 'jabber-ft-size)
 	(setq jabber-ft-size (string-to-number size)))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
