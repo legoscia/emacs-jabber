@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.6 2004/03/31 10:47:54 legoscia Exp $
+;; $Id: jabber-core.el,v 1.7 2004/03/31 10:48:44 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -176,8 +176,8 @@ With prefix argument, register a new account."
       (funcall f xml-data))))
 
 (defun jabber-clear-roster ()
-  "Clean up the roster.
-This is made complicated by the fact that the JIDs are symbols with properties."
+  "Clean up the roster."
+  ;; This is made complicated by the fact that the JIDs are symbols with properties.
   (mapatoms #'(lambda (x)
 		(unintern x jabber-jid-obarray))
 	    jabber-jid-obarray)
