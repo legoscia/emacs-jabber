@@ -184,7 +184,7 @@ tag, or nil if we're connecting to a pre-XMPP server."
   (interactive)
   (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
-      (when (eq (process-status *jabber-connection*) 'open)
+      (when (memq (process-status *jabber-connection*) '(open run))
 	(run-hooks 'jabber-pre-disconnect-hook)
 	(funcall jabber-conn-send-function "</stream:stream>")
 	;; let the server close the stream
