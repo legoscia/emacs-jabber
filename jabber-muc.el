@@ -190,6 +190,12 @@ Return nil if nothing known about that combination."
   (jabber-groupchat-display group))
 
 (add-to-list 'jabber-jid-muc-menu
+	     (cons "Change nickname" 'jabber-muc-nick))
+
+(defalias 'jabber-muc-nick 'jabber-groupchat-join
+  "Change nickname in MUC room.")
+
+(add-to-list 'jabber-jid-muc-menu
 	     (cons "Leave groupchat" 'jabber-groupchat-leave))
 
 (defun jabber-groupchat-leave (group)
