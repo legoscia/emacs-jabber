@@ -1,8 +1,8 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.7 2004/02/11 21:37:28 legoscia Exp $
+@c $Id: jabber.texi,v 1.8 2004/02/16 21:03:17 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.4
+@settitle jabber.el manual 0.4.1
 @c %**end of header
 @syncodeindex fn cp
 
@@ -12,7 +12,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.4.
+This manual is for jabber.el, version 0.4.1.
 
 Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
 
@@ -230,11 +230,13 @@ list of the contacts on your roster.
 In the roster buffer, any command which requires a JID will default to
 the JID under point when called.  These commands can be called through
 either keyboard menus or mouse menus.  To open a menu with the mouse,
-simply press the second mouse button over the JID in question.  This
-will bring up a menu with all available actions.  The keyboard menus
-are split into categories: Chat, Roster, Information, MUC (Multi-User
-Chat, or groupchat) and Services, opened by @kbd{C-c C-c}, @kbd{C-c
-C-r}, @kbd{C-c C-i}, @kbd{C-c C-m} and @kbd{C-c C-s}, respectively.
+simply press the second mouse button over the JID in
+question.@footnote{For some reason, mouse menus don't work in XEmacs.
+Patches welcome.}  This will bring up a menu with all available
+actions.  The keyboard menus are split into categories: Chat, Roster,
+Information, MUC (Multi-User Chat, or groupchat) and Services, opened
+by @kbd{C-c C-c}, @kbd{C-c C-r}, @kbd{C-c C-i}, @kbd{C-c C-m} and
+@kbd{C-c C-s}, respectively.
 
 You can call @code{jabber-display-roster} to redisplay your roster
 according to changed preferences (@pxref{Customizing the roster
