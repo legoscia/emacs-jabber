@@ -24,6 +24,56 @@
 (require 'jabber-alert)
 (require 'jabber-keymap)
 
+(defgroup jabber-roster nil "roster display options"
+  :group 'jabber)
+
+(defcustom jabber-roster-line-spacing 0
+  "Number of empty lines between roster items"
+  :type 'integer
+  :group 'jabber-roster)
+
+(defcustom jabber-show-resources 'sometimes
+  "Show resources in roster?"
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "When more than one connected resource" sometimes)
+		(const :tag "Always" always))
+  :group 'jabber)
+
+(defface jabber-roster-user-online
+  '((t (:foreground "blue" :weight bold :slant normal)))
+  "face for displaying online users"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-xa
+  '((t (:foreground "black" :weight normal :slant italic)))
+  "face for displaying extended away users"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-dnd
+  '((t (:foreground "red" :weight normal :slant italic)))
+  "face for displaying do not disturb users"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-away
+  '((t (:foreground "dark green" :weight normal :slant italic)))
+  "face for displaying away users"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-chatty
+  '((t (:foreground "dark orange" :weight bold :slant normal)))
+  "face for displaying chatty users"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-error
+  '((t (:foreground "red" :weight light :slant italic)))
+  "face for displaying users sending presence errors"
+  :group 'jabber-roster)
+
+(defface jabber-roster-user-offline
+  '((t (:foreground "dark grey" :weight light :slant italic)))
+  "face for displaying offline users"
+  :group 'jabber-roster)
+
 (defvar jabber-roster-mode-map (copy-keymap jabber-common-keymap))
 
 (defun jabber-roster-mode ()
@@ -117,7 +167,7 @@ bring up menus of actions.
 		       (> (jabber-count-connected-resources buddy) 1)))
 	  (dolist (resource (get buddy 'resources))
 	    (when (plist-get (cdr resource) 'connected)
-	      (let ((resource-str (concat " * "
+	      (let ((resource-str (concat "     "
 					  (if (> (length (car resource)) 0)
 					      (car resource)
 					    "empty")
@@ -137,7 +187,7 @@ bring up menus of actions.
 				      (format "%s/%s" (symbol-name buddy) (car resource)))
 				     resource-str)
 		(insert resource-str "\n")))))
-	(insert "\n"))
+	(insert (make-string jabber-roster-line-spacing ?\n)))
     (insert "__________________________________")
     (goto-char (point-min))
     (setq buffer-read-only t)

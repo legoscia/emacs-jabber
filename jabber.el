@@ -76,41 +76,6 @@
   "face for large titles"
   :group 'jabber-faces)
 
-(defface jabber-roster-user-online
-  '((t (:foreground "blue" :weight bold :slant normal)))
-  "face for displaying online users"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-xa
-  '((t (:foreground "black" :weight normal :slant italic)))
-  "face for displaying extended away users"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-dnd
-  '((t (:foreground "red" :weight normal :slant italic)))
-  "face for displaying do not disturb users"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-away
-  '((t (:foreground "dark green" :weight normal :slant italic)))
-  "face for displaying away users"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-chatty
-  '((t (:foreground "dark orange" :weight bold :slant normal)))
-  "face for displaying chatty users"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-error
-  '((t (:foreground "red" :weight light :slant italic)))
-  "face for displaying users sending presence errors"
-  :group 'jabber-faces)
-
-(defface jabber-roster-user-offline
-  '((t (:foreground "dark grey" :weight light :slant italic)))
-  "face for displaying offline users"
-  :group 'jabber-faces)
-
 (defface jabber-chat-prompt-local
   '((t (:foreground "blue" :weight bold)))
   "face for displaying the chat prompt for what you type in"
@@ -180,13 +145,6 @@
   "Sort by status in this order.  Anything not in list goes last.
 Offline is represented as nil."
   :type '(repeat (restricted-sexp :match-alternatives (stringp nil)))
-  :group 'jabber)
-
-(defcustom jabber-show-resources 'sometimes
-  "Show resources in roster?"
-  :type '(radio (const :tag "Never" nil)
-		(const :tag "When more than one connected resource" sometimes)
-		(const :tag "Always" always))
   :group 'jabber)
 
 (define-key global-map
