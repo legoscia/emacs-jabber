@@ -592,6 +592,7 @@ the resource.
 @vindex jabber-chat-foreign-prompt-format
 @vindex jabber-chat-prompt-local
 @vindex jabber-chat-prompt-foreign
+@vindex jabber-chat-header-line-format
 
 You can customize the look of the prompts in the chat buffer.  There
 are separate settings for local (i.e. your own messages) and foreign
@@ -620,6 +621,12 @@ The bare JID of the user
 format is identical to that passed to @code{format-time-string}.
 @xref{Time Conversion, , Time Conversion, elisp, GNU Emacs Lisp
 Reference Manual}.
+
+You can also customize the header line of chat buffers, by modifying
+the variable @code{jabber-chat-header-line-format}.  The format of
+that variable is the same as that of @code{mode-line-format} and
+@code{header-line-format}.  @xref{Mode Line Format, , Mode-Line
+Format, elisp, GNU Emacs Lisp Reference Manual}.
 
 @node Customizing alerts, Hooks, Customizing the chat buffer, Customization
 @section Customizing alerts
