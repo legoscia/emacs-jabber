@@ -91,6 +91,11 @@ Return nil if nothing known about that combination."
 			      t
 			      jabber-group))
 
+(defun jabber-muc-read-nickname (group prompt)
+  "Read the nickname of a participant in GROUP."
+  (let ((nicknames (cdr (assoc group jabber-muc-participants))))
+    (completing-read prompt nicknames nil t)))
+
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (group)
