@@ -1,3 +1,10 @@
+emacs-jabber (0.6) unstable; urgency=low
+
+  * Chat buffer no longer uses minibuffer
+  * Roster and chat buffer prompts are customizable
+
+ -- Magnus Henoch <mange@freemail.hu>  Sat, 16 Oct 2004 21:11:58 +0200
+
 emacs-jabber (0.5.1) unstable; urgency=low
 
   * Nicknames are accepted where JIDs are accepted.
