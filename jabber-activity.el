@@ -21,11 +21,10 @@
 
 ;;; Commentary:
 
-;; Allows tracking messages from buddys using the global mode line
+;; Allows tracking messages from buddies using the global mode line
 
 ;;; TODO:
 
-;; - Disconnect hook which removes us from the global-mode-string?
 ;; - Add a hook which notifies the user about unread messages when she
 ;;   tries to close emacs
 
@@ -45,7 +44,7 @@ line.  The default function returns the nick of the user."
   :group 'jabber-activity)
 
 (defcustom jabber-activity-show-p 'jabber-activity-show-p-default
-  "Predicate function to call to check if the given jid should be
+  "Predicate function to call to check if the given JID should be
 shown in the mode line or not."
   :type 'function
   :group 'jabber-activity)
@@ -58,15 +57,15 @@ shown in the mode line or not."
 (defvar jabber-activity-jids nil
   "A list of JIDs which have caused activity")
 
-;; Protect this variable from beeing set in Local variables etc.
+;; Protect this variable from being set in Local variables etc.
 (put 'jabber-activity-mode-string 'risky-local-variable t)
 
 (defvar jabber-activity-mode-string ""
   "The mode string for jabber activity")
 
 (defun jabber-activity-make-string-default (jid)
-  "Return the nick of the JID.  If no nick is available, return
-the username part of the JID."
+  "Return the nick of the JID.	If no nick is available, return
+the user name part of the JID."
   (let ((nick (jabber-jid-displayname jid))
 	(user (jabber-jid-user jid))
 	(username (jabber-jid-username jid)))
@@ -95,7 +94,8 @@ on JIDs where `jabber-activity-show-p'"
 
 (defun jabber-activity-clean ()
   "Remove JIDs where `jabber-activity-show-p' no longer is true"
-  (setq jabber-activity-jids (delete-if-not jabber-activity-show-p jabber-activity-jids))
+  (setq jabber-activity-jids (delete-if-not jabber-activity-show-p
+					    jabber-activity-jids))
   (jabber-activity-mode-line-update))
 
 (defun jabber-activity-add (from buffer text proposed-alert)
