@@ -196,7 +196,7 @@ It can be called both interactively and in Lisp code.  For the latter
 case, use something like @code{(jabber-send-presence "away" "idle for
 10 minutes" 10)}.
 
-With jabber.el, you can set your presence remotely.  @ref{Ad-Hoc Commands}.
+With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 
 @node Presence subscription, Roster buffer, Presence, Basic operation
 @section Presence subscription
