@@ -133,17 +133,16 @@ JID-REGEXP is a regexp which must match the JID."
   "Insert some context from previous chats.
 This function is to be called from a chat buffer."
   (interactive)
-  (let (jabber-backlog-p)		; disable hooks further down
-    (dolist (msg (jabber-history-query 
-		  '> (- (float-time) (* jabber-backlog-days 86400.0))
-		  jabber-backlog-number
-		  t			; both incoming and outgoing
-		  (concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
-      (if (string= (aref msg 1) "in")
-	  (jabber-chat-print (aref msg 2) (aref msg 4) (jabber-parse-time (aref msg 0))
-			     jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
-	(jabber-chat-print nil (aref msg 4) (jabber-parse-time (aref msg 0))
-			   jabber-chat-local-prompt-format 'jabber-chat-prompt-local)))))
+  (dolist (msg (jabber-history-query 
+		'> (- (float-time) (* jabber-backlog-days 86400.0))
+		jabber-backlog-number
+		t			; both incoming and outgoing
+		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
+    (if (string= (aref msg 1) "in")
+	(jabber-chat-print (aref msg 2) (aref msg 4) (jabber-parse-time (aref msg 0))
+			   jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
+      (jabber-chat-print nil (aref msg 4) (jabber-parse-time (aref msg 0))
+			 jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
 
 (provide 'jabber-history)
 

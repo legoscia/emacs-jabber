@@ -263,8 +263,7 @@ TIMESTAMP is timestamp, or nil for now."
  
     (goto-char (point-max))
 
-    (unless (boundp 'jabber-backlog-p)
-      (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body)))))
+    (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))
 
 (defun jabber-chat-print (from body timestamp prompt-format prompt-face)
   "Format and print a message in the current chat buffer.
