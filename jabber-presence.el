@@ -38,7 +38,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(type (jabber-xml-get-attribute xml-data 'type))
 	(id (jabber-xml-get-attribute xml-data 'id)))
     (if (not (or (null from)
-		 (string= (jabber-jid-user from) (concat jabber-username "@" jabber-server))))
+		 (string= from (concat jabber-username "@" jabber-server))
+		 (string= from (concat jabber-username "@" jabber-server "/" jabber-resource))))
 	(message "Roster push with invalid \"from\": \"%s\"" from)
 
       ;; If *jabber-roster* is empty, we just fill up the roster with
