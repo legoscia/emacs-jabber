@@ -429,6 +429,7 @@ and BUFFER, a buffer containing the result."
    (cons 'jid-malformed "JID malformed")
    (cons 'not-acceptable "Not acceptable")
    (cons 'not-allowed "Not allowed")
+   (cons 'not-authorized "Not authorized")
    (cons 'payment-required "Payment required")
    (cons 'recipient-unavailable "Recipient unavailable")
    (cons 'redirect "Redirect")
