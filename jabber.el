@@ -179,6 +179,13 @@ Offline is represented as nil."
   :type '(repeat (restricted-sexp :match-alternatives (stringp nil)))
   :group 'jabber)
 
+(defcustom jabber-show-resources 'sometimes
+  "Show resources in roster?"
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "When more than one connected resource" sometimes)
+		(const :tag "Always" always))
+  :group 'jabber)
+
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
@@ -876,6 +883,15 @@ The query child is often but not always <query/>."
 		    (put buddy 'status (plist-get resource-plist 'status))))))
 	  resource-alist)))
 
+(defun jabber-count-connected-resources (buddy)
+  "Return the number of connected resources for BUDDY."
+  (let ((resource-alist (get buddy 'resources))
+	(count 0))
+    (dolist (resource resource-alist)
+      (if (plist-get (cdr resource) 'connected)
+	  (setq count (1+ count))))
+    count))
+
 (defun jabber-popup-menu ()
   "Popup menu of things commonly done to JIDs"
   (interactive)
@@ -953,7 +969,34 @@ The query child is often but not always <query/>."
 ;; 			     'keymap 
 ;; 			     map
 ;; 			     buddy-str))
-	(insert buddy-str "\n\n")))
+	(insert buddy-str "\n"))
+
+	(when (or (eq jabber-show-resources 'always)
+		  (and (eq jabber-show-resources 'sometimes)
+		       (> (jabber-count-connected-resources buddy) 1)))
+	  (dolist (resource (get buddy 'resources))
+	    (when (plist-get (cdr resource) 'connected)
+	      (let ((resource-str (concat " * "
+					  (if (> (length (car resource)) 0)
+					      (car resource)
+					    "empty")
+					  (format " - %s" (or
+							   (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
+							   (plist-get (cdr resource) 'show)))
+					  (if (plist-get (cdr resource) 'status)
+					      (format " (%s)" (plist-get (cdr resource) 'status)))
+					  (format ", priority %d" (plist-get (cdr resource) 'priority)))))
+		(add-text-properties 0
+				     (length resource-str)
+				     (list
+				      'face
+				      (or (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-faces))
+					  'jabber-roster-user-online)
+				      'jabber-jid
+				      (format "%s/%s" (symbol-name buddy) (car resource)))
+				     resource-str)
+		(insert resource-str "\n")))))
+	(insert "\n"))
     (insert "__________________________________")
     (goto-char (point-min))
     (setq buffer-read-only t)
