@@ -66,6 +66,7 @@
     (let* ((file-name (read-file-name "Download to: " nil nil nil name))
 	   (buffer (create-file-buffer file-name)))
       (with-current-buffer buffer
+	(setq buffer-file-coding-system 'binary)
 	(set-visited-file-name file-name t))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
