@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.7 2004/03/31 10:48:44 legoscia Exp $
+;; $Id: jabber-core.el,v 1.8 2004/04/02 19:13:58 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -110,7 +110,9 @@ With prefix argument, register a new account."
   (when (eq (process-status *jabber-connection*) 'open)
     (run-hooks 'jabber-disconnect-hook)
     (process-send-string *jabber-connection* "</stream:stream>")
-    (delete-process *jabber-connection*))
+    ;; let the server close the stream
+    (unless (accept-process-output *jabber-connection* 3)
+      (delete-process *jabber-connection*)))
   (kill-buffer (process-buffer *jabber-connection*))
   (jabber-clear-roster)
   (setq *xmlq* "")
