@@ -509,6 +509,8 @@ respectively.
 
 @cindex Activity
 @findex jabber-activity-mode
+@vindex jabber-activity-make-strings
+@vindex jabber-activity-query-unread
 
 When you're working on something important you might want to delay
 responding to incoming messages.  However, when you're done working,
@@ -521,6 +523,14 @@ track of the buddies which have messages you since last you visited
 their buffer, and will display them in mode line.  As soon as you
 visit their buffer they disappear from the mode line, indicating that
 you've read their message.
+
+If your mode line fills over because of these notifications, you can
+customize @code{jabber-activity-make-strings} to shorten them to the
+shortest possibly unamiguous form.
+
+If you try to exit Emacs while you still have unread messages, you
+will be notified and asked about this.  If you don't like that, set
+@code{jabber-activity-query-unread} to nil.
 
 @node Watch buddies, Customization, Tracking activity, Top
 @chapter Watch buddies
