@@ -1142,20 +1142,23 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   ;; This function assumes that all search results come in one packet,
   ;; which is not necessarily the case.
   (let ((query (jabber-iq-query xml-data))
-	(have-xdata nil))
+	(have-xdata nil)
+	xdata fields (jid-fields 0))
 
     ;; First, check for results in jabber:x:data form.
     (dolist (x (jabber-xml-get-children query 'x))
       (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
 	(setq have-xdata t)
-	
-	(let ((title (car (jabber-xml-get-children x 'title))))
+	(setq xdata x)))
+
+    (if have-xdata
+	(let ((title (car (jabber-xml-get-children xdata 'title))))
 	  (when title
 	    (insert (propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
+      (insert (propertize "Search results" 'face 'jabber-title-medium) "\n"))
 	
-	(let ((reported (car (jabber-xml-get-children x 'reported)))
-	      (jid-fields 0)
-	      fields
+    (if have-xdata
+	(let ((reported (car (jabber-xml-get-children xdata 'reported)))
 	      (column 0))
 	  (dolist (field (jabber-xml-get-children reported 'field))
 	    (let (width)
@@ -1171,20 +1174,29 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 				       'column column)))))
 	      (setq column (+ column width))
 	      (if (string= (jabber-xml-get-attribute field 'type) "jid-single")
-		  (setq jid-fields (1+ jid-fields)))))
+		  (setq jid-fields (1+ jid-fields))))))
+      (setq fields '((first . (label "First name" column 0))
+		     (last . (label "Last name" column 15))
+		     (nick . (label "Nickname" column 30))
+		     (jid . (label "JID" column 45))
+		     (email . (label "E-mail" column 65))))
+      (setq jid-fields 1))
 
-	  (dolist (field-cons fields)
-	    (indent-to (plist-get (cdr field-cons) 'column) 1)
-	    (insert (propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
-	  (insert "\n\n")
+    (dolist (field-cons fields)
+      (indent-to (plist-get (cdr field-cons) 'column) 1)
+      (insert (propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
+    (insert "\n\n")
 
-	  ;; Now, the items
-	  (dolist (item (jabber-xml-get-children x 'item))
-	    (let ((start-of-line (point))
-		  jid)
+    ;; Now, the items
+    (dolist (item (if have-xdata
+		      (jabber-xml-get-children xdata 'item)
+		    (jabber-xml-get-children query 'item)))
+      (let ((start-of-line (point))
+	    jid)
+
+	(if have-xdata
 	      ;; The following code assumes that the order of the <field/>s in each
-	      ;; <item/> is reasonable.  Theoretically it could be different to the
-	      ;; order in the <reported/> tag.
+	      ;; <item/> is the same as in the <reported/> tag.
 	      (dolist (field (jabber-xml-get-children item 'field))
 		(let ((field-plist (cdr (assoc (jabber-xml-get-attribute field 'var) fields)))
 		      (value (car (jabber-xml-node-children (car (jabber-xml-get-children field 'value))))))
@@ -1200,13 +1212,19 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			(setq jid value)
 			(insert value))
 		    (insert value))))
-	      (if jid
-		  (put-text-property start-of-line (point)
-				     'jabber-jid jid))
-	      (insert "\n"))))))
 
-    (if (not have-xdata)
-	(insert "Processing of legacy search results not yet implemented... sorry.\n"))))
+	  (dolist (field-cons fields)
+	    (let ((field-plist (cdr field-cons))
+		  (value (if (eq (car field-cons) 'jid) 
+			     (setq jid (jabber-xml-get-attribute item 'jid))
+			   (car (jabber-xml-node-children (car (jabber-xml-get-children item (car field-cons))))))))
+	      (indent-to (plist-get field-plist 'column) 1)
+	      (if value (insert value)))))
+	      
+	(if jid
+	    (put-text-property start-of-line (point)
+			       'jabber-jid jid))
+	(insert "\n")))))
 
 (defun jabber-process-browse (xml-data)
   "Handle results from jabber:iq:browse requests."
