@@ -112,13 +112,19 @@ These fields are available:
       (put-text-property (point-min) (point-max) 'read-only t)
       (put-text-property (point-min) (point-max) 'front-sticky t)
       (put-text-property (point-min) (point-max) 'rear-nonsticky t))))
-  
+
+(defun jabber-chat-get-buffer (chat-with)
+  "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
+If there is no such buffer, one is created and properly set up."
+  (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname chat-with) "-*"))
+    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
+    (setq jabber-chatting-with chat-with)
+    (current-buffer)))
+
 (defun jabber-chat-display (from body &optional timestamp)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
-  (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname from) "-*"))
-    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
-    
+  (with-current-buffer (jabber-chat-get-buffer from)
     (goto-char jabber-point-insert)
 
     (let ((inhibit-read-only t))
@@ -137,12 +143,6 @@ TIMESTAMP is timestamp, or nil for now."
  
     (goto-char (point-max))
 
-    ;; The following means that whenever you receive a message from the
-    ;; person you are chatting with, the resource to which messages from
-    ;; the current chat buffer will be sent is updated.  This may or may
-    ;; not be what you want.
-    (if from
-	(setq jabber-chatting-with from))
     (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))
 
 (add-to-list 'jabber-jid-chat-menu
@@ -168,7 +168,7 @@ TIMESTAMP is timestamp, or nil for now."
 (defun jabber-chat-with (jid)
   "open an empty chat window for chatting with JID"
   (interactive (list (jabber-read-jid-completing "chat with:")))
-  (jabber-chat-display jid nil))
+  (switch-to-buffer (jabber-chat-get-buffer jid)))
 
 (defun jabber-chat-with-jid-at-point ()
   "Start chat with JID at point.
@@ -177,7 +177,7 @@ Signal an error if there is no JID at point."
   (let ((jid-at-point (get-text-property (point)
 					 'jabber-jid)))
     (if jid-at-point
-	(jabber-chat-display jid-at-point nil)
+	(jabber-chat-with jid-at-point)
       (error "No contact at point"))))
 
 (defun jabber-groupchat-mode ()

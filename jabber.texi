@@ -162,14 +162,10 @@ default value when you are asked for whom to chat with.
 You can also use the function @code{jabber-chat-with}, which is what
 the menu item is bound to.
 
-Now, try opening a chat with someone.  In the default configuration,
-you will hear a beep and see ``Message from @var{person}'' in the echo
-area.@footnote{@xref{Customizing alerts}, to see how to change this.}
-This is exactly the same message you receive if the other
-person sends a message to you.  In any case, go to the buffer
-@code{*-jabber-chat-:-@var{person}-*} and start chatting.  Type your
-message at the end of the buffer, and hit @kbd{RET} to send it.  To
-include a newline in your message, use @kbd{C-j}.
+Now, try opening a chat with someone.  A buffer named
+@code{*-jabber-chat-:-@var{person}-*} will be created and selected.
+Type your message at the end of the buffer, and hit @kbd{RET} to send
+it.  To include a newline in your message, use @kbd{C-j}.
 
 @node Presence, Presence subscription, Chatting, Basic operation
 @section Presence
