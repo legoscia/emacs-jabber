@@ -1,5 +1,5 @@
 ;; jabber-roster.el - displaying the roster
-;; $Id: jabber-roster.el,v 1.5 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-roster.el,v 1.6 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -23,8 +23,9 @@
 (require 'jabber-presence)
 (require 'jabber-util)
 (require 'jabber-alert)
+(require 'jabber-keymap)
 
-(defvar jabber-roster-mode-map nil)
+(defvar jabber-roster-mode-map (copy-keymap jabber-common-keymap))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
@@ -38,18 +39,6 @@ bring up menus of actions.
   (setq buffer-read-only t))
 
 (put 'jabber-roster-mode 'mode-class 'special)
-
-;;; Maybe this should be put somewhere centralized.  As it is now,
-;;; both jabber-browse-mode and jabber-chat-mode use this.
-(unless jabber-roster-mode-map
-  (setq jabber-roster-mode-map (make-sparse-keymap))
-  (define-key jabber-roster-mode-map "\C-c\C-c" 'jabber-popup-chat-menu)
-  (define-key jabber-roster-mode-map "\C-c\C-r" 'jabber-popup-roster-menu)
-  (define-key jabber-roster-mode-map "\C-c\C-i" 'jabber-popup-info-menu)
-  (define-key jabber-roster-mode-map "\C-c\C-m" 'jabber-popup-muc-menu)
-  (define-key jabber-roster-mode-map "\C-c\C-s" 'jabber-popup-service-menu)
-  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu)
-  )
 
 (defun jabber-sort-roster ()
   "sort roster according to online status"

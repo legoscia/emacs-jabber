@@ -1,5 +1,5 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.5 2004/03/29 23:12:42 legoscia Exp $
+;; $Id: jabber-chat.el,v 1.6 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,7 +21,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-core)
-(require 'jabber-roster)		;for keymap
+(require 'jabber-keymap)
 (require 'jabber-util)
 
 (defvar jabber-chatting-with nil
@@ -45,7 +45,7 @@
 
 (put 'jabber-chat-mode 'mode-class 'special)
 
-(defvar jabber-chat-mode-map (copy-keymap jabber-roster-mode-map))
+(defvar jabber-chat-mode-map (copy-keymap jabber-common-keymap))
 
 (dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
   (let ((send-fun (make-symbol (concat "jabber-chat-buffer-send-" (char-to-string key)))))
@@ -118,7 +118,7 @@ TIMESTAMP is timestamp, or nil for now."
 
 (put 'jabber-groupchat-mode 'mode-class 'special)
 
-(defvar jabber-groupchat-mode-map (copy-keymap jabber-roster-mode-map))
+(defvar jabber-groupchat-mode-map (copy-keymap jabber-common-keymap))
 
 (dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
   (let ((send-fun (make-symbol (concat "jabber-groupchat-buffer-send-" (char-to-string key)))))

@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.8 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.9 2004/03/29 23:13:47 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -22,6 +22,7 @@
 
 (require 'jabber-core)
 (require 'jabber-util)
+(require 'jabber-keymap)
 
 (defvar *jabber-open-info-queries* nil
   "an alist of open query id and their callback functions")
@@ -32,7 +33,7 @@
 (defvar jabber-iq-set-xmlns-alist nil
   "Mapping from XML namespace to handler for IQ SET requests.")
 
-(defvar jabber-browse-mode-map (copy-keymap jabber-roster-mode-map))
+(defvar jabber-browse-mode-map (copy-keymap jabber-common-keymap))
 
 (defun jabber-browse-mode ()
 "\\{jabber-browse-mode-map}"
