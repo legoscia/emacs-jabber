@@ -284,9 +284,9 @@ FROM is the full JID of sender, or nil if it's our user."
 					       
     (setq jabber-point-insert (point))
     (set-text-properties jabber-point-insert (point-max) nil)
-    (put-text-property (point-min) (point-max) 'read-only t)
-    (put-text-property (point-min) (point-max) 'front-sticky t)
-    (put-text-property (point-min) (point-max) 'rear-nonsticky t)))
+    (put-text-property (point-min) jabber-point-insert 'read-only t)
+    (put-text-property (point-min) jabber-point-insert 'front-sticky t)
+    (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t)))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
