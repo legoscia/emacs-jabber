@@ -43,6 +43,7 @@
 (require 'jabber-version)
 (require 'jabber-ahc-presence)
 (require 'jabber-modeline)
+(require 'jabber-keepalive)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
