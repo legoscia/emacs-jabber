@@ -171,7 +171,7 @@
 	       jabber-widget-alist))))
       (when desc
 	(widget-insert "\n" (car (jabber-xml-node-children desc))))
-      (widget-insert "\n\n"))))
+      (widget-insert "\n"))))
 
 (defun jabber-parse-xdata-form ()
   "Return an <x/> tag containing information entered in the widgets of the current buffer."
