@@ -1109,7 +1109,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
 (defun jabber-process-data (xml-data closure-data)
   "Process random results from various requests."
-  (let ((from (jabber-xml-get-attribute xml-data 'from))
+  (let ((from (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
 	(xmlns (jabber-iq-xmlns xml-data))
 	(type (jabber-xml-get-attribute xml-data 'type)))
     (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
@@ -1302,7 +1302,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (make-local-variable 'jabber-widget-alist)
     (make-local-variable 'jabber-submit-to)
     (setq jabber-widget-alist nil)
-    (setq jabber-submit-to (jabber-xml-get-attribute xml-data 'from))
+    ;; If there is no `from' attribute, we are registering with the server
+    (setq jabber-submit-to (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
     (setq buffer-read-only nil)
 
     ;; This is because data from other queries would otherwise be
@@ -1332,7 +1333,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (jabber-send-iq jabber-submit-to
 		    "set"
 		    `(query ((xmlns . "jabber:iq:register"))
-			    @,(jabber-parse-register-form "jabber:iq:register"))
+			    ,@(jabber-parse-register-form))
 		    handler (if jabber-register-p 'success text)
 		    handler (if jabber-register-p 'failure text)))
 
@@ -1411,27 +1412,31 @@ See JEP-0030."
 				  (username () ,jabber-username)
 				  ,auth
 				  (resource () ,jabber-resource))
-			  #'jabber-process-logon nil
-			  #'jabber-report-success "Logon")
+			  #'jabber-process-logon t
+			  #'jabber-process-logon nil)
 	(jabber-disconnect))))
    (t
     (error "Logon error ended up the wrong place"))))
 	
 (defun jabber-process-logon (xml-data closure-data)
-  "receive login success, and request roster."
-  (cond 
-   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
-    (jabber-send-iq jabber-server
-                    "get" 
-                    '(query ((xmlns . "jabber:iq:roster")))
-                    #'jabber-process-roster 'initial
-		    #'jabber-report-success "Roster retrieval")
+  "receive login success or failure, and request roster.
+CLOSURE-DATA should be t on success and nil on failure."
+  (if closure-data
+      ;; Logon success
+      (progn
+	(jabber-send-iq jabber-server
+			"get" 
+			'(query ((xmlns . "jabber:iq:roster")))
+			#'jabber-process-roster 'initial
+			#'jabber-report-success "Roster retrieval")
 
-    ;; You are by no means forced to send presence when connected.
-    ;;(jabber-send-sexp '((presence)))
-    )
-   (t
-    (error "Logon error ended up in the wrong place"))))
+	;; You are by no means forced to send presence when connected.
+	;;(jabber-send-sexp '((presence)))
+	)
+
+    ;; Logon failure
+    (jabber-report-success xml-data "Logon")
+    (jabber-disconnect)))
 
 (defun jabber-process-register-secondtime (xml-data closure-data)
   "Receive registration success or failure.
