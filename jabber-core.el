@@ -182,14 +182,14 @@ Call this function after disconnection."
   (when (and (processp *jabber-connection*)
 	     (process-buffer *jabber-connection*))
     (kill-buffer (process-buffer *jabber-connection*)))
-  (run-hooks 'jabber-post-disconnect-hook)
   (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *xmlq* "")
   (setq *jabber-authenticated* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
-  (setq jabber-session-id nil))
+  (setq jabber-session-id nil)
+  (run-hooks 'jabber-post-disconnect-hook))
 
 (defun jabber-sentinel (process event)
   "alert user about lost connection"
