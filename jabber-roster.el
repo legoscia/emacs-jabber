@@ -45,6 +45,16 @@ Offline is represented as nil."
 		(const :tag "Always" always))
   :group 'jabber-roster)
 
+(defcustom jabber-remove-newlines t
+  "Remove newlines in status messages?
+Newlines in status messages mess up the roster display.  However,
+they are essential to status message poets.  Therefore, you get to
+choose the behaviour.
+
+Trailing newlines are always removed, regardless of this variable."
+  :type 'boolean
+  :group 'jabber-roster)
+
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
   "face for displaying online users"
@@ -105,6 +115,15 @@ bring up menus of actions.
 		    (> (length (member a-show jabber-sort-order))
 		       (length (member b-show jabber-sort-order))))))))
 
+(defun jabber-fix-status (status)
+  "Make status strings more readable"
+  (when (string-match "\n+$" status)
+    (setq status (replace-match "" t t status)))
+  (when jabber-remove-newlines
+    (while (string-match "\n" status)
+      (setq status (replace-match " " t t status))))
+  status)
+
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
@@ -120,7 +139,7 @@ bring up menus of actions.
 						 (cdr (assoc *jabber-current-show* jabber-presence-strings)))
 					 (if (not (zerop (length *jabber-current-status*)))
 					     (format " (%s)"
-						     *jabber-current-status*))
+						     (jabber-fix-status *jabber-current-status*)))
 					 " -")
 				 'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
 					   'jabber-roster-user-online)
@@ -140,7 +159,7 @@ bring up menus of actions.
 						(cdr (assoc (get buddy 'show) jabber-presence-strings))
 						(get buddy 'show)))
 			       (if (get buddy 'status)
-				   (format " (%s)" (get buddy 'status)))
+				   (format " (%s)" (jabber-fix-status (get buddy 'status))))
 			       (if jabber-debug-roster
 				   (format " --- [%S] ---" (symbol-plist buddy)))
 			       )))
@@ -181,7 +200,7 @@ bring up menus of actions.
 							   (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
 							   (plist-get (cdr resource) 'show)))
 					  (if (plist-get (cdr resource) 'status)
-					      (format " (%s)" (plist-get (cdr resource) 'status)))
+					      (format " (%s)" (jabber-fix-status (plist-get (cdr resource) 'status))))
 					  (format ", priority %d" (plist-get (cdr resource) 'priority)))))
 		(add-text-properties 0
 				     (length resource-str)
