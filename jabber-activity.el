@@ -103,9 +103,10 @@ on JIDs where `jabber-activity-show-p'"
 
 (defun jabber-activity-add (from buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
-  (when (funcall jabber-activity-show-p from)
-    (add-to-list 'jabber-activity-jids from)
-    (jabber-activity-mode-line-update)))
+  (let ((jid (jabber-jid-user from)))
+    (when (funcall jabber-activity-show-p jid)
+      (add-to-list 'jabber-activity-jids jid)
+      (jabber-activity-mode-line-update))))
 
 (defun jabber-activity-add-muc (nick group buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
@@ -113,10 +114,16 @@ on JIDs where `jabber-activity-show-p'"
     (add-to-list 'jabber-activity-jids group)
     (jabber-activity-mode-line-update)))
 
-(defun jabber-activity-echo (from buffer text proposed-alert)
-  "Use `jabber-message-echo' only if `jabber-activity-show-p'"
-  (when (funcall jabber-activity-show-p (symbol-name from))
-    (jabber-message-echo from buffer text proposed-alert)))
+(defun jabber-activity-switch-to ()
+  "Switch to a jabber chat buffer which have had activity.  If no
+such buffer exists, switch back to most recently used buffer."
+  (interactive)
+  (if jabber-activity-jids
+      (let ((jid (car jabber-activity-jids)))
+	(switch-to-buffer (or (get-buffer (jabber-chat-get-buffer jid))
+			      (get-buffer (jabber-groupchat-get-buffer jid)))))
+    ;; Switch back to the buffer used last
+    (switch-to-buffer nil)))
 
 ;;;###autoload
 (define-minor-mode jabber-activity-mode
@@ -148,4 +155,3 @@ With a numeric arg, enable this display if arg is positive."
 (provide 'jabber-activity)
 
 ;; arch-tag: 127D7E42-356B-11D9-BE1E-000A95C2FCD0
-;;; jabber-activity.el ends here.
