@@ -1,5 +1,5 @@
 ;; jabber-core.el - core functions
-;; $Id: jabber-core.el,v 1.5 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-core.el,v 1.6 2004/03/31 10:47:54 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -52,9 +52,6 @@
 This is set by `jabber-connect' on each call, and later picked up in
 `jabber-filter'.")
 
-;; (defgroup jabber-core nil "customize core functionality"
-;;   :group 'jabber)
-
 (defvar jabber-message-chain nil
   "Incoming messages are sent to these functions, in order.")
 
@@ -63,6 +60,19 @@ This is set by `jabber-connect' on each call, and later picked up in
 
 (defvar jabber-presence-chain (list 'jabber-process-presence)
   "Incoming presence notifications are sent to these functions, in order.")
+
+(defgroup jabber-core nil "customize core functionality"
+  :group 'jabber)
+
+(defcustom jabber-disconnect-hook nil
+  "*Hooks run just before disconnecting"
+  :type 'hook
+  :group 'jabber-core)
+
+(defcustom jabber-lost-connection-hook nil
+  "*Hooks run when connection is lost"
+  :type 'hook
+  :group 'jabber-core)
 
 (defun jabber-connect (&optional registerp)
   "connect to the jabber server and start a jabber xml stream
@@ -98,6 +108,7 @@ With prefix argument, register a new account."
   "disconnect from the jabber server and re-initialise the jabber package variables"
   (interactive)
   (when (eq (process-status *jabber-connection*) 'open)
+    (run-hooks 'jabber-disconnect-hook)
     (process-send-string *jabber-connection* "</stream:stream>")
     (delete-process *jabber-connection*))
   (kill-buffer (process-buffer *jabber-connection*))
@@ -112,6 +123,7 @@ With prefix argument, register a new account."
 (defun jabber-sentinel (process event)
   "alert user about lost connection"
   (beep)
+  (run-hooks 'jabber-lost-connection-hook)
   (message "Jabber connection lost: `%s'" event)
   (jabber-disconnect))
 
