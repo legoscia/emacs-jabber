@@ -315,11 +315,11 @@ With a numeric arg, enable this display if arg is positive."
 					   jabber-activity-count-in-title-format
 					   frame-title-format)))
 	  (if (equal (car icon-title-format) "")
-	      (setq icon-title-format (list ""
+	      (add-to-list 'icon-title-format
+			 jabber-activity-count-in-title-format)
+	    (setq icon-title-format (list ""
 					    jabber-activity-count-in-title-format
-					    icon-title-format))
-	    (add-to-list 'icon-title-format
-			 jabber-activity-count-in-title-format))))
+					    icon-title-format)))))
     (progn
       (if (featurep 'xemacs)
 	  (ad-disable-advice 'switch-to-buffer 'after 'jabber-activity-update)
