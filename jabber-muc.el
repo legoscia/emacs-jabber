@@ -380,7 +380,7 @@ Return nil if X-MUC is nil."
       (with-current-buffer (jabber-muc-create-buffer group)
 	(jabber-chat-buffer-display 'jabber-muc-print-prompt
 				    xml-data
-				    '(jabber-chat-print-body)
+				    jabber-chat-printers
 				    xml-data)
 
 	(dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
