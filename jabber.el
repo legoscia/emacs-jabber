@@ -78,16 +78,6 @@
   "face for large titles"
   :group 'jabber-faces)
 
-(defface jabber-chat-prompt-local
-  '((t (:foreground "blue" :weight bold)))
-  "face for displaying the chat prompt for what you type in"
-  :group 'jabber-faces)
-
-(defface jabber-chat-prompt-foreign
-  '((t (:foreground "red" :weight bold)))
-  "face for displaying the chat prompt for what they send"
-  :group 'jabber-faces)
-
 (defgroup jabber-debug nil "debugging options"
   :group 'jabber)
 

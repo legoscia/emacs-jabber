@@ -23,6 +23,50 @@
 (require 'jabber-keymap)
 (require 'jabber-util)
 
+(require 'format-spec)
+
+(defgroup jabber-chat nil "chat display options"
+  :group 'jabber)
+
+(defcustom jabber-chat-time-format "%H:%M"
+  "The format specification for time displayed in the chat buffer.
+
+See `format-time-string' for valid values."
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-chat-local-prompt-format "[%t] %n> "
+  "The format specification for lines you type in the chat buffer.
+
+These fields are available:
+
+%t   Time, formatted according to `jabber-chat-time-format'
+%n   Nickname (actually username part of your JID)
+%j   Bare JID (without resource)"
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-chat-foreign-prompt-format "[%t] %n> "
+  "The format specification for lines others type in the chat buffer.
+
+These fields are available:
+
+%t   Time, formatted according to `jabber-chat-time-format'
+%n   Nickname, or JID if no nickname set
+%j   Bare JID (without resource)"
+  :type 'string
+  :group 'jabber-chat)
+
+(defface jabber-chat-prompt-local
+  '((t (:foreground "blue" :weight bold)))
+  "face for displaying the chat prompt for what you type in"
+  :group 'jabber-chat)
+
+(defface jabber-chat-prompt-foreign
+  '((t (:foreground "red" :weight bold)))
+  "face for displaying the chat prompt for what they send"
+  :group 'jabber-chat)
+
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")
 
@@ -56,9 +100,13 @@
     (jabber-send-chat jabber-chatting-with body)
     (goto-char (point-max))
     (let ((inhibit-read-only t))
-      (insert (jabber-propertize (concat "[" (substring (current-time-string) 11 16) "] " jabber-username)
+      (insert (jabber-propertize (format-spec jabber-chat-local-prompt-format
+					      (list
+					       (cons ?t (format-time-string jabber-chat-time-format))
+					       (cons ?n jabber-username)
+					       (cons ?j (concat jabber-username "@" jabber-server))))
 				 'face 'jabber-chat-prompt-local)
-	      "> " body "\n")
+	      body "\n")
       (setq jabber-point-insert (point))
       (set-text-properties jabber-point-insert (point-max) nil)
       (put-text-property (point-min) (point-max) 'read-only t)
@@ -74,9 +122,13 @@ TIMESTAMP is timestamp, or nil for now."
     (goto-char jabber-point-insert)
 
     (let ((inhibit-read-only t))
-      (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " (jabber-jid-displayname from))
+      (if body (insert (jabber-propertize (format-spec jabber-chat-foreign-prompt-format
+						       (list
+							(cons ?t (format-time-string jabber-chat-time-format timestamp))
+							(cons ?n (jabber-jid-displayname from))
+							(cons ?j (jabber-jid-user from))))
 					  'face 'jabber-chat-prompt-foreign)
-		       "> " body "\n"))
+		       body "\n"))
       (setq jabber-point-insert (point))
       (set-text-properties jabber-point-insert (point-max) nil)
       (put-text-property (point-min) jabber-point-insert 'read-only t)
