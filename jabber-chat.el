@@ -310,13 +310,15 @@ TIMESTAMP is the timestamp to print, or nil for now."
   (let ((body (car
 	       (jabber-xml-node-children
 		(car
-		 (jabber-xml-get-children xml-data 'body)))))
-	(from (jabber-xml-get-attribute xml-data 'from)))
+		 (jabber-xml-get-children xml-data 'body))))))
     (when body
       (if (string-match "^/me \\(.*\\)$" body)
-	  (let ((action (match-string 1 body)))
+	  (let ((action (match-string 1 body))
+		(nick (if (jabber-muc-message-p xml-data)
+			  (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from))
+			(jabber-jid-displayname (jabber-xml-get-attribute xml-data 'from)))))
 	    (insert (jabber-propertize
-		     (concat (jabber-jid-displayname from)
+		     (concat nick
 			     " "
 			     action)
 		     'face 'jabber-chat-prompt-system)))
