@@ -250,6 +250,8 @@ This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
     (setq jabber-chatting-with chat-with)
+    (when (zerop (buffer-size))
+      (jabber-history-backlog))
     (current-buffer)))
 
 (defun jabber-chat-display (from body &optional timestamp)
