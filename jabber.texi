@@ -47,6 +47,7 @@ this permission notice are preserved on all copies.
 * Groupchat::                   
 * Services::                    
 * Modeline status::             
+* Keepalive::                   
 * Customization::               
 * Hacking and extending::       
 * Concept index::               
@@ -167,7 +168,7 @@ the menu item is bound to.
 
 Now, try opening a chat with someone.  In the default configuration,
 you will hear a beep and see ``Message from @var{person}'' in the echo
-area.\footnote{@xref{Customizing alerts}, to see how to change this.}
+area.@footnote{@xref{Customizing alerts}, to see how to change this.}
 This is exactly the same message you receive if the other
 person sends a message to you.  In any case, go to the buffer
 @code{*-jabber-chat-:-@var{person}-*} and start chatting.  Type your
@@ -440,7 +441,7 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-@node Modeline status, Customization, Services, Top
+@node Modeline status, Keepalive, Services, Top
 @chapter Modeline status
 
 @cindex modeline
@@ -452,7 +453,7 @@ status in mode lines.  The information is your own presence status,
 and six numbers indicating the number of chatty, online, away,
 extended away, dnd, and offline contacts, respectively.
 
-@node Keepalive
+@node Keepalive, Customization, Modeline status, Top
 @chapter Keepalive
 
 @cindex keepalive
@@ -479,7 +480,7 @@ You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.
 
-@node Customization, Hacking and extending, Modeline status, Top
+@node Customization, Hacking and extending, Keepalive, Top
 @chapter Customization
 
 @findex jabber-customize
