@@ -376,6 +376,52 @@ and BUFFER, a buffer containing the result."
    (cons "Delete roster entry" 'jabber-roster-delete))
   "Menu items for JID menu") 
 
+(defconst jabber-error-messages
+  (list
+   (cons 'bad-request "Bad request")
+   (cons 'conflict "Conflict")
+   (cons 'feature-not-implemented "Feature not implemented")
+   (cons 'forbidden "Forbidden")
+   (cons 'gone "Gone")
+   (cons 'internal-server-error "Internal server error")
+   (cons 'item-not-found "Item not found")
+   (cons 'jid-malformed "JID malformed")
+   (cons 'not-acceptable "Not acceptable")
+   (cons 'not-allowed "Not allowed")
+   (cons 'payment-required "Payment required")
+   (cons 'recipient-unavailable "Recipient unavailable")
+   (cons 'redirect "Redirect")
+   (cons 'registration-required "Registration required")
+   (cons 'remote-server-not-found "Remote server not found")
+   (cons 'remote-server-timeout "Remote server timeout")
+   (cons 'resource-constraint "Resource constraint")
+   (cons 'service-unavailable "Service unavailable")
+   (cons 'subscription-required "Subscription required")
+   (cons 'undefined-condition "Undefined condition")
+   (cons 'unexpected-request "Unexpected request"))
+  "String descriptions of XMPP stanza errors")
+
+(defconst jabber-legacy-error-messages
+  (list
+   (cons 302 "Redirect")
+   (cons 400 "Bad request")
+   (cons 401 "Unauthorized")
+   (cons 402 "Payment required")
+   (cons 403 "Forbidden")
+   (cons 404 "Not found")
+   (cons 405 "Not allowed")
+   (cons 406 "Not acceptable")
+   (cons 407 "Registration required")
+   (cons 408 "Request timeout")
+   (cons 409 "Conflict")
+   (cons 500 "Internal server error")
+   (cons 501 "Not implemented")
+   (cons 502 "Remote server error")
+   (cons 503 "Service unavailable")
+   (cons 504 "Remote server timeout")
+   (cons 510 "Disconnected"))
+  "String descriptions of legacy errors (JEP-0086)")
+  
 (defmacro jabber-report-success (context)
   "Generate an IQ callback reporting success or failure of the operation.
 CONTEXT is a string describing the action."
@@ -384,7 +430,32 @@ CONTEXT is a string describing the action."
        (message (concat ,context
 			(if (string= type "result")
 			    " succeeded"
-			  " failed"))))))
+			  (concat
+			   " failed: "
+			   (jabber-parse-error (car (xml-get-children xml-data 'error))))))))))
+
+(defun jabber-parse-error (error-xml)
+  "Parse the given <error/> tag and return a string fit for human consumption.
+See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
+  (let ((error-type (jabber-xml-get-attribute error-xml 'type))
+	(error-code (jabber-xml-get-attribute error-xml 'code))
+	condition text)
+    (if error-type
+	;; If the <error/> tag has a type element, it is new-school.
+	(dolist (child (xml-node-children error-xml))
+	  (when (string=
+		 (jabber-xml-get-attribute child 'xmlns)
+		 "urn:ietf:params:xml:ns:xmpp-stanzas")
+	    (if (eq (xml-node-name child) 'text)
+		(setq text (car (xml-node-children child)))
+	      (setq condition
+		    (or (cdr (assq (xml-node-name child) jabber-error-messages))
+			(symbol-name (xml-node-name child)))))))
+      (setq condition (or (cdr (assq (string-to-number error-code) jabber-legacy-error-messages))
+			  error-code))
+      (setq text (car (xml-node-children error-xml))))
+    (concat condition
+	    (if text (format ": %s" text)))))
 
 (defun jabber-customize ()
   "customize jabber options"
@@ -653,6 +724,27 @@ is not present, emulate it with `xml-get-attribute'."
   (string-match "\\(.*@.*\\)/\\(.*\\)" string)
   (match-string 2 string))
 
+(defun jabber-iq-query (xml-data)
+  "Return the query part of an IQ stanza.
+An IQ stanza may have zero or one query child, and zero or one <error/> child.
+The query child is often but not always <query/>."
+  (let (query)
+    (dolist (x (xml-node-children xml-data))
+      (if (and
+	   (listp x)
+	   (not (eq (xml-node-name x) 'error)))
+	  (setq query x)))
+    query))
+
+(defun jabber-iq-error (xml-data)
+  "Return the <error/> part of an IQ stanza, if any."
+  (and (listp (car (xml-node-children xml-data)))
+       (car (xml-get-children xml-data 'error))))
+
+(defun jabber-iq-xmlns (xml-data)
+  "Return the namespace of an IQ stanza, i.e. the namespace of its query part."
+  (jabber-xml-get-attribute (jabber-iq-query xml-data) 'xmlns))
+
 (defun jabber-process-message (from subject body thread type)
   "process incoming messages"
   (cond
@@ -902,8 +994,8 @@ is not present, emulate it with `xml-get-attribute'."
   "Process random results from various requests.
 See `jabber-iq-result-xmlns-alist'."
   (let ((from (xml-get-attribute xml-data 'from))
-	(xmlns (and (listp (car (xml-node-children xml-data)))
-		    (xml-get-attribute (car (xml-node-children xml-data)) 'xmlns))))
+	(xmlns (jabber-iq-xmlns xml-data))
+	(type (jabber-xml-get-attribute xml-data 'type)))
     (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
       (setq buffer-read-only nil)
       (goto-char (point-max))
@@ -914,7 +1006,11 @@ See `jabber-iq-result-xmlns-alist'."
       (let ((handler (cdr (assoc xmlns jabber-iq-result-xmlns-alist))))
 	(if handler
 	    (funcall handler xml-data)
-	  (insert (format "%S\n\n" xml-data))))
+	  (if (string= type "error")
+	      ;; This shouldn't happen.  The handlers should take care
+	      ;; of their own mess.
+	      (insert "Orphaned error: " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n")
+	    (insert (format "%S\n\n" xml-data)))))
 
       (jabber-browse-mode)
       (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
@@ -1020,14 +1116,16 @@ See `jabber-iq-result-xmlns-alist'."
 
 (defun jabber-process-version (xml-data)
   "Handle results from jabber:iq:version requests."
-  ;; XXX: error handling
-
-  (let ((query (car (xml-node-children xml-data))))
-    (when (listp query)
-      (dolist (x '((name . "Name:\t\t") (version . "Version:\t") (os . "OS:\t\t")))
-	(let ((data (car (xml-node-children (car (xml-get-children query (car x)))))))
-	  (when data
-	    (insert (cdr x) data "\n")))))))
+  
+  (let ((type (jabber-xml-get-attribute xml-data 'type)))
+    (if (string= type "error")
+	(insert "Version request failed: " (jabber-parse-error (car (xml-get-children xml-data 'error))) "\n\n")
+      (let ((query (car (xml-node-children xml-data))))
+	(when (listp query)
+	  (dolist (x '((name . "Name:\t\t") (version . "Version:\t") (os . "OS:\t\t")))
+	    (let ((data (car (xml-node-children (car (xml-get-children query (car x)))))))
+	      (when data
+		(insert (cdr x) data "\n")))))))))
 
 (defun jabber-return-version (xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
@@ -1170,8 +1268,7 @@ See JEP-0030."
   (let* ((id (xml-get-attribute xml-data 'id))
          (type (xml-get-attribute xml-data 'type))
          (from (xml-get-attribute xml-data 'from))
-	 (query (car (xml-node-children xml-data))) ; this gets only the first child node of the iq stanza.
-					; that is correct, except for "error" stanzas.
+	 (query (jabber-iq-query xml-data))
          (callback (cdr (assoc id *jabber-open-info-queries*))))
     (cond
      ;; if type is "result" or "error", this is a response to a query we sent.
