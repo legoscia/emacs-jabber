@@ -42,7 +42,8 @@ Each entry is a list, containing:
  * Profile data function")
 
 (defcustom jabber-socks5-proxies nil
-  "JIDs of JEP-0065 proxies to use for file transfer."
+  "JIDs of JEP-0065 proxies to use for file transfer.
+Put preferred ones first."
   :type '(repeat string)
   :group 'jabber
 ;  :set 'jabber-socks5-set-proxies)
@@ -88,7 +89,7 @@ This is the set function of `jabber-socks5-proxies-data'."
   "Process response from proxy query."
   (let* ((query (jabber-iq-query xml-data))
 	 (from (jabber-xml-get-attribute xml-data 'from))
-	 (streamhost (car (jabber-xml-get-children query 'streamhost))))
+	 (streamhosts (jabber-xml-get-children query 'streamhost)))
 
     (let ((existing-entry (assoc from jabber-socks5-proxies-data)))
       (when existing-entry
@@ -97,7 +98,7 @@ This is the set function of `jabber-socks5-proxies-data'."
 
     (when successp
       (setq jabber-socks5-proxies-data
-	    (cons (cons from streamhost)
+	    (cons (cons from streamhosts)
 		  jabber-socks5-proxies-data)))
     (message "%s from %s.  %d of %d proxies have answered."
 	     (if successp "Response" "Error") from
@@ -242,15 +243,27 @@ This function simply sends a request; the response is handled elsewhere."
     (error "No proxies defined.  Set `jabber-socks5-proxies'."))
   (unless jabber-socks5-proxies-data
     (error "No proxy data available.  Run `jabber-socks5-query-all-proxies'."))
+
+  ;; Sort the alist jabber-socks5-proxies-data such that the
+  ;; keys are in the same order as in jabber-socks5-proxies.
+  (setq jabber-socks5-proxies-data
+	(sort jabber-socks5-proxies-data
+	      #'(lambda (a b)
+		  (> (length (member (car a) jabber-socks5-proxies))
+		     (length (member (car b) jabber-socks5-proxies))))))
+
   (jabber-send-iq jid "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
 			   (sid . ,sid))
 			  ,@(mapcar 
-			     (lambda (streamhost)
-			       (list 'streamhost
-				     (list (cons 'jid (jabber-xml-get-attribute (cdr streamhost) 'jid))
-					   (cons 'host (jabber-xml-get-attribute (cdr streamhost) 'host))
-					   (cons 'port (jabber-xml-get-attribute (cdr streamhost) 'port)))))
+			     #'(lambda (proxy)
+				 (mapcar
+				  #'(lambda (streamhost)
+				      (list 'streamhost
+					    (list (cons 'jid (jabber-xml-get-attribute streamhost 'jid))
+						  (cons 'host (jabber-xml-get-attribute streamhost 'host))
+						  (cons 'port (jabber-xml-get-attribute streamhost 'port)))))
+				  (cdr proxy)))
 			     jabber-socks5-proxies-data))
 		  `(lambda (xml-data closure-data)
 		     (jabber-socks5-client-2 xml-data ,jid ,sid ,profile-function)) nil
@@ -262,10 +275,15 @@ This function simply sends a request; the response is handled elsewhere."
   (let* ((query (jabber-iq-query xml-data))
 	 (streamhost-used (car (jabber-xml-get-children query 'streamhost-used)))
 	 (proxy-used (jabber-xml-get-attribute streamhost-used 'jid))
-	 (connection (jabber-socks5-connect (cdr (assoc proxy-used jabber-socks5-proxies-data))
-					     sid
-					     (concat jabber-username "@" jabber-server "/" jabber-resource)
-					     jid)))
+	 connection)
+    (let ((streamhosts-left (cdr (assoc proxy-used jabber-socks5-proxies-data))))
+      (while (and streamhosts-left (not connection))
+	(setq connection
+	      (jabber-socks5-connect (car streamhosts-left)
+				     sid
+				     (concat jabber-username "@" jabber-server "/" jabber-resource)
+				     jid))
+	(setq streamhosts-left (cdr streamhosts-left))))
     (unless connection
       (error "Couldn't connect to proxy %s" proxy-used))
 
