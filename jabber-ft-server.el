@@ -1,5 +1,5 @@
 ;; jabber-ft-server.el - handle incoming file transfers, by JEP-0096
-;; $Id: jabber-ft-server.el,v 1.1 2004/04/08 12:01:24 legoscia Exp $
+;; $Id: jabber-ft-server.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -23,15 +23,21 @@
 (require 'jabber-si-server)
 (require 'jabber-util)
 
+(defvar jabber-ft-sessions nil
+  "Alist, where keys are (sid jid), and values are buffers of the files.")
+
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si/profile/file-transfer")
 
 (add-to-list 'jabber-si-profiles
 	     (list "http://jabber.org/protocol/si/profile/file-transfer"
-		   'jabber-ft-accept))
+		   'jabber-ft-accept
+		   'jabber-ft-start))
+
 (defun jabber-ft-accept (xml-data)
   "Receive IQ stanza containing file transfer request, ask user"
   (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
+	 (si-id (jabber-xml-get-attribute query 'id))
 	 ;; TODO: check namespace
 	 (file (car (jabber-xml-get-children query 'file)))
 	 (name (jabber-xml-get-attribute file 'name))
@@ -46,7 +52,7 @@
       (jabber-signal-error "modify" 'bad-request))
 
     (let ((question (format
-		     "%s is sending you the file %s (%s bytes).%s  Accept?"
+		     "%s is sending you the file %s (%s bytes).%s  Accept? "
 		     (jabber-jid-displayname from)
 		     name
 		     size
@@ -56,9 +62,25 @@
       (unless (yes-or-no-p question)
 	(jabber-signal-error "cancel" 'forbidden)))
 
-    ;; TODO: ask for filename, open buffer, record SID+JID
-
+    ;; default is to save with given name, in current directory.
+    ;; maybe that's bad; maybe should be customizable.
+    (let* ((file-name (read-file-name "Download to: " nil nil nil name))
+	   (buffer (find-file-noselect file-name t t)))
+      (add-to-list 'jabber-ft-sessions
+		   (cons (list si-id from) buffer)))
+      
     ;; to support range, return something sensible here
     nil))
+
+(defun jabber-ft-start (jid sid stream-read-function)
+  "Fetch file from other user.
+JID is JID of other user.  SID is stream ID.  STREAM-READ-FUNCTION
+is function to call to get more data."
+  (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions)))
+	data)
+    (with-current-buffer buffer
+      (goto-char (point-max))
+      (while (setq data (funcall stream-read-function jid sid))
+	(insert data)))))
 
 (provide 'jabber-ft-server)

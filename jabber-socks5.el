@@ -1,5 +1,5 @@
 ;; jabber-socks5.el - SOCKS5 bytestreams by JEP-0065
-;; $Id: jabber-socks5.el,v 1.1 2004/04/07 20:03:51 legoscia Exp $
+;; $Id: jabber-socks5.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -31,10 +31,17 @@ Each entry is a list, containing:
  * Stream ID
  * Full JID of initiator")
 
+(defvar jabber-socks5-active-sessions nil
+  "List of active sessions.
+
+This is an alist where the keys are (sid jid).")
+
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/bytestreams")
 
 (add-to-list 'jabber-si-stream-methods
-	     (list "http://jabber.org/protocol/bytestreams" 'jabber-socks5-accept))
+	     (list "http://jabber.org/protocol/bytestreams"
+		   'jabber-socks5-accept
+		   'jabber-socks5-read))
 
 (defun jabber-socks5-accept (jid sid)
   "Remember that we are waiting for connection from JID, with stream id SID"
@@ -51,14 +58,66 @@ Each entry is a list, containing:
 	 (query (jabber-iq-query xml-data))
 	 (sid (jabber-xml-get-attribute query 'sid)))
     (unless (member (list sid jid) jabber-socks5-pending-sessions)
-      (jabber-signal-error 'auth 'not-acceptable))
+      (jabber-signal-error "auth" 'not-acceptable))
 
     (setq jabber-socks5-pending-sessions (delete (list sid jid) jabber-socks5-pending-sessions))
-    (let ((streamhosts (jabber-xml-get-children query 'streamhost)))
-      (dolist (streamhost streamhosts)
-	(if (jabber-socks5-connect streamhost jid sid)
-	    (return streamhost)))
-      ;; more to do here
-      )))
+    (let* ((streamhosts (jabber-xml-get-children query 'streamhost))
+	   (streamhost (dolist (streamhost streamhosts)
+			 (if (jabber-socks5-connect streamhost jid sid)
+			     (return streamhost)))))
+      (unless streamhost
+	(jabber-signal-error "cancel" 'item-not-found))
+      
+      (jabber-send-iq jid "result"
+		      `(query ((xmlns . "http://jabber.org/protocol/bytestreams"))
+			      (streamhost-used ((jid . ,streamhost))))
+		      nil nil nil nil id))))
+
+(defun jabber-socks5-connect (streamhost jid sid)
+  "Attempt to connect to STREAMHOST, authenticating with JID and SID.
+Return nil on error.  On success, store details in
+`jabber-socks5-active-sessions'.
+
+STREAMHOST has the form
+;(streamhost ((host . HOST)
+;	     (port . PORT)))
+
+Zeroconf is not supported."
+  (condition-case nil
+      (let ((coding-system-for-read 'binary)
+	    (coding-system-for-write 'binary)
+	    (host (jabber-xml-get-attribute streamhost 'host))
+	    (port (string-to-number (jabber-xml-get-attribute streamhost 'port))))
+	;; is this the best way to send binary network output?
+	(let ((socks5-connection (open-network-stream "socks5" "socks5" host port)))
+	  (with-current-buffer (process-buffer socks5-connection)
+	    ;; version: 5.  number of auth methods supported: 1.
+	    ;; which one: no authentication.
+	    (process-send-string socks5-connection (string 5 1 0))
+	    ;; wait for response
+	    (accept-process-output socks5-connection 15)
+	    (unless (string= (buffer-substring 2 3) (string 0))
+	      (error "SOCKS5 authentication required"))
+	    (delete-region 1 3)
+
+	    ;; send connect command
+	    (let ((hash (sha1-string (concat sid jid jabber-username "@" jabber-server "/" jabber-resource))))
+	      (process-send-string 
+	       socks5-connection
+	       (concat (string 5 1 0 3 (length hash))
+		       hash
+		       (string 0 0))))
+
+	    (accept-process-output socks5-connection 15)
+	    (unless (string= (buffer-substring 2 3) (string 0))
+	      (error "SOCKS5 failure"))
+
+	    (let ((atyp (buffer-substring 4 5))
+		  (address (buffer-substring 5 (point-max))))
+	      (message "%s" (concat (mapcar #'(lambda (x) (format "%d " x))
+					    (append atyp address nil)))))
+	    )))
+    (error
+     nil)))
 
 (provide 'jabber-socks5)

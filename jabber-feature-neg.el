@@ -1,5 +1,5 @@
 ;; jabber-feature-neg.el - Feature Negotiation by JEP-0020
-;; $Id: jabber-feature-neg.el,v 1.1 2004/04/08 12:01:24 legoscia Exp $
+;; $Id: jabber-feature-neg.el,v 1.2 2004/04/11 21:01:59 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -89,7 +89,9 @@ MINE and THEIRS are alists, as returned by `jabber-fn-parse'.
 
 An alist is returned, where the keys are the negotiated variables,
 and the values are lists containing the preferred option.  If
-negotiation is impossible, an error is signalled."
+negotiation is impossible, an error is signalled.  The errors are as
+specified in JEP-0020, and not necessarily the ones of higher-level
+protocols."
 
   (let ((vars (mapcar #'car mine))
 	(their-vars (mapcar #'car theirs)))
