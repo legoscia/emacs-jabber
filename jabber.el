@@ -1,7 +1,8 @@
 ;; jabber.el - a minimal jabber client
+;; $Id: jabber.el,v 1.28 2004/02/03 11:39:50 legoscia Exp $
 
-;; Copyright (C) 2002 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
+;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,6 +21,9 @@
 (require 'xml)
 (require 'sha1-el)
 (require 'widget)
+
+(eval-when-compile
+  (require 'wid-edit))
 
 (defvar *jabber-connection* nil
   "the process that does the actual connection")
@@ -549,7 +553,7 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
 				   (let ((old-message (current-message)))
 				     (play-sound-file sf)
 				     (setq *jabber-sound-playing* nil)
-				     (message old-message))
+				     (message "%s" old-message))
 				 (error (setq *jabber-sound-playing* nil))))
 			     soundfile))))
 
@@ -1737,7 +1741,7 @@ See JEP-0030."
 			  #'jabber-process-logon nil)
 	(jabber-disconnect))))
    (t
-    (error "Logon error ended up the wrong place"))))
+    (error "Logon error ended up in the wrong place"))))
 	
 (defun jabber-process-logon (xml-data closure-data)
   "receive login success or failure, and request roster.
@@ -1973,8 +1977,8 @@ With prefix argument, register a new account."
   (interactive (let* ((jid (intern (jabber-read-jid-completing "Add/change JID: ") jabber-jid-obarray))
 		      (name (get jid 'name))
 		      (groups (get jid 'groups)))
-		 (list jid (read-string "Name: " nil nil name t)
-		       (read-from-minibuffer "Groups: " nil nil t nil (format "%S" groups) t))))
+		 (list jid (read-string (format "Name: (default `%s') " name) nil nil name t)
+		       (read-from-minibuffer (format "Groups: (default `%S') " groups) nil nil t nil (format "%S" groups) t))))
   ;; If new fields are added to the roster XML structure in a future standard,
   ;; they will be clobbered by this function.
   (jabber-send-iq nil "set" 
