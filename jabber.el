@@ -411,7 +411,8 @@ and BUFFER, a buffer containing the result."
 (defconst jabber-jid-muc-menu
   (list
    (cons "Join groupchat" 'jabber-groupchat-join)
-   (cons "Leave groupchat" 'jabber-groupchat-leave))
+   (cons "Leave groupchat" 'jabber-groupchat-leave)
+   (cons "Configure groupchat" 'jabber-groupchat-get-config))
   "Menu items for MUC menu")
 
 (defconst jabber-jid-service-menu
