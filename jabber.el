@@ -407,6 +407,12 @@ and BUFFER, a buffer containing the result."
    (cons "Leave groupchat" 'jabber-groupchat-leave))
   "Menu items for MUC menu")
 
+(defconst jabber-jid-service-menu
+  (list
+   (cons "Register with service" 'jabber-get-register)
+   (cons "Search directory" 'jabber-get-search))
+  "Menu items for service menu")
+
 (defconst jabber-jid-menu
   (append jabber-jid-chat-menu jabber-jid-info-menu jabber-jid-roster-menu jabber-jid-muc-menu)
   "All menu items")
@@ -638,8 +644,8 @@ is not present, emulate it with `xml-get-attribute'."
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
-Use the keybindings (mnemonic as Chat, Roster, Info, MUC) to bring up
-menus of actions.
+Use the keybindings (mnemonic as Chat, Roster, Info, MUC, Service) to
+bring up menus of actions.
 \\{jabber-roster-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'jabber-roster-mode
@@ -655,6 +661,7 @@ menus of actions.
   (define-key jabber-roster-mode-map "\C-c\C-r" 'jabber-popup-roster-menu)
   (define-key jabber-roster-mode-map "\C-c\C-i" 'jabber-popup-info-menu)
   (define-key jabber-roster-mode-map "\C-c\C-m" 'jabber-popup-muc-menu)
+  (define-key jabber-roster-mode-map "\C-c\C-s" 'jabber-popup-service-menu)
   (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu)
   )
 
@@ -986,6 +993,11 @@ Return nil if no such data available."
   "Popup MUC menu"
   (interactive)
   (jabber-popup-menu jabber-jid-muc-menu))
+
+(defun jabber-popup-service-menu ()
+  "Popup service menu"
+  (interactive)
+  (jabber-popup-menu jabber-jid-service-menu))
 
 (defun jabber-popup-combined-menu ()
   "Popup combined menu"
