@@ -149,14 +149,20 @@
   :type 'boolean
   :group 'jabber)
 
-(defcustom jabber-server "magaf.org" 
-  "jabber server" 
+(defcustom jabber-username "emacs"
+  "jabber username (user part of JID)" 
   :type 'string
   :group 'jabber)
 
-(defcustom jabber-username "emacs"
-  "jabber username" 
+(defcustom jabber-server "magaf.org" 
+  "jabber server (domain part of JID)" 
   :type 'string
+  :group 'jabber)
+
+(defcustom jabber-network-server nil
+  "hostname or IP address of server to connect to, if different from `jabber-server'."
+  :type '(radio (const :tag "Same as `jabber-server'" nil)
+		(string :tag "Hostname or IP address"))
   :group 'jabber)
 
 (defcustom jabber-password nil
@@ -1572,7 +1578,7 @@ With prefix argument, register a new account."
 	  (coding-system-for-write 'utf-8))
       (setq *jabber-connection* (open-network-stream "jabber"
 						     "*-jabber-*"
-						     jabber-server
+						     (or jabber-network-server jabber-server)
 						     jabber-port)))
     (set-process-filter *jabber-connection* #'jabber-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
