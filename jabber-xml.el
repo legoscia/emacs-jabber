@@ -58,6 +58,11 @@
       (dolist (tag sexp)
 	(setq xml (concat xml (jabber-sexp2xml tag))))
       xml))
+   ;; work around bug in old versions of xml.el, where ("") can appear as children of a node
+   ((and (consp sexp)
+	 (stringp (car sexp))
+	 (zerop (length (car sexp))))
+    "")
    (t
     (let ((xml ""))
       (setq xml (concat "<" 
