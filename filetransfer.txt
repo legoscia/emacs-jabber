@@ -18,7 +18,7 @@ Sending files over Jabber normally requires the ability to listen on a
 network port.  As of Emacs 21.3 and XEmacs 21.4, elisp programs can't
 do this, so you have to specify a JEP-0065 proxy.  The variable
 jabber-socks5-proxies is a list of proxies to use.  "proxy.jabber.org"
-is the only proxy I know of.
+and "proxy65.jabber.ccc.de" are the only proxies I know of.
 
 After you have specified one or more proxies, jabber.el needs to know
 their network addresses.  Type M-x jabber-socks5-query-all-proxies,

@@ -1,7 +1,7 @@
 \input texinfo          @c -*-texinfo-*-
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.5.1
+@settitle jabber.el manual 0.6
 @c %**end of header
 
 @dircategory Emacs
@@ -10,7 +10,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.5.1.
+This manual is for jabber.el, version 0.6.
 
 Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
 

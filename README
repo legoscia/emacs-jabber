@@ -1,4 +1,4 @@
-This is jabber.el 0.5.1, a Jabber client for Emacs.  If you don't know
+This is jabber.el 0.6, a Jabber client for Emacs.  If you don't know
 what Jabber is, see http://www.jabber.org .
 
 Home page: http://emacs-jabber.sourceforge.net
@@ -9,7 +9,7 @@ GNU Emacs
 
 jabber.el depends on GNU Emacs 21, in particular xml.el, and some
 files from Gnus 5.10.  If you don't have Gnus 5.10 (M-x gnus-version
-will tell), you can download sha1-el.el and hex-util.el from Gnus CVS
+will tell), you can download sha1.el and hex-util.el from Gnus CVS
 at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/ .
 
 XEmacs
