@@ -38,6 +38,8 @@
   (make-local-variable 'jabber-chatting-with)
   (make-local-variable 'scroll-conservatively)
   (setq scroll-conservatively 5)
+  (make-local-variable 'jabber-point-insert)
+  (setq jabber-point-insert (point-min))
   (setq major-mode 'jabber-chat-mode
         mode-name "jabber-chat")
   (use-local-map jabber-chat-mode-map))
@@ -46,27 +48,40 @@
 
 (defvar jabber-chat-mode-map (copy-keymap jabber-common-keymap))
 
-(dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
-  (let ((send-fun (make-symbol (concat "jabber-chat-buffer-send-" (char-to-string key)))))
-    (fset send-fun `(lambda (body) (interactive (list (jabber-read-with-input-method "" ,(char-to-string key))))
-		      (jabber-send-chat jabber-chatting-with body)
-		      (setq buffer-read-only nil)
-		      (goto-char (point-max))
-		      (insert (jabber-propertize (concat "[" (substring (current-time-string) 11 16) "] " jabber-username)
-                                          'face 'jabber-chat-prompt-local) "> " body "\n")
-		      (setq buffer-read-only t)))
-    (define-key jabber-chat-mode-map (char-to-string key) send-fun)))
+(define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send)
 
+(defun jabber-chat-buffer-send ()
+  (interactive)
+  (let ((body (delete-and-extract-region jabber-point-insert (point-max))))    
+    (jabber-send-chat jabber-chatting-with body)
+    (goto-char (point-max))
+    (let ((inhibit-read-only t))
+      (insert (jabber-propertize (concat "[" (substring (current-time-string) 11 16) "] " jabber-username)
+				 'face 'jabber-chat-prompt-local)
+	      "> " body "\n")
+      (setq jabber-point-insert (point))
+      (set-text-properties jabber-point-insert (point-max) nil)
+      (put-text-property (point-min) (point-max) 'read-only t)
+      (put-text-property (point-min) (point-max) 'front-sticky t)
+      (put-text-property (point-min) (point-max) 'rear-nonsticky t))))
+  
 (defun jabber-chat-display (from body &optional timestamp)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-chat-:-" (jabber-jid-displayname from) "-*"))
-    (goto-char (point-max))
+    (goto-char jabber-point-insert)
 
     (let ((inhibit-read-only t))
       (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " (jabber-jid-displayname from))
 					  'face 'jabber-chat-prompt-foreign)
-		       "> " body "\n")))
+		       "> " body "\n"))
+      (setq jabber-point-insert (point))
+      (set-text-properties jabber-point-insert (point-max) nil)
+      (put-text-property (point-min) jabber-point-insert 'read-only t)
+      (put-text-property (point-min) jabber-point-insert 'front-sticky t)
+      (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t))
+ 
+    (goto-char (point-max))
 
     ;; Setting the major mode more than once will wipe out buffer-local
     ;; variables, therefore caution.
@@ -83,6 +98,7 @@ TIMESTAMP is timestamp, or nil for now."
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
+
 (defun jabber-send-message (to body subject type)
   "send a message tag to the server"
   (interactive (list (jabber-read-jid-completing "to: ")
@@ -99,6 +115,7 @@ TIMESTAMP is timestamp, or nil for now."
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Start chat" 'jabber-chat-with))
+
 (defun jabber-chat-with (jid)
   "open an empty chat window for chatting with JID"
   (interactive (list (jabber-read-jid-completing "chat with:")))
@@ -110,41 +127,55 @@ TIMESTAMP is timestamp, or nil for now."
   (make-local-variable 'jabber-group)
   (make-local-variable 'scroll-conservatively)
   (setq scroll-conservatively 5)
+  (make-local-variable 'jabber-point-insert)
+  (setq jabber-point-insert (point-min))
   (setq major-mode 'jabber-groupchat-mode
         mode-name "jabber-groupchat")
-  (use-local-map jabber-groupchat-mode-map)
-  (setq buffer-read-only t))
+  (use-local-map jabber-groupchat-mode-map))
 
 (put 'jabber-groupchat-mode 'mode-class 'special)
 
 (defvar jabber-groupchat-mode-map (copy-keymap jabber-common-keymap))
 
-(dolist (key (append "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()_+-=[]{}|';:/?.,>< " nil))
-  (let ((send-fun (make-symbol (concat "jabber-groupchat-buffer-send-" (char-to-string key)))))
-    (fset send-fun `(lambda (body) (interactive (list (jabber-read-with-input-method "" ,(char-to-string key))))
-		      (jabber-send-groupchat jabber-group body)
-		      (setq buffer-read-only nil)
-		      (goto-char (point-max))
-		      (if (not (eq major-mode 'jabber-groupchat-mode))
-			  (jabber-groupchat-mode))))
-    (define-key jabber-groupchat-mode-map (char-to-string key) send-fun)))
+(define-key jabber-groupchat-mode-map "\r" 'jabber-groupchat-buffer-send)
+
+(defun jabber-groupchat-buffer-send ()
+  (interactive)
+  (let ((body (delete-and-extract-region jabber-point-insert (point-max)))
+	(inhibit-read-only t))
+    (jabber-send-chat jabber-group body)
+    (goto-char (point-max))
+    (setq jabber-point-insert (point-max))
+    (set-text-properties jabber-point-insert (point-max) nil)
+    (put-text-property (point-min) (point-max) 'read-only t)
+    (put-text-property (point-min) (point-max) 'front-sticky t)
+    (put-text-property (point-min) (point-max) 'rear-nonsticky t)))
 
 (defun jabber-groupchat-display (group &optional nick body timestamp)
-  "display the groupchat window and an incoming message, if there is one.
+  "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (get-buffer-create (concat "*-jabber-groupchat-:-" group "-*"))
+    (goto-char jabber-point-insert)
+    (let ((inhibit-read-only t))
+      (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
+					  'face 'jabber-chat-prompt-foreign)
+		       "> " body "\n"))
+      (setq jabber-point-insert (point))
+      (set-text-properties jabber-point-insert (point-max) nil)
+      (put-text-property (point-min) jabber-point-insert 'read-only t)
+      (put-text-property (point-min) jabber-point-insert 'front-sticky t)
+      (put-text-property (point-min) jabber-point-insert 'rear-nonsticky t))
+ 
     (goto-char (point-max))
-    (setq buffer-read-only nil)
-    (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
-                                 'face 'jabber-chat-prompt-foreign)
-                     "> " body "\n"))
+
     (if (not (eq major-mode 'jabber-groupchat-mode))
 	(jabber-groupchat-mode))
     (setq jabber-group group)
-    (run-hook-with-args 'jabber-alert-message-hooks group (current-buffer) body (funcall jabber-alert-message-function group (current-buffer) body))))
+    (run-hook-with-args 'jabber-alert-message-hooks nick (current-buffer) body (funcall jabber-alert-message-function group (current-buffer) body))))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Leave groupchat" 'jabber-groupchat-leave))
+
 (defun jabber-groupchat-leave (group)
   "leave a groupchat"
   (interactive (list (completing-read (format "Leave which group: %s" (if jabber-group (concat "(default: " jabber-group ") ")))
@@ -161,6 +192,7 @@ TIMESTAMP is timestamp, or nil for now."
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Join groupchat" 'jabber-groupchat-join))
+
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat"
   (interactive (list (jabber-read-jid-completing "group: ")
@@ -177,6 +209,7 @@ TIMESTAMP is timestamp, or nil for now."
   (jabber-groupchat-display group))
 
 (add-to-list 'jabber-message-chain 'jabber-process-message)
+
 (defun jabber-process-message (xml-data)
   "process incoming messages"
   (let ((from (jabber-xml-get-attribute xml-data 'from))
