@@ -81,6 +81,11 @@ Trailing newlines are always removed, regardless of this variable."
   :type 'boolean
   :group 'jabber-roster)
 
+(defcustom jabber-roster-mode-hook nil
+  "Hook run when entering Roster mode."
+  :group 'jabber-roster
+  :type 'hook)
+
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
   "face for displaying online users"
@@ -129,7 +134,8 @@ bring up menus of actions.
   (setq major-mode 'jabber-roster-mode
 	mode-name "jabber-roster")
   (use-local-map jabber-roster-mode-map)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (run-mode-hooks 'jabber-roster-mode-hook))
 
 (put 'jabber-roster-mode 'mode-class 'special)
 

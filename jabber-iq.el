@@ -34,13 +34,19 @@
 
 (defvar jabber-browse-mode-map (copy-keymap jabber-common-keymap))
 
+(defcustom jabber-browse-mode-hook nil
+  "Hook run when entering Browse mode."
+  :group 'jabber
+  :type 'hook)
+
 (defun jabber-browse-mode ()
 "\\{jabber-browse-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'jabber-browse-mode
         mode-name "jabber-browse")
   (use-local-map jabber-browse-mode-map)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (run-mode-hooks 'jabber-browse-mode-hook))
 
 (put 'jabber-browse-mode 'mode-class 'special)
 

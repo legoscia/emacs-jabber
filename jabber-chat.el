@@ -120,6 +120,16 @@ These fields are available:
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-chat-mode-hook nil
+  "Hook run when entering Chat mode."
+  :group 'jabber-chat
+  :type 'hook)
+
+(defcustom jabber-groupchat-mode-hook nil
+  "Hook run when entering Groupchat mode."
+  :group 'jabber-chat
+  :type 'hook)
+
 (defface jabber-chat-prompt-local
   '((t (:foreground "blue" :weight bold)))
   "face for displaying the chat prompt for what you type in"
@@ -159,7 +169,9 @@ These fields are available:
 
   (setq major-mode 'jabber-chat-mode
         mode-name "jabber-chat")
-  (use-local-map jabber-chat-mode-map))
+  (use-local-map jabber-chat-mode-map)
+
+  (run-mode-hooks 'jabber-chat-mode-hook))
 
 (put 'jabber-chat-mode 'mode-class 'special)
 
@@ -325,7 +337,8 @@ Signal an error if there is no JID at point."
   (setq jabber-point-insert (point-min))
   (setq major-mode 'jabber-groupchat-mode
         mode-name "jabber-groupchat")
-  (use-local-map jabber-groupchat-mode-map))
+  (use-local-map jabber-groupchat-mode-map)
+  (run-mode-hooks 'jabber-groupchat-mode-hook))
 
 (put 'jabber-groupchat-mode 'mode-class 'special)
 
