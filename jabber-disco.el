@@ -1,5 +1,5 @@
 ;; jabber-disco.el - service discovery functions
-;; $Id: jabber-disco.el,v 1.3 2004/03/03 18:32:13 legoscia Exp $
+;; $Id: jabber-disco.el,v 1.4 2004/03/09 19:50:43 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -33,13 +33,46 @@
   (list "http://jabber.org/protocol/disco#info")
   "Features advertised on service discovery requests")
 
-(defvar jabber-disco-items-nodes nil
-  "Alist of node names and functions returning disco item data")
+(defvar jabber-disco-items-nodes
+  (list
+   (list "" nil nil))
+  "Alist of node names and information about returning disco item data.
+Key is node name as a string, or \"\" for no node specified.  Value is
+a list of two items.
+
+First item is data to return.  If it is a function, that function is
+called and its return value is used; if it is a list, that list is
+used.  The list should be the XML data to be returned inside the
+<query/> element, like this:
+
+((item ((name . \"Name of first item\")
+	(jid . \"first.item\")
+	(node . \"node\"))))
+
+Second item is access control function.  That function is passed the
+JID, and returns non-nil if access is granted.  If the second item is
+nil, access is always granted.")
 
 (defvar jabber-disco-info-nodes
   (list
-   (cons "" #'jabber-disco-return-client-info))
-  "Alist of node names and functions returning disco info data")
+   (list "" #'jabber-disco-return-client-info nil))
+  "Alist of node names and information returning disco info data.
+Key is node name as a string, or \"\" for no node specified.  Value is
+a list of two items.
+
+First item is data to return.  If it is a function, that function is
+called and its return value is used; if it is a list, that list is
+used.  The list should be the XML data to be returned inside the
+<query/> element, like this:
+
+((identity ((category . \"client\")
+	    (type . \"pc\")
+	    (name . \"Jabber client\")))
+ (feature ((var . \"some-feature\"))))
+
+Second item is access control function.  That function is passed the
+JID, and returns non-nil if access is granted.  If the second item is
+nil, access is always granted.")
 
 (defun jabber-process-disco-info (xml-data)
   "Handle results from info disco requests."
@@ -102,35 +135,53 @@ See JEP-0030."
 	 (node (or
 		(jabber-xml-get-attribute (jabber-iq-query xml-data) 'node)
 		""))
-	 (func (cdr (assoc node which-alist))))
-    (if func
-	(funcall func xml-data)
+	 (return-list (cdr (assoc node which-alist)))
+	 (func (nth 0 return-list))
+	 (access-control (nth 1 return-list)))
+    (if return-list
+	(if (and (functionp access-control)
+		 (not (funcall access-control to)))
+	    (jabber-send-sexp `(iq ((to . ,to)
+				    (type . "error")
+				    (id . ,id))
+				   ,(jabber-iq-query xml-data)
+				   (error ((type . "cancel"))
+					  (not-allowed
+					   ((xmlns
+					     . "urn:ietf:params:xml:ns:xmpp-stanzas"))))))
+	  ;; Access control passed
+	  (let ((result (if (functionp func)
+			    (funcall func xml-data)
+			  func)))
+	    (jabber-send-iq to "result"
+			    `(query ((xmlns . ,xmlns))
+				    ,@result)
+			    nil nil nil nil id)))
+
+      ;; No such node
       (jabber-send-sexp `(iq ((to . ,to)
 			      (type . "error")
 			      (id . ,id))
+			     ,(jabber-iq-query xml-data)
 			     (error ((type . "cancel"))
 				    (item-not-found
 				     ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))
 
 (defun jabber-disco-return-client-info (xml-data)
-  (let ((to (jabber-xml-get-attribute xml-data 'from))
-	(id (jabber-xml-get-attribute xml-data 'id)))
-    (jabber-send-iq to "result"
-		    `(query ((xmlns . "http://jabber.org/protocol/disco#info"))
-			    ;; If running under a window system, this is
-			    ;; a GUI client.  If not, it is a console client.
-			    (identity ((category . "client")
-				       (name . "Emacs Jabber client")
-				       (type . ,(if (memq window-system
-							  '(x w32 mac))
-						    "pc"
-						  "console"))))
-			    ,(mapcar
-			      (lambda (featurename)
-				`(feature ((var . ,featurename))))
-			      jabber-advertised-features))
-		    nil nil nil nil id)))
-
+  `(
+    ;; If running under a window system, this is
+    ;; a GUI client.  If not, it is a console client.
+    (identity ((category . "client")
+	       (name . "Emacs Jabber client")
+	       (type . ,(if (memq window-system
+				  '(x w32 mac))
+			    "pc"
+			  "console"))))
+    ,@(mapcar
+       #'(lambda (featurename)
+	   `(feature ((var . ,featurename))))
+       jabber-advertised-features)))
+	
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Send items disco query" 'jabber-get-disco-items))
 (defun jabber-get-disco-items (to &optional node)
