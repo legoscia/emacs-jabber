@@ -135,7 +135,9 @@ bring up menus of actions.
 	mode-name "jabber-roster")
   (use-local-map jabber-roster-mode-map)
   (setq buffer-read-only t)
-  (run-mode-hooks 'jabber-roster-mode-hook))
+  (if (fboundp 'run-mode-hooks)
+      (run-mode-hooks 'jabber-roster-mode-hook)
+    (run-hooks 'jabber-roster-mode-hook)))
 
 (put 'jabber-roster-mode 'mode-class 'special)
 

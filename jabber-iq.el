@@ -46,7 +46,9 @@
         mode-name "jabber-browse")
   (use-local-map jabber-browse-mode-map)
   (setq buffer-read-only t)
-  (run-mode-hooks 'jabber-browse-mode-hook))
+  (if (fboundp 'run-mode-hooks)
+      (run-mode-hooks 'jabber-browse-mode-hook)
+    (run-hooks 'jabber-browse-mode-hook)))
 
 (put 'jabber-browse-mode 'mode-class 'special)
 

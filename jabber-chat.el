@@ -171,7 +171,9 @@ These fields are available:
         mode-name "jabber-chat")
   (use-local-map jabber-chat-mode-map)
 
-  (run-mode-hooks 'jabber-chat-mode-hook))
+  (if (fboundp 'run-mode-hooks)
+      (run-mode-hooks 'jabber-chat-mode-hook)
+    (run-hooks 'jabber-chat-mode-hook)))
 
 (put 'jabber-chat-mode 'mode-class 'special)
 
@@ -338,7 +340,9 @@ Signal an error if there is no JID at point."
   (setq major-mode 'jabber-groupchat-mode
         mode-name "jabber-groupchat")
   (use-local-map jabber-groupchat-mode-map)
-  (run-mode-hooks 'jabber-groupchat-mode-hook))
+  (if (fboundp 'run-mode-hooks)
+      (run-mode-hooks 'jabber-groupchat-mode-hook)
+    (run-hooks 'jabber-groupchat-mode-hook)))
 
 (put 'jabber-groupchat-mode 'mode-class 'special)
 
