@@ -170,6 +170,11 @@
 		(string :tag "Hostname or IP address"))
   :group 'jabber)
 
+(defcustom jabber-port 5222
+  "jabber port" 
+  :type 'integer
+  :group 'jabber)
+
 (defcustom jabber-password nil
   "jabber password" 
   :type '(radio (const :tag "Prompt for password" nil)
@@ -183,11 +188,6 @@
 
 (defcustom jabber-default-priority 10
   "default priority"
-  :type 'integer
-  :group 'jabber)
-
-(defcustom jabber-port 5222
-  "jabber port" 
   :type 'integer
   :group 'jabber)
 
