@@ -349,12 +349,17 @@ Return nil if X-MUC is nil."
 	(insert (jabber-propertize
 		 (format-spec jabber-groupchat-prompt-format
 			      (list
-			       (cons ?t (format-time-string jabber-chat-time-format timestamp))
+			       (cons ?t (format-time-string 
+					 (if timestamp
+					     jabber-chat-delayed-time-format
+					   jabber-chat-time-format)
+					 timestamp))
 			       (cons ?n nick)
 			       (cons ?u nick)
 			       (cons ?r nick)
 			       (cons ?j (concat jabber-group "/" nick))))
-		 'face 'jabber-chat-prompt-foreign))
+		 'face 'jabber-chat-prompt-foreign
+		 'help-echo (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " nick " in " jabber-group)))
       (jabber-muc-system-prompt))))
 
 (defun jabber-muc-system-prompt (&rest ignore)
@@ -367,7 +372,8 @@ Return nil if X-MUC is nil."
 			 (cons ?u "")
 			 (cons ?r "")
 			 (cons ?j jabber-group)))
-	   'face 'jabber-chat-prompt-system)))
+	   'face 'jabber-chat-prompt-system
+	   'help-echo (format-time-string "System message on %Y-%m-%d %H:%M:%S"))))
 
 (add-to-list 'jabber-message-chain 'jabber-muc-process-message)
 
