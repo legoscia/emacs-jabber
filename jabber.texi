@@ -3,7 +3,6 @@
 @setfilename jabber.info
 @settitle jabber.el manual 0.5.1
 @c %**end of header
-@syncodeindex fn cp
 
 @dircategory Emacs
 @direntry
@@ -49,7 +48,9 @@ this permission notice are preserved on all copies.
 * Services::                    
 * Customization::               
 * Hacking and extending::       
-* Index::                       
+* Concept index::               
+* Function index::              
+* Variable index::              
 @end menu
 
 
@@ -67,6 +68,8 @@ there are browse buffers (increasingly inexactly named) for
 interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
+
+XXX: the following paragraph is out of date.
 
 Main unfeatures of jabber.el are SASL, SSL and TLS.  Beyond that,
 there is nearly no support for advanced MUC features required for
@@ -107,8 +110,9 @@ skim it, making sure to pick up the commands mentioned.
 
 @findex jabber-connect
 @findex jabber-disconnect
+
 @cindex Connecting
-@cindex Registering with server
+@cindex Registering an account
 
 I'll assume that you have already successfully installed jabber.el; if
 not, consult the @file{README} file.  Also, make sure you have
@@ -146,20 +150,22 @@ To disconnect, type @kbd{M-x jabber-disconnect}.
 @section Chatting
 
 @cindex Chatting
+@findex jabber-chat-with
 
 In the roster display, you can access several menus through keystrokes
 or mouse clicks.  You can bring one big menu up by pressing the second
 mouse button, or you can bring up the ``chat menu'' by typing @kbd{C-c
 C-c}.  If you do the latter while point is on a roster entry, that
 entry will be the default value when you are asked for whom to chat
-with.
+with.  You can also use the function @code{jabber-chat-with}.
 
 Now, try opening a chat with someone.  In the default configuration,
 you will hear a beep and see ``Message from @var{person}'' in the echo
 area.  This is exactly the same message you receive if the other
 person sends a message to you.  In any case, go to the buffer
-@code{*-jabber-chat-:-@var{person}-*} and start chatting.  Most
-normal keystrokes open the minibuffer where you can type a message.
+@code{*-jabber-chat-:-@var{person}-*} and start chatting.  Type your
+message at the end of the buffer, and hit @kbd{RET} to send it.  To
+include a newline in your message, use @kbd{C-j}.
 
 @node Presence, Presence subscription, Chatting, Basic operation
 @section Presence
@@ -255,6 +261,8 @@ call @code{jabber-display-roster} manually.
 @cindex Groupchat
 @cindex MUC
 @findex jabber-groupchat-join
+@findex jabber-groupchat-leave
+@findex jabber-groupchat-get-config
 
 The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
@@ -283,6 +291,8 @@ resources of a user.
 
 @node Services, Customization, Groupchat, Top
 @chapter Services
+
+@cindex Browse buffers
 
 Not every Jabber entity is a physical person.  There are many
 automatic entities, called servers, services, components, agents,
@@ -394,6 +404,10 @@ browse buffer.
 @node Ad-Hoc Commands,  , Searching, Services
 @section Ad-Hoc Commands
 
+@cindex Ad-Hoc Commands
+@findex jabber-ahc-get-list
+@findex jabber-ahc-execute-command
+
 jabber.el supports a subset of JEP-0050, the standard for Ad-Hoc
 Commands.  As the name implies, this can be used for just about
 anything.  However, at the time of this writing it seems that
@@ -419,11 +433,11 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-jabber.el currently doesn't parse @code{<action/>} tags, which will
-cause confusing behaviour for multi-step commands.
-
 @node Customization, Hacking and extending, Services, Top
 @chapter Customization
+
+@findex jabber-customize
+@cindex Customization
 
 jabber.el is intended to be customizable for many tastes.  After all,
 this is Emacs.  To open a customization buffer for jabber.el, type
@@ -438,6 +452,15 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 
 @node Connection settings, Customizing the roster buffer, Customization, Customization
 @section Connection settings
+
+@vindex jabber-username
+@vindex jabber-server
+@vindex jabber-network-server
+@vindex jabber-port
+@vindex jabber-password
+@vindex jabber-resource
+@vindex jabber-default-priority
+@vindex jabber-nickname
 
 @code{jabber-username} is the username part of your JID.
 
@@ -472,6 +495,10 @@ priority during a session with @code{jabber-send-presence}.
 @node Customizing the roster buffer, Customizing alerts, Connection settings, Customization
 @section Customizing the roster buffer
 
+@vindex jabber-sort-order
+@vindex jabber-show-resources
+@vindex jabber-roster-line-spacing
+
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
 status (@pxref{Presence}) or @code{nil}, which represents offline.
@@ -486,6 +513,8 @@ less compact look.
 
 @node Customizing alerts, Debug options, Customizing the roster buffer, Customization
 @section Customizing alerts
+
+@cindex Alert hooks
 
 When an event happens (currently including presence changes, incoming
 messages, and completed queries) you will usually want to be
@@ -564,6 +593,9 @@ use them as templates or inspiration for your own alerts.
 @node Presence alerts, Message alerts, Standard alerts, Customizing alerts
 @subsection Presence alerts
 
+@vindex jabber-alerts-presence-message-function
+@findex jabber-presence-default-message
+
 Set @code{jabber-alerts-presence-message-function} to your desired
 function.  This function should look like:
 
@@ -590,6 +622,9 @@ function.  This last argument is usually the only one they use.
 @node Message alerts, Info alerts, Presence alerts, Customizing alerts
 @subsection Message alerts
 
+@vindex jabber-alerts-message-function
+@findex jabber-message-default-message
+
 Set @code{jabber-alerts-message-function} to your desired
 function.@footnote{Logically it should be
 @code{jabber-alerts-message-message-function}, but that would be
@@ -614,6 +649,9 @@ function.
 @node Info alerts,  , Message alerts, Customizing alerts
 @subsection Info alerts
 
+@vindex jabber-alerts-info-message-function
+@findex jabber-info-default-message
+
 Info alerts are sadly underdeveloped.  The message function,
 @code{jabber-alerts-info-message-function}, takes two arguments,
 @var{infotype} and @var{buffer}.  @var{buffer} is the buffer where
@@ -626,6 +664,9 @@ The info alert hooks take an extra argument, as could be expected.
 @node Debug options,  , Customizing alerts, Customization
 @section Debug options
 
+@vindex jabber-debug-roster
+@vindex jabber-debug-log-xml
+
 These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
 
@@ -636,7 +677,7 @@ means that you can see the properties of each contact.
 sent and received are logged in the buffer @code{*-jabber-xml-log-*}
 in list format.  @xref{XML representation}.
 
-@node Hacking and extending, Index, Customization, Top
+@node Hacking and extending, Concept index, Customization, Top
 @chapter Hacking and extending
 
 This part of the manual is an attempt to explain parts of the source
@@ -655,6 +696,8 @@ look.  Knowledge of Jabber protocols is assumed.
 
 @node XML representation, Roster structure, Hacking and extending, Hacking and extending
 @section XML representation
+
+@cindex XML representation
 
 The XML representation is the one generated by @file{xml.el} in Emacs,
 namely the following.  Each tag is a list.  The first element of the
@@ -681,6 +724,9 @@ list.  It is not present in newer (post-21.3) versions of
 
 @node Roster structure, Listening for new requests, XML representation, Hacking and extending
 @section Roster structure
+
+@vindex *jabber-roster*
+@vindex jabber-jid-obarray
 
 Roster entries are contained in the list @code{*jabber-roster*}.
 
@@ -732,6 +778,8 @@ information from the resource with the highest priority is inserted in
 @findex jabber-send-iq
 @findex jabber-process-iq
 @findex jabber-signal-error
+@vindex jabber-iq-get-xmlns-alist
+@vindex jabber-iq-set-xmlns-alist
 
 To listen for new IQ requests, add the appropriate entry in
 @code{jabber-iq-get-xmlns-alist} or @code{jabber-iq-set-xmlns-alist}.
@@ -761,6 +809,8 @@ To return an error to the Jabber entity that sent the query, use
 
 @findex jabber-send-iq
 @findex jabber-process-iq
+@findex jabber-report-success
+@findex jabber-process-data
 
 To send an IQ request, use @code{jabber-send-iq}.  It will generate an
 id, and create a mapping for it for use when the response comes.  The
@@ -809,6 +859,11 @@ UI taste.
 @node Extending service discovery, Stanza chains, Sending new requests, Hacking and extending
 @section Service discovery
 
+@vindex jabber-advertised-features
+@vindex jabber-disco-items-nodes
+@vindex jabber-disco-info-nodes
+@findex jabber-my-jid-p
+
 Your new handlers will likely want to advertise their existence
 through service discovery.
 
@@ -837,6 +892,10 @@ the user.
 @node Stanza chains,  , Extending service discovery, Hacking and extending
 @section Stanza chains
 
+@vindex jabber-message-chain
+@vindex jabber-iq-chain
+@vindex jabber-presence-chain
+
 If you really need to get under the skin of jabber.el, you can add
 functions to the lists @code{jabber-message-chain},
 @code{jabber-iq-chain} and @code{jabber-presence-chain}.  Normally
@@ -849,10 +908,20 @@ stanza of the corresponding type arrives, with the entire XML stanza
 passed as the only argument.  Earlier functions can modify the stanza
 to change the behaviour of downstream functions.
 
-@node Index,  , Hacking and extending, Top
-@unnumbered Index
+@node Concept index, Function index, Hacking and extending, Top
+@unnumbered Concept index
 
 @printindex cp
+
+@node Function index, Variable index, Concept index, Top
+@unnumbered Function index
+
+@printindex fn
+
+@node Variable index,  , Function index, Top
+@unnumbered Variable index
+
+@printindex vr
 
 @bye
 
