@@ -46,6 +46,8 @@ sends a message if that happens. The buddies are stored in
 
 (defun jabber-watch-add (buddy)
   (interactive (list (jabber-read-jid-completing "Add buddy to watch list: ")))
+  (unless (memq 'jabber-presence-watch jabber-alert-presence-hooks)
+    (error "jabber-presence-watch is not in jabber-alert-presence-hooks"))
   (add-to-list 'jabber-watch-list (jabber-jid-symbol buddy)))
 
 (defun jabber-watch-remove (buddy)
