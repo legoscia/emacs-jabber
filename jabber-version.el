@@ -1,5 +1,5 @@
 ;; jabber-version.el - version reporting by JEP-0092
-;; $Id: jabber-version.el,v 1.2 2004/03/06 12:53:42 legoscia Exp $
+;; $Id: jabber-version.el,v 1.3 2004/03/27 22:35:06 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -21,6 +21,9 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-iq)
+
+(defconst jabber-version "0.5"
+  "version returned to those who query us")
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request software version" 'jabber-get-version))
@@ -57,7 +60,7 @@ determined from the incoming packet passed in XML-DATA."
     (jabber-send-iq to "result"
 		    `(query ((xmlns . "jabber:iq:version"))
 			    (name () "jabber.el")
-			    (version () "0.4")
+			    (version () ,jabber-version)
 			    ;; Booting... /vmemacs.el
 			    ;; Shamelessly stolen from someone's sig.
 			    (os () ,(jabber-escape-xml (emacs-version))))
