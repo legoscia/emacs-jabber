@@ -291,7 +291,7 @@ tag, or nil if we're connecting to a pre-XMPP server."
 	   (jabber-parse-error (car (jabber-xml-get-children xml-data 'error)))))
 
   ;; Now, request roster.
-  (jabber-send-iq jabber-server
+  (jabber-send-iq nil
 		  "get" 
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial

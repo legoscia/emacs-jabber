@@ -68,7 +68,7 @@ CLOSURE-DATA should be t on success and nil on failure."
       ;; Logon success
       (progn
 	(setq *jabber-authenticated* t)
-	(jabber-send-iq jabber-server
+	(jabber-send-iq nil
 			"get" 
 			'(query ((xmlns . "jabber:iq:roster")))
 			#'jabber-process-roster 'initial
