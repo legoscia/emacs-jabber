@@ -1,0 +1,265 @@
+;; jabber-alert.el - alert hooks
+;; $Id: jabber-alert.el,v 1.1 2004/02/25 21:42:02 legoscia Exp $
+
+;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
+;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
+
+;; This file is a part of jabber.el.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
+  :group 'jabber)
+
+(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo)
+  "Hooks run when a new message arrives.
+
+Arguments are FROM, BUFFER, TEXT and PROPOSED-ALERT.  FROM is the JID
+of the sender, BUFFER is the the buffer where the message can be read,
+and TEXT is the text of the message.  PROPOSED-ALERT is the string
+returned by `jabber-alert-message-function' for these arguments, so that
+hooks do not have to call it themselves."
+  :type 'hook
+  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-ratpoison jabber-message-screen)
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-message-function
+  'jabber-message-default-message
+  "Function for constructing message alert messages.
+
+Arguments are FROM, BUFFER, and TEXT.  This function should return a
+string containing an appropriate text message, or nil if no message
+should be displayed.
+
+The provided hooks displaying a text message get it from this function,
+and show no message if it returns nil.  Other hooks do what they do
+every time."
+  :type 'function
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-presence-hooks '(jabber-presence-beep jabber-presence-update-roster jabber-presence-echo)
+  "Hooks run when a user's presence changes.
+
+Arguments are WHO, OLDSTATUS, NEWSTATUS, STATUSTEXT and
+PROPOSED-ALERT.  WHO is a symbol whose text is the JID of the contact,
+and which has various interesting properties.  OLDSTATUS is the old
+presence or nil if disconnected.  NEWSTATUS is the new presence, or
+one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
+\"unsubscribed\".  PROPOSED-ALERT is the string returned by
+`jabber-alert-presence-message-function' for these arguments."
+  :type 'hook
+  :options '(jabber-presence-beep jabber-presence-wave jabber-presence-update-roster jabber-presence-switch jabber-presence-ratpoison jabber-presence-screen jabber-presence-echo)
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-presence-message-function
+  'jabber-presence-default-message
+  "Function for constructing presence alert messages.
+
+Arguments are WHO, OLDSTATUS, NEWSTATUS and STATUSTEXT.  See
+`jabber-alert-presence-hooks' for documentation. This function
+should return a string containing an appropriate text message, or nil
+if no message should be displayed.
+
+The provided hooks displaying a text message get it from this function.
+All hooks refrain from action if this function returns nil."
+  :type 'function
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-info-message-hooks '(jabber-info-beep jabber-info-echo)
+  "Hooks run when an info request is completed.
+
+First argument is WHAT, a symbol telling the kind of info request completed.
+That might be 'roster, for requested roster updates, and 'browse, for
+browse requests.  Second argument in BUFFER, a buffer containing the result.
+Third argument is PROPOSED-ALERT, containing the string returned by
+`jabber-alert-info-message-function' for these arguments."
+  :type 'hook
+  :options '(jabber-info-beep jabber-info-wave jabber-info-ratpoison jabber-info-screen jabber-info-echo jabber-info-switch)
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-info-message-function
+  'jabber-info-default-message
+  "Function for constructing info alert messages.
+
+Arguments are WHAT, a symbol telling the kind of info request completed,
+and BUFFER, a buffer containing the result."
+  :type 'function
+  :group 'jabber-alerts)
+
+(defcustom jabber-info-message-alist
+  '((roster . "Roster display updated")
+    (browse . "Browse request completed"))
+  "Alist for info alert messages, used by `jabber-info-default-message'."
+  :type '(alist :key-type symbol :value-type string
+		:options (roster browse))
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-message-wave ""
+  "a sound file to play when a message arrived"
+  :type 'file
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-presence-wave ""
+  "a sound file to play when a presence arrived"
+  :type 'file
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-info-wave ""
+  "a sound file to play when an info query result arrived"
+  :type 'file
+  :group 'jabber-alerts)
+
+;; Alert hooks
+
+;; Message alert hooks
+(defun jabber-message-default-message (from buffer text)
+  (format "Message from %s" (jabber-jid-displayname from)))
+
+(defun jabber-message-beep (from buffer text proposed-alert)
+  "Beep when a message arrives"
+  (beep))
+
+(defun jabber-message-echo (from buffer text proposed-alert)
+  "Show a message in the echo area when a message arrives"
+  (if proposed-alert
+      (message "%s" proposed-alert)))
+
+(defun jabber-message-wave (from buffer text proposed-alert)
+  "Play the wave file specified in `jabber-alert-message-wave'"
+  (jabber-play-sound-file jabber-alert-message-wave))
+
+(defun jabber-message-switch (from buffer text proposed-alert)
+  "Switch to the buffer where a new message has arrived."
+  (switch-to-buffer buffer))
+
+(defun jabber-message-ratpoison (from buffer text proposed-alert)
+  "Show a message through the Ratpoison window manager"
+  (if proposed-alert
+      (let ((process-connection-type nil))
+	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
+
+(defun jabber-message-screen (from buffer text proposed-alert)
+  "Show a message through the Screen terminal manager"
+  (if proposed-alert
+      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
+
+;; Presence alert hooks
+(defun jabber-presence-default-message (who oldstatus newstatus statustext)
+  "This function returns nil if OLDSTATUS and NEWSTATUS are equal, and in other
+cases a string of the form \"'name' (jid) is now NEWSTATUS (STATUSTEXT)\".
+
+This function is not called directly, but is the default for
+`jabber-alert-presence-message-function'."
+  (cond
+   ((equal oldstatus newstatus)
+      nil)
+   (t
+    (let ((formattedname
+	   (if (> (length (get who 'name)) 0)
+	       (get who 'name)
+	     (symbol-name who)))
+	  (formattedstatus
+	   (or
+	    (cdr (assoc newstatus '(("subscribe" . " requests subscription to your presence")
+				    ("subscribed" . " has granted presence subscription to you")
+				    ("unsubscribe" . " no longer subscribes to your presence")
+				    ("unsubscribed" . " cancels your presence subscription"))))
+	    (concat " is now "
+		    (or
+		     (cdr (assoc newstatus jabber-presence-strings))
+		     newstatus))))
+	  (formattedtext
+	   (if (> (length statustext) 0)
+	       (concat " (" (jabber-unescape-xml statustext) ")")
+	     "")))
+      (concat formattedname formattedstatus formattedtext)))))
+
+(defun jabber-presence-beep (who oldstatus newstatus statustext proposed-alert)
+  "Beep when someone's presence changes"
+  (if proposed-alert
+      (beep)))
+
+(defun jabber-presence-echo (who oldstatus newstatus statustext proposed-alert)
+  "Show a message in the echo area"
+  (if proposed-alert
+      (message "%s" proposed-alert)))
+
+(defun jabber-presence-wave (who oldstatus newstatus statustext proposed-alert)
+  "Play the wave file specified in `jabber-alert-presence-wave'"
+  (if proposed-alert
+      (jabber-play-sound-file jabber-alert-presence-wave)))
+
+(defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
+  "Update the roster display by calling `jabber-display-roster'"
+  (jabber-display-roster))
+
+(defun jabber-presence-switch (who oldstatus newstatus statustext proposed-alert)
+  "Switch to the roster buffer"
+  (switch-to-buffer (process-buffer *jabber-connection*)))
+
+(defun jabber-presence-ratpoison (who oldstatus newstatus statustext proposed-alert)
+  "Show a message through the Ratpoison window manager"
+
+  (if proposed-alert
+      (let ((process-connection-type))
+	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
+
+(defun jabber-presence-screen (who oldstatus newstatus statustext proposed-alert)
+  "Show a message through the Screen terminal manager"
+
+  (if proposed-alert
+      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
+
+;;; Info alert hooks
+
+(defun jabber-info-default-message (infotype buffer)
+  "Function for constructing info alert messages.
+
+The argument is INFOTYPE, a symbol telling the kind of info request completed.
+This function uses `jabber-info-message-alist' to find a message."
+  (concat (cdr (assq infotype jabber-info-message-alist))
+	  " (buffer "(buffer-name buffer) ")"))
+
+(defun jabber-info-echo (infotype buffer proposed-alert)
+  "Show a message in the echo area"
+  (if proposed-alert
+	(message "%s" proposed-alert)))
+
+(defun jabber-info-beep (infotype buffer proposed-alert)
+  "Beep on completed info requests"
+  (if proposed-alert
+      (beep)))
+
+(defun jabber-info-wave (infotype buffer proposed-alert)
+  "Play the wave file specified in `jabber-alert-info-wave'"
+  (if proposed-alert
+      (jabber-play-sound-file jabber-alert-info-wave)))
+
+(defun jabber-info-ratpoison (infotype buffer proposed-alert)
+  "Show a message through the Ratpoison window manager"
+  (if proposed-alert
+      (let ((process-connection-type nil))
+	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " proposed-alert)))))
+
+(defun jabber-info-screen (infotype buffer proposed-alert)
+  "Show a message through the Screen terminal manager"
+  (if proposed-alert
+      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
+
+(defun jabber-info-switch (infotype buffer proposed-alert)
+  "Switch to buffer of completed request"
+  (switch-to-buffer buffer))
+
+(provide 'jabber-alert)
