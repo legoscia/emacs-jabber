@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.4 2004/02/02 22:56:55 legoscia Exp $
+@c $Id: jabber.texi,v 1.5 2004/02/03 12:33:27 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.4
@@ -468,8 +468,8 @@ message function.  The message function for each category takes the
 same arguments as the corresponding hooks, except for that last
 argument.
 
-Was that confusing enough?  The preceding paragraph will be expressed
-in code in the following subsections.
+Alert hook contributions are very welcome.  Either submit them to the
+Sourceforge patch tracker, or contact us directly.
 
 @menu
 * Standard alerts::             
@@ -519,11 +519,16 @@ You can use them as templates or inspiration for your own alerts.
 @subsection Presence alerts
 
 Set @code{jabber-alerts-presence-message-function} to your desired
-function.  This function should take four arguments, @var{who},
-@var{oldstatus}, @var{newstatus} and @var{statustext}.  @var{who} is
-the JID symbol (@pxref{Roster structure}), @var{oldstatus} and
-@var{newstatus} are the previous and current stati, respectively, and
-@var{statustext} is the status message if provided, otherwise nil.
+function.  This function should look like:
+
+@example
+(@var{function} @var{who} @var{oldstatus} @var{newstatus} @var{statustext})
+@end example
+
+@var{who} is the JID symbol (@pxref{Roster structure}),
+@var{oldstatus} and @var{newstatus} are the previous and current
+stati, respectively, and @var{statustext} is the status message if
+provided, otherwise nil.
 
 @var{newstatus} can also be one of @code{"subscribe"},
 @code{"subscribed"}, @code{"unsubscribe"} and @code{"unsubscribed"}.
@@ -542,10 +547,15 @@ function.  This last argument is usually the only one they use.
 Set @code{jabber-alerts-message-function} to your desired
 function.@footnote{Logically it should be
 @code{jabber-alerts-message-message-function}, but that would be
-really ugly.}  This function should take three arguments, @var{from},
-@var{buffer} and @var{text}.  @var{from} is the JID symbol
-(@pxref{Roster structure}), @var{buffer} is the buffer where the
-message is displayed, and @var{text} is the text of the message.
+really ugly.}  This function should look like:
+
+@example
+(@var{function} @var{from} @var{buffer} @var{text})
+@end example
+
+@var{from} is the JID symbol (@pxref{Roster structure}), @var{buffer}
+is the buffer where the message is displayed, and @var{text} is the
+text of the message.
 
 The default function, @code{jabber-message-default-message}, returns
 ``Message from @var{person}'', where @var{person} is the name of the
@@ -569,6 +579,11 @@ The info alert hooks take an extra argument, as could be expected.
 
 @node Hacking and extending, Index, Customization, Top
 @chapter Hacking and extending
+
+This part of the manual is an attempt to explain parts of the source
+code.  It is not meant to discourage you from reading the code
+yourself and trying to figure it out, but as a guide on where to
+look.  Knowledge of Jabber protocols is assumed.
 
 @menu
 * XML representation::          
