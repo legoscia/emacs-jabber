@@ -148,11 +148,11 @@ TIMESTAMP is timestamp, or nil for now."
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
 
-(defun jabber-send-message (to body subject type)
+(defun jabber-send-message (to subject body type)
   "send a message tag to the server"
   (interactive (list (jabber-read-jid-completing "to: ")
-		     (jabber-read-with-input-method "body: ")
 		     (jabber-read-with-input-method "subject: ")
+		     (jabber-read-with-input-method "body: ")
 		     (read-string "type: ")))
   (jabber-send-sexp `(message ((to . ,to)
                                ,(if (> (length type) 0)
