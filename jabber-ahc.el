@@ -1,5 +1,5 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
-;; $Id: jabber-ahc.el,v 1.2 2004/03/10 18:57:01 legoscia Exp $
+;; $Id: jabber-ahc.el,v 1.3 2004/03/21 14:03:20 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -116,22 +116,9 @@ access allowed.  nil means open for everyone."
 			      (funcall func xml-data)
 			      nil nil nil nil id)
 	    ;; ...or failed
-	    (jabber-send-sexp `(iq ((to . ,to)
-				    (type . "error")
-				    (id . ,id))
-				   ,(jabber-iq-query xml-data)
-				   (error ((type . "cancel"))
-					  (not-allowed
-					   ((xmlns
-					     . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))
+	    (jabber-send-iq-error to id (jabber-iq-query xml-data) "cancel" 'not-allowed))
 	;; No such node
-	(jabber-send-sexp `(iq ((to . ,to)
-				(type . "error")
-				(id . ,id))
-			       ,(jabber-iq-query xml-data)
-			       (error ((type . "cancel"))
-				      (item-not-found
-				       ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))))))))))
+	(jabber-send-iq-error to id (jabber-iq-query xml-data) "cancel" 'item-not-found)))))
 
 ;;; CLIENT
 (add-to-list 'jabber-jid-service-menu
