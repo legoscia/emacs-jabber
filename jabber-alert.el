@@ -24,7 +24,7 @@
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
-(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo)
+(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo jabber-message-history)
   "Hooks run when a new message arrives.
 
 Arguments are FROM, BUFFER, TEXT and PROPOSED-ALERT.  FROM is the JID
@@ -33,7 +33,7 @@ and TEXT is the text of the message.  PROPOSED-ALERT is the string
 returned by `jabber-alert-message-function' for these arguments, so that
 hooks do not have to call it themselves."
   :type 'hook
-  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen)
+  :options '(jabber-message-beep jabber-message-wave jabber-message-echo jabber-message-switch jabber-message-display jabber-message-ratpoison jabber-message-screen jabber-message-history)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-message-function

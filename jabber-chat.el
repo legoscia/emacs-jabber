@@ -23,6 +23,7 @@
 (require 'jabber-keymap)
 (require 'jabber-util)
 (require 'jabber-muc)
+(require 'jabber-history)
 
 (require 'format-spec)
 
@@ -289,7 +290,9 @@ TIMESTAMP is timestamp, or nil for now."
                               ,(if (> (length subject) 0)
                                    `(subject () ,(jabber-escape-xml subject)))
                               ,(if (> (length body) 0)
-                                   `(body () ,(jabber-escape-xml body))))))
+                                   `(body () ,(jabber-escape-xml body)))))
+  (if jabber-history-enabled
+      (jabber-history-log-message "out" nil to body)))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Start chat" 'jabber-chat-with))
