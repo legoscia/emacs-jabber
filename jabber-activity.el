@@ -77,8 +77,8 @@ the user name part of the JID."
   "Returns t only if there is an invisible buffer for JID"
   (let ((buffer (or (get-buffer (jabber-chat-get-buffer jid))
 		    (get-buffer (jabber-groupchat-get-buffer jid)))))
-    (and (not (get-buffer-window buffer 'visible))
-	 (buffer-live-p buffer))))
+    (and (buffer-live-p buffer)
+	 (not (get-buffer-window buffer 'visible)))))
 
 (defun jabber-activity-mode-line-update ()
   "Update the string shown in the mode line using `jabber-activity-make-string'
