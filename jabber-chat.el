@@ -450,7 +450,7 @@ TIMESTAMP is timestamp, or nil for now."
       ;; If this message comes from the room itself, nick will be nil.
       ;; jabber-format-body understands that as a system message,
       ;; and gives it another face.
-      (if body (insert (jabber-format-body body
+      (if body (insert (jabber-format-body (concat body "\n")
 					   jabber-groupchat-prompt-format
 					   'jabber-chat-prompt-foreign
 					   (format-time-string jabber-chat-time-format timestamp)

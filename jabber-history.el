@@ -141,9 +141,9 @@ This function is to be called from a chat buffer."
 		t			; both incoming and outgoing
 		(concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
     (if (string= (aref msg 1) "in")
-	(jabber-chat-print (aref msg 2) (aref msg 4) (jabber-parse-time (aref msg 0))
+	(jabber-chat-print (aref msg 2) (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
 			   jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
-      (jabber-chat-print nil (aref msg 4) (jabber-parse-time (aref msg 0))
+      (jabber-chat-print nil (concat (aref msg 4) "\n") (jabber-parse-time (aref msg 0))
 			 jabber-chat-local-prompt-format 'jabber-chat-prompt-local))))
 
 (provide 'jabber-history)
