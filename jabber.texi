@@ -532,7 +532,8 @@ you've read their message.
 Sometimes you might be waiting for a certain person to come online,
 and you don't want that occasion to get lost in the noise.  To get an
 obtrusive message when that happens, type @kbd{M-x jabber-watch-add}
-and select the person in question.
+and select the person in question.  You can enter a comment, to
+remember why you added the watch.
 
 You will get a message whenever that person goes from offline to
 online.  jabber.el will remember this for the rest of your Emacs
