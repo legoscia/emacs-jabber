@@ -106,6 +106,11 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'hook
   :group 'jabber-core)
 
+(defcustom jabber-roster-buffer "*-jabber-*"
+  "The name of the roster buffer"
+  :type 'string
+  :group 'jabber-core)
+
 (defsubst jabber-have-sasl-p ()
   "Return non-nil if SASL functions are available."
   (fboundp 'jabber-sasl-start-auth))
@@ -122,7 +127,7 @@ With prefix argument, register a new account."
     (let ((coding-system-for-read 'utf-8)
 	  (coding-system-for-write 'utf-8))
       (setq *jabber-connection* (open-network-stream "jabber"
-						     "*-jabber-*"
+						     jabber-roster-buffer
 						     (or jabber-network-server jabber-server)
 						     jabber-port)))
     (set-process-filter *jabber-connection* #'jabber-filter)

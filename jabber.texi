@@ -551,6 +551,7 @@ priority during a session with @code{jabber-send-presence}.
 @vindex jabber-show-resources
 @vindex jabber-roster-line-format
 @vindex jabber-resource-line-format
+@vindex jabber-roster-buffer
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
@@ -563,6 +564,10 @@ a contact has more than one connected resource.
 @code{jabber-roster-line-format} specifies how the entry for each
 contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
+
+@code{jabber-roster-buffer} specifies the name of the roster buffer.
+If you change this, the new name will be used the next time you
+connect.
 
 @table @code
 @item %c
