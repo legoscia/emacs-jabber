@@ -1506,6 +1506,19 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		   (value nil ,(widget-value (cdr widget-cons)))))
 	 jabber-widget-alist)))
 
+(defun jabber-init-widget-buffer (submit-to)
+  "Setup buffer-local variables for widgets."
+  (make-local-variable 'jabber-widget-alist)
+  (make-local-variable 'jabber-submit-to)
+  (setq jabber-widget-alist nil)
+  (setq jabber-submit-to submit-to)
+  (setq buffer-read-only nil)
+  ;; XXX: This is because data from other queries would otherwise be
+  ;; appended to this buffer, which would fail since widget buffers
+  ;; are read-only... or something like that.  Maybe there's a
+  ;; better way.
+  (rename-uniquely))
+
 (defun jabber-process-register-or-search (xml-data)
   "Display results from jabber:iq:{register,search} query as a form."
 
@@ -1519,25 +1532,14 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	       (t
 		(error "Namespace %s not handled by jabber-process-register-or-search" (jabber-iq-xmlns xml-data))))))
 	       
-    (make-local-variable 'jabber-widget-alist)
-    (make-local-variable 'jabber-submit-to)
-    (setq jabber-widget-alist nil)
-    (setq buffer-read-only nil)
-    
     (cond
      ((eq type 'register)
       ;; If there is no `from' attribute, we are registering with the server
-      (setq jabber-submit-to (or (jabber-xml-get-attribute xml-data 'from) jabber-server)))
+      (jabber-init-widget-buffer (or (jabber-xml-get-attribute xml-data 'from) jabber-server)))
 
      ((eq type 'search)
       ;; no such thing here
-      (setq jabber-submit-to (jabber-xml-get-attribute xml-data 'from))))
-
-    ;; XXX: This is because data from other queries would otherwise be
-    ;; appended to this buffer, which would fail since widget buffers
-    ;; are read-only... or something like that.  Maybe there's a
-    ;; better way.
-    (rename-uniquely)
+      (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))))
 
     (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n")
 
@@ -1952,7 +1954,7 @@ With prefix argument, register a new account."
 
 (defun jabber-groupchat-join (group nickname)
   "join a groupchat"
-  (interactive (list (jabber-jid-read-completing "group: ")
+  (interactive (list (jabber-read-jid-completing "group: ")
 		     (read-string (format "Nickname: (default %s) "
 					  jabber-nickname) 
 				  nil nil jabber-nickname t)))
@@ -1961,6 +1963,57 @@ With prefix argument, register a new account."
   (if (not (member group *jabber-active-groupchats*))
       (setq *jabber-active-groupchats* (cons group *jabber-active-groupchats*)))
   (jabber-groupchat-display group))
+
+(defun jabber-groupchat-get-config (group)
+  "Ask for MUC configuration form"
+  (interactive (list (jabber-read-jid-completing "group: ")))
+  (jabber-send-iq group
+		  "get"
+		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
+		  #'jabber-process-data #'jabber-groupchat-render-config
+		  #'jabber-process-data "MUC configuration request failed"))
+
+(defun jabber-groupchat-render-config (xml-data)
+  "Render MUC configuration form"
+
+  (let ((query (jabber-iq-query xml-data))
+	xdata)
+    (dolist (x (jabber-xml-get-children query 'x))
+      (if (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
+	  (setq xdata x)))
+    (if (not xdata)
+	(insert "No configuration possible.\n")
+      
+    (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))
+
+    (jabber-render-xdata-form xdata)
+
+    (widget-create 'push-button :notify #'jabber-groupchat-submit-config "Submit")
+    (widget-insert "\t")
+    (widget-create 'push-button :notify #'jabber-groupchat-cancel-config "Cancel")
+    (widget-insert "\n")
+
+    (widget-setup)
+    (widget-minor-mode 1))))
+
+(defun jabber-groupchat-submit-config (&rest ignore)
+  "Submit MUC configuration form."
+
+  (jabber-send-iq jabber-submit-to
+		  "set"
+		  `(query ((xmlns . "http://jabber.org/protocol/muc#owner"))
+			  ,(jabber-parse-xdata-form))
+		  #'jabber-report-success "MUC configuration"
+		  #'jabber-report-success "MUC configuration"))
+
+(defun jabber-groupchat-cancel-config (&rest ignore)
+  "Cancel MUC configuration form."
+
+  (jabber-send-iq jabber-submit-to
+		  "set"
+		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner"))
+			  (x ((xmlns . "jabber:x:data") (type . "cancel"))))
+		  nil nil nil nil))
 
 (defun jabber-send-presence (show status priority)
   "send a presence tag to the server"
