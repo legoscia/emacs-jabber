@@ -100,8 +100,10 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       (run-with-idle-timer 0.01 nil #'jabber-process-subscription-request from presence-status))
    
      (t
+      ;; XXX: now that we have jabber-jid-symbol, maybe this loop should
+      ;; go.  Think about what to do about out-of-roster presences.
       (dolist (buddy *jabber-roster*)
-	(if (string= (symbol-name buddy) (jabber-jid-user from))
+	(if (eq (jabber-jid-symbol from) buddy)
 	    (let* ((oldstatus (get buddy 'show))
 		   (resource (or (jabber-jid-resource from) ""))
 		   (resource-plist (cdr (assoc resource

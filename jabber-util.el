@@ -103,6 +103,7 @@ properties to add to the result."
 
 (defun jabber-jid-symbol (string)
   "return the symbol for the given JID"
+  ;; XXX: "downcase" is poor man's nodeprep.  See XMPP CORE.
   (intern (downcase (jabber-jid-user string)) jabber-jid-obarray))
 
 (defun jabber-my-jid-p (jid)
