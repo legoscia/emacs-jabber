@@ -187,27 +187,24 @@ NICK is the nickname.
 USER is the username (usually the username portion of a JID).
 RESOURCE is the resource.
 JID is the bare JID."
-  (if (and (>= (length body) 3)
-	   (string-equal (substring body 0 3) "/me"))
-      (concat
-       (jabber-propertize (jabber-format-prompt jabber-chat-system-prompt-format
-						time
-						""
-						user
-						resource
-						jid)
-			  'face face)
-       (jabber-propertize (concat (jabber-replace-me body nick)
-				  "\n")
-			  'face 'jabber-chat-prompt-system))
-    (concat (jabber-propertize (jabber-format-prompt prompt
-						     time
-						     nick
-						     user
-						     resource
-						     jid)
-			       'face face)
-	    body "\n")))
+  (when (and (>= (length body) 3)
+	     (string-equal (substring body 0 3) "/me"))
+    (setq body (jabber-replace-me body nick))
+    (setq nick nil))
+  (concat
+   (jabber-propertize (jabber-format-prompt (if nick
+						prompt
+					      jabber-chat-system-prompt-format)
+					    time
+					    (or nick "")
+					    user
+					    resource
+					    jid)
+		      'face face)
+   (if nick
+       body
+     (jabber-propertize body 'face 'jabber-chat-prompt-system))
+   "\n"))
 
 (defun jabber-chat-buffer-send ()
   (interactive)
@@ -365,13 +362,16 @@ TIMESTAMP is timestamp, or nil for now."
   (with-current-buffer (jabber-groupchat-create-buffer group)
     (goto-char jabber-point-insert)
     (let ((inhibit-read-only t))
+      ;; If this message comes from the room itself, nick will be nil.
+      ;; jabber-format-body understands that as a system message,
+      ;; and gives it another face.
       (if body (insert (jabber-format-body body
 					   jabber-groupchat-prompt-format
 					   'jabber-chat-prompt-foreign
 					   (format-time-string jabber-chat-time-format timestamp)
-					   (or nick "")
-					   (or nick "")
-					   (or nick "")
+					   nick
+					   nick
+					   nick
 					   (concat group "/" nick))))
       (setq jabber-point-insert (point))
       (set-text-properties jabber-point-insert (point-max) nil)
