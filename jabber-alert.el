@@ -26,7 +26,9 @@
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
-(defcustom jabber-alert-message-hooks '(jabber-message-beep jabber-message-echo)
+(defcustom jabber-alert-message-hooks '(jabber-message-beep
+					jabber-message-echo
+					jabber-message-scroll)
   "Hooks run when a new message arrives.
 
 Arguments are FROM, BUFFER, and PROPOSED-ALERT.  FROM is the JID
@@ -42,7 +44,8 @@ other uses, see `jabber-message-hooks'."
 	     jabber-message-wave
 	     jabber-message-echo
 	     jabber-message-switch
-	     jabber-message-display)
+	     jabber-message-display
+	     jabber-message-scroll)
   :group 'jabber-alerts)
 
 (defvar jabber-message-hooks nil
@@ -286,6 +289,27 @@ Examples:
   "Switch to the buffer where a new message has arrived."
   (when proposed-alert
     (switch-to-buffer buffer)))
+
+(defun jabber-message-scroll (from buffer proposed-alert)
+  "Scroll all nonselected windows where the chat buffer is displayed."
+  ;; jabber-chat-buffer-display will DTRT with point in the buffer.
+  ;; But this change will not take effect in nonselected windows.
+  ;; Therefore we do that manually here.
+  ;;
+  ;; There are three cases:
+  ;; 1. The user started typing a message in this window.  Point is
+  ;;    greater than jabber-point-insert.  In that case, we don't
+  ;;    want to move point.
+  ;; 2. Point was at the end of the buffer, but no message was being
+  ;;    typed.  After displaying the message, point is now close to
+  ;;    the end of the buffer.  We advance it to the end.
+  ;; 3. The user was perusing history in this window.  There is no
+  ;;    simple way to distinguish this from 2, so the user loses.
+  (let ((windows (get-buffer-window-list buffer))
+	(new-point-max (with-current-buffer buffer (point-max))))
+    (dolist (w windows)
+      (unless (eq w (selected-window))
+	(set-window-point w new-point-max)))))
 
 ;; MUC alert hooks
 (defun jabber-muc-default-message (nick group buffer)
