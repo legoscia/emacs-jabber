@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.29 2004/02/03 21:57:41 legoscia Exp $
+;; $Id: jabber.el,v 1.30 2004/02/03 22:02:09 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -1524,7 +1524,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        ((string= type "boolean")
 	(push (cons (cons var type)
 		    (widget-create 'checkbox :tag (or label var) :value (not (string= (car (xml-node-children (car (values)))) "0"))))
-	      jabber-widget-alist))
+	      jabber-widget-alist)
+	(if (or label var)
+	    (widget-insert " " (or label var) "\n")))
 
        (t				; in particular including text-single and text-private
 	(if (or label var)
