@@ -1,5 +1,5 @@
 ;; jabber-iq.el - infoquery functions
-;; $Id: jabber-iq.el,v 1.3 2004/03/09 19:18:05 legoscia Exp $
+;; $Id: jabber-iq.el,v 1.4 2004/03/21 12:33:41 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -72,14 +72,10 @@
 					     (cons "set" 'jabber-iq-set-xmlns-alist))))))
 	     (handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) which-alist))))
 	(if handler
-	    (funcall handler xml-data)
-	  (jabber-send-sexp `(iq ((to . ,from)
-				  (type . "error")
-				  (id . ,id))
-				 ,query
-				 (error ((type . "cancel"))
-					(feature-not-implemented
-					 ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))))))))))))
+	    (condition-case error-var
+		(funcall handler xml-data)
+	      (error (jabber-send-iq-error from id query "wait" 'internal-server-error (error-message-string error-var))))
+	  (jabber-send-iq-error from id query "cancel" 'feature-not-implemented)))))))
 
 (defun jabber-send-iq (to type query success-callback success-closure-data
 			  error-callback error-closure-data &optional result-id)
@@ -106,6 +102,32 @@ RESULT-ID is the id to be used for a response to a received iq message.
 				 (list (cons 'type type))
 				 (list (cons 'id id)))
 			    query))))
+
+(defun jabber-send-iq-error (to id original-query error-type condition
+				&optional text app-specific)
+  "Send an error iq stanza to the specified entity in response to a
+previously sent iq stanza.
+TO is the addressee.
+ID is the id of the iq stanza that caused the error.
+ORIGINAL-QUERY is the original query, which should be included in the
+error, or nil.
+ERROR-TYPE is one of \"cancel\", \"continue\", \"modify\", \"auth\"
+and \"wait\".
+CONDITION is a symbol denoting a defined XMPP condition.
+TEXT is a string to be sent in the error message, or nil for no text.
+APP-SPECIFIC is a list of extra XML tags.
+
+See section 9.3 of XMPP Core."
+  (jabber-send-sexp `(iq ((to . ,to)
+			  (type . "error")
+			  (id . ,id))
+			 ,original-query
+			 (error ((type . ,error-type))
+				(,condition ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))
+				,(if text
+				     `(text ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))
+					   ,text))
+				,@app-specific))))
 
 (defun jabber-process-data (xml-data closure-data)
   "Process random results from various requests."
