@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.28 2004/02/03 11:39:50 legoscia Exp $
+;; $Id: jabber.el,v 1.29 2004/02/03 21:57:41 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -299,17 +299,17 @@ and BUFFER, a buffer containing the result."
 		:options (roster browse))
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-message-wave nil
+(defcustom jabber-alert-message-wave ""
   "a sound file to play when a message arrived"
   :type 'file
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-presence-wave nil
+(defcustom jabber-alert-presence-wave ""
   "a sound file to play when a presence arrived"
   :type 'file
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-info-wave nil
+(defcustom jabber-alert-info-wave ""
   "a sound file to play when an info query result arrived"
   :type 'file
   :group 'jabber-alerts)
@@ -1547,11 +1547,14 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        (type . "submit"))
       ,@(mapcar
 	 (lambda (widget-cons)
-	   `(field ((var . ,(caar widget-cons)))
-		   ,@(mapcar
-		      (lambda (value)
-			(list 'value nil value))
-		      (jabber-xdata-value-convert (widget-value (cdr widget-cons)) (cdar widget-cons)))))
+	   (let ((values (jabber-xdata-value-convert (widget-value (cdr widget-cons)) (cdar widget-cons))))
+	     ;; empty fields are not included
+	     (when values
+	       `(field ((var . ,(caar widget-cons)))
+		       ,@(mapcar
+			  (lambda (value)
+			    (list 'value nil value))
+			  values)))))
 	 jabber-widget-alist)))
 
 (defun jabber-xdata-value-convert (value type)
@@ -1563,7 +1566,9 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
    ((string= type "text-multi")
     (split-string value "[\n\r]"))
    (t					; in particular including text-single, text-private and list-single
-    (list value))))
+    (if (zerop (length value))
+	nil
+      (list value)))))
 
 (defun jabber-init-widget-buffer (submit-to)
   "Setup buffer-local variables for widgets."
