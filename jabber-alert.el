@@ -245,7 +245,7 @@ Examples:
 	 (defun ,info (infotype buffer proposed-alert)
 	   ,docstring
 	   (when proposed-alert
-	     (funcall 'function proposed-alert)))
+	     (funcall ,function proposed-alert)))
 	 (pushnew (quote ,info) (get 'jabber-alert-info-message-hooks 'custom-options))))))
 
 ;; Alert hooks
