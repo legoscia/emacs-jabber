@@ -304,10 +304,22 @@ With a numeric arg, enable this display if arg is positive."
 	(add-to-list 'global-mode-string
 		     '(t jabber-activity-mode-string))
 	(when jabber-activity-count-in-title
-	  (add-to-list 'frame-title-format
-		       jabber-activity-count-in-title-format)
-	  (add-to-list 'icon-title-format
-		       jabber-activity-count-in-title-format)))
+	  ;; Be careful not to override specific meanings of the
+	  ;; existing title format.  In particular, if the car is
+	  ;; a symbol, we can't just add our stuff at the beginning.
+	  ;; If the car is "", we should be safe.
+	  (if (equal (car frame-title-format) "")
+	      (add-to-list 'frame-title-format
+			   jabber-activity-count-in-title-format)
+	    (setq frame-title-format (list ""
+					   jabber-activity-count-in-title-format
+					   frame-title-format)))
+	  (if (equal (car icon-title-format) "")
+	      (setq icon-title-format (list ""
+					    jabber-activity-count-in-title-format
+					    icon-title-format))
+	    (add-to-list 'icon-title-format
+			 jabber-activity-count-in-title-format))))
     (progn
       (if (featurep 'xemacs)
 	  (ad-disable-advice 'switch-to-buffer 'after 'jabber-activity-update)
