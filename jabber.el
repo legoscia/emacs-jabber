@@ -592,8 +592,9 @@ is not present, emulate it with `xml-get-attribute'."
   "send the xml corresponding to SEXP to the jabber server"
   (if jabber-debug
       (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-	(goto-char (point-max))
-	(insert (format "sending %S\n\n" sexp))))
+	(save-excursion
+	  (goto-char (point-max))
+	  (insert (format "sending %S\n\n" sexp)))))
   (process-send-string *jabber-connection* (sexp2xml sexp)))
 
 ;;; XXX: include nicknames
@@ -1135,6 +1136,78 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
       (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
 
+(defun jabber-process-search-result (xml-data)
+  "Receive and display search results."
+
+  ;; This function assumes that all search results come in one packet,
+  ;; which is not necessarily the case.
+  (let ((query (jabber-iq-query xml-data))
+	(have-xdata nil))
+
+    ;; First, check for results in jabber:x:data form.
+    (dolist (x (jabber-xml-get-children query 'x))
+      (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
+	(setq have-xdata t)
+	
+	(let ((title (car (jabber-xml-get-children x 'title))))
+	  (when title
+	    (insert (propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
+	
+	(let ((reported (car (jabber-xml-get-children x 'reported)))
+	      (jid-fields 0)
+	      fields
+	      (column 0))
+	  (dolist (field (jabber-xml-get-children reported 'field))
+	    (let (width)
+	      ;; Clever algorithm for estimating width based on field type goes here.
+	      (setq width 20)
+
+	      (setq fields
+		    (append
+		     fields
+		     (list (cons (jabber-xml-get-attribute field 'var)
+				 (list 'label (jabber-xml-get-attribute field 'label)
+				       'type (jabber-xml-get-attribute field 'type)
+				       'column column)))))
+	      (setq column (+ column width))
+	      (if (string= (jabber-xml-get-attribute field 'type) "jid-single")
+		  (setq jid-fields (1+ jid-fields)))))
+
+	  (dolist (field-cons fields)
+	    (indent-to (plist-get (cdr field-cons) 'column) 1)
+	    (insert (propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
+	  (insert "\n\n")
+
+	  ;; Now, the items
+	  (dolist (item (jabber-xml-get-children x 'item))
+	    (let ((start-of-line (point))
+		  jid)
+	      ;; The following code assumes that the order of the <field/>s in each
+	      ;; <item/> is reasonable.  Theoretically it could be different to the
+	      ;; order in the <reported/> tag.
+	      (dolist (field (jabber-xml-get-children item 'field))
+		(let ((field-plist (cdr (assoc (jabber-xml-get-attribute field 'var) fields)))
+		      (value (car (jabber-xml-node-children (car (jabber-xml-get-children field 'value))))))
+
+		  (indent-to (plist-get field-plist 'column) 1)
+
+		  ;; If there is only one JID field, let the whole row have the jabber-jid
+		  ;; property.  If there are many JID fields, the string belonging to each
+		  ;; field has that property.
+		  (if (string= (plist-get field-plist 'type) "jid-single")
+		      (if (not (eq jid-fields 1))
+			  (insert (propertize value 'jabber-jid value))
+			(setq jid value)
+			(insert value))
+		    (insert value))))
+	      (if jid
+		  (put-text-property start-of-line (point)
+				     'jabber-jid jid))
+	      (insert "\n"))))))
+
+    (if (not have-xdata)
+	(insert "Processing of legacy search results not yet implemented... sorry.\n"))))
+
 (defun jabber-process-browse (xml-data)
   "Handle results from jabber:iq:browse requests."
   (dolist (item (jabber-xml-node-children xml-data))
@@ -1317,12 +1390,35 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (values (jabber-xml-get-children field 'value))
 	  (options (jabber-xml-get-children field 'option))
 	  (desc (car (jabber-xml-get-children field 'desc))))
+      ;; "required" not implemented yet
 
       (if (or label var)
 	  (widget-insert (or label var) ": "))
       (cond
        ((string= type "fixed")
 	(widget-insert (car (jabber-xml-node-children (car values)))))
+
+       ((string= type "text-multi")
+	(setq jabber-widget-alist
+	      (cons
+	       (cons var
+		     (widget-create 'text (or (car (jabber-xml-node-children (car values))) "")))
+	       jabber-widget-alist)))
+
+       ((string= type "list-single")
+	(setq jabber-widget-alist
+	      (cons
+	       (cons var
+		     (apply 'widget-create
+			    'radio-button-choice 
+			    :value (car (xml-node-children (car values)))
+			    (mapcar (lambda (option)
+				      `(item :tag ,(jabber-xml-get-attribute option 'label)
+					     :value ,(car (jabber-xml-node-children (car (jabber-xml-get-children option 'value))))))
+				    options)))
+	       jabber-widget-alist)))
+				    
+
        (t				; in particular including text-single and text-private
 	(setq jabber-widget-alist
 	      (cons
@@ -1346,17 +1442,32 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		   (value nil ,(widget-value (cdr widget-cons)))))
 	 jabber-widget-alist)))
 
-(defun jabber-process-register (xml-data)
-  "Display results from jabber:iq:register query as a form."
+(defun jabber-process-register-or-search (xml-data)
+  "Display results from jabber:iq:{register,search} query as a form."
 
   (let ((query (jabber-iq-query xml-data))
-	(have-xdata nil))
+	(have-xdata nil)
+	(type (cond
+	       ((string= (jabber-iq-xmlns xml-data) "jabber:iq:register")
+		'register)
+	       ((string= (jabber-iq-xmlns xml-data) "jabber:iq:search")
+		'search)
+	       (t
+		(error "Namespace %s not handled by jabber-process-register-or-search" (jabber-iq-xmlns xml-data))))))
+	       
     (make-local-variable 'jabber-widget-alist)
     (make-local-variable 'jabber-submit-to)
     (setq jabber-widget-alist nil)
-    ;; If there is no `from' attribute, we are registering with the server
-    (setq jabber-submit-to (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
     (setq buffer-read-only nil)
+    
+    (cond
+     ((eq type 'register)
+      ;; If there is no `from' attribute, we are registering with the server
+      (setq jabber-submit-to (or (jabber-xml-get-attribute xml-data 'from) jabber-server)))
+
+     ((eq type 'search)
+      ;; no such thing here
+      (setq jabber-submit-to (jabber-xml-get-attribute xml-data 'from))))
 
     ;; XXX: This is because data from other queries would otherwise be
     ;; appended to this buffer, which would fail since widget buffers
@@ -1364,7 +1475,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     ;; better way.
     (rename-uniquely)
 
-    (widget-insert "Register with " jabber-submit-to "\n")
+    (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n")
 
     (dolist (x (jabber-xml-get-children query 'x))
       (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
@@ -1373,15 +1484,18 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (if (not have-xdata)
 	(jabber-render-register-form query))
 
-    (widget-create 'push-button :notify #'jabber-submit-register "Submit")
-    (widget-insert "\t")
-    (widget-create 'push-button :notify #'jabber-remove-register "Cancel registration")
+    (widget-create 'push-button :notify (if (eq type 'register)
+					    #'jabber-submit-register
+					  #'jabber-submit-search) "Submit")
+    (when (eq type 'register)
+      (widget-insert "\t")
+      (widget-create 'push-button :notify #'jabber-remove-register "Cancel registration"))
     (widget-insert "\n")
     (widget-setup)
     (widget-minor-mode 1)))
 
 (defun jabber-submit-register (&rest ignore)
-  "Submit registration input.  See `jabber-process-register'."
+  "Submit registration input.  See `jabber-process-register-or-search'."
   
   (let ((handler (if jabber-register-p 
 		     #'jabber-process-register-secondtime
@@ -1404,8 +1518,29 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
   (message "Registration sent"))
 
+(defun jabber-submit-search (&rest ignore)
+  "Submit search.  See `jabber-process-register-or-search'."
+  
+  (let ((text (concat "Search at " jabber-submit-to)))
+    (jabber-send-iq jabber-submit-to
+		    "set"
+
+		    (cond
+		     ((eq jabber-form-type 'register)
+		      `(query ((xmlns . "jabber:iq:search"))
+			      ,@(jabber-parse-register-form)))
+		     ((eq jabber-form-type 'xdata)
+		      `(query ((xmlns . "jabber:iq:search"))
+			      ,(jabber-parse-xdata-form)))
+		     (t
+		      (error "Unknown form type: %s" jabber-form-type)))
+		    #'jabber-process-data #'jabber-process-search-result
+		    #'jabber-report-success text))
+
+  (message "Search sent"))
+
 (defun jabber-remove-register (&rest ignore)
-  "Cancel registration.  See `jabber-process-register'."
+  "Cancel registration.  See `jabber-process-register-or-search'."
 
   (if (yes-or-no-p (concat "Are you sure that you want to cancel your registration to " jabber-submit-to "? "))
       (jabber-send-iq jabber-submit-to
@@ -1616,8 +1751,9 @@ CLOSURE-DATA is either 'success or 'error."
                         (progn
                           (if jabber-debug
 			      (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-				(goto-char (point-max))
-				(insert (format "receive %S\n\n" (car xml-data)))))
+				(save-excursion
+				  (goto-char (point-max))
+				  (insert (format "receive %S\n\n" (car xml-data))))))
                           (jabber-process-input (car xml-data)))))
                   (erase-buffer))
               (throw 'jabber-no-tag t)))))))))
@@ -1820,8 +1956,17 @@ RESULT-ID is the id to be used for a response to a received iq message.
   (jabber-send-iq to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:register")))
-		  #'jabber-process-data #'jabber-process-register
+		  #'jabber-process-data #'jabber-process-register-or-search
 		  #'jabber-report-success "Registration"))
+
+(defun jabber-get-search (to)
+  "Send IQ get request in namespace \"jabber:iq:search\"."
+  (interactive (list (jabber-read-jid-completing "Search what database: ")))
+  (jabber-send-iq to
+		  "get"
+		  '(query ((xmlns . "jabber:iq:search")))
+		  #'jabber-process-data #'jabber-process-register-or-search
+		  #'jabber-report-success "Search field retrieval"))
 
 (defun jabber-get-browse (to)
   "send a browse infoquery request to someone"
