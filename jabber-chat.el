@@ -288,7 +288,9 @@ This function is idempotent."
 			   (cons ?u (or (jabber-jid-username from) from))
 			   (cons ?r (jabber-jid-resource from))
 			   (cons ?j (jabber-jid-user from))))
-	     'face 'jabber-chat-prompt-foreign))))
+	     'face 'jabber-chat-prompt-foreign
+	     'help-echo
+	     (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " from)))))
 
 (defun jabber-chat-self-prompt (timestamp)
   "Print prompt for sent message.
@@ -305,7 +307,9 @@ TIMESTAMP is the timestamp to print, or nil for now."
 			 (cons ?u jabber-username)
 			 (cons ?r jabber-resource)
 			 (cons ?j (concat jabber-username "@" jabber-server))))
-	   'face 'jabber-chat-prompt-local)))
+	   'face 'jabber-chat-prompt-local
+	   'help-echo
+	   (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you"))))
 
 (defun jabber-chat-print-subject (xml-data)
   "Print subject of given <message/>, if any."

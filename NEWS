@@ -50,6 +50,8 @@ Flyspell will only spell check what you're currently writing.
 
 ** Different time formats for instant and delayed messages
 See `jabber-chat-time-format' and `jabber-chat-delayed-time-format'.
+You can see the complete timestamp in a tooltip by holding the mouse
+over the prompt.
 (Not documented yet)
 
 * New features in jabber.el 0.6.1
