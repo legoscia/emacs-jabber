@@ -208,7 +208,8 @@ Zeroconf is not supported."
 
 	    socks5-connection)))
     (error
-     (message "SOCKS5 connection failed: %s" e))))
+     (message "SOCKS5 connection failed: %s" e)
+     nil)))
 
 (defun jabber-socks5-filter (connection data)
   "Pass data from connection to profile data function"
