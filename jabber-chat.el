@@ -294,11 +294,14 @@ TIMESTAMP is timestamp, or nil for now."
 				timestamp))
      ;; Here go normal one-to-one messages and private groupchat messages.
      (t
-      (jabber-chat-display from 
-			   (if error
-			       (concat "ERROR: " (jabber-parse-error error))
-			     (jabber-unescape-xml body))
-			   timestamp)))))
+      ;; If there is no body, we can't display it (yet), so ignore the message.
+      ;; Error messages should not be ignored.
+      (when (or body (string= type "error"))
+	(jabber-chat-display from 
+			     (if error
+				 (concat "ERROR: " (jabber-parse-error error))
+			       (jabber-unescape-xml body))
+			     timestamp))))))
 
 (defun jabber-send-groupchat (group body)
   "send a message to a groupchat"
