@@ -49,7 +49,7 @@
 (defvar *jabber-current-show* ""
   "the users current presence show")
 
-(defvar *jabber-current-priority* nil
+(defvar *jabber-current-priority* 10
   "the user's current priority")
 
 (defvar *jabber-status-history* nil
@@ -191,14 +191,14 @@
 
 (defmacro jabber-define-status-key (title show)
   (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
-         (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
-     (list 'fset 'func `(lambda () (interactive)
-                           (jabber-send-presence ,show
-						 (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-						 (format "%d" *jabber-current-priority*))))
-     (list 'define-key 'global-map
-           (list 'vector ''menu-bar ''jabber-menu ''jabber-menu-status 'menu-item)
-           (list 'cons title 'func))))
+		   (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
+	(list 'fset 'func `(lambda () (interactive)
+			     (jabber-send-presence ,show
+						   (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
+						   (format "%d" *jabber-current-priority*))))
+	(list 'define-key 'global-map
+	      (list 'vector ''menu-bar ''jabber-menu ''jabber-menu-status 'menu-item)
+	      (list 'cons title 'func))))
 
 ;;;(dolist (presence jabber-presence-strings)
 ;;;  (jabber-define-status-key (cdr presence) (car presence)))
