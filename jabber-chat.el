@@ -1,5 +1,5 @@
 ;; jabber-chat.el - chat buffer display, basic groupchat functions
-;; $Id: jabber-chat.el,v 1.6 2004/03/29 23:13:47 legoscia Exp $
+;; $Id: jabber-chat.el,v 1.7 2004/04/04 12:46:23 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -148,8 +148,10 @@ TIMESTAMP is timestamp, or nil for now."
 	     (cons "Leave groupchat" 'jabber-groupchat-leave))
 (defun jabber-groupchat-leave (group)
   "leave a groupchat"
-  (interactive (list (completing-read "group: "
-				      *jabber-active-groupchats*)))
+  (interactive (list (completing-read (format "Leave which group: %s" (if jabber-group (concat "(default: " jabber-group ") ")))
+				      *jabber-active-groupchats*
+				      nil nil nil nil
+				      jabber-group)))
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     (setq *jabber-active-groupchats* 
 	  (delq whichgroup *jabber-active-groupchats*))
