@@ -29,6 +29,13 @@
 Note that functions in this hook have no way of knowing
 what kind of chat buffer is being created.")
 
+(defcustom jabber-chat-fill-long-lines t
+  "If non-nil, fill long lines in chat buffers.
+Lines are broken at word boundaries at the width of the
+window or at `fill-column', whichever is shorter."
+  :group 'jabber-chat
+  :type 'boolean)
+
 (defun jabber-chat-mode ()
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
@@ -115,7 +122,32 @@ Arguments are as to `jabber-chat-buffer-display'."
 	(put-text-property beg end 'read-only t)
 	(put-text-property beg end 'front-sticky t)
 	(put-text-property beg end 'rear-nonsticky t)
+	(when jabber-chat-fill-long-lines
+	  (save-restriction
+	    (narrow-to-region beg end)
+	    (jabber-chat-buffer-fill-long-lines)))
 	(setq jabber-point-insert (marker-position point-insert))))))
+
+(defun jabber-chat-buffer-fill-long-lines ()
+  "Fill lines that are wider than the window width."
+  ;; This was mostly stolen from article-fill-long-lines
+  (interactive)
+  (save-excursion
+    (let ((inhibit-read-only t)
+	  (width (window-width (get-buffer-window (current-buffer)))))
+      (save-restriction
+	(goto-char (point-min))
+	(let ((adaptive-fill-mode nil)) ;Why?  -sm
+	  (while (not (eobp))
+	    (end-of-line)
+	    (when (>= (current-column) (min fill-column width))
+	      (narrow-to-region (min (1+ (point)) (point-max))
+				(point-at-bol))
+              (let ((goback (point-marker)))
+                (fill-paragraph nil)
+                (goto-char (marker-position goback)))
+	      (widen))
+	    (forward-line 1)))))))
 
 (provide 'jabber-chatbuffer)
 ;; arch-tag: 917e5b60-5894-4c49-b3bc-12e1f97ffdc6
