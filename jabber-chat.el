@@ -290,7 +290,8 @@ TIMESTAMP is timestamp, or nil for now."
  
     (goto-char (point-max))
 
-    (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body))))
+    (unless (boundp 'jabber-backlog-p)
+      (run-hook-with-args 'jabber-alert-message-hooks from (current-buffer) body (funcall jabber-alert-message-function from (current-buffer) body)))))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))

@@ -114,6 +114,24 @@ JID-REGEXP is a regexp which must match the JID."
 	(if from-beginning (forward-sexp) (backward-sexp)))
       collected)))
 
+(defun jabber-history-backlog ()
+  "Insert some context from previous chats.
+This function is to be called from a chat buffer."
+  (interactive)
+  (let (jabber-backlog-p)		; disable hooks further down
+    (dolist (msg (jabber-history-query 
+		  ;; subtract 10 * 86400
+		  '> (- (float-time) 864000.0)
+		  15
+		  t
+		  (concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
+      (if (string= (aref msg 1) "in")
+	  (jabber-chat-display (aref msg 2)
+			       (aref msg 4)
+			       (jabber-parse-time (aref msg 0)))
+	;; hm?
+	))))
+
 ;; Try it with:
 ;; (setq jabber-history-enabled t)
 ;; (add-hook 'jabber-alert-message-hooks 'jabber-message-history)
