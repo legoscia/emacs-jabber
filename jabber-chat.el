@@ -228,9 +228,9 @@ JID is the bare JID."
   (interactive)
   (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
     ;; If user accidentally hits RET without writing anything,
-    ;; delete-and-extract-region returns nil.  In that case,
+    ;; delete-and-extract-region returns "".  In that case,
     ;; no message should be sent.
-    (when body
+    (unless (zerop (length body))
       (jabber-send-chat jabber-chatting-with body)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
