@@ -21,7 +21,10 @@
 
 (require 'jabber-xml)
 (require 'jabber-util)
-(require 'sha1-el)
+;; sha1-el is known under two names
+(condition-case e
+    (require 'sha1)
+  (error (require 'sha1-el)))
 
 (defun jabber-get-auth (to)
   "Send IQ get request in namespace \"jabber:iq:auth\"."
