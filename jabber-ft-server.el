@@ -77,8 +77,7 @@
 
 (defun jabber-ft-data (jid sid data)
   "Receive chunk of transferred file."
-  (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions)))
-	data)
+  (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions))))
     (with-current-buffer buffer
       ;; If data is nil, there is no more data
       (if data
