@@ -233,7 +233,7 @@ Return nil if nothing known about that combination."
    (let* ((group (jabber-muc-read-completing "Group: "))
 	  (nickname (jabber-muc-read-nickname group "Nickname: ")))
      (list group nickname
-	   (completing-read "New role: " '("none" "visitor" "participant" "moderator") nil t)
+	   (completing-read "New role: " '(("none") ("visitor") ("participant") ("moderator")) nil t)
 	   (read-string "Reason: "))))
   (unless (or (zerop (length nickname)) (zerop (length role)))
     (jabber-send-iq group "set"
