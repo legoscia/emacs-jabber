@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.10 2004/03/23 21:24:28 legoscia Exp $
+@c $Id: jabber.texi,v 1.11 2004/03/28 13:20:07 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.5
@@ -278,8 +278,9 @@ by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
 will be rendered in new buffer.
 
 Currently, there is no user-friendly way to see which people are in a
-groupchat.  If you really want to know, set @code{jabber-debug} to
-@code{t} and look in the buffer @code{*-jabber-xml-log-*}.
+groupchat.  A possible workaround is to add the groupchat to your
+roster before you join it; that way the participants will show up as
+resources of a user.
 
 @node Services, Customization, Groupchat, Top
 @chapter Services
@@ -350,7 +351,7 @@ know the service's JID, possibly from service discovery.
 This is also the way to change your registration details, e.g. your
 password --- just ask to register with that service again.  To change
 the password of your Jabber account, ask to register with your Jabber
-service.
+server.
 
 Please note that any passwords sent in this way will be sent in
 cleartext to your Jabber server, as jabber.el doesn't support
@@ -468,14 +469,15 @@ priority during a session with @code{jabber-send-presence}.
 
 @code{jabber-nickname} is your default nickname for groupchats.
 
+@code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
+sent and received are logged in the buffer @code{*-jabber-xml-log-*}
+in list format.  @xref{XML representation}.
+
 @node Customizing the roster buffer, Customizing alerts, Connection settings, Customization
 @section Customizing the roster buffer
 
-@code{jabber-debug} toggles extended debug output.  Currently, this
-means two things.  In the roster buffer, you can see the properties of
-each contact.  All XML stanzas sent and received are logged in the
-buffer @code{*-jabber-xml-log-*} in list format.  @xref{XML
-representation}.
+@code{jabber-debug-roster} toggles debug output in the roster.  This
+means that you can see the properties of each contact.  
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
