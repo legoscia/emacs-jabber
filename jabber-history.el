@@ -66,6 +66,10 @@ will be logged to the same file."
     (let ((coding-system-for-write 'utf-8))
       (append-to-file (point-min) (point-max) jabber-history-file))))
 
+;; Try it with:
+;; (setq jabber-history-enabled t)
+;; (add-hook 'jabber-alert-message-hooks 'jabber-message-history)
+
 (defun jabber-history-query (time-compare-function
 			     time
 			     number
@@ -114,27 +118,31 @@ JID-REGEXP is a regexp which must match the JID."
 	(if from-beginning (forward-sexp) (backward-sexp)))
       collected)))
 
+(defcustom jabber-backlog-days 3.0
+  "Age limit on messages in chat buffer backlog, in days"
+  :group 'jabber
+  :type 'float)
+
+(defcustom jabber-backlog-number 10
+  "Maximum number of messages in chat buffer backlog"
+  :group 'jabber
+  :type 'integer)
+
 (defun jabber-history-backlog ()
   "Insert some context from previous chats.
 This function is to be called from a chat buffer."
   (interactive)
   (let (jabber-backlog-p)		; disable hooks further down
     (dolist (msg (jabber-history-query 
-		  ;; subtract 10 * 86400
-		  '> (- (float-time) 864000.0)
-		  15
-		  t
+		  '> (- (float-time) (* jabber-backlog-days 86400.0))
+		  jabber-backlog-number
+		  t			; both incoming and outgoing
 		  (concat "^" (regexp-quote jabber-chatting-with) "\\(/.*\\)?$")))
       (if (string= (aref msg 1) "in")
-	  (jabber-chat-display (aref msg 2)
-			       (aref msg 4)
-			       (jabber-parse-time (aref msg 0)))
-	;; hm?
-	))))
-
-;; Try it with:
-;; (setq jabber-history-enabled t)
-;; (add-hook 'jabber-alert-message-hooks 'jabber-message-history)
+	  (jabber-chat-print (aref msg 2) (aref msg 4) (jabber-parse-time (aref msg 0))
+			     jabber-chat-foreign-prompt-format 'jabber-chat-prompt-foreign)
+	(jabber-chat-print nil (aref msg 4) (jabber-parse-time (aref msg 0))
+			   jabber-chat-local-prompt-format 'jabber-chat-prompt-local)))))
 
 (provide 'jabber-history)
 
