@@ -23,6 +23,7 @@
 (require 'jabber-iq)
 (require 'jabber-alert)
 (require 'jabber-util)
+(require 'jabber-menu)
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (x) (jabber-process-roster x nil)))))
