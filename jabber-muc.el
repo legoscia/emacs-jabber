@@ -36,6 +36,51 @@ Values are strings.")
 Keys are strings, the bare JID of the room.
 Values are lists of nickname strings.")
 
+(defun jabber-muc-add-groupchat (group nickname)
+  "Remember participating in GROUP under NICKNAME."
+  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
+    (if whichgroup
+	(setcdr whichgroup nickname)
+      (add-to-list '*jabber-active-groupchats* (cons group nickname)))))
+
+(defun jabber-muc-remove-groupchat (group)
+  "Remove GROUP from internal bookkeeping."
+  (let ((whichgroup (assoc group *jabber-active-groupchats*))
+	(whichparticipants (assoc group jabber-muc-participants)))
+    (setq *jabber-active-groupchats* 
+	  (delq whichgroup *jabber-active-groupchats*))
+    (setq jabber-muc-participants
+	  (delq whichparticipants jabber-muc-participants))))
+
+(defun jabber-muc-participant-plist (group nickname)
+  "Return plist associated with NICKNAME in GROUP.
+Return nil if nothing known about that combination."
+  (let ((whichparticipants (assoc group jabber-muc-participants)))
+    (when whichparticipants
+      (cdr (assoc nickname whichparticipants)))))
+
+(defun jabber-muc-modify-participant (group nickname new-plist)
+  "Assign properties in NEW-PLIST to NICKNAME in GROUP."
+  (let ((participants (assoc group jabber-muc-participants)))
+    ;; either we have a list of participants already...
+    (if participants
+	(let ((participant (assoc nickname participants)))
+	  ;; and maybe this participant is already in the list
+	  (if participant
+	      ;; if so, just update role, affiliation, etc.
+	      ;; XXX: calculate delta and report to user? e.g. "X was given voice"
+	      (setf (cdr participant) new-plist)
+	    (push (cons nickname new-plist) (cdr participants))))
+      ;; or we don't
+      (push (cons group (list (cons nickname new-plist))) jabber-muc-participants))))
+
+(defun jabber-muc-remove-participant (group nickname)
+  "Forget everything about NICKNAME in GROUP."
+  (let ((participants (assoc group jabber-muc-participants)))
+    (when participants
+      (let ((participant (assoc nickname (cdr participants))))
+	(setf (cdr participants) (delq participant (cdr participants)))))))
+
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (group)
@@ -162,37 +207,18 @@ Return nil if X-MUC is nil."
        ((string= type "unavailable")
 	;; are we leaving?
 	(if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
-	    (let ((whichgroup (assoc group *jabber-active-groupchats*))
-		  (whichparticipants (assoc group jabber-muc-participants)))
-	      (setq *jabber-active-groupchats* 
-		    (delq whichgroup *jabber-active-groupchats*))
-	      (setq jabber-muc-participants
-		    (delq whichparticipants jabber-muc-participants))
+	    (progn
+	      (jabber-muc-remove-groupchat group)
 	      (jabber-groupchat-display group nil "You have left the chatroom"))
 	  ;; or someone else?
-	  (let ((whichparticipants (assoc group jabber-muc-participants)))
-	    (setf (cdr whichparticipants)
-		  (delete* nickname (cdr whichparticipants) :key 'car :test 'string=))
-	    (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname)))))
+	  (jabber-muc-remove-participant group nickname)
+	  (jabber-groupchat-display group nil (format "%s has left the chatroom" nickname))))
        ;; XXX: add errors here
        (t 
 	;; someone is entering
-	(let ((participants (assoc group jabber-muc-participants))
-	      (new-participant t)
+	(let ((new-participant (not (jabber-muc-participant-plist group nickname)))
 	      (new-plist (jabber-muc-parse-affiliation x-muc)))
-	  ;; either we have a list of participants already...
-	  (if participants
-	      (let ((participant (assoc nickname participants)))
-		;; and maybe this participant is already in the list
-		(if participant
-		    ;; if so, just update role, affiliation, etc.
-		    ;; XXX: calculate delta and report to user? e.g. "X was given voice"
-		    (progn
-		      (setq new-participant nil)
-		      (setf (cdr participant) new-plist))
-		  (push (cons nickname new-plist) (cdr participants))))
-	    ;; or we don't
-	    (push (cons group (list (cons nickname new-plist))) jabber-muc-participants))
+	  (jabber-muc-modify-participant group nickname new-plist)
 	  (when new-participant
 	    (jabber-groupchat-display group nil (format "%s enters the chatroom" nickname)))))))))
 	      
