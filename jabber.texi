@@ -433,6 +433,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Connection settings::         
 * Customizing the roster buffer::  
 * Customizing alerts::          
+* Debug options::               
 @end menu
 
 @node Connection settings, Customizing the roster buffer, Customization, Customization
@@ -468,15 +469,8 @@ priority during a session with @code{jabber-send-presence}.
 
 @code{jabber-nickname} is your default nickname for groupchats.
 
-@code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
-sent and received are logged in the buffer @code{*-jabber-xml-log-*}
-in list format.  @xref{XML representation}.
-
 @node Customizing the roster buffer, Customizing alerts, Connection settings, Customization
 @section Customizing the roster buffer
-
-@code{jabber-debug-roster} toggles debug output in the roster.  This
-means that you can see the properties of each contact.  
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
@@ -490,7 +484,7 @@ a contact has more than one connected resource.
 between each roster item.  The default is zero, but you might want a
 less compact look.
 
-@node Customizing alerts,  , Customizing the roster buffer, Customization
+@node Customizing alerts, Debug options, Customizing the roster buffer, Customization
 @section Customizing alerts
 
 When an event happens (currently including presence changes, incoming
@@ -628,6 +622,19 @@ roster updates, or @code{'browse} for anything that uses the browse
 buffer (basically anything except chatting).
 
 The info alert hooks take an extra argument, as could be expected.
+
+@node Debug options,  , Customizing alerts, Customization
+@section Debug options
+
+These settings provide a lot of information which is usually not very
+interesting, but can be useful for debugging various things.
+
+@code{jabber-debug-roster} toggles debug output in the roster.  This
+means that you can see the properties of each contact.  
+
+@code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
+sent and received are logged in the buffer @code{*-jabber-xml-log-*}
+in list format.  @xref{XML representation}.
 
 @node Hacking and extending, Index, Customization, Top
 @chapter Hacking and extending
