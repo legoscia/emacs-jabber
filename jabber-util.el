@@ -314,11 +314,11 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
     ;; as we don't know the node name of the condition, we have to
     ;; search for it.
     (dolist (node (jabber-xml-node-children error-xml))
-      (when (and (string= (jabber-xml-get-attribute node "xmlns") 
+      (when (and (string= (jabber-xml-get-attribute node 'xmlns) 
 			  "urn:ietf:params:xml:ns:xmpp-streams")
 		 (assq (jabber-xml-node-name node)
 		       jabber-stream-error-messages))
-	(setq condition node)
+	(setq condition (jabber-xml-node-name node))
 	(return)))
     (concat (if condition (cdr (assq condition jabber-stream-error-messages))
 	      "Unknown stream error")
