@@ -131,6 +131,11 @@ These fields are available:
   "Face used for text others write"
   :group 'jabber-chat)
 
+(defface jabber-chat-error
+  '((t (:foreground "red" :weight bold)))
+  "Face used for error messages"
+  :group 'jabber-chat)
+
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")
 
@@ -238,11 +243,14 @@ This function is idempotent."
   ;; XXX: there's more to being a chat message than not being MUC.
   ;; Maybe make independent predicate.
   (when (not (jabber-muc-message-p xml-data))
-    (let ((from (jabber-xml-get-attribute xml-data 'from)))
+    (let ((from (jabber-xml-get-attribute xml-data 'from))
+	  (error-p (jabber-xml-get-children xml-data 'error)))
       (with-current-buffer (jabber-chat-create-buffer from)
 	(jabber-chat-buffer-display 'jabber-chat-print-prompt
 				    xml-data
-				    jabber-chat-printers
+				    (if error-p
+					'(jabber-chat-print-error)
+				      jabber-chat-printers)
 				    xml-data)
 
 	(dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
@@ -310,6 +318,14 @@ TIMESTAMP is the timestamp to print, or nil for now."
 	   'face 'jabber-chat-prompt-local
 	   'help-echo
 	   (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you"))))
+
+(defun jabber-chat-print-error (xml-data)
+  "Print error in given <message/> in a readable way."
+  (let ((the-error (car (jabber-xml-get-children xml-data 'error))))
+    (insert 
+     (jabber-propertize
+      (concat "Error: " (jabber-parse-error the-error))
+      'face 'jabber-chat-error))))
 
 (defun jabber-chat-print-subject (xml-data)
   "Print subject of given <message/>, if any."

@@ -382,11 +382,14 @@ Return nil if X-MUC is nil."
   (when (jabber-muc-message-p xml-data)
     (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	   (group (jabber-jid-user from))
-	   (nick (jabber-jid-resource from)))
+	   (nick (jabber-jid-resource from))
+	   (error-p (jabber-xml-get-children xml-data 'error)))
       (with-current-buffer (jabber-muc-create-buffer group)
 	(jabber-chat-buffer-display 'jabber-muc-print-prompt
 				    xml-data
-				    jabber-chat-printers
+				    (if error-p
+					'(jabber-chat-print-error)
+				      jabber-chat-printers)
 				    xml-data)
 
 	(dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
