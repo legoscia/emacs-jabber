@@ -26,6 +26,9 @@
   "escape strings for xml"
   (if (stringp str)
       (let ((newstr (concat str)))
+	;; Form feeds might appear in code you copy, etc.  Nevertheless,
+	;; it's invalid XML.
+	(setq newstr (jabber-replace-in-string newstr "\f" "\n"))
 	(setq newstr (jabber-replace-in-string newstr "&" "&amp;"))
 	(setq newstr (jabber-replace-in-string newstr "<" "&lt;"))
 	(setq newstr (jabber-replace-in-string newstr ">" "&gt;"))
