@@ -1,5 +1,5 @@
 ;; jabber-search.el - searching by JEP-0055, with x:data support
-;; $Id: jabber-search.el,v 1.1 2004/03/02 13:08:25 legoscia Exp $
+;; $Id: jabber-search.el,v 1.2 2004/03/03 19:24:58 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -77,78 +77,38 @@
 	(setq xdata x)))
 
     (if have-xdata
-	(let ((title (car (jabber-xml-get-children xdata 'title))))
-	  (when title
-	    (insert (jabber-propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
-      (insert (jabber-propertize "Search results" 'face 'jabber-title-medium) "\n"))
-	
-    (if have-xdata
-	(let ((reported (car (jabber-xml-get-children xdata 'reported)))
-	      (column 0))
-	  (dolist (field (jabber-xml-get-children reported 'field))
-	    (let (width)
-	      ;; Clever algorithm for estimating width based on field type goes here.
-	      (setq width 20)
+	(jabber-render-xdata-search-results xdata)
 
-	      (setq fields
-		    (append
-		     fields
-		     (list (cons (jabber-xml-get-attribute field 'var)
-				 (list 'label (jabber-xml-get-attribute field 'label)
-				       'type (jabber-xml-get-attribute field 'type)
-				       'column column)))))
-	      (setq column (+ column width))
-	      (if (string= (jabber-xml-get-attribute field 'type) "jid-single")
-		  (setq jid-fields (1+ jid-fields))))))
+      (insert (jabber-propertize "Search results" 'face 'jabber-title-medium) "\n")
+	
       (setq fields '((first . (label "First name" column 0))
 		     (last . (label "Last name" column 15))
 		     (nick . (label "Nickname" column 30))
 		     (jid . (label "JID" column 45))
 		     (email . (label "E-mail" column 65))))
-      (setq jid-fields 1))
+      (setq jid-fields 1)
 
-    (dolist (field-cons fields)
-      (indent-to (plist-get (cdr field-cons) 'column) 1)
-      (insert (jabber-propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
-    (insert "\n\n")
+      (dolist (field-cons fields)
+	(indent-to (plist-get (cdr field-cons) 'column) 1)
+	(insert (jabber-propertize (plist-get (cdr field-cons) 'label) 'face 'bold)))
+      (insert "\n\n")
 
-    ;; Now, the items
-    (dolist (item (if have-xdata
-		      (jabber-xml-get-children xdata 'item)
-		    (jabber-xml-get-children query 'item)))
-      (let ((start-of-line (point))
-	    jid)
+      ;; Now, the items
+      (dolist (item (jabber-xml-get-children query 'item))
+	(let ((start-of-line (point))
+	      jid)
 
-	(if have-xdata
-	      ;; The following code assumes that the order of the <field/>s in each
-	      ;; <item/> is the same as in the <reported/> tag.
-	      (dolist (field (jabber-xml-get-children item 'field))
-		(let ((field-plist (cdr (assoc (jabber-xml-get-attribute field 'var) fields)))
-		      (value (car (jabber-xml-node-children (car (jabber-xml-get-children field 'value))))))
-
-		  (indent-to (plist-get field-plist 'column) 1)
-
-		  ;; If there is only one JID field, let the whole row have the jabber-jid
-		  ;; property.  If there are many JID fields, the string belonging to each
-		  ;; field has that property.
-		  (if (string= (plist-get field-plist 'type) "jid-single")
-		      (if (not (eq jid-fields 1))
-			  (insert (jabber-propertize value 'jabber-jid value))
-			(setq jid value)
-			(insert value))
-		    (insert value))))
-
-	  (dolist (field-cons fields)
-	    (let ((field-plist (cdr field-cons))
-		  (value (if (eq (car field-cons) 'jid) 
-			     (setq jid (jabber-xml-get-attribute item 'jid))
-			   (car (jabber-xml-node-children (car (jabber-xml-get-children item (car field-cons))))))))
-	      (indent-to (plist-get field-plist 'column) 1)
-	      (if value (insert value)))))
+	    (dolist (field-cons fields)
+	      (let ((field-plist (cdr field-cons))
+		    (value (if (eq (car field-cons) 'jid) 
+			       (setq jid (jabber-xml-get-attribute item 'jid))
+			     (car (jabber-xml-node-children (car (jabber-xml-get-children item (car field-cons))))))))
+		(indent-to (plist-get field-plist 'column) 1)
+		(if value (insert value))))
 	      
-	(if jid
-	    (put-text-property start-of-line (point)
-			       'jabber-jid jid))
-	(insert "\n")))))
+	    (if jid
+		(put-text-property start-of-line (point)
+				   'jabber-jid jid))
+	    (insert "\n"))))))
 
 (provide 'jabber-search)
