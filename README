@@ -1,0 +1,22 @@
+This is jabber.el, a Jabber client for Emacs.
+
+jabber.el depends on GNU Emacs 21, in particular xml.el, and some
+files from Gnus 5.10.  If you don't have Gnus 5.10 (M-x gnus-version
+will tell), you can download sha1-el.el and hex-util.el from Gnus CVS
+at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/ .
+
+To install, put all .el files somewhere in your load-path (or have
+your load-path include the directory they're in) and put
+(require 'jabber) in your .emacs file.
+
+To start using it, type M-x jabber-customize and set your username and
+server.  Then, type M-x jabber-connect to connect (with prefix
+argument, register new account) and M-x jabber-send-presence to send
+presence (when asked for "show", an empty string means "online", and
+the other choices can be found via tab completion).
+
+Your roster is displayed in a buffer called *-jabber-*.  You can get a
+menu of actions by typing C-c C-c or pressing the second mouse button
+in that buffer; any JID argument will default to what's at the point.
+
+To disconnect, type M-x jabber-disconnect.
