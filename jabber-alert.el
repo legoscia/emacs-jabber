@@ -140,7 +140,14 @@ and BUFFER, a buffer containing the result."
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)
-  (format "Message from %s" (jabber-jid-displayname from)))
+  (when (or jabber-message-alert-same-buffer
+	    (not (memq (selected-window) (get-buffer-window-list buffer))))
+    (format "Message from %s" (jabber-jid-displayname from))))
+
+(defcustom jabber-message-alert-same-buffer t
+  "If nil, don't display message alerts for the current buffer."
+  :type 'boolean
+  :group 'jabber-alerts)
 
 (defun jabber-message-beep (from buffer text proposed-alert)
   "Beep when a message arrives"
