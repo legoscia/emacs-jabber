@@ -1,5 +1,5 @@
 ;; jabber-roster.el - displaying the roster
-;; $Id: jabber-roster.el,v 1.3 2004/03/27 22:55:37 legoscia Exp $
+;; $Id: jabber-roster.el,v 1.4 2004/03/27 23:02:36 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -52,8 +52,8 @@ bring up menus of actions.
   (setq *jabber-roster*
 	(sort *jabber-roster*
 	      #'(lambda (a b)
-		  (let ((a-show (and (get a 'connected) (get a 'show)))
-			(b-show (and (get b 'connected) (get b 'show))))
+		  (let ((a-show (get a 'show))
+			(b-show (get b 'show)))
 		    (> (length (member a-show jabber-sort-order))
 		       (length (member b-show jabber-sort-order))))))))
 
