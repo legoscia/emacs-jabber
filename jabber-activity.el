@@ -204,10 +204,10 @@ least `jabber-activity-shorten-minimum' long."
 
 (defun jabber-activity-lookup-name (jid)
   "Lookup name in `jabber-activity-name-alist', creates an entry
-if needed, and returns a string suitable for the mode line"
+if needed, and returns a (jid . string) pair suitable for the mode line"
   (let ((elm (assoc jid jabber-activity-name-alist)))
     (if elm
-	(cdr elm)
+	elm
       (progn
 	;; Remake alist with the new JID
 	(setq jabber-activity-name-alist
@@ -220,14 +220,24 @@ if needed, and returns a string suitable for the mode line"
 on JIDs where `jabber-activity-show-p'"
   (setq jabber-activity-mode-string
   	(if jabber-activity-jids
-  	    (concat
-  	     " "
-  	     (mapconcat
-  	      (lambda (x) (jabber-propertize x 'face 'jabber-activity-face))
-  	      (mapcar #'jabber-activity-lookup-name
-		      jabber-activity-jids)
-  	      ","))
-  	  ""))
+	    (mapconcat
+	     (lambda (x)
+	       (let ((jump-to-jid (car x)))
+		 (jabber-propertize
+		  (cdr x)
+		  'face 'jabber-activity-face
+		  'local-map (make-mode-line-mouse-map
+			      'mouse-1 `(lambda ()
+					  (interactive)
+					  (jabber-activity-switch-to
+					   ,(car x))))
+		  'help-echo (concat "Jump to "
+				     (jabber-jid-displayname (car x))
+				     "'s buffer"))))
+	     (mapcar #'jabber-activity-lookup-name
+		     jabber-activity-jids)
+	     ",")
+	  ""))
   (setq jabber-activity-count-string 
 	(number-to-string (length jabber-activity-jids)))
   (force-mode-line-update 'all)
@@ -266,12 +276,13 @@ when there are unread messages which otherwise would be lost, if
 
 ;;; Interactive functions
 
-(defun jabber-activity-switch-to ()
-  "Switch to a jabber chat buffer which have had activity.  If no
-such buffer exists, switch back to most recently used buffer."
+(defun jabber-activity-switch-to (&optional jid-param)
+  "If JID-PARAM is provided, switch to that buffer.  If JID-PARAM is nil and
+there has been activity in another buffer, switch to that buffer.  If no such
+buffer exists, switch back to most recently used buffer."
   (interactive)
-  (if jabber-activity-jids
-      (let ((jid (car jabber-activity-jids)))
+  (if (or jid-param jabber-activity-jids)
+      (let ((jid (or jid-param (car jabber-activity-jids))))
 	(switch-to-buffer (or (get-buffer (jabber-chat-get-buffer jid))
 			      (get-buffer (jabber-muc-get-buffer jid))))
 	(jabber-activity-clean))
