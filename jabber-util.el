@@ -70,6 +70,11 @@ properties to add to the result."
 	(buffer-substring start end)
       (delete-region start end))))
 
+(unless (fboundp 'access-file)
+  (defsubst access-file (filename error-message)
+    (unless (file-readable-p filename)
+      (error error-message))))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID"
   (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
@@ -182,7 +187,15 @@ Return nil if no such data available."
 
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.  TIME is a list of integers."
-  (format-time-string "%Y-%m-%dT%H:%M:%SZ" time t))
+  (let ((time-zone-offset (nth 0 (current-time-zone))))
+    (if (null time-zone-offset)
+	;; no time zone information available; pretend it's UTC
+	(format-time-string "%Y-%m-%dT%H:%M:%SZ" time)
+      (let* ((positivep (>= time-zone-offset 0))
+	     (hours (/ (abs time-zone-offset) 3600))
+	     (minutes (/ (% (abs time-zone-offset) 3600) 60)))
+	(format "%s%s%02d:%02d" (format-time-string "%Y-%m-%dT%H:%M:%S" time)
+		(if positivep "+" "-") hours minutes)))))
 
 (defun jabber-report-success (xml-data context)
   "IQ callback reporting success or failure of the operation.
