@@ -74,8 +74,10 @@ the user name part of the JID."
       nick)))
 
 (defun jabber-activity-show-p-default (jid)
-  "Returns t only if there is no visible buffer for JID"
-  (not (get-buffer-window (jabber-chat-get-buffer jid) 'visible)))
+  "Returns t only if there is an invisible buffer for JID"
+  (let ((buffer (get-buffer (jabber-chat-get-buffer jid))))
+    (and (not (get-buffer-window buffer 'visible))
+	 (buffer-live-p buffer))))
 
 (defun jabber-activity-mode-line-update ()
   "Update the string shown in the mode line using `jabber-activity-make-string'
