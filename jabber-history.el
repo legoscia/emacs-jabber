@@ -31,11 +31,14 @@
 ;; for older history files if the current history file doesn't contain
 ;; enough backlog entries.
 
+(defgroup jabber-history nil "Customization options for Emacs
+Jabber history files."
+  :group 'jabber)
 
 (defcustom jabber-history-enabled nil
   "Non-nil means message logging is enabled."
   :type 'boolean
-  :group 'jabber)
+  :group 'jabber-history)
 
 (defcustom jabber-use-global-history t
   "Indicate whether Emacs Jabber should use a global file for
@@ -43,27 +46,19 @@
   used, otherwise, messages are stored in per-user files under
   the jabber-history-dir directory."
   :type 'boolean
-  :group 'jabber)
+  :group 'jabber-history)
 
 (defcustom jabber-history-dir "~/.emacs-jabber"
   "Base directory where per-contact history files are stored.
   Used only when jabber-use-global-history is not true."
   :type 'directory
-  :group 'jabber)
+  :group 'jabber-history)
 
 (defcustom jabber-global-history-filename "~/.jabber_global_message_log"
   "Global file where all messages are logged.  Used when
   jabber-use-global-history is non-nil."
   :type 'file
-  :group 'jabber)
-
-(defcustom jabber-history-size-limit 1024
-  "Maximum history file size in kilobytes.  When history file
-  reaches this limit, it is renamed to <history-file>-<number>,
-  where <number> is 1 or the smallest number after the last
-  rotation."
-  :type 'integer
-  :group 'jabber)
+  :group 'jabber-history)
 
 (defcustom jabber-history-enable-rotation nil
   "Whether history files should be renamed when reach
@@ -72,7 +67,16 @@
   <history-file>-<number>, where <number> is 1 or the smallest
   number after the last rotation."
   :type 'boolean
-  :group 'jabber)
+  :group 'jabber-history)
+
+(defcustom jabber-history-size-limit 1024
+  "Maximum history file size in kilobytes.  When history file
+  reaches this limit, it is renamed to <history-file>-<number>,
+  where <number> is 1 or the smallest number after the last
+  rotation."
+  :type 'integer
+  :group 'jabber-history)
+
 
 (defun jabber-rotate-history-p (history-file)
   "Return true if HISTORY-FILE should be rotated."
