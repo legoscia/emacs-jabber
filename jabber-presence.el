@@ -190,7 +190,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (setq highest-priority (or priority 0))
 		      (put buddy 'connected (plist-get resource-plist 'connected))
 		      (put buddy 'show (plist-get resource-plist 'show))
-		      (put buddy 'status (plist-get resource-plist 'status)))
+		      (put buddy 'status (plist-get resource-plist 'status))
+		      (put buddy 'resource (car resource)))
 
 		  ;; if we have not found a connected resource yet, but this
 		  ;; disconnected resource has a status message, display it.

@@ -536,7 +536,8 @@ priority during a session with @code{jabber-send-presence}.
 
 @vindex jabber-sort-order
 @vindex jabber-show-resources
-@vindex jabber-roster-line-spacing
+@vindex jabber-roster-line-format
+@vindex jabber-resource-line-format
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
@@ -546,9 +547,29 @@ status (@pxref{Presence}) or @code{nil}, which represents offline.
 are shown in the roster buffer.  The default is to show resources when
 a contact has more than one connected resource.
 
-@code{jabber-roster-line-spacing} specifies the number of blank lines
-between each roster item.  The default is zero, but you might want a
-less compact look.
+@code{jabber-roster-line-format} specifies how the entry for each
+contact looks.  It is a string where some characters are special if
+preceded by a percent sign:
+
+@table @code
+@item %c
+"*" if the contact is connected, or " " if not
+@item %n
+Nickname of contact, or JID if no nickname
+@item %j
+Bare JID of contact (without resource)
+@item %r
+Highest-priority resource of contact
+@item %s
+Availability of contact as string ("Online", "Away" etc)
+@item %S
+Status string specified by contact
+@end table
+
+@code{jabber-resource-line-format} is nearly identical, except that
+the values correspond to the values of the resource in question, and
+that the @code{%p} escape is available, which inserts the priority of
+the resource.
 
 @node Customizing alerts, Debug options, Customizing the roster buffer, Customization
 @section Customizing alerts
@@ -703,14 +724,10 @@ The info alert hooks take an extra argument, as could be expected.
 @node Debug options,  , Customizing alerts, Customization
 @section Debug options
 
-@vindex jabber-debug-roster
 @vindex jabber-debug-log-xml
 
 These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
-
-@code{jabber-debug-roster} toggles debug output in the roster.  This
-means that you can see the properties of each contact.  
 
 @code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
 sent and received are logged in the buffer @code{*-jabber-xml-log-*}

@@ -91,11 +91,6 @@
 (defgroup jabber-debug nil "debugging options"
   :group 'jabber)
 
-(defcustom jabber-debug-roster nil 
-  "show debugging information on roster" 
-  :type 'boolean
-  :group 'jabber-debug)
-
 (defcustom jabber-debug-log-xml nil
   "log all XML i/o in *-jabber-xml-log-*"
   :type 'boolean

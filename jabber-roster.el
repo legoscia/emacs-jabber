@@ -23,13 +23,39 @@
 (require 'jabber-util)
 (require 'jabber-alert)
 (require 'jabber-keymap)
+(require 'format-spec)
 
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
 
-(defcustom jabber-roster-line-spacing 0
-  "Number of empty lines between roster items"
-  :type 'integer
+(defcustom jabber-roster-line-format " %c %n - %s (%S)\n"
+  "The format specification of the lines in the roster display.
+
+These fields are available:
+
+%c   \"*\" if the contact is connected, or \" \" if not
+%n   Nickname of contact, or JID if no nickname
+%j   Bare JID of contact (without resource)
+%r   Highest-priority resource of contact
+%s   Availability of contact as string (\"Online\", \"Away\" etc)
+%S   Status string specified by contact"
+  :type 'string
+  :group 'jabber-roster)
+
+(defcustom jabber-resource-line-format "     %r - %s (%S), priority %p\n"
+  "The format specification of resource lines in the roster display.
+These are displayed when `jabber-show-resources' permits it.
+
+These fields are available:
+
+%c   \"*\" if the contact is connected, or \" \" if not
+%n   Nickname of contact, or JID if no nickname
+%j   Bare JID of contact (without resource)
+%p   Priority of this resource
+%r   Name of this resource
+%s   Availability of resource as string (\"Online\", \"Away\" etc)
+%S   Status string specified by resource"
+  :type 'string
   :group 'jabber-roster)
 
 (defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
@@ -149,20 +175,20 @@ bring up menus of actions.
 
     (jabber-sort-roster)
     (dolist (buddy *jabber-roster*)
-      (let ((buddy-str (concat (if (get buddy 'connected)
-				   " * "
-				 "   ")
-			       (if (> (length (get buddy 'name)) 0)
-				   (get buddy 'name)
-				 (symbol-name buddy))
-			       (format " - %s" (or
-						(cdr (assoc (get buddy 'show) jabber-presence-strings))
-						(get buddy 'show)))
-			       (if (get buddy 'status)
-				   (format " (%s)" (jabber-fix-status (get buddy 'status))))
-			       (if jabber-debug-roster
-				   (format " --- [%S] ---" (symbol-plist buddy)))
-			       )))
+      (let ((buddy-str (format-spec jabber-roster-line-format
+				    (list 
+				     (cons ?c (if (get buddy 'connected) "*" " "))
+				     (cons ?n (if (> (length (get buddy 'name)) 0)
+						  (get buddy 'name)
+						(symbol-name buddy)))
+				     (cons ?j (symbol-name buddy))
+				     (cons ?r (or (get buddy 'resource) ""))
+				     (cons ?s (or
+					       (cdr (assoc (get buddy 'show) jabber-presence-strings))
+					       (get buddy 'show)))
+				     (cons ?S (if (get buddy 'status)
+						  (jabber-fix-status (get buddy 'status))
+						""))))))
 	(add-text-properties 0
 			   (length buddy-str)
 			   (list
@@ -185,23 +211,30 @@ bring up menus of actions.
 ;; 			     'keymap 
 ;; 			     map
 ;; 			     buddy-str))
-	(insert buddy-str "\n"))
+	(insert buddy-str))
 
 	(when (or (eq jabber-show-resources 'always)
 		  (and (eq jabber-show-resources 'sometimes)
 		       (> (jabber-count-connected-resources buddy) 1)))
 	  (dolist (resource (get buddy 'resources))
 	    (when (plist-get (cdr resource) 'connected)
-	      (let ((resource-str (concat "     "
-					  (if (> (length (car resource)) 0)
-					      (car resource)
-					    "empty")
-					  (format " - %s" (or
-							   (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
-							   (plist-get (cdr resource) 'show)))
-					  (if (plist-get (cdr resource) 'status)
-					      (format " (%s)" (jabber-fix-status (plist-get (cdr resource) 'status))))
-					  (format ", priority %d" (plist-get (cdr resource) 'priority)))))
+	      (let ((resource-str (format-spec jabber-resource-line-format
+					       (list
+						(cons ?c "*")
+						(cons ?n (if (> (length (get buddy 'name)) 0)
+							     (get buddy 'name)
+							   (symbol-name buddy)))
+						(cons ?j (symbol-name buddy))
+						(cons ?r (if (> (length (car resource)) 0)
+							     (car resource)
+							   "empty"))
+						(cons ?s (or
+							  (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
+							  (plist-get (cdr resource) 'show)))
+						(cons ?S (if (plist-get (cdr resource) 'status)
+							     (jabber-fix-status (plist-get (cdr resource) 'status))
+							   ""))
+						(cons ?p (number-to-string (plist-get (cdr resource) 'priority)))))))
 		(add-text-properties 0
 				     (length resource-str)
 				     (list
@@ -211,8 +244,7 @@ bring up menus of actions.
 				      'jabber-jid
 				      (format "%s/%s" (symbol-name buddy) (car resource)))
 				     resource-str)
-		(insert resource-str "\n")))))
-	(insert (make-string jabber-roster-line-spacing ?\n)))
+		(insert resource-str))))))
     (insert "__________________________________")
     (goto-char (point-min))
     (setq buffer-read-only t)
