@@ -1,5 +1,5 @@
 ;; jabber-ahc-presence.el - provide remote control of presence
-;; $Id: jabber-ahc-presence.el,v 1.1 2004/03/09 21:51:57 legoscia Exp $
+;; $Id: jabber-ahc-presence.el,v 1.2 2004/03/10 18:55:24 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -60,7 +60,9 @@
 		   (field ((var . "show")
 			   (label . "Show")
 			   (type . "list-single"))
-			  (value nil ,*jabber-current-show*)
+			  (value nil ,(if (string= *jabber-current-show* "")
+					  "online"
+					*jabber-current-show*))
 			  (option ((label . "Online")) (value nil "online"))
 			  (option ((label . "Chatty")) (value nil "chat"))
 			  (option ((label . "Away")) (value nil "away"))
