@@ -75,7 +75,8 @@ the user name part of the JID."
 
 (defun jabber-activity-show-p-default (jid)
   "Returns t only if there is an invisible buffer for JID"
-  (let ((buffer (get-buffer (jabber-chat-get-buffer jid))))
+  (let ((buffer (or (get-buffer (jabber-chat-get-buffer jid))
+		    (get-buffer (jabber-groupchat-get-buffer jid)))))
     (and (not (get-buffer-window buffer 'visible))
 	 (buffer-live-p buffer))))
 
@@ -106,6 +107,12 @@ on JIDs where `jabber-activity-show-p'"
     (add-to-list 'jabber-activity-jids from)
     (jabber-activity-mode-line-update)))
 
+(defun jabber-activity-add-muc (nick group buffer text proposed-alert)
+  "Add a JID to mode line when `jabber-activity-show-p'"
+  (when (funcall jabber-activity-show-p group)
+    (add-to-list 'jabber-activity-jids group)
+    (jabber-activity-mode-line-update)))
+
 (defun jabber-activity-echo (from buffer text proposed-alert)
   "Use `jabber-message-echo' only if `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p (symbol-name from))
@@ -124,6 +131,8 @@ With a numeric arg, enable this display if arg is positive."
 		  'jabber-activity-clean)
 	(add-hook 'jabber-alert-message-hooks
 		  'jabber-activity-add)
+	(add-hook 'jabber-alert-muc-hooks
+		  'jabber-activity-add-muc)
 	(add-to-list 'global-mode-string
 		     'jabber-activity-mode-string t))
     (progn
@@ -131,6 +140,8 @@ With a numeric arg, enable this display if arg is positive."
 		   'jabber-activity-remove-visible)
       (remove-hook 'jabber-alert-message-hooks
 		   'jabber-activity-add)
+      (remove-hook 'jabber-alert-muc-hooks
+		   'jabber-activity-add-muc)
       (setq global-mode-string (delete 'jabber-activity-mode-string
 				       global-mode-string)))))
 
