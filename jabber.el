@@ -1,5 +1,5 @@
 ;; jabber.el - a minimal jabber client
-;; $Id: jabber.el,v 1.43 2004/03/27 22:55:37 legoscia Exp $
+;; $Id: jabber.el,v 1.44 2004/04/03 20:00:29 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -211,6 +211,10 @@ Offline is represented as nil."
   '("Customize" . jabber-customize))
 
 (define-key global-map
+  [menu-bar jabber-menu jabber-menu-info]
+  '("Help" . jabber-info))
+
+(define-key global-map
   [menu-bar jabber-menu jabber-menu-status]
   (cons "Set Status" (make-sparse-keymap "set-status")))
 
@@ -258,6 +262,9 @@ Offline is represented as nil."
   (interactive)
   (customize-group 'jabber))
 
-
+(defun jabber-info ()
+  "open jabber.el manual"
+  (interactive)
+  (info "jabber"))
 
 (provide 'jabber)
