@@ -140,22 +140,26 @@ These fields are available:
 
 (defun jabber-chat-buffer-send ()
   (interactive)
-  (let ((body (delete-and-extract-region jabber-point-insert (point-max))))    
-    (jabber-send-chat jabber-chatting-with body)
-    (goto-char (point-max))
-    (let ((inhibit-read-only t))
-      (insert (jabber-propertize (format-spec jabber-chat-local-prompt-format
-					      (list
-					       (cons ?t (format-time-string jabber-chat-time-format))
-					       (cons ?n jabber-username)
-					       (cons ?j (concat jabber-username "@" jabber-server))))
-				 'face 'jabber-chat-prompt-local)
-	      body "\n")
-      (setq jabber-point-insert (point))
-      (set-text-properties jabber-point-insert (point-max) nil)
-      (put-text-property (point-min) (point-max) 'read-only t)
-      (put-text-property (point-min) (point-max) 'front-sticky t)
-      (put-text-property (point-min) (point-max) 'rear-nonsticky t))))
+  (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
+    ;; If user accidentally hits RET without writing anything,
+    ;; delete-and-extract-region returns nil.  In that case,
+    ;; no message should be sent.
+    (when body
+      (jabber-send-chat jabber-chatting-with body)
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+	(insert (jabber-propertize (format-spec jabber-chat-local-prompt-format
+						(list
+						 (cons ?t (format-time-string jabber-chat-time-format))
+						 (cons ?n jabber-username)
+						 (cons ?j (concat jabber-username "@" jabber-server))))
+				   'face 'jabber-chat-prompt-local)
+		body "\n")
+	(setq jabber-point-insert (point))
+	(set-text-properties jabber-point-insert (point-max) nil)
+	(put-text-property (point-min) (point-max) 'read-only t)
+	(put-text-property (point-min) (point-max) 'front-sticky t)
+	(put-text-property (point-min) (point-max) 'rear-nonsticky t)))))
 
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
