@@ -1,5 +1,5 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.12 2004/04/02 19:35:14 legoscia Exp $
+@c $Id: jabber.texi,v 1.13 2004/04/02 19:36:09 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
 @settitle jabber.el manual 0.5
@@ -640,6 +640,7 @@ look.  Knowledge of Jabber protocols is assumed.
 * Listening for new requests::  
 * Sending new requests::        
 * Extending service discovery::  
+* Stanza chains::               
 @end menu
 
 @node XML representation, Roster structure, Hacking and extending, Hacking and extending
@@ -795,7 +796,7 @@ Of course, the previous example could have used
 @code{jabber-report-success} for the error message.  It's a matter of
 UI taste.
 
-@node Extending service discovery,  , Sending new requests, Hacking and extending
+@node Extending service discovery, Stanza chains, Sending new requests, Hacking and extending
 @section Service discovery
 
 Your new handlers will likely want to advertise their existence
@@ -823,7 +824,7 @@ access is always granted.  One such function is provided,
 username and server (not necessarily resource) are equal to those of
 the user.
 
-@node Stanza chains
+@node Stanza chains,  , Extending service discovery, Hacking and extending
 @section Stanza chains
 
 If you really need to get under the skin of jabber.el, you can add
