@@ -347,13 +347,21 @@ and BUFFER, a buffer containing the result."
 
 (defconst jabber-iq-set-xmlns-alist
   (list
-   (cons "jabber:iq:roster" (lambda (x) (jabber-process-roster x nil))))
+   (cons "jabber:iq:roster" 'jabber-process-roster))
   "Mapping from XML namespace to handler for IQ SET requests.")
 
 (defconst jabber-advertised-features
-  (list "jabber:iq:version"
-	"http://jabber.org/protocol/disco#info")
+  (list "jabber:iq:version")
   "Features advertised on service discovery requests")
+
+(defconst jabber-iq-result-xmlns-alist
+  (list
+   (cons "jabber:iq:browse" 'jabber-process-browse)
+   (cons "jabber:iq:version" 'jabber-process-version)
+   (cons "http://jabber.org/protocol/disco#info" 'jabber-process-disco-info)
+   (cons "http://jabber.org/protocol/disco#items" 'jabber-process-disco-items)
+)
+  "Mapping from XML namespace to handler for IQ results.")
 
 (defconst jabber-jid-menu
   (list
@@ -414,16 +422,17 @@ and BUFFER, a buffer containing the result."
    (cons 510 "Disconnected"))
   "String descriptions of legacy errors (JEP-0086)")
   
-(defun jabber-report-success (xml-data context)
-  "IQ callback reporting success or failure of the operation.
+(defmacro jabber-report-success (context)
+  "Generate an IQ callback reporting success or failure of the operation.
 CONTEXT is a string describing the action."
-  (let ((type (jabber-xml-get-attribute xml-data 'type)))
-    (message (concat context
-		     (if (string= type "result")
-			 " succeeded"
-		       (concat
-			" failed: "
-			(jabber-parse-error (jabber-iq-error xml-data))))))))
+  `(lambda (xml-data)
+     (let ((type (jabber-xml-get-attribute xml-data 'type)))
+       (message (concat ,context
+			(if (string= type "result")
+			    " succeeded"
+			  (concat
+			   " failed: "
+			   (jabber-parse-error (car (jabber-xml-get-children xml-data 'error))))))))))
 
 (defun jabber-parse-error (error-xml)
   "Parse the given <error/> tag and return a string fit for human consumption.
@@ -433,18 +442,18 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
 	condition text)
     (if error-type
 	;; If the <error/> tag has a type element, it is new-school.
-	(dolist (child (xml-node-children error-xml))
+	(dolist (child (jabber-xml-node-children error-xml))
 	  (when (string=
 		 (jabber-xml-get-attribute child 'xmlns)
 		 "urn:ietf:params:xml:ns:xmpp-stanzas")
-	    (if (eq (xml-node-name child) 'text)
-		(setq text (car (xml-node-children child)))
+	    (if (eq (jabber-xml-node-name child) 'text)
+		(setq text (car (jabber-xml-node-children child)))
 	      (setq condition
-		    (or (cdr (assq (xml-node-name child) jabber-error-messages))
-			(symbol-name (xml-node-name child)))))))
+		    (or (cdr (assq (jabber-xml-node-name child) jabber-error-messages))
+			(symbol-name (jabber-xml-node-name child)))))))
       (setq condition (or (cdr (assq (string-to-number error-code) jabber-legacy-error-messages))
 			  error-code))
-      (setq text (car (xml-node-children error-xml))))
+      (setq text (car (jabber-xml-node-children error-xml))))
     (concat condition
 	    (if text (format ": %s" text)))))
 
@@ -529,6 +538,31 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
 			  "/>")))
       xml))))
 
+(defmacro jabber-xml-node-name (node)
+  "Return the tag associated with NODE.
+The tag is a lower-case symbol."
+  `(if (listp ,node) (car ,node)))
+
+(defmacro jabber-xml-node-attributes (node)
+  "Return the list of attributes of NODE.
+The list can be nil."
+  `(if (listp ,node) (nth 1 ,node)))
+
+(defmacro jabber-xml-node-children (node)
+  "Return the list of children of NODE.
+This is a list of nodes, and it can be nil."
+  `(if (listp ,node) (cddr ,node)))
+
+(defun jabber-xml-get-children (node child-name)
+  "Return the children of NODE whose tag is CHILD-NAME.
+CHILD-NAME should be a lower case symbol."
+  (let ((match ()))
+    (dolist (child (jabber-xml-node-children node))
+      (if child
+	  (if (equal (jabber-xml-node-name child) child-name)
+	      (push child match))))
+    (nreverse match)))
+
 (defmacro jabber-xml-get-attribute (node attribute)
     "Get from NODE the value of ATTRIBUTE.
 Return nil if the attribute was not found. If `xml-get-attribute-or-nil'
@@ -537,7 +571,7 @@ is not present, emulate it with `xml-get-attribute'."
 	`(xml-get-attribute-or-nil ,node ,attribute)
       `(let ((result (xml-get-attribute ,node ,attribute)))
 	 (and (> (length result) 0) result))))
-    
+
 (defun jabber-send-sexp (sexp)
   "send the xml corresponding to SEXP to the jabber server"
   (if jabber-debug
@@ -720,48 +754,33 @@ is not present, emulate it with `xml-get-attribute'."
 An IQ stanza may have zero or one query child, and zero or one <error/> child.
 The query child is often but not always <query/>."
   (let (query)
-    (dolist (x (xml-node-children xml-data))
+    (dolist (x (jabber-xml-node-children xml-data))
       (if (and
 	   (listp x)
-	   (not (eq (xml-node-name x) 'error)))
+	   (not (eq (jabber-xml-node-name x) 'error)))
 	  (setq query x)))
     query))
 
 (defun jabber-iq-error (xml-data)
   "Return the <error/> part of an IQ stanza, if any."
-  (and (listp (car (xml-node-children xml-data)))
-       (car (xml-get-children xml-data 'error))))
+  (and (listp (car (jabber-xml-node-children xml-data)))
+       (car (jabber-xml-get-children xml-data 'error))))
 
 (defun jabber-iq-xmlns (xml-data)
   "Return the namespace of an IQ stanza, i.e. the namespace of its query part."
   (jabber-xml-get-attribute (jabber-iq-query xml-data) 'xmlns))
 
-(defun jabber-process-message (xml-data)
+(defun jabber-process-message (from subject body thread type)
   "process incoming messages"
-  (let ((from (xml-get-attribute xml-data 'from))
-	(type (xml-get-attribute xml-data 'type))
-	(subject (if (xml-get-children xml-data 'subject)
-		     (car (xml-node-children (car (xml-get-children xml-data 'subject))))))
-	(body (if (xml-get-children xml-data 'body)
-		  (car (xml-node-children (car (xml-get-children xml-data 'body))))))
-	(thread (if (xml-get-children xml-data 'thread)
-		    (car (xml-node-children (car (xml-get-children xml-data 'thread))))))
-	(error (car (xml-get-children xml-data 'error))))
-    ;; XXX: The present division by type does not properly handle
-    ;; groupchat error messages.
-    (cond
-     ((string= type "groupchat")
-      (jabber-groupchat-display (jabber-jid-user from) 
-				(jabber-jid-resource from)
-				(jabber-unescape-xml body))
-      )
-     (t
-      (if error
-	  (jabber-chat-display from
-			       (concat "ERROR: "
-				       (jabber-parse-error error)))
-	(jabber-chat-display from 
-			     (jabber-unescape-xml body)))))))
+  (cond
+   ((string= type "groupchat")
+    (jabber-groupchat-display (jabber-jid-user from) 
+                              (jabber-jid-resource from)
+                              (jabber-unescape-xml body))
+    )
+   (t
+    (jabber-chat-display from 
+                         (jabber-unescape-xml body)))))
 
 
 (defun jabber-process-subscription-request (from presence-status)
@@ -858,9 +877,7 @@ The query child is often but not always <query/>."
 (defun jabber-popup-menu ()
   "Popup menu of things commonly done to JIDs"
   (interactive)
-  (let ((choice (widget-choose "Actions" jabber-jid-menu (and (listp last-input-event) last-input-event))))
-    (if choice
-	(call-interactively choice))))
+  (call-interactively (widget-choose "Actions" jabber-jid-menu last-command-event)))
 
 (defun jabber-sort-roster ()
   "sort roster according to online status"
@@ -939,9 +956,8 @@ The query child is often but not always <query/>."
     (if (interactive-p)
 	(run-hook-with-args 'jabber-alert-info-message-hooks 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer))))))
 
-(defun jabber-process-roster (xml-data closure-data)
-  "process an incoming roster infoquery result
-CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
+(defun jabber-process-roster (xml-data)
+  "process an incoming roster infoquery result"
 
   ;; Perform sanity check on "from" attribute: it should be either absent
   ;; or match our own JID.
@@ -957,10 +973,10 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       ;; These cases can be differentiated by the type attribute of the iq tag:
       ;; if type='result', we asked for the whole roster.  If type='set', we are
       ;; getting a "roster push".
-      (when (listp (car (xml-node-children (jabber-iq-query xml-data))))
-	(dolist (item (xml-get-children (jabber-iq-query xml-data) 'item))
+      (when (listp (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'query)))))
+	(dolist (item (jabber-xml-get-children (car (jabber-xml-get-children xml-data 'query)) 'item))
 	  (let ((roster-item)
-		(jid (intern (jabber-jid-user (xml-get-attribute item 'jid)) jabber-jid-obarray)))
+		(jid (intern (jabber-jid-user (jabber-xml-get-attribute item 'jid)) jabber-jid-obarray)))
 
 	    ;; Find contact if already in roster
 	    (setq roster-item (car (memq jid *jabber-roster*)))
@@ -985,8 +1001,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	    ;; (e.g. <item jid="foo@bar"/> as opposed to <item jid="foo@bar"><group>baz</group></item>)
 	    ;; which xml-get-children subsequently will choke on.  We want to avoid
 	    ;; that with an extra check.
-	    (if (listp (car (xml-node-children item)))
-		(put roster-item 'groups (mapcar (lambda (foo) (nth 2 foo)) (xml-get-children item 'group)))
+	    (if (listp (car (jabber-xml-node-children item)))
+		(put roster-item 'groups (mapcar (lambda (foo) (nth 2 foo)) (jabber-xml-get-children item 'group)))
 	      (put roster-item 'groups nil))
 
 	    ;; If subscripton="remove", contact is to be removed from roster
@@ -997,58 +1013,56 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	    )))
       (jabber-display-roster)
       (if (and id (string= type "set"))
-	  (jabber-send-iq jabber-server "result" nil
-			  nil nil nil nil id)))))
+	  (jabber-send-iq jabber-server "result" nil nil id)))))
 
-(defun jabber-process-data (xml-data closure-data)
-  "Process random results from various requests."
-  (let ((from (xml-get-attribute xml-data 'from))
+(defun jabber-process-data (xml-data)
+  "Process random results from various requests.
+See `jabber-iq-result-xmlns-alist'."
+  (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(xmlns (jabber-iq-xmlns xml-data))
 	(type (jabber-xml-get-attribute xml-data 'type)))
     (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
       (setq buffer-read-only nil)
       (goto-char (point-max))
 
-      (insert (propertize (xml-get-attribute xml-data 'from)
+      (insert (propertize (jabber-xml-get-attribute xml-data 'from)
 			  'face 'jabber-title-large) "\n\n")
 
-      ;; If closure-data is a function, call it.  If it is a string,
-      ;; output it along with a description of the error.  For other
-      ;; values (e.g. nil), just dump the XML.
-      (cond
-       ((functionp closure-data)
-	(funcall closure-data xml-data))
-       ((stringp closure-data)
-	(insert closure-data ": " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n"))
-       (t
-	(insert (format "%S\n\n" xml-data))))
+      (let ((handler (cdr (assoc xmlns jabber-iq-result-xmlns-alist))))
+	(if handler
+	    (funcall handler xml-data)
+	  (if (string= type "error")
+	      ;; This shouldn't happen.  The handlers should take care
+	      ;; of their own mess.
+	      (insert "Orphaned error: " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n")
+	    (insert (format "%S\n\n" xml-data)))))
 
       (jabber-browse-mode)
       (run-hook-with-args 'jabber-alert-info-message-hooks 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))
 
 (defun jabber-process-browse (xml-data)
   "Handle results from jabber:iq:browse requests."
-  (dolist (item (xml-node-children xml-data))
+  (dolist (item (jabber-xml-node-children xml-data))
     (when (and (listp item)
-	       (not (eq (xml-node-name item) 'ns)))
-      (let ((jid (xml-get-attribute item 'jid))
+	       (not (eq (jabber-xml-node-name item) 'ns)))
+      (let ((jid (jabber-xml-get-attribute item 'jid))
 	    (beginning (point)))
 	(cond
 	 ((or
-	   (eq (xml-node-name item) 'user)
-	   (string= (xml-get-attribute item 'category) "user"))
+	   (eq (jabber-xml-node-name item) 'user)
+	   (string= (jabber-xml-get-attribute item 'category) "user"))
 	  (insert (propertize "$ USER"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
 	 ((or
-	   (eq (xml-node-name item) 'service)
-	   (string= (xml-get-attribute item 'category) "service"))
+	   (eq (jabber-xml-node-name item) 'service)
+	   (string= (jabber-xml-get-attribute item 'category) "service"))
 	  (insert (propertize "* SERVICE"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
 	 ((or
-	   (eq (xml-node-name item) 'conference)
-	   (string= (xml-get-attribute item 'category) "conference"))
+	   (eq (jabber-xml-node-name item) 'conference)
+	   (string= (jabber-xml-get-attribute item 'category) "conference"))
 	  (insert (propertize "@ CONFERENCE"
 			      'face 'jabber-title-medium)
 		  "\n\n"))
@@ -1057,9 +1071,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  ;; Those are actually service disco categories, but jabberd 2 seems
 	  ;; to use them for browse results as well.  It's not right (as in
 	  ;; JEP-0011), but it's reasonable.
-	  (let ((category (xml-get-attribute item 'category)))
+	  (let ((category (jabber-xml-get-attribute item 'category)))
 	    (if (= (length category) 0)
-		(setq category (xml-node-name item)))
+		(setq category (jabber-xml-node-name item)))
 	    (insert (propertize (format "! OTHER: %s" category)
 				'face 'jabber-title-medium)
 		    "\n\n"))))
@@ -1067,41 +1081,40 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			(jid . "JID:\t\t")
 			(name . "Name:\t\t")
 			(version . "Version:\t")))
-	  (let ((data (xml-get-attribute item (car attr))))
+	  (let ((data (jabber-xml-get-attribute item (car attr))))
 	    (if (> (length data) 0)
 		(insert (cdr attr) (jabber-unescape-xml data) "\n"))))
 
-	(if (listp (car (xml-node-children item)))
-	    (dolist (ns (xml-get-children item 'ns))
-	      (if (stringp (car (xml-node-children ns)))
-		  (insert "Namespace:\t" (car (xml-node-children ns)) "\n"))))
+	(if (listp (car (jabber-xml-node-children item)))
+	    (dolist (ns (jabber-xml-get-children item 'ns))
+	      (if (stringp (car (jabber-xml-node-children ns)))
+		  (insert "Namespace:\t" (car (jabber-xml-node-children ns)) "\n"))))
 
 	(put-text-property beginning (point) 'jabber-jid jid)
 	(insert "\n\n")
 
 	;; XXX: Is this kind of recursion really needed?
-	(if (listp (car (xml-node-children item)))
+	(if (listp (car (jabber-xml-node-children item)))
 	    (jabber-process-browse item))))))
 
 (defun jabber-process-disco-info (xml-data)
   "Handle results from info disco requests."
 
+  ;; XXX: error handling
+
   (let ((beginning (point)))
-    (dolist (x (xml-node-children (jabber-iq-query xml-data)))
+    (dolist (x (jabber-xml-node-children (car (jabber-xml-node-children xml-data))))
       (cond
-       ((eq (xml-node-name x) 'identity)
+       ((eq (jabber-xml-node-name x) 'identity)
 	(let ((name (jabber-xml-get-attribute x 'name))
 	      (category (jabber-xml-get-attribute x 'category))
 	      (type (jabber-xml-get-attribute x 'type)))
-	  (insert (propertize (if name
-				  (jabber-unescape-xml name)
-				"Unnamed") ; tsk, tsk... name is _required_
-			      'face 'jabber-title-medium)
+	  (insert (propertize (jabber-unescape-xml name) 'face 'jabber-title-medium)
 		  "\n\nCategory:\t" category "\n")
 	  (if type
 	      (insert "Type:\t\t" type "\n"))
 	  (insert "\n")))
-       ((eq (xml-node-name x) 'feature)
+       ((eq (jabber-xml-node-name x) 'feature)
 	(let ((var (jabber-xml-get-attribute x 'var)))
 	  (insert "Feature:\t" var "\n")))))
     (put-text-property beginning (point) 'jabber-jid (jabber-xml-get-attribute xml-data 'from))))
@@ -1109,9 +1122,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 (defun jabber-process-disco-items (xml-data)
   "Handle results from items disco requests."
 
-  (if (and (car (xml-node-children (jabber-iq-query xml-data)))
-	   (listp (car (xml-node-children (jabber-iq-query xml-data)))))
-      (dolist (item (xml-get-children (jabber-iq-query xml-data) 'item))
+  (if (and (car (jabber-xml-node-children (car (jabber-xml-node-children xml-data))))
+	   (listp (car (jabber-xml-node-children (car (jabber-xml-node-children xml-data))))))
+      (dolist (item (jabber-xml-get-children (car (jabber-xml-node-children xml-data)) 'item))
 	(let ((jid (jabber-xml-get-attribute item 'jid))
 	      (name (jabber-xml-get-attribute item 'name))
 	      (node (jabber-xml-get-attribute item 'node)))
@@ -1129,11 +1142,15 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 (defun jabber-process-version (xml-data)
   "Handle results from jabber:iq:version requests."
   
-  (let ((query (jabber-iq-query xml-data)))
-    (dolist (x '((name . "Name:\t\t") (version . "Version:\t") (os . "OS:\t\t")))
-      (let ((data (car (xml-node-children (car (xml-get-children query (car x)))))))
-	(when data
-	  (insert (cdr x) data "\n"))))))
+  (let ((type (jabber-xml-get-attribute xml-data 'type)))
+    (if (string= type "error")
+	(insert "Version request failed: " (jabber-parse-error (car (jabber-xml-get-children xml-data 'error))) "\n\n")
+      (let ((query (car (jabber-xml-node-children xml-data))))
+	(when (listp query)
+	  (dolist (x '((name . "Name:\t\t") (version . "Version:\t") (os . "OS:\t\t")))
+	    (let ((data (car (jabber-xml-node-children (car (jabber-xml-get-children query (car x)))))))
+	      (when data
+		(insert (cdr x) data "\n")))))))))
 
 (defun jabber-return-version (xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
@@ -1141,8 +1158,8 @@ determined from the incoming packet passed in XML-DATA."
   ;; Things we might check: does this iq message really have type='get' and
   ;; exactly one child, namely query with xmlns='jabber:iq:version'?
   ;; Then again, jabber-process-iq should take care of that.
-  (let ((to (xml-get-attribute xml-data 'from))
-	(id (xml-get-attribute xml-data 'id)))
+  (let ((to (jabber-xml-get-attribute xml-data 'from))
+	(id (jabber-xml-get-attribute xml-data 'id)))
     (jabber-send-iq to "result"
 		    `(query ((xmlns . "jabber:iq:version"))
 			    (name () "jabber.el")
@@ -1150,75 +1167,70 @@ determined from the incoming packet passed in XML-DATA."
 			    ;; Booting... /vmemacs.el
 			    ;; Shamelessly stolen from someone's sig.
 			    (os () ,(jabber-escape-xml (emacs-version))))
-		    nil nil nil nil
+		    nil
 		    id)))
 
 (defun jabber-return-disco-info (xml-data)
   "Respond to a service discovery request.
 See JEP-0030."
-  (let ((to (xml-get-attribute xml-data 'from))
-	(id (xml-get-attribute xml-data 'id)))
+  (let ((to (jabber-xml-get-attribute xml-data 'from))
+	(id (jabber-xml-get-attribute xml-data 'id)))
     (jabber-send-iq to "result"
 		    `(query ((xmlns . "http://jabber.org/protocol/disco#info"))
 			    ;; If running under a window system, this is
 			    ;; a GUI client.  If not, it is a console client.
 			    (identity ((category . "client")
-				       (name . "Emacs Jabber client")
-				       (type . ,(if (memq window-system
-							  '(x w32 mac))
-						    "pc"
-						  "console"))))
+				      (type . ,(if (memq window-system
+							 '(x w32 mac))
+						   "pc"
+						 "console"))))
 			    ,(mapcar
 			      (lambda (featurename)
 				`(feature ((var . ,featurename))))
-			      jabber-advertised-features))
-		    nil nil nil nil id)))
+			      jabber-advertised-features)) nil id)))
 
-(defun jabber-do-register (xml-data closure-data)
-  "Register new account with a Jabber server.
-Call upon receiving \"result\" response to an \"jabber:iq:register\" get
-request."
-  ;; This should be implemented with widgets under jabber-process-data,
-  ;; and it should support registering with other things than your own
-  ;; jabber server (e.g. JUDs).  It should probably support jabber:x:data
-  ;; too.
+(defun jabber-do-register (xml-data)
+  "Register new account with a Jabber server."
   (setq jabber-register-p nil)
-  (let* ((query (jabber-iq-query xml-data))
-	 (instructions (car (xml-node-children (car (xml-get-children query 'instructions)))))
-	 (registered (xml-get-children xml-data 'registered))
-	 (form nil))
-    (if registered
-	(progn
-	  (message "%s@%s is already registered." jabber-username jabber-server)
-	  (sit-for 2))
-      (message "Registration instructions: %s" instructions)
-      (sit-for 5)
-      (dolist (x (xml-node-children query))
-	(cond
-	 ((eq (xml-node-name x) 'instructions)
-	  ;; already handled
-	  )
-	 ((eq (xml-node-name x) 'username)
-	  (message "Using %s as username" jabber-username)
-	  (setq form (cons `(username nil ,jabber-username) form))
-	  (sit-for 2))
-	 ((eq (xml-node-name x) 'password)
-	  (setq form (cons `(password nil ,(jabber-read-passwd)) form)))
-	 (t
-	  (setq form (cons `(,x nil ,(read-string (format "%s: " x))) form)))))
-      (jabber-send-iq jabber-server
-		      "set"
-		      `(query ((xmlns . "jabber:iq:register"))
-			      ,form)
-		      #'jabber-process-register 'success
-		      #'jabber-process-register 'error))))
+  (cond
+   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
+    (let* ((query (car (jabber-xml-node-children xml-data)))
+	   (instructions (car (jabber-xml-node-children (car (jabber-xml-get-children query 'instructions)))))
+	   (registered (jabber-xml-get-children xml-data 'registered))
+	   (form nil))
+      (if registered
+	  (progn
+	    (message "%s@%s is already registered." jabber-username jabber-server)
+	    (sit-for 2))
+	(message "Registration instructions: %s" instructions)
+	(sit-for 5)
+	(dolist (x (jabber-xml-node-children query))
+	  (cond
+	   ((eq (jabber-xml-node-name x) 'instructions)
+	    ;; already handled
+	    )
+	   ((eq (jabber-xml-node-name x) 'username)
+	    (message "Using %s as username" jabber-username)
+	    (setq form (cons `(username nil ,jabber-username) form))
+	    (sit-for 2))
+	   ((eq (jabber-xml-node-name x) 'password)
+	    (setq form (cons `(password nil ,(jabber-read-passwd)) form)))
+	   (t
+	    (setq form (cons `(,x nil ,(read-string (format "%s: " x))) form)))))
+	(jabber-send-iq jabber-server
+			"set"
+			`(query ((xmlns . "jabber:iq:register"))
+				,form)
+			#'jabber-process-register))))
+   ((string= (jabber-xml-get-attribute xml-data 'type) "error")
+    (message "Error occurred when registering account"))))
 	    
-(defun jabber-do-logon (xml-data closure-data)
+(defun jabber-do-logon (xml-data)
   "send username and password in logon attempt"
   (cond
-   ((string= (xml-get-attribute xml-data 'type) "result")
+   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
     (let (auth)
-      (if (xml-get-children (jabber-iq-query xml-data) 'digest)
+      (if (jabber-xml-get-children (car (jabber-xml-get-children xml-data 'query)) 'digest)
 	  ;; SHA1 digest passwords allowed
 	  (let ((passwd (jabber-read-passwd)))
 	    (if passwd
@@ -1236,64 +1248,65 @@ request."
 				  (username () ,jabber-username)
 				  ,auth
 				  (resource () ,jabber-resource))
-			  #'jabber-process-logon nil
-			  #'jabber-report-success "Logon")
+			  #'jabber-process-logon)
 	(jabber-disconnect))))
-   (t
-    (error "Logon error ended up the wrong place"))))
+   ((string= (jabber-xml-get-attribute xml-data 'type) "error")
+    (message "error connecting to jabber server %S"
+	     (if jabber-debug
+		 xml-data
+	       "")))))
 	
-(defun jabber-process-logon (xml-data closure-data)
-  "receive login success, and request roster."
+(defun jabber-process-logon (xml-data)
+  "receive login success or failure.  If success, request roster."
   (cond 
-   ((string= (xml-get-attribute xml-data 'type) "result")
+   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
     (jabber-send-iq jabber-server
                     "get" 
                     '(query ((xmlns . "jabber:iq:roster")))
-                    #'jabber-process-roster 'initial
-		    #'jabber-report-success "Roster retrieval")
+                    #'jabber-process-roster)
 
     ;; You are by no means forced to send presence when connected.
     ;;(jabber-send-sexp '((presence)))
     )
-   (t
-    (error "Logon error ended up in the wrong place"))))
+   ((string= (jabber-xml-get-attribute xml-data 'type) "error")
+    (message "error connection to jabber server"))))
 
-(defun jabber-process-register (xml-data closure-data)
-  "Receive registration success of failure.
-CLOSURE-DATA is either 'success or 'error."
+(defun jabber-process-register (xml-data)
+  "Receive registration success of failure."
   (cond
-   ((eq closure-data 'success)
+   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
     (message "Registration successful.  Your JID is %s@%s."
 	     jabber-username jabber-server)
     (sit-for 3)
-    (jabber-get-auth jabber-server))
-   (t
-    (jabber-report-success xml-data "Account registration")
+    (jabber-send-iq jabber-server
+		    "get"
+		    `(query ((xmlns . "jabber:iq:auth"))
+			    (username () ,jabber-username))
+		    #'jabber-do-logon))
+   ((string= (jabber-xml-get-attribute xml-data 'type) "error")
+    (message "Registration unsuccessful.")
     (sit-for 3)
     (jabber-disconnect))))
 
 (defun jabber-process-iq (xml-data)
   "process an incoming iq stanza"
-  (let* ((id (xml-get-attribute xml-data 'id))
-         (type (xml-get-attribute xml-data 'type))
-         (from (xml-get-attribute xml-data 'from))
+  (let* ((id (jabber-xml-get-attribute xml-data 'id))
+         (type (jabber-xml-get-attribute xml-data 'type))
+         (from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
          (callback (cdr (assoc id *jabber-open-info-queries*))))
     (cond
      ;; if type is "result" or "error", this is a response to a query we sent.
-     ((string= type "result")
-      (let ((callback-cons (nth 0 callback)))
-	(if (consp callback-cons)
-	    (funcall (car callback-cons) xml-data (cdr callback-cons)))))
-     ((string= type "error")
-      (let ((callback-cons (nth 1 callback)))
-	(if (consp callback-cons)
-	    (funcall (car callback-cons) xml-data (cdr callback-cons)))))
+     ((or
+       (string= type "result")
+       (string= type "error"))
+      (if callback
+	  (funcall callback xml-data)))
 
      ;; if type is "get" or "set", correct action depends on namespace of request.
      ((and (listp query)
 	   (string= type "get"))
-      (let ((handler (cdr (assoc (xml-get-attribute query 'xmlns) jabber-iq-get-xmlns-alist))))
+      (let ((handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) jabber-iq-get-xmlns-alist))))
 	(if handler
 	    (funcall handler xml-data)
 	  (jabber-send-sexp `(iq ((to . ,from)
@@ -1304,7 +1317,7 @@ CLOSURE-DATA is either 'success or 'error."
 					 ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))))))))
      ((and (listp query)
 	   (string= type "set")
-      (let ((handler (cdr (assoc (xml-get-attribute query 'xmlns) jabber-iq-set-xmlns-alist))))
+      (let ((handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) jabber-iq-set-xmlns-alist))))
 	(if handler
 	    (funcall handler xml-data)
 	  (jabber-send-sexp `(iq ((to . ,from)
@@ -1317,27 +1330,41 @@ CLOSURE-DATA is either 'success or 'error."
 
 (defun jabber-process-input (xml-data)
   "process an incoming parsed tag"
-  (let ((tag (xml-node-name xml-data)))
+  (let ((tag (jabber-xml-node-name xml-data)))
      (cond
       ((eq tag 'iq)
        (jabber-process-iq xml-data))
       
       ((eq tag 'message)
-         (jabber-process-message xml-data))
-
+       (let ((from (jabber-xml-get-attribute xml-data 'from))
+             (type (jabber-xml-get-attribute xml-data 'type))
+             (subject (if (jabber-xml-get-children xml-data 'subject)
+                          (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'subject))))))
+	     (body (if (jabber-xml-get-children xml-data 'body)
+		       (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'body))))))
+             (thread (if (jabber-xml-get-children xml-data 'thread)
+			 (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'thread)))))))
+         (jabber-process-message from subject body thread type)))
+      
       ((eq tag 'presence)
-       (let ((from (xml-get-attribute xml-data 'from))
-             (to (xml-get-attribute xml-data 'to))
-             (type (xml-get-attribute xml-data 'type))
-             (show (if (listp (car (xml-node-children xml-data)))
-                       (car (xml-node-children (car (xml-get-children xml-data 'show))))))
-             (status (if (listp (car (xml-node-children xml-data)))
-                         (car (xml-node-children (car (xml-get-children xml-data 'status))))))
-	     (priority (or (if (listp (car (xml-node-children xml-data)))
-			       (car (xml-node-children (car (xml-get-children xml-data 'priority)))))
+       (let ((from (jabber-xml-get-attribute xml-data 'from))
+             (to (jabber-xml-get-attribute xml-data 'to))
+             (type (jabber-xml-get-attribute xml-data 'type))
+             (show (if (listp (car (jabber-xml-node-children xml-data)))
+                       (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'show))))))
+             (status (if (listp (car (jabber-xml-node-children xml-data)))
+                         (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'status))))))
+	     (priority (or (if (listp (car (jabber-xml-node-children xml-data)))
+			       (car (jabber-xml-node-children (car (jabber-xml-get-children xml-data 'priority)))))
 			   "")))
          (jabber-process-presence from to show status type (string-to-number priority)))))))
    
+
+(defun xml-node-name (node)
+  "Return the tag associated with NODE.
+The tag is a lower-case symbol."
+  (if (listp node)
+      (car node)))
 
 (defun jabber-filter (process string)
   "the filter function for the jabber process"
@@ -1350,8 +1377,15 @@ CLOSURE-DATA is either 'success or 'error."
                (match-string 1 string)))
     ;; Now proceed with logon.
     (if jabber-register-p
-	(jabber-get-register jabber-server)
-      (jabber-get-auth jabber-server)))
+	(jabber-send-iq jabber-server
+			"get"
+			'(query ((xmlns . "jabber:iq:register")))
+			#'jabber-do-register)
+      (jabber-send-iq jabber-server
+		      "get"
+		      `(query ((xmlns . "jabber:iq:auth"))
+			      (username () ,jabber-username))
+		      #'jabber-do-logon)))
    (t
     (if (active-minibuffer-window)
         (run-with-idle-timer 0.01 nil #'jabber-filter process string)
@@ -1464,8 +1498,7 @@ With prefix argument, register a new account."
   (jabber-send-iq to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:version")))
-		  #'jabber-process-data #'jabber-process-version
-		  #'jabber-process-data "Version request failed"))
+		  #'jabber-process-data))
 
 (defun jabber-roster-change (jid name groups)
   "Add or change a roster item."
@@ -1484,8 +1517,7 @@ With prefix argument, register a new account."
 					 (list (cons 'name name))))
 			      (mapcar (lambda (x) `(group () ,x))
 				      groups))) 
-		  #'jabber-report-success "Roster item change"
-		  #'jabber-report-success "Roster item change"))
+		  (jabber-report-success "Roster item change")))
 
 (defun jabber-roster-delete (jid)
   (interactive (list (jabber-read-jid-completing "Delete from roster: ")))
@@ -1493,8 +1525,7 @@ With prefix argument, register a new account."
 		  `(query ((xmlns . "jabber:iq:roster"))
 			  (item ((jid . ,jid)
 				 (subscription . "remove"))))
-		  #'jabber-report-success "Roster item removal"
-		  #'jabber-report-success "Roster item removal"))
+		  (jabber-report-success "Roster item removal")))
 
 (defun jabber-groupchat-leave (group)
   "leave a groupchat"
@@ -1536,25 +1567,16 @@ With prefix argument, register a new account."
 			       (priority () ,(jabber-escape-xml (int-to-string *jabber-current-priority*)))))
   (jabber-display-roster))
 
-(defun jabber-send-iq (to type query success-callback success-closure-data
-			  error-callback error-closure-data &optional result-id)
+(defun jabber-send-iq (to type query callback &optional result-id)
   "Send an iq stanza to the specified entity, and optionally set up a callback.
-TO is the addressee.
-TYPE is one of \"get\", \"set\", \"result\" or \"error\".
+TO is the addressee.  TYPE is one of \"get\", \"set\", \"result\" or \"error\".
 QUERY is a list containing the child of the iq node in the format `sexp2xml'
-accepts.
-SUCCESS-CALLBACK is the function to be called when a successful result arrives.
-SUCCESS-CLOSURE-DATA is the second argument to SUCCESS-CALLBACK.
-ERROR-CALLBACK is the function to be called when an error arrives.
-ERROR-CLOSURE-DATA is the second argument to ERROR-CALLBACK.
-RESULT-ID is the id to be used for a response to a received iq message.
-`jabber-report-success' and `jabber-process-data' are common callbacks."
+accepts.  CALLBACK is the function to be called when a result or error response
+arrives, or nil if none wanted (which is appropriate for \"result\" and \"error\"
+messages).  RESULT-ID is the id to be used for a response to a received iq message."
   (let ((id (or result-id (apply 'format "emacs-iq-%d.%d.%d" (current-time)))))
-    (if (or success-callback error-callback)
-	(setq *jabber-open-info-queries* (cons (list id 
-						     (cons success-callback success-closure-data)
-						     (cons error-callback error-closure-data))
-
+    (if callback
+	(setq *jabber-open-info-queries* (cons (cons id callback)
 					       *jabber-open-info-queries*)))
     (jabber-send-sexp (list 'iq (append 
 				 (if to (list (cons 'to to)))
@@ -1562,31 +1584,13 @@ RESULT-ID is the id to be used for a response to a received iq message.
 				 (list (cons 'id id)))
 			    query))))
 
-(defun jabber-get-auth (to)
-  "Send IQ get request in namespace \"jabber:iq:auth\"."
-  (jabber-send-iq to
-		  "get"
-		  `(query ((xmlns . "jabber:iq:auth"))
-			  (username () ,jabber-username))
-		  #'jabber-do-logon nil
-		  #'jabber-report-success "Impossible error - auth field request"))
-
-(defun jabber-get-register (to)
-  "Send IQ get request in namespace \"jabber:iq:register\"."
-  (jabber-send-iq to
-		  "get"
-		  '(query ((xmlns . "jabber:iq:register")))
-		  #'jabber-do-register nil
-		  #'jabber-report-success "Account registration"))
-
 (defun jabber-get-browse (to)
   "send a browse infoquery request to someone"
   (interactive (list (jabber-read-jid-completing "browse: ")))
   (jabber-send-iq to 
                   "get"
                   '(query ((xmlns . "jabber:iq:browse")))
-                  #'jabber-process-data #'jabber-process-browse
-		  #'jabber-process-data "Browse failed"))
+                  #'jabber-process-data))
 
 (defun jabber-get-disco-items (to &optional node)
   "Send a service discovery request for items"
@@ -1597,8 +1601,7 @@ RESULT-ID is the id to be used for a response to a received iq message.
 		  (list 'query (append (list (cons 'xmlns "http://jabber.org/protocol/disco#items"))
 				       (if (> (length node) 0)
 					   (list (cons 'node node)))))
-		  #'jabber-process-data #'jabber-process-disco-items
-		  #'jabber-process-data "Item discovery failed"))
+		  #'jabber-process-data))
 
 (defun jabber-get-disco-info (to &optional node)
   "Send a service discovery request for info"
@@ -1609,8 +1612,7 @@ RESULT-ID is the id to be used for a response to a received iq message.
 		  (list 'query (append (list (cons 'xmlns "http://jabber.org/protocol/disco#info"))
 				       (if (> (length node) 0)
 					   (list (cons 'node node)))))
-		  #'jabber-process-data #'jabber-process-disco-info
-		  #'jabber-process-data "Info discovery failed"))
+		  #'jabber-process-data))
 
 (defun jabber-disconnect ()
   "disconnect from the jabber server and re-initialise the jabber package variables"
