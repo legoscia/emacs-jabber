@@ -68,7 +68,7 @@ every time."
   :type 'function
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-muc-hooks '(jabber-muc-echo)
+(defcustom jabber-alert-muc-hooks '(jabber-muc-echo jabber-muc-scroll)
   "Hooks run when a new MUC message arrives.
 
 Arguments are NICK, GROUP, BUFFER and PROPOSED-ALERT.  NICK is
@@ -82,7 +82,8 @@ not have to call it themselves."
 	     jabber-muc-wave
 	     jabber-muc-echo
 	     jabber-muc-switch
-	     jabber-muc-display)
+	     jabber-muc-display
+	     jabber-muc-scroll)
   :group 'jabber-alerts)
 
 (defvar jabber-muc-hooks '()
@@ -334,6 +335,10 @@ Examples:
   "Switch to the buffer where a new message has arrived."
   (when proposed-alert
     (switch-to-buffer buffer)))
+
+(defun jabber-muc-scroll (nick group buffer proposed-alert)
+  "Scroll buffer even if it is in an unselected window."
+  (jabber-message-scroll nil buffer nil))
 
 ;; Presence alert hooks
 (defun jabber-presence-default-message (who oldstatus newstatus statustext)
