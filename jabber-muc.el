@@ -231,14 +231,16 @@ Return nil if nothing known about that combination."
       (jabber-read-with-input-method (format "Nickname: (default %s) "
 					    default-nickname) 
 				     nil nil default-nickname))))
-  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
-			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
-
+  ;; Remember that this is a groupchat _before_ sending the stanza.
+  ;; The response might come quicker than you think.
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     (if whichgroup
 	(setcdr whichgroup nickname)
       (add-to-list '*jabber-active-groupchats* (cons group nickname))))
   
+  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
+			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
+
   (let ((buffer (jabber-muc-create-buffer group)))
     ;; We don't want to switch to autojoined groupchats
     (when (interactive-p)
