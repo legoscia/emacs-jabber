@@ -58,9 +58,9 @@ will be logged to the same file."
     (setq body (prin1-to-string body))
     ;; Encode LF and CR
     (while (string-match "\n" body)
-      (setq body (replace-match "\\n" nil nil body nil)))
+      (setq body (replace-match "\\n" nil t body nil)))
     (while (string-match "\r" body)
-      (setq body (replace-match "\\r" nil nil body nil)))
+      (setq body (replace-match "\\r" nil t body nil)))
     (insert (format "%s: %s: %s: %s: %s\n"
 		    (format-time-string "%Y-%m-%d %T %z")
 		    (or direction
