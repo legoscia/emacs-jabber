@@ -1,8 +1,8 @@
 \input texinfo          @c -*-texinfo-*-
-@c $Id: jabber.texi,v 1.9 2004/03/02 13:08:25 legoscia Exp $
+@c $Id: jabber.texi,v 1.10 2004/03/23 21:24:28 legoscia Exp $
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.4.1
+@settitle jabber.el manual 0.5
 @c %**end of header
 @syncodeindex fn cp
 
@@ -12,7 +12,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.4.1.
+This manual is for jabber.el, version 0.5.
 
 Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
 
@@ -113,7 +113,7 @@ skim it, making sure to pick up the commands mentioned.
 
 I'll assume that you have already successfully installed jabber.el; if
 not, consult the @file{README} file.  Also, make sure you have
-@code{(require 'jabber.el)} in your @file{.emacs}.
+@code{(require 'jabber)} in your @file{.emacs}.
 
 Now, type @kbd{M-x jabber-customize}.  This brings up a customize
 buffer for jabber.el.  The most important variables to customize are
@@ -196,6 +196,8 @@ To set your presence, use the function @code{jabber-send-presence}.
 It can be called both interactively and in Lisp code.  For the latter
 case, use something like @code{(jabber-send-presence "away" "idle for
 10 minutes" 10)}.
+
+With jabber.el, you can set your presence remotely.  @ref{Ad-Hoc Commands}.
 
 @node Presence subscription, Roster buffer, Presence, Basic operation
 @section Presence subscription
@@ -297,6 +299,7 @@ have to type it or copy it yourself.
 * Service discovery and browsing::  
 * Registering::                 
 * Searching::                   
+* Ad-Hoc Commands::             
 @end menu
 
 @node Service discovery and browsing, Registering, Services, Services
@@ -369,7 +372,7 @@ To cancel an existing registration (and also for cancelling your
 Jabber account, if you sent a registration request to your server),
 hit Cancel.  The unregistration will be confirmed in the echo area.
 
-@node Searching,  , Registering, Services
+@node Searching, Ad-Hoc Commands, Registering, Services
 @section Searching
 
 @cindex Searching
@@ -387,6 +390,37 @@ Just like with registration, this command sends a request for a search
 form, and displays it if and when the response arrives.  Enter your
 search and submit it.  Search results will be displayed in a different
 browse buffer.
+
+@node Ad-Hoc Commands,  , Searching, Services
+@section Ad-Hoc Commands
+
+jabber.el supports a subset of JEP-0050, the standard for Ad-Hoc
+Commands.  As the name implies, this can be used for just about
+anything.  However, at the time of this writing it seems that
+jabber.el is the only implementation.
+
+Currently, ad-hoc commands are used for setting presence remotely.  If
+you realize that you forgot to set your client to ``away'' with a low
+priority, you can do it remotely.@footnote{Most Jabber servers support
+kicking a client off the net by logging in with another client with
+exactly the same resource.}
+
+The commands for executing ad-hoc commands are available under the
+Service menu, which is opened by typing @kbd{C-c C-s}.
+
+To find which commands are available, run ``Request command-list''
+(@code{jabber-ahc-get-list}).@footnote{This is the same thing as a
+disco items request to the node
+@code{http://jabber.org/protocol/commands}.}
+
+To run a command from the list, put point over it and run ``Execute
+command'' (@code{jabber-ahc-execute-command}), accepting the defaults
+for JID and node.  (If you already know those, you could of course
+enter them yourself)  The form you get should hopefully be
+self-explanatory.
+
+jabber.el currently doesn't parse @code{<action/>} tags, which will
+cause confusing behaviour for multi-step commands.
 
 @node Customization, Hacking and extending, Services, Top
 @chapter Customization
@@ -525,8 +559,8 @@ You can look at them with @code{list-processes}.@footnote{In jabber.el
 0.4, ratpoison alerts were sent synchronously, which meant that Emacs
 would stall if ratpoison wasn't there to answer.}
 
-All these functions are near the end of the @file{jabber.el} file.
-You can use them as templates or inspiration for your own alerts.
+All these functions are in the @file{jabber-alert.el} file.  You can
+use them as templates or inspiration for your own alerts.
 
 @node Presence alerts, Message alerts, Standard alerts, Customizing alerts
 @subsection Presence alerts
@@ -603,6 +637,7 @@ look.  Knowledge of Jabber protocols is assumed.
 * Roster structure::            
 * Listening for new requests::  
 * Sending new requests::        
+* Extending service discovery::  
 @end menu
 
 @node XML representation, Roster structure, Hacking and extending, Hacking and extending
@@ -683,6 +718,7 @@ information from the resource with the highest priority is inserted in
 
 @findex jabber-send-iq
 @findex jabber-process-iq
+@findex jabber-signal-error
 
 To listen for new IQ requests, add the appropriate entry in
 @code{jabber-iq-get-xmlns-alist} or @code{jabber-iq-set-xmlns-alist}.
@@ -691,12 +727,23 @@ that takes one argument, the entire IQ stanza in list format.
 @code{jabber-process-iq} reads these alists to determine which
 function to call on incoming packets.
 
+For example, the Ad-Hoc Commands module contains the following:
+
+@example
+(add-to-list 'jabber-iq-set-xmlns-alist
+	     (cons "http://jabber.org/protocol/commands" 'jabber-ahc-process))
+@end example
+
 To send a response to an IQ request, use @samp{(jabber-send-iq
 @var{sender} "result" @var{query} nil nil nil nil @var{id})}, where
 @var{query} is the query in list format.  @code{jabber-send-iq} will
 encapsulate the query in an IQ packet with the specified id.
 
-@node Sending new requests,  , Listening for new requests, Hacking and extending
+To return an error to the Jabber entity that sent the query, use
+@code{jabber-signal-error}.  The signal is caught by
+@code{jabber-process-iq}, which takes care of sending the error.
+
+@node Sending new requests, Extending service discovery, Listening for new requests, Hacking and extending
 @section Sending new requests
 
 @findex jabber-send-iq
@@ -745,6 +792,34 @@ browse buffer:
 Of course, the previous example could have used
 @code{jabber-report-success} for the error message.  It's a matter of
 UI taste.
+
+@node Extending service discovery,  , Sending new requests, Hacking and extending
+@section Service discovery
+
+Your new handlers will likely want to advertise their existence
+through service discovery.
+
+To have an additional feature reported in response to disco info
+requests, add a string to @code{jabber-advertised-features}.
+
+By default, the service discovery functions reject all requests
+containing a node identifier with an ``Item not found'' error.  To
+make them respond, add the appropriate entries to
+@code{jabber-disco-items-nodes} and @code{jabber-disco-info-nodes}.
+Both variables work in the same way.  They are alists, where the keys
+are the node names, and the values are lists of two items.
+
+The first item is the data to return --- either a list or a function
+taking the entire IQ stanza and returning a list, this list containing
+the XML nodes to include in the @code{<query/>} node in the response.
+
+The second item is the access control function.  An access control
+function receives the JID as its only argument, and returns non-nil if
+access is to be granted.  If nil is specified instead of a function,
+access is always granted.  One such function is provided,
+@code{jabber-my-jid-p}, which grants access for JIDs where the
+username and server (not necessarily resource) are equal to those of
+the user.
 
 @node Index,  , Hacking and extending, Top
 @unnumbered Index
