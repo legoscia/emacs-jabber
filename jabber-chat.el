@@ -309,7 +309,7 @@ TIMESTAMP is timestamp, or nil for now."
                               ,(if (> (length body) 0)
                                    `(body () ,(jabber-escape-xml body)))))
   (if jabber-history-enabled
-      (jabber-history-log-message "out" nil to body)))
+      (jabber-history-log-message "out" nil to body (current-time))))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Start chat" 'jabber-chat-with))

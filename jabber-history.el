@@ -36,9 +36,10 @@
   "Log message to log file. For now, all messages from all users
 will be logged to the same file."
   (if jabber-history-enabled
-      (jabber-history-log-message "in" from nil text)))
+      ;; timestamp is dynamically bound from jabber-display-chat
+      (jabber-history-log-message "in" from nil text timestamp)))
 
-(defun jabber-history-log-message (direction from to body)
+(defun jabber-history-log-message (direction from to body timestamp)
   "Log a message"
   (with-temp-buffer
     ;; Encode text as Lisp string - get decoding for free
@@ -49,7 +50,7 @@ will be logged to the same file."
     (while (string-match "\r" body)
       (setq body (replace-match "\\r" nil t body nil)))
     (insert (format "[\"%s\" \"%s\" \"%s\" \"%s\" %s]\n"
-		    (jabber-encode-time (current-time))
+		    (jabber-encode-time (or timestamp (current-time)))
 		    (or direction
 			"in")
 		    (or from
