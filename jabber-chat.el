@@ -382,7 +382,7 @@ TIMESTAMP is timestamp, or nil for now."
     (goto-char (point-max))
 
     (setq jabber-group group)
-    (run-hook-with-args 'jabber-alert-message-hooks nick (current-buffer) body (funcall jabber-alert-message-function group (current-buffer) body))))
+    (run-hook-with-args 'jabber-alert-muc-hooks nick group (current-buffer) body (funcall jabber-alert-muc-function nick group (current-buffer) body))))
 
 (add-to-list 'jabber-message-chain 'jabber-process-message)
 

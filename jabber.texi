@@ -48,7 +48,7 @@ this permission notice are preserved on all copies.
 * Services::                    
 * Modeline status::             
 * Keepalive::                   
-* Tracking activity::
+* Tracking activity::           
 * Watch buddies::               
 * Customization::               
 * Hacking and extending::       
@@ -710,6 +710,7 @@ Sourceforge patch tracker, or contact us directly.
 * Standard alerts::             
 * Presence alerts::             
 * Message alerts::              
+* MUC alerts::                  
 * Info alerts::                 
 @end menu
 
@@ -760,10 +761,10 @@ use them as templates or inspiration for your own alerts.
 @node Presence alerts, Message alerts, Standard alerts, Customizing alerts
 @subsection Presence alerts
 
-@vindex jabber-alerts-presence-message-function
+@vindex jabber-alert-presence-message-function
 @findex jabber-presence-default-message
 
-Set @code{jabber-alerts-presence-message-function} to your desired
+Set @code{jabber-alert-presence-message-function} to your desired
 function.  This function should look like:
 
 @example
@@ -786,10 +787,10 @@ All presence alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.  This last argument is usually the only one they use.
 
-@node Message alerts, Info alerts, Presence alerts, Customizing alerts
+@node Message alerts, MUC alerts, Presence alerts, Customizing alerts
 @subsection Message alerts
 
-@vindex jabber-alerts-message-function
+@vindex jabber-alert-message-function
 @findex jabber-message-default-message
 @vindex jabber-message-alert-same-buffer
 
@@ -799,9 +800,9 @@ already the current buffer, set
 behaviour of the default message function, so you'll have to
 reimplement this functionality if you create an own message function.
 
-Set @code{jabber-alerts-message-function} to your desired
+Set @code{jabber-alert-message-function} to your desired
 function.@footnote{Logically it should be
-@code{jabber-alerts-message-message-function}, but that would be
+@code{jabber-alert-message-message-function}, but that would be
 really ugly.}  This function should look like:
 
 @example
@@ -820,14 +821,39 @@ All message alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.
 
-@node Info alerts,  , Message alerts, Customizing alerts
+@node MUC alerts, Info alerts, Message alerts, Customizing alerts
+@subsection MUC alerts
+
+@vindex jabber-alert-muc-function
+@findex jabber-muc-default-message
+
+Set @code{jabber-alert-muc-function} to your desired
+function.  This function should look like:
+
+@example
+(@var{function} @var{nick} @var{group} @var{buffer} @var{text})
+@end example
+
+@var{nick} is the nickname, @var{group} is the JID of the group,
+@var{buffer} is the buffer where the message is displayed, and
+@var{text} is the text of the message.
+
+The default function, @code{jabber-muc-default-message}, returns
+``Message from @var{nick} in @var{group}'' or ``Message in
+@var{group}'', the latter for messages from the room itself.
+
+All MUC alert hooks take the same arguments plus the additional
+@var{proposed-alert}, which is the result of the specified message
+function.
+
+@node Info alerts,  , MUC alerts, Customizing alerts
 @subsection Info alerts
 
-@vindex jabber-alerts-info-message-function
+@vindex jabber-alert-info-message-function
 @findex jabber-info-default-message
 
 Info alerts are sadly underdeveloped.  The message function,
-@code{jabber-alerts-info-message-function}, takes two arguments,
+@code{jabber-alert-info-message-function}, takes two arguments,
 @var{infotype} and @var{buffer}.  @var{buffer} is the buffer where
 something happened, and @var{infotype} is either @code{'roster} for
 roster updates, or @code{'browse} for anything that uses the browse

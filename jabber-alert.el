@@ -50,6 +50,39 @@ every time."
   :type 'function
   :group 'jabber-alerts)
 
+(defcustom jabber-alert-muc-hooks '(jabber-muc-echo)
+  "Hooks run when a new message arrives.
+
+Arguments are NICK, GROUP, BUFFER, TEXT and PROPOSED-ALERT.  NICK
+is the nickname of the sender.  GROUP is the JID of the group.
+BUFFER is the the buffer where the message can be read, and TEXT
+is the text of the message.  PROPOSED-ALERT is the string
+returned by `jabber-alert-muc-function' for these arguments,
+so that hooks do not have to call it themselves."
+  :type 'hook
+  :options '(jabber-muc-beep 
+	     jabber-muc-wave
+	     jabber-muc-echo
+	     jabber-muc-switch
+	     jabber-muc-display
+	     jabber-muc-ratpoison
+	     jabber-muc-screen)
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-muc-function
+  'jabber-muc-default-message
+  "Function for constructing message alert messages.
+
+Arguments are NICK, GROUP, BUFFER, and TEXT.  This function
+should return a string containing an appropriate text message, or
+nil if no message should be displayed.
+
+The provided hooks displaying a text message get it from this function,
+and show no message if it returns nil.  Other hooks do what they do
+every time."
+  :type 'function
+  :group 'jabber-alerts)
+
 (defcustom jabber-alert-presence-hooks 
   '(jabber-presence-beep 
     jabber-presence-update-roster
@@ -130,6 +163,11 @@ and BUFFER, a buffer containing the result."
   :type 'file
   :group 'jabber-alerts)
 
+(defcustom jabber-alert-muc-wave ""
+  "a sound file to play when a MUC message arrived"
+  :type 'file
+  :group 'jabber-alerts)
+
 (defcustom jabber-alert-presence-wave ""
   "a sound file to play when a presence arrived"
   :type 'file
@@ -185,6 +223,51 @@ and BUFFER, a buffer containing the result."
 	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
 
 (defun jabber-message-screen (from buffer text proposed-alert)
+  "Show a message through the Screen terminal manager"
+  (if proposed-alert
+      (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
+
+;; MUC alert hooks
+(defun jabber-muc-default-message (nick group buffer text)
+  (when (or jabber-message-alert-same-buffer
+	    (not (memq (selected-window) (get-buffer-window-list buffer))))
+    (if nick
+	(format "Message from %s in %s" nick (jabber-jid-displayname
+					      group))
+      (format "Message in %s" (jabber-jid-displayname group)))))
+
+(defun jabber-muc-beep (nick group buffer text proposed-alert)
+  "Beep when a MUC message arrives"
+  (when proposed-alert
+    (beep)))
+
+(defun jabber-muc-echo (nick group buffer text proposed-alert)
+  "Show a message in the echo area when a MUC message arrives"
+  (if proposed-alert
+      (message "%s" proposed-alert)))
+
+(defun jabber-muc-wave (nick group buffer text proposed-alert)
+  "Play the wave file specified in `jabber-alert-muc-wave'"
+  (when proposed-alert
+    (jabber-play-sound-file jabber-alert-muc-wave)))
+
+(defun jabber-muc-display (nick group buffer text proposed-alert)
+  "Display the buffer where a new message has arrived."
+  (when proposed-alert
+    (display-buffer buffer)))
+
+(defun jabber-muc-switch (nick group buffer text proposed-alert)
+  "Switch to the buffer where a new message has arrived."
+  (when proposed-alert
+    (switch-to-buffer buffer)))
+
+(defun jabber-muc-ratpoison (nick group buffer text proposed-alert)
+  "Show a message through the Ratpoison window manager"
+  (if proposed-alert
+      (let ((process-connection-type nil))
+	(start-process "ratpoison" nil "ratpoison" "-c" (format "echo %s" proposed-alert)))))
+
+(defun jabber-muc-screen (nick group buffer text proposed-alert)
   "Show a message through the Screen terminal manager"
   (if proposed-alert
       (call-process "screen" nil nil nil "-X" "echo" proposed-alert)))
