@@ -73,6 +73,17 @@ will be logged to the same file."
     (let ((coding-system-for-write 'utf-8))
       (append-to-file (point-min) (point-max) "~/.jabber_global_message_log"))))
 
+;; maybe use this for conversion later...
+;; (defun jabber-parse-time-string (time)
+;;   "Parse output of (format-time-string \"%Y-%m-%d %T %z\")"
+;;   (list (string-to-number (substring time 17 19))
+;; 	       (string-to-number (substring time 14 16))
+;; 	       (string-to-number (substring time 11 13))
+;; 	       (string-to-number (substring time 8 10))
+;; 	       (string-to-number (substring time 5 7))
+;; 	       (string-to-number (substring time 0 4))
+;; 	       (substring time 20)))
+
 ;; Changed version of jabber-send-chat just to test concept. I don't
 ;; know if placing the message loggin for outgoing messages here is
 ;; the best place.

@@ -201,7 +201,8 @@ Return nil if no such data available."
     (encode-time second minute hour day month year 0)))
 
 (defun jabber-encode-time (time)
-  "Convert TIME to a string by JEP-0082.  TIME is a list of integers."
+  "Convert TIME to a string by JEP-0082.
+TIME is in a format accepted by `format-time-string'."
   (let ((time-zone-offset (nth 0 (current-time-zone))))
     (if (null time-zone-offset)
 	;; no time zone information available; pretend it's UTC
@@ -211,6 +212,26 @@ Return nil if no such data available."
 	     (minutes (/ (% (abs time-zone-offset) 3600) 60)))
 	(format "%s%s%02d:%02d" (format-time-string "%Y-%m-%dT%H:%M:%S" time)
 		(if positivep "+" "-") hours minutes)))))
+
+(defun jabber-parse-time (time)
+  "Parse the DateTime encoded in TIME according to JEP-0082."
+  (let* ((year (string-to-number (substring time 0 4)))
+	 (month (string-to-number (substring time 5 7)))
+	 (day (string-to-number (substring time 8 10)))
+	 (hour (string-to-number (substring time 11 13)))
+	 (minute (string-to-number (substring time 14 16)))
+	 (second (string-to-number (substring time 17 19)))
+	 ;; fractions are optional
+	 (fraction (if (eq (aref time 19) ?.)
+		       (string-to-number (substring time 20 23))))
+	 (timezone (substring time (if fraction 23 19))))
+    ;; timezone is either Z (UTC) or [+-]HH:MM
+    (let ((timezone-seconds
+	   (if (string= timezone "Z")
+	       0
+	     (* 60 (+ (* 60 (string-to-number (substring timezone 0 3)))
+		      (string-to-number (substring timezone 4 6)))))))
+      (encode-time second minute hour day month year timezone-seconds))))
 
 (defun jabber-report-success (xml-data context)
   "IQ callback reporting success or failure of the operation.
