@@ -216,11 +216,24 @@ Signal an error if there is no JID at point."
     (put-text-property (point-min) (point-max) 'front-sticky t)
     (put-text-property (point-min) (point-max) 'rear-nonsticky t)))
 
+(defun jabber-groupchat-get-buffer (group)
+  "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
+Either a string or a buffer is returned, so use `get-buffer' or
+`get-buffer-create'."
+  (concat "*-jabber-groupchat-:-" group "-*"))
+
+(defun jabber-groupchat-create-buffer (group)
+  "Prepare a buffer for groupchat in GROUP.
+This function is idempotent."
+  (with-current-buffer (get-buffer-create (jabber-groupchat-get-buffer group))
+    (if (not (eq major-mode 'jabber-groupchat-mode)) (jabber-groupchat-mode))
+    (setq jabber-group group)
+    (current-buffer)))
+
 (defun jabber-groupchat-display (group &optional nick body timestamp)
   "display the chat window and a new message, if there is one.
 TIMESTAMP is timestamp, or nil for now."
-  (with-current-buffer (get-buffer-create (concat "*-jabber-groupchat-:-" group "-*"))
-    (if (not (eq major-mode 'jabber-groupchat-mode)) (jabber-groupchat-mode))
+  (with-current-buffer (jabber-groupchat-create-buffer group)
     (goto-char jabber-point-insert)
     (let ((inhibit-read-only t))
       (if body (insert (jabber-propertize (concat "[" (substring (current-time-string timestamp) 11 16) "] " nick)
