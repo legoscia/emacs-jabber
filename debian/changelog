@@ -1,3 +1,11 @@
+emacs-jabber (0.5.1) unstable; urgency=low
+
+  * Nicknames are accepted where JIDs are accepted.
+  * Roster line spacing customizable (default is none)
+  * Experimental file transfer support (see README)
+
+ -- Magnus Henoch <mange@freemail.hu>  Sat,  8 May 2004 21:49:26 +0200
+
 emacs-jabber (0.5) unstable; urgency=low
 
   * Initial debianization.

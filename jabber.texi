@@ -1,7 +1,7 @@
 \input texinfo          @c -*-texinfo-*-
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.5
+@settitle jabber.el manual 0.5.1
 @c %**end of header
 @syncodeindex fn cp
 
@@ -11,7 +11,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.5.
+This manual is for jabber.el, version 0.5.1.
 
 Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
 
