@@ -52,6 +52,7 @@ this permission notice are preserved on all copies.
 * Watch buddies::               
 * Customization::               
 * Hacking and extending::       
+* Protocol support::            
 * Concept index::               
 * Function index::              
 * Variable index::              
@@ -905,7 +906,7 @@ interesting, but can be useful for debugging various things.
 sent and received are logged in the buffer @code{*-jabber-xml-log-*}
 in list format.  @xref{XML representation}.
 
-@node Hacking and extending, Concept index, Customization, Top
+@node Hacking and extending, Protocol support, Customization, Top
 @chapter Hacking and extending
 
 This part of the manual is an attempt to explain parts of the source
@@ -1136,7 +1137,214 @@ stanza of the corresponding type arrives, with the entire XML stanza
 passed as the only argument.  Earlier functions can modify the stanza
 to change the behaviour of downstream functions.
 
-@node Concept index, Function index, Hacking and extending, Top
+@node Protocol support, Concept index, Hacking and extending, Top
+@appendix Protocol support
+
+These are the protocols currently supported (in full or partially) by
+jabber.el.
+
+@menu
+* RFC 3920 (XMPP-CORE)::        
+* RFC 3921 (XMPP-IM)::          
+* JEP-0004 (Data Forms)::       
+* JEP-0020 (Feature Negotiation)::  
+* JEP-0030 (Service Discovery)::  
+* JEP-0045 (Multi-User Chat)::  
+* JEP-0050 (Ad-Hoc Commands)::  
+* JEP-0055 (Jabber Search)::    
+* JEP-0065 (SOCKS5 Bytestreams)::  
+* JEP-0068 (Field Standardization for Data Forms)::  
+* JEP-0077 (In-Band Registration)::  
+* JEP-0078 (Non-SASL Authentication)::  
+* JEP-0082 (Jabber Date and Time Profiles)::  
+* JEP-0086 (Error Condition Mappings)::  
+* JEP-0091 (Delayed Delivery)::  
+* JEP-0092 (Software Version)::  
+* JEP-0095 (Stream Initiation)::  
+* JEP-0096 (File Transfer)::    
+@end menu
+
+@node RFC 3920 (XMPP-CORE), RFC 3921 (XMPP-IM), Protocol support, Protocol support
+@section RFC 3920 (XMPP-CORE)
+
+Most of RFC 3920 is supported, with the following exceptions.
+
+The STARTTLS feature is not supported.
+
+SASL is supported only when an external SASL library from FLIM or Gnus
+is present.  As SASL is an essential part to XMPP, jabber.el will send
+pre-XMPP stream headers if it is not available.
+
+None of the stringprep profiles are implemented.  jabber.el changes
+JIDs to lowercase internally; that's all.
+
+jabber.el doesn't interpret namespace prefixes.
+
+The @code{xml:lang} attribute is neither interpreted nor generated.
+
+SRV records are not used.
+
+@node RFC 3921 (XMPP-IM), JEP-0004 (Data Forms), RFC 3920 (XMPP-CORE), Protocol support
+@section RFC 3921 (XMPP-IM)
+
+Most of RFC 3921 is supported, with the following exceptions.
+
+Messages of type ``headline'' are not treated in any special way.
+
+The subject of a received message is not displayed.
+
+The @code{<thread/>} element is not used or generated.
+
+Neither sending nor receiving ``directed presence'' is supported.
+
+Privacy lists are not supported at all.
+
+jabber.el doesn't support XMPP-E2E or ``im:'' CPIM URIs.
+
+@node JEP-0004 (Data Forms), JEP-0020 (Feature Negotiation), RFC 3921 (XMPP-IM), Protocol support
+@section JEP-0004 (Data Forms)
+
+JEP-0004 support is good enough for many purposes.  Limitations are
+the following.
+
+Forms in incoming messages are not interpreted.  See each specific
+protocol for whether forms are accepted in that context.
+
+``Cancel'' messages are probably not consistently generated when they
+should be.  This is partly a paradigm clash, as jabber.el doesn't use
+modal dialog boxes but buffers which can easily be buried.
+
+@code{<required/>} elements are not enforced.
+
+The field types ``jid-single'', ``jid-multi'' and ``list-multi'' are
+not implemented, due to programmer laziness.  Let us know if you need
+them.
+
+@node JEP-0020 (Feature Negotiation), JEP-0030 (Service Discovery), JEP-0004 (Data Forms), Protocol support
+@section JEP-0020 (Feature Negotiation)
+
+There are no known limitations or bugs in JEP-0020 support.
+
+@node JEP-0030 (Service Discovery), JEP-0045 (Multi-User Chat), JEP-0020 (Feature Negotiation), Protocol support
+@section JEP-0030 (Service Discovery)
+
+Service discovery is supported, both as client and server, with the
+following limitations.  Currently, the client part is not used by any
+code, but is provided only as a user tool.  The user interface is not
+appealing.
+
+Publishing items is not supported.
+
+@node JEP-0045 (Multi-User Chat), JEP-0050 (Ad-Hoc Commands), JEP-0030 (Service Discovery), Protocol support
+@section JEP-0045 (Multi-User Chat)
+
+There is more to say about this...
+
+@node JEP-0050 (Ad-Hoc Commands), JEP-0055 (Jabber Search), JEP-0045 (Multi-User Chat), Protocol support
+@section JEP-0050 (Ad-Hoc Commands)
+
+jabber.el is probably the first implementation of JEP-0050 (see
+@uref{http://article.gmane.org/gmane.network.jabber.devel/21413, post
+on jdev from 2004-03-10}).  Both the client and server parts are
+supported.
+
+@node JEP-0055 (Jabber Search), JEP-0065 (SOCKS5 Bytestreams), JEP-0050 (Ad-Hoc Commands), Protocol support
+@section JEP-0055 (Jabber Search)
+
+JEP-0055 is supported, both with traditional fields and with Data
+Forms (@pxref{JEP-0004 (Data Forms)}).  As the traditional fields
+specified by the JEP is a subset of those allowed in JEP-0077,
+handling of those two form types are merged.  @ref{JEP-0077 (In-Band
+Registration)}.
+
+@node JEP-0065 (SOCKS5 Bytestreams), JEP-0068 (Field Standardization for Data Forms), JEP-0055 (Jabber Search), Protocol support
+@section JEP-0065 (SOCKS5 Bytestreams)
+
+JEP-0065 support seems to work, but it is not yet enabled by default.
+
+Currently jabber.el cannot act as a server, not even on on Emacsen
+that support server sockets (GNU Emacs 21.4 and up).  Therefore it
+relies on proxies.  Proxies have to be entered and queried manually.
+
+Psi's ``fast mode''
+(@uref{http://delta.affinix.com/specs/stream.html}), which gives
+greater flexibility with regards to NAT, is not implemented.
+
+@node JEP-0068 (Field Standardization for Data Forms), JEP-0077 (In-Band Registration), JEP-0065 (SOCKS5 Bytestreams), Protocol support
+@section JEP-0068 (Field Standardization for Data Forms)
+
+JEP-0068 is only used in the context of creating a new Jabber account,
+to prefill the username field of the registration form.
+
+@node JEP-0077 (In-Band Registration), JEP-0078 (Non-SASL Authentication), JEP-0068 (Field Standardization for Data Forms), Protocol support
+@section JEP-0077 (In-Band Registration)
+
+In-band registration is supported for all purposes.  That means
+registering a new Jabber account, changing Jabber password, removing a
+Jabber account, registering with a service, and cancelling
+registration to a service.  Data forms are supported as well.  URL
+redirections are not.
+
+jabber.el will not prevent or alert a user trying to change a password
+over an unencrypted connection.
+
+@node JEP-0078 (Non-SASL Authentication), JEP-0082 (Jabber Date and Time Profiles), JEP-0077 (In-Band Registration), Protocol support
+@section JEP-0078 (Non-SASL Authentication)
+
+Non-SASL authentication is supported, both plaintext and digest.
+Digest is preferred, and a warning is displayed to the user if only
+plaintext is available.
+
+@node JEP-0082 (Jabber Date and Time Profiles), JEP-0086 (Error Condition Mappings), JEP-0078 (Non-SASL Authentication), Protocol support
+@section JEP-0082 (Jabber Date and Time Profiles)
+
+The DateTime profile of JEP-0082 is supported.  Currently this is only
+used for file transfer.
+
+@node JEP-0086 (Error Condition Mappings), JEP-0091 (Delayed Delivery), JEP-0082 (Jabber Date and Time Profiles), Protocol support
+@section JEP-0086 (Error Condition Mappings)
+
+Legacy errors are interpreted, but never generated.  XMPP style error
+messages take precedence when errors are reported to the user.
+
+@node JEP-0091 (Delayed Delivery), JEP-0092 (Software Version), JEP-0086 (Error Condition Mappings), Protocol support
+@section JEP-0091 (Delayed Delivery)
+
+The time specified on delayed incoming messages is interpreted, and
+displayed in chat buffers instead of the current time.
+
+@node JEP-0092 (Software Version), JEP-0095 (Stream Initiation), JEP-0091 (Delayed Delivery), Protocol support
+@section JEP-0092 (Software Version)
+
+The user can request the version of any entity.  jabber.el answers
+version requests to anyone, giving ``jabber.el'' as name, and the
+Emacs version as OS.
+
+@node JEP-0095 (Stream Initiation), JEP-0096 (File Transfer), JEP-0092 (Software Version), Protocol support
+@section JEP-0095 (Stream Initiation)
+
+JEP-0095 is supported, both incoming and outgoing, with the following
+exceptions.  It is not enabled by default, as it hasn't received much
+testing.
+
+jabber.el doesn't check service discovery results before sending a
+stream initiation request.
+
+@node JEP-0096 (File Transfer),  , JEP-0095 (Stream Initiation), Protocol support
+@section JEP-0096 (File Transfer)
+
+Both sending and receiving files is supported, though not enabled by
+default.  The following limitations apply.
+
+The hash of a file being sent is not calculated and sent in the
+request.
+
+Ranged transfers are not supported.
+
+In-band bytestreams are not yet supported, even though JEP-0096
+requires them.
+
+@node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index
 
 @printindex cp
