@@ -1,5 +1,5 @@
 ;; jabber-presence.el - roster and presence bookkeeping
-;; $Id: jabber-presence.el,v 1.6 2004/03/29 20:07:52 legoscia Exp $
+;; $Id: jabber-presence.el,v 1.7 2004/04/06 11:23:04 legoscia Exp $
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -251,7 +251,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (name (get jid 'name))
 		      (groups (get jid 'groups)))
 		 (list jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
-		       (read-from-minibuffer (format "Groups: (default `%S') " groups) nil nil t nil (format "%S" groups) t))))
+		       (car (read-from-string (jabber-read-with-input-method (format "Groups: (default `%S') " groups) nil nil (format "%S" groups)))))))
   ;; If new fields are added to the roster XML structure in a future standard,
   ;; they will be clobbered by this function.
   (jabber-send-iq nil "set" 
