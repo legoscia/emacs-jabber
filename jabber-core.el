@@ -79,6 +79,9 @@ Used for SASL authentication.")
 (defvar jabber-presence-chain nil
   "Incoming presence notifications are sent to these functions, in order.")
 
+(defvar jabber-stream-error-chain '(jabber-process-stream-error)
+  "Stream errors are sent to these functions, in order")
+
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
@@ -199,7 +202,7 @@ Call this function after disconnection."
 (defun jabber-filter (process string)
   "the filter function for the jabber process"
   (cond
-   ((string-match "</stream:stream>" string)
+   ((string-match "^</stream:stream>" string)
     (jabber-disconnect))
    ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" string)
     (let ((stream-header (match-string 1 string))
@@ -260,7 +263,8 @@ Call this function after disconnection."
   (let* ((tag (jabber-xml-node-name xml-data))
 	 (functions (eval (cdr (assq tag '((iq . jabber-iq-chain)
 					   (presence . jabber-presence-chain)
-					   (message . jabber-message-chain)))))))
+					   (message . jabber-message-chain)
+					   (stream:error . jabber-stream-error-chain)))))))
     ;; Special treatment of the stream:features tag.  The first time we get it,
     ;; it means that we should authenticate.  The second time, we should
     ;; establish a session.  (The zeroth time it's STARTTLS, but that's not
@@ -273,6 +277,14 @@ Call this function after disconnection."
 	  (funcall jabber-short-circuit-input xml-data)
 	(dolist (f functions)
 	  (funcall f xml-data))))))
+
+(defun jabber-process-stream-error (xml-data)
+  "Process an incoming stream error."
+  (let ((*jabber-disconnecting* t))
+    (beep)
+    (run-hooks 'jabber-lost-connection-hook)
+    (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
+    (jabber-disconnected)))
 
 (defun jabber-bind-and-establish-session (xml-data)
   ;; Now we have a stream:features tag.  We expect it to contain bind and

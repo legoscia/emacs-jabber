@@ -279,6 +279,52 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
     (concat condition
 	    (if text (format ": %s" text)))))
 
+(defvar jabber-stream-error-messages
+  (list
+   (cons 'bad-format "Bad XML format")
+   (cons 'bad-namespace-prefix "Bad namespace prefix")
+   (cons 'conflict "Conflict")
+   (cons 'connection-timeout "Connection timeout")
+   (cons 'host-gone "Host gone")
+   (cons 'host-unknown "Host unknown")
+   (cons 'improper-addressing "Improper addressing") ; actually only s2s
+   (cons 'internal-server-error "Internal server error")
+   (cons 'invalid-from "Invalid from")
+   (cons 'invalid-id "Invalid id")
+   (cons 'invalid-namespace "Invalid namespace")
+   (cons 'invalid-xml "Invalid XML")
+   (cons 'not-authorized "Not authorized")
+   (cons 'policy-violation "Policy violation")
+   (cons 'remote-connection-failed "Remote connection failed")
+   (cons 'resource-constraint "Resource constraint")
+   (cons 'restricted-xml "Restricted XML")
+   (cons 'see-other-host "See other host")
+   (cons 'system-shutdown "System shutdown")
+   (cons 'undefined-condition "Undefined condition")
+   (cons 'unsupported-encoding "Unsupported encoding")
+   (cons 'unsupported-stanza-type "Unsupported stanza type")
+   (cons 'unsupported-version "Unsupported version")
+   (cons 'xml-not-well-formed "XML not well formed"))
+  "String descriptions of XMPP stream errors")
+
+(defun jabber-parse-stream-error (error-xml)
+  "Parse the given <stream:error/> tag and return a sting fit for human consumption."
+  (let ((text-node (car (jabber-xml-get-children error-xml 'text)))
+	condition)
+    ;; as we don't know the node name of the condition, we have to
+    ;; search for it.
+    (dolist (node (jabber-xml-node-children error-xml))
+      (when (and (string= (jabber-xml-get-attribute node "xmlns") 
+			  "urn:ietf:params:xml:ns:xmpp-streams")
+		 (assq (jabber-xml-node-name node)
+		       jabber-stream-error-messages))
+	(setq condition node)
+	(return)))
+    (concat (if condition (cdr (assq condition jabber-stream-error-messages))
+	      "Unknown stream error")
+	    (if (and text-node (stringp (car (jabber-xml-node-children text-node))))
+		(concat ": " (car (jabber-xml-node-children text-node)))))))
+
 (put 'jabber-error
      'error-conditions
      '(error jabber-error))
