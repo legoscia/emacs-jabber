@@ -276,6 +276,16 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 			       'jabber-jid jid))
 	(insert "\n")))))
 
+(defun jabber-xdata-formtype (x)
+  "Return the form type of the xdata form in X, by JEP-0068.
+Return nil if no form type is specified."
+  (catch 'found-formtype
+    (dolist (field (jabber-xml-get-children x 'field))
+      (when (and (string= (jabber-xml-get-attribute field 'var) "FORM_TYPE")
+		 (string= (jabber-xml-get-attribute field 'type) "hidden"))
+	(throw 'found-formtype (car (jabber-xml-node-children
+				     (car (jabber-xml-get-children field 'value)))))))))
+
 (provide 'jabber-widget)
 
 ;;; arch-tag: da3312f3-1970-41d5-a974-14b8d76156b8
