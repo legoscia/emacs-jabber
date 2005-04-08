@@ -30,6 +30,9 @@ Both sending and receiving invitiations is supported.
 ** Vcard viewer and editor
 (Not documented yet)
 
+** Roster export
+(Not documented yet)
+
 ** Easy way to define external notifiers
 See define-jabber-alert.  Alerts for Festival (speech synthesis),
 Sawfish, and xmessage added.
