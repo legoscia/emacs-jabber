@@ -18,6 +18,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 'cl)
+
 ;;; This file uses sasl.el from FLIM, and expects to find it.  If it
 ;;; can't be found, jabber-core.el catches the error.
 (require 'sasl)
@@ -53,17 +55,26 @@
 	    (lambda (tag)
 	      (car (jabber-xml-node-children tag)))
 	    (jabber-xml-get-children mechanisms 'mechanism)))))
-  (unless jabber-sasl-mechanism
-    (error "No suitable SASL mechanism found"))
+  (if (null jabber-sasl-mechanism)
+      ;; Maybe we can use legacy authentication
+      (let ((node (find "http://jabber.org/features/iq-auth"
+			(jabber-xml-get-children stream-features 'auth)
+			:key #'(lambda (node) (jabber-xml-get-attribute node 'xmlns))
+			:test #'string=)))
+	(if node
+	    (progn
+	      (setq jabber-short-circuit-input nil)
+	      (jabber-get-auth jabber-server))
+	  (error "No suitable SASL mechanism found")))
 
-  ;; Start authentication.
-  (setq jabber-sasl-client (sasl-make-client jabber-sasl-mechanism jabber-username "xmpp" jabber-server))
-  (setq jabber-sasl-step (sasl-next-step jabber-sasl-client nil))
-  (jabber-send-sexp
-   `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
-	   (mechanism . ,(sasl-mechanism-name jabber-sasl-mechanism)))
-	  ,(when (sasl-step-data jabber-sasl-step)
-	     (base64-encode-string (sasl-step-data jabber-sasl-step) t)))))
+    ;; Start authentication.
+    (setq jabber-sasl-client (sasl-make-client jabber-sasl-mechanism jabber-username "xmpp" jabber-server))
+    (setq jabber-sasl-step (sasl-next-step jabber-sasl-client nil))
+    (jabber-send-sexp
+     `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
+	     (mechanism . ,(sasl-mechanism-name jabber-sasl-mechanism)))
+	    ,(when (sasl-step-data jabber-sasl-step)
+	       (base64-encode-string (sasl-step-data jabber-sasl-step) t))))))
 
 (defun jabber-sasl-stop ()
   (setq jabber-short-circuit-input nil))
