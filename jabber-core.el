@@ -227,11 +227,17 @@ Call this function after disconnection."
    ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" *xmlq*)
     (let ((stream-header (match-string 1 *xmlq*))
 	  (rest (match-string 2 *xmlq*)))
+      ;; These regexps extract attribute values from the stream
+      ;; header, taking into account that the quotes may be either
+      ;; single or double quotes.
       (setq jabber-session-id
-	    (progn (string-match "id='\\([A-Za-z0-9]+\\)'" stream-header)
-		   (match-string 1 stream-header)))
+	    (and (or (string-match "id='\\([^']+\\)'" stream-header)
+		     (string-match "id=\"\\([^\"]+\\)\"" stream-header))
+		 (jabber-unescape-xml (match-string 1 stream-header))))
       (setq jabber-stream-version
-	    (and (string-match "version='\\([0-9.]+\\)'" stream-header)
+	    (and (or
+		  (string-match "version='\\([0-9.]+\\)'" stream-header)
+		  (string-match "version=\"\\([0-9.]+\\)\"" stream-header))
 		 (match-string 1 stream-header)))
       (if jabber-debug-log-xml
 	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
