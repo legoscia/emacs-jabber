@@ -24,8 +24,8 @@
 
 
 ;; Try two different TLS/SSL libraries, but don't fail if none available.
-(or (require 'tls nil t)
-    (require 'ssl nil t))
+(or (ignore-errors (require 'tls))
+    (ignore-errors (require 'ssl)))
 
 ;; TODO: Add custom flag, to not complain about plain-text passwords
 ;;       in encrypted connections
