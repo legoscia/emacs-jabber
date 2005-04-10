@@ -211,9 +211,7 @@ and it hasn't been sent before."
 	(unless
 	    (dolist (possible-node '(offline delivered displayed))
 	      (when (jabber-xml-get-children x possible-node)
-		(if (eq possible-node 'composing)
-		    (setq jabber-events-composing-p t)
-		  (setq jabber-events-arrived possible-node))
+		(setq jabber-events-arrived possible-node)
 		(jabber-events-update-message)
 		(return t)))
 	  ;; Or maybe even zero, which is a negative composing node.
