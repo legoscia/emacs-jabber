@@ -123,7 +123,9 @@ and it hasn't been sent before."
   (with-current-buffer (window-buffer window)
     (when (and jabber-events-confirm-displayed
 	       (not jabber-events-display-confirmed)
-	       (memq 'displayed jabber-events-requested))
+	       (memq 'displayed jabber-events-requested)
+	       ;; don't send to bare jids
+	       (jabber-jid-resource jabber-chatting-with))
       (jabber-send-sexp 
        `(message 
 	 ((to . ,jabber-chatting-with))
@@ -134,7 +136,8 @@ and it hasn't been sent before."
 
 (defun jabber-events-after-change ()
   (let ((composing-now (not (eq (point-max) jabber-point-insert))))
-    (unless (eq composing-now jabber-events-composing-sent)
+    (when (and (eq composing-now jabber-events-composing-sent)
+	       (jabber-jid-resource jabber-chatting-with))
       (jabber-send-sexp 
        `(message 
 	 ((to . ,jabber-chatting-with))
@@ -164,42 +167,43 @@ and it hasn't been sent before."
 	  (setq jabber-events-delivery-confirmed nil)
 
 	  ;; User requests message events
-	  (when x
-	    (setq jabber-events-requested 
-		  (mapcar #'car 
-			  (jabber-xml-node-children x)))
-	    (setq jabber-events-last-id (jabber-xml-get-attribute
-					 xml-data 'id))
+	  (setq jabber-events-requested 
+		(mapcar #'car 
+			(jabber-xml-node-children x)))
+	  (setq jabber-events-last-id (jabber-xml-get-attribute
+				       xml-data 'id))
 
-	    ;; Send notifications we already know about
-	    (flet ((send-notification 
-		    (type)
-		    (jabber-send-sexp 
-		     `(message 
-		       ((to . ,(jabber-xml-get-attribute xml-data 'from)))
-		       (x ((xmlns . "jabber:x:event"))
-			  (,type)
-			  (id () ,jabber-events-last-id))))))
-	      ;; Send delivery confirmation if appropriate
-	      (when (and jabber-events-confirm-delivered
-			 (memq 'delivered jabber-events-requested))
-		(send-notification 'delivered)
-		(setq jabber-events-delivery-confirmed t))
+	  ;; Send notifications we already know about
+	  (flet ((send-notification 
+		  (type)
+		  (jabber-send-sexp 
+		   `(message 
+		     ((to . ,(jabber-xml-get-attribute xml-data 'from)))
+		     (x ((xmlns . "jabber:x:event"))
+			(,type)
+			(id () ,jabber-events-last-id))))))
+	    ;; Send delivery confirmation if appropriate
+	    (when (and jabber-events-confirm-delivered
+		       (memq 'delivered jabber-events-requested))
+	      (send-notification 'delivered)
+	      (setq jabber-events-delivery-confirmed t))
 
-	      ;; Send display confirmation if appropriate
-	      (when (and jabber-events-confirm-displayed
-			 (get-buffer-window (current-buffer) 'visible)
-			 (memq 'displayed jabber-events-requested))
-		(send-notification 'displayed)
-		(setq jabber-events-display-confirmed t))
+	    ;; Send display confirmation if appropriate
+	    (when (and jabber-events-confirm-displayed
+		       (get-buffer-window (current-buffer) 'visible)
+		       (memq 'displayed jabber-events-requested))
+	      (send-notification 'displayed)
+	      (setq jabber-events-display-confirmed t))
 
-	      ;; Set up hooks for composition notification
-	      (when (and jabber-events-confirm-composing
-			 (memq 'composing jabber-events-requested))
-		(add-hook 'post-command-hook 'jabber-events-after-change
-			  nil t)))))
-      ;; Incoming events are different from requested events,
-      ;; as the former contain an <id/> child.
+	    ;; Set up hooks for composition notification
+	    (when (and jabber-events-confirm-composing
+		       (memq 'composing jabber-events-requested))
+	      (add-hook 'post-command-hook 'jabber-events-after-change
+			nil t))))
+      ;; So it has no body.  If it's a message event,
+      ;; the <x/> node should be the only child of the
+      ;; message, and it should contain an <id/> node.
+      ;; We check the latter.
       (when (and x (jabber-xml-get-children x 'id))
 	;; Currently we don't care about the <id/> node.
 	
