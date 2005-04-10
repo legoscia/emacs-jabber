@@ -100,6 +100,7 @@
 (require 'jabber-watch)
 (require 'jabber-activity)
 (require 'jabber-vcard)
+(require 'jabber-events)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")

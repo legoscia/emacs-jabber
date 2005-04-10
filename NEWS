@@ -33,6 +33,9 @@ Both sending and receiving invitiations is supported.
 ** Roster export
 (Not documented yet)
 
+** Message events (JEP-0022)
+(Not documented yet)
+
 ** Easy way to define external notifiers
 See define-jabber-alert.  Alerts for Festival (speech synthesis),
 Sawfish, and xmessage added.
