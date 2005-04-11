@@ -22,6 +22,7 @@
 ;; A collection of functions, that hide the details of transmitting to
 ;; and fro a Jabber Server
 
+(eval-when-compile (require 'cl))
 
 ;; Try two different TLS/SSL libraries, but don't fail if none available.
 (or (ignore-errors (require 'tls))
