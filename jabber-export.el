@@ -19,14 +19,88 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defun jabber-export-roster (file)
-  "Export roster to FILE."
-  (interactive "FExport roster to file: ")
-  (with-temp-file file
-    (insert "<iq><query xmlns='jabber:iq:roster'>\n")
-    (dolist (item *jabber-roster*)
-      (insert (jabber-sexp2xml (get item 'xml)) "\n"))
-    (insert "</query></iq>\n")))
+(defvar jabber-export-roster-widget nil)
+
+(defun jabber-export-roster (&optional roster)
+  (interactive)
+  (with-current-buffer (get-buffer-create "Export roster")
+    (jabber-init-widget-buffer nil)
+
+    (widget-insert (jabber-propertize "Export roster\n"
+				      'face 'jabber-title-large))
+    (widget-insert "You are about to save your roster to a file.  Here
+you can edit it before saving.  Changes done here will
+not affect your actual roster.
+
+")
+
+    (widget-create 'push-button :notify #'jabber-export-save "Save to file")
+    (widget-insert "\n\n")
+    (make-local-variable 'jabber-export-roster-widget)
+
+    (jabber-export-display (or roster (jabber-roster-to-sexp *jabber-roster*)))
+
+    (widget-setup)
+    (widget-minor-mode 1)
+    (goto-char (point-min))
+    (switch-to-buffer (current-buffer))))
+
+(defun jabber-export-save (&rest ignore)
+  "Export roster to file."
+  (let ((items (jabber-roster-sexp-to-xml (widget-value jabber-export-roster-widget))))
+    (with-temp-file (read-file-name "Export roster to file: ")
+      (insert "<iq xmlns='jabber:client'><query xmlns='jabber:iq:roster'>\n")
+      (dolist (item items)
+	(insert (jabber-sexp2xml item) "\n"))
+      (insert "</query></iq>\n"))
+    (message "Roster saved")))
+
+(defun jabber-roster-to-sexp (roster)
+  "Convert ROSTER to simpler sexp format.
+Return a list, where each item is a vector:
+\[jid name subscription groups]
+where groups is a list of strings."
+  (mapcar
+   #'(lambda (n)
+       (list
+	(symbol-name n)
+	(or (get n 'name) "")
+	(get n 'subscription)
+	(get n 'groups)))
+   roster))
+
+(defun jabber-roster-sexp-to-xml (sexp-list)
+  "Convert SEXP-LIST to XML format.
+Return a list of XML nodes."
+  (mapcar
+   #'(lambda (n)
+       `(item ((jid . ,(nth 0 n))
+	       ,@(let ((name (nth 1 n)))
+		   (unless (zerop (length name))
+		     `((name . ,name))))
+	       (subscription . ,(nth 2 n)))
+	      ,@(mapcar
+		 #'(lambda (g)
+		     (list 'group nil g))
+		 (nth 3 n))))
+   sexp-list))
+
+(defun jabber-export-display (roster)
+  (setq jabber-export-roster-widget
+	(widget-create 
+	 '(repeat
+	   :tag "Roster"
+	   (list :format "%v"
+		   (string :tag "JID")
+		   (string :tag "Name")
+		   (choice :tag "Subscription"
+			   (const "none")
+			   (const "both")
+			   (const "to")
+			   (const "from"))
+		   (repeat :tag "Groups"
+			   (string :tag "Group"))))
+	 :value roster)))
 
 (provide 'jabber-export)
 
