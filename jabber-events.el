@@ -168,7 +168,10 @@ and it hasn't been sent before."
 
 	  ;; User requests message events
 	  (setq jabber-events-requested 
-		(mapcar #'car 
+		;; There might be empty strings in the XML data,
+		;; which car chokes on.  Having nil values in
+		;; the list won't hurt, therefore car-safe.
+		(mapcar #'car-safe 
 			(jabber-xml-node-children x)))
 	  (setq jabber-events-last-id (jabber-xml-get-attribute
 				       xml-data 'id))
