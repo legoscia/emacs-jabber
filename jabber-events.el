@@ -136,7 +136,8 @@ and it hasn't been sent before."
 
 (defun jabber-events-after-change ()
   (let ((composing-now (not (eq (point-max) jabber-point-insert))))
-    (when (and (eq composing-now jabber-events-composing-sent)
+    (when (and jabber-chatting-with
+	       (not (eq composing-now jabber-events-composing-sent))
 	       (jabber-jid-resource jabber-chatting-with))
       (jabber-send-sexp 
        `(message 

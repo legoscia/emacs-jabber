@@ -169,7 +169,7 @@ marking the extent of the roster entry.")
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
-  (with-current-buffer jabber-roster-buffer
+  (with-current-buffer (get-buffer-create jabber-roster-buffer)
     (if (not (eq major-mode 'jabber-roster-mode))
 	(jabber-roster-mode))
     (setq buffer-read-only nil)

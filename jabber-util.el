@@ -211,7 +211,13 @@ Return nil if no such data available."
 
 (defun jabber-encode-legacy-time (timestamp)
   "Parse TIMESTAMP as internal time value and encode as ccyymmddThh:mm:ss (UTC)."
-  (format-time-string "%Y%m%dT%H:%M:%S" timestamp t))
+  (if (featurep 'xemacs)
+      ;; XEmacs doesn't have `universal' argument to format-time-string,
+      ;; so we have to do it ourselves.
+      (format-time-string "%Y%m%dT%H:%M:%S" 
+			  (time-subtract timestamp 
+					 (list 0 (car (current-time-zone)))))
+    (format-time-string "%Y%m%dT%H:%M:%S" timestamp t)))
     
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.

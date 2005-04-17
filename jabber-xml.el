@@ -91,6 +91,34 @@
 			  "/>")))
       xml))))
 
+(defun jabber-xml-skip-tag-forward ()
+  "Skip to end of tag or matching closing tag if present.
+Return t iff after a closing tag, otherwise signals an error.
+
+The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
+enough for us."
+  (skip-chars-forward "^<>")
+  (if (not (or
+	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\)*")
+	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+=\"[^\"]*\"\\)*")))
+      (error "Not looking at tag")
+    (let ((node-name (match-string 1)))
+      (goto-char (match-end 0))
+      (cond
+       ((looking-at "/>")
+	(goto-char (match-end 0))
+	t)
+       ((looking-at ">")
+	(forward-char 1)
+	(loop 
+	 do (skip-chars-forward "^<>")
+	 until (looking-at (regexp-quote (concat "</" node-name ">")))
+	 do (jabber-xml-skip-tag-forward))
+	(goto-char (match-end 0))
+	t)
+       (t
+	(error "Unfinished tag"))))))
+
 (defmacro jabber-xml-node-name (node)
   "Return the tag associated with NODE.
 The tag is a lower-case symbol."

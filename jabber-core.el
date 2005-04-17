@@ -22,6 +22,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(eval-when-compile (require 'cl))
+
 (require 'jabber-util)
 (require 'jabber-logon)
 (require 'jabber-conn)
@@ -113,6 +115,9 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'string
   :group 'jabber-core)
 
+(defvar jabber-process-buffer "*-jabber-process-*"
+  "The name of the process buffer")
+
 (defsubst jabber-have-sasl-p ()
   "Return non-nil if SASL functions are available."
   (fboundp 'jabber-sasl-start-auth))
@@ -135,7 +140,11 @@ With prefix argument, register a new account."
     (unless *jabber-connection*
       (error "Connection failed"))
 
-    (set-process-filter *jabber-connection* #'jabber-filter)
+    ;; TLS connections leave data in the process buffer, which
+    ;; the XML parser will choke on.
+    (with-current-buffer (process-buffer *jabber-connection*)
+      (erase-buffer))
+    (set-process-filter *jabber-connection* #'jabber-pre-filter)
     (set-process-sentinel *jabber-connection* #'jabber-sentinel)
 
     (setq jabber-short-circuit-input nil)
@@ -218,92 +227,97 @@ Call this function after disconnection."
     (message "Jabber connection lost: `%s'" event)
     (jabber-disconnected)))
 
-(defun jabber-filter (process string)
+(defun jabber-pre-filter (process string)
+  (with-current-buffer (process-buffer process)
+    ;; Append new data
+    (goto-char (point-max))
+    (insert string)
+
+    (unless (boundp 'jabber-filtering)
+      (let (jabber-filtering)
+	(jabber-filter process)))))
+
+(defun jabber-filter (process)
   "the filter function for the jabber process"
-  (setq *xmlq* (concat *xmlq* string))
-  (cond
-   ((string-match "^</stream:stream>" *xmlq*)
-    (jabber-disconnect))
-   ((string-match "\\(<stream:stream[^>]*>\\)\\(.*\\)" *xmlq*)
-    (let ((stream-header (match-string 1 *xmlq*))
-	  (rest (match-string 2 *xmlq*)))
-      ;; These regexps extract attribute values from the stream
-      ;; header, taking into account that the quotes may be either
-      ;; single or double quotes.
-      (setq jabber-session-id
-	    (and (or (string-match "id='\\([^']+\\)'" stream-header)
-		     (string-match "id=\"\\([^\"]+\\)\"" stream-header))
-		 (jabber-unescape-xml (match-string 1 stream-header))))
-      (setq jabber-stream-version
-	    (and (or
-		  (string-match "version='\\([0-9.]+\\)'" stream-header)
-		  (string-match "version=\"\\([0-9.]+\\)\"" stream-header))
-		 (match-string 1 stream-header)))
-      (if jabber-debug-log-xml
-	  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-	    (save-excursion
-	      (goto-char (point-max))
-	      (insert (format "receive %S\n\n" string)))))
+  (with-current-buffer (process-buffer process)
+    ;; Start from the beginning
+    (goto-char (point-min))
+    (let (xml-data)
+      (loop 
+       do
+       ;; Skip whitespace
+       (unless (zerop (skip-chars-forward " \t\r\n"))
+	 (delete-region (point-min) (point)))
+       ;; Skip processing directive
+       (when (looking-at "<\\?xml[^?]*\\?>")
+	 (delete-region (match-beginning 0) (match-end 0)))
 
-      ;; If the server is XMPP compliant, i.e. there is a version attribute
-      ;; and it's >= 1.0, there will be a stream:features tag shortly,
-      ;; so just wait for that.
-      (unless (and jabber-stream-version
-		   (>= (string-to-number jabber-stream-version) 1.0))
-	;; Logon or register
-	(funcall jabber-call-on-connection nil))
+       ;; Stream end?
+       (when (looking-at "</stream:stream>")
+	 (return (jabber-disconnect)))
 
-      ;; If we got more than the stream header, pass it on.
-      (setq *xmlq* rest)
-      (if (not (zerop (length rest)))
-	  (jabber-filter process ""))))
-   (t
-    (if (active-minibuffer-window)
-        (run-with-idle-timer 0.01 nil #'jabber-filter process string)
-      (with-temp-buffer
-        (if (string-match " \\w+=''" *xmlq*)
-            (setq *xmlq* (replace-match "" nil nil *xmlq*)))
-	(unwind-protect
-	    (catch 'jabber-no-tag
-	      (while (string-match "<\\([a-zA-Z0-9\:]+\\)[> ]" *xmlq*)
-		(if (or (string-match (concat "<" (match-string 1 *xmlq*) "[^<>]*?/>") *xmlq*)
-			(string-match (concat "<" (match-string 1 *xmlq*) ".*?>[^\0]+?</" (match-string 1 *xmlq*) ">") *xmlq*))
-		    (progn
-		      (insert (match-string 0 *xmlq*))
-		      (goto-char (point-min))
-		      (setq *xmlq* (substring *xmlq* (match-end 0)))
-		      (let ((xml-data (xml-parse-region (point-min)
-							(point-max))))
-			(when xml-data
-			  ;; If there's a problem with writing the XML log,
-			  ;; make sure the stanza is delivered, at least.
-			  (condition-case e
-			      (if jabber-debug-log-xml
-				  (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
-				    (save-excursion
-				      (goto-char (point-max))
-				      (insert (format "receive %S\n\n" (car xml-data))))))
-			    (error
-			     (ding)
-			     (message "Couldn't write XML log: %s" (error-message-string e))
-			     (sit-for 2)))
-			  (jabber-process-input (car xml-data))))
-		      (erase-buffer))
-		  (throw 'jabber-no-tag t))))
-	  ;; unwindforms of unwind-protect
-	  (when (not (zerop (length *xmlq*)))
-	    ;; If there is XML data remaining to be parsed,
-	    ;; and an error aborted the loop, continue processing
-	    ;; after one second.  Otherwise the data would sit in *xmlq*
-	    ;; until the next time jabber-filter is called.
-	    ;;
-	    ;; We could just catch the error, but that would make noticing and
-	    ;; debugging errors harder; "Error in process filter" is a good
-	    ;; reminder that something's not right.  Concerning data loss,
-	    ;; there's not much we can do here, as the error-causing stanza
-	    ;; could be any kind of information.  The jabber-process-*
-	    ;; functions should catch their own errors if they need to.
-	    (run-with-idle-timer 1 nil #'jabber-filter process ""))))))))
+       ;; Stream header?
+       (when (looking-at "<stream:stream[^>]*>")
+	 (let ((stream-header (match-string 0))
+	       (ending-at (match-end 0)))
+	   ;; These regexps extract attribute values from the stream
+	   ;; header, taking into account that the quotes may be either
+	   ;; single or double quotes.
+	   (setq jabber-session-id
+		 (and (or (string-match "id='\\([^']+\\)'" stream-header)
+			  (string-match "id=\"\\([^\"]+\\)\"" stream-header))
+		      (jabber-unescape-xml (match-string 1 stream-header))))
+	   (setq jabber-stream-version
+		 (and (or
+		       (string-match "version='\\([0-9.]+\\)'" stream-header)
+		       (string-match "version=\"\\([0-9.]+\\)\"" stream-header))
+		      (match-string 1 stream-header)))
+	   (if jabber-debug-log-xml
+	       (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+		 (save-excursion
+		   (goto-char (point-max))
+		   (insert (format "receive %S\n\n" stream-header)))))
+
+	   ;; If the server is XMPP compliant, i.e. there is a version attribute
+	   ;; and it's >= 1.0, there will be a stream:features tag shortly,
+	   ;; so just wait for that.
+	   (unless (and jabber-stream-version
+			(>= (string-to-number jabber-stream-version) 1.0))
+	     ;; Logon or register
+	     (funcall jabber-call-on-connection nil))
+	 
+	   (delete-region (point-min) ending-at)))
+       
+       ;; Normal tag
+
+       ;; XXX: do these checks make sense?  If so, reinstate them.
+       ;;(if (active-minibuffer-window)
+       ;;    (run-with-idle-timer 0.01 nil #'jabber-filter process string)
+       ;;(if (string-match " \\w+=''" *xmlq*)
+       ;;    (setq *xmlq* (replace-match "" nil nil *xmlq*)))
+       
+       (setq xml-data (and (ignore-errors
+			     (jabber-xml-skip-tag-forward)
+			     (> (point) (point-min)))
+			   (ignore-errors (xml-parse-region (point-min) (point)))))
+       while xml-data
+       do
+       ;; If there's a problem with writing the XML log,
+       ;; make sure the stanza is delivered, at least.
+       (condition-case e
+	   (if jabber-debug-log-xml
+	       (with-current-buffer (get-buffer-create "*-jabber-xml-log-*")
+		 (save-excursion
+		   (goto-char (point-max))
+		   (insert (format "receive %S\n\n" (car xml-data))))))
+	 (error
+	  (ding)
+	  (message "Couldn't write XML log: %s" (error-message-string e))
+	  (sit-for 2)))
+       (delete-region (point-min) (point))
+       ;; We explicitly don't catch errors in jabber-process-input,
+       ;; to facilitate debugging.
+       (jabber-process-input (car xml-data))))))
 
 (defun jabber-process-input (xml-data)
   "process an incoming parsed tag"

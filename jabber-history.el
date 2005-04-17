@@ -214,7 +214,7 @@ of the log file."
 (defcustom jabber-backlog-days 3.0
   "Age limit on messages in chat buffer backlog, in days"
   :group 'jabber
-  :type '(choice (float :tag "Number of days")
+  :type '(choice (number :tag "Number of days")
 		 (const :tag "No limit" nil)))
 
 (defcustom jabber-backlog-number 10
