@@ -94,7 +94,7 @@ not affect your actual roster.
 
 (defun jabber-export-save (&rest ignore)
   "Export roster to file."
-  (let ((items (jabber-roster-sexp-to-xml (widget-value jabber-export-roster-widget)))
+  (let ((items (mapcar #'jabber-roster-sexp-to-xml (widget-value jabber-export-roster-widget)))
 	(coding-system-for-write 'utf-8))
     (with-temp-file (read-file-name "Export roster to file: ")
       (insert "<iq xmlns='jabber:client'><query xmlns='jabber:iq:roster'>\n")
@@ -117,21 +117,18 @@ where groups is a list of strings."
 	(get n 'groups)))
    roster))
 
-(defun jabber-roster-sexp-to-xml (sexp-list)
-  "Convert SEXP-LIST to XML format.
-Return a list of XML nodes."
-  (mapcar
-   #'(lambda (n)
-       `(item ((jid . ,(nth 0 n))
-	       ,@(let ((name (nth 1 n)))
-		   (unless (zerop (length name))
-		     `((name . ,name))))
-	       (subscription . ,(nth 2 n)))
-	      ,@(mapcar
-		 #'(lambda (g)
-		     (list 'group nil g))
-		 (nth 3 n))))
-   sexp-list))
+(defun jabber-roster-sexp-to-xml (sexp)
+  "Convert SEXP to XML format.
+Return an XML node."
+  `(item ((jid . ,(nth 0 sexp))
+	  ,@(let ((name (nth 1 sexp)))
+	      (unless (zerop (length name))
+		`((name . ,name))))
+	  (subscription . ,(nth 2 sexp)))
+	 ,@(mapcar
+	    #'(lambda (g)
+		(list 'group nil g))
+	    (nth 3 sexp))))
 
 (defun jabber-roster-xml-to-sexp (xml-data)
   "Convert XML-DATA to simpler sexp format.
