@@ -24,6 +24,7 @@
 (defvar jabber-export-roster-widget nil)
 
 (defun jabber-export-roster (&optional roster)
+  "Create buffer from which roster can be exported to a file."
   (interactive)
   (with-current-buffer (get-buffer-create "Export roster")
     (jabber-init-widget-buffer nil)
@@ -49,6 +50,36 @@ not affect your actual roster.
     (goto-char (point-min))
     (switch-to-buffer (current-buffer))))
 
+(defun jabber-import-roster (file)
+  "Create buffer for roster import from FILE."
+  (interactive "fImport roster from file: ")
+  (let ((roster
+	 (with-temp-buffer
+	   (let ((coding-system-for-read 'utf-8))
+	     (jabber-roster-xml-to-sexp
+	      (car (xml-parse-file file)))))))
+    (with-current-buffer (get-buffer-create "Import roster")
+      (jabber-init-widget-buffer nil)
+      
+      (widget-insert (jabber-propertize "Import roster\n"
+					'face 'jabber-title-large))
+      (widget-insert "You are about to import the contacts below to your roster.
+
+")
+      
+      (widget-create 'push-button :notify #'jabber-import-doit "Import to roster")
+      (widget-insert " ")
+      (widget-create 'push-button :notify #'jabber-export-remove-regexp "Remove by regexp")
+      (widget-insert "\n\n")
+      (make-local-variable 'jabber-export-roster-widget)
+      
+      (jabber-export-display roster)
+
+      (widget-setup)
+      (widget-minor-mode 1)
+      (goto-char (point-min))
+      (switch-to-buffer (current-buffer)))))
+
 (defun jabber-export-remove-regexp (&rest ignore)
   (let* ((value (widget-value jabber-export-roster-widget))
 	 (length-before (length value))
@@ -63,7 +94,8 @@ not affect your actual roster.
 
 (defun jabber-export-save (&rest ignore)
   "Export roster to file."
-  (let ((items (jabber-roster-sexp-to-xml (widget-value jabber-export-roster-widget))))
+  (let ((items (jabber-roster-sexp-to-xml (widget-value jabber-export-roster-widget)))
+	(coding-system-for-write 'utf-8))
     (with-temp-file (read-file-name "Export roster to file: ")
       (insert "<iq xmlns='jabber:client'><query xmlns='jabber:iq:roster'>\n")
       (dolist (item items)
@@ -100,6 +132,25 @@ Return a list of XML nodes."
 		     (list 'group nil g))
 		 (nth 3 n))))
    sexp-list))
+
+(defun jabber-roster-xml-to-sexp (xml-data)
+  "Convert XML-DATA to simpler sexp format.
+XML-DATA is an <iq> node with a <query xmlns='jabber:iq:roster'> child.
+See `jabber-roster-to-sexp' for description of output format."
+  (assert (eq (jabber-xml-node-name xml-data) 'iq))
+  (let ((query (car (jabber-xml-get-children xml-data 'query))))
+    (assert query)
+    (mapcar
+     #'(lambda (n)
+	 (list
+	  (jabber-xml-get-attribute n 'jid)
+	  (or (jabber-xml-get-attribute n 'name) "")
+	  (jabber-xml-get-attribute n 'subscription)
+	  (mapcar
+	   #'(lambda (g)
+	       (car (jabber-xml-node-children g)))
+	   (jabber-xml-get-children n 'group))))
+     (jabber-xml-get-children query 'item))))
 
 (defun jabber-export-display (roster)
   (setq jabber-export-roster-widget
