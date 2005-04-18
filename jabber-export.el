@@ -19,6 +19,8 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+(require 'cl)
+
 (defvar jabber-export-roster-widget nil)
 
 (defun jabber-export-roster (&optional roster)
@@ -35,6 +37,8 @@ not affect your actual roster.
 ")
 
     (widget-create 'push-button :notify #'jabber-export-save "Save to file")
+    (widget-insert " ")
+    (widget-create 'push-button :notify #'jabber-export-remove-regexp "Remove by regexp")
     (widget-insert "\n\n")
     (make-local-variable 'jabber-export-roster-widget)
 
@@ -44,6 +48,18 @@ not affect your actual roster.
     (widget-minor-mode 1)
     (goto-char (point-min))
     (switch-to-buffer (current-buffer))))
+
+(defun jabber-export-remove-regexp (&rest ignore)
+  (let* ((value (widget-value jabber-export-roster-widget))
+	 (length-before (length value))
+	 (regexp (read-string "Remove JIDs matching regexp: ")))
+    (setq value (delete-if
+		 #'(lambda (a)
+		     (string-match regexp (nth 0 a)))
+		 value))
+    (widget-value-set jabber-export-roster-widget value)
+    (widget-setup)
+    (message "%d items removed" (- length-before (length value)))))
 
 (defun jabber-export-save (&rest ignore)
   "Export roster to file."
