@@ -23,6 +23,8 @@
 
 (defvar jabber-export-roster-widget nil)
 
+(defvar jabber-import-subscription-p-widget nil)
+
 (defun jabber-export-roster (&optional roster)
   "Create buffer from which roster can be exported to a file."
   (interactive)
@@ -67,6 +69,11 @@ not affect your actual roster.
 
 ")
       
+      (make-local-variable 'jabber-import-subscription-p-widget)
+      (setq jabber-import-subscription-p-widget
+	    (widget-create 'checkbox))
+      (widget-insert "Adjust subscriptions\n")
+
       (widget-create 'push-button :notify #'jabber-import-doit "Import to roster")
       (widget-insert " ")
       (widget-create 'push-button :notify #'jabber-export-remove-regexp "Remove by regexp")
@@ -103,6 +110,61 @@ not affect your actual roster.
       (insert "</query></iq>\n"))
     (message "Roster saved")))
 
+(defun jabber-import-doit (&rest ignore)
+  "Import roster being edited in widget."
+  (let (roster-delta)
+    (dolist (n (widget-value jabber-export-roster-widget))
+      (let* ((jid (nth 0 n))
+	     (name (and (not (zerop (length (nth 1 n))))
+			(nth 1 n)))
+	     (subscription (nth 2 n))
+	     (groups (nth 3 n))
+	     (jid-symbol (jabber-jid-symbol jid))
+	     (in-roster-p (memq jid-symbol *jabber-roster*))
+	     (jid-name (and in-roster-p (get jid-symbol 'name)))
+	     (jid-subscription (and in-roster-p (get jid-symbol 'subscription)))
+	     (jid-groups (and in-roster-p (get jid-symbol 'groups))))
+	;; Do we need to change the roster?
+	(when (or
+	       ;; If the contact is not in the roster already,
+	       (not in-roster-p)
+	       ;; or if the import introduces a name,
+	       (and name (not jid-name))
+	       ;; or changes a name,
+	       (and name jid-name (not (string= name jid-name)))
+	       ;; or introduces new groups.
+	       (set-difference groups jid-groups :test #'string=))
+	  (push (jabber-roster-sexp-to-xml
+		 (list jid (or name jid-name) nil (union groups jid-groups :test #'string=))
+		 t)
+		roster-delta))
+	;; And adujst subscription.
+	(when (widget-value jabber-import-subscription-p-widget)
+	  (let ((want-to (member subscription '("to" "both")))
+		(want-from (member subscription '("from" "both")))
+		(have-to (member jid-subscription '("to" "both")))
+		(have-from (member jid-subscription '("from" "both"))))
+	    (flet ((request-subscription 
+		    (type)
+		    (jabber-send-sexp `(presence ((to . ,jid)
+						  (type . ,type))))))
+	      (cond
+	       ((and want-to (not have-to))
+		(request-subscription "subscribe"))
+	       ((and have-to (not want-to))
+		(request-subscription "unsubscribe")))
+	      (cond
+	       ((and want-from (not have-from))
+		;; not much to do here
+		)
+	       ((and have-from (not want-from))
+		(request-subscription "unsubscribed"))))))))
+    (when roster-delta
+      (jabber-send-iq nil "set"
+		      `(query ((xmlns . "jabber:iq:roster")) ,@roster-delta)
+		      #'jabber-report-success "Roster import"
+		      #'jabber-report-success "Roster import"))))
+
 (defun jabber-roster-to-sexp (roster)
   "Convert ROSTER to simpler sexp format.
 Return a list, where each item is a vector:
@@ -117,14 +179,15 @@ where groups is a list of strings."
 	(get n 'groups)))
    roster))
 
-(defun jabber-roster-sexp-to-xml (sexp)
+(defun jabber-roster-sexp-to-xml (sexp &optional omit-subscription)
   "Convert SEXP to XML format.
 Return an XML node."
   `(item ((jid . ,(nth 0 sexp))
 	  ,@(let ((name (nth 1 sexp)))
 	      (unless (zerop (length name))
 		`((name . ,name))))
-	  (subscription . ,(nth 2 sexp)))
+	  ,@(unless omit-subscription
+	      `((subscription . ,(nth 2 sexp)))))
 	 ,@(mapcar
 	    #'(lambda (g)
 		(list 'group nil g))
