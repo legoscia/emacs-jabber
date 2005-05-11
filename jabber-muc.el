@@ -460,7 +460,10 @@ Return nil if X-MUC is nil."
     (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	   (group (jabber-jid-user from))
 	   (nick (jabber-jid-resource from))
-	   (error-p (jabber-xml-get-children xml-data 'error)))
+	   (error-p (jabber-xml-get-children xml-data 'error))
+	   (body-text (car (jabber-xml-node-children
+			   (car (jabber-xml-get-children
+				 xml-data 'body))))))
       (with-current-buffer (jabber-muc-create-buffer group)
 	;; Call alert hooks only when something is output
 	(when
@@ -473,9 +476,9 @@ Return nil if X-MUC is nil."
 	  
 	  (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
 	    (run-hook-with-args hook
-				nick group (current-buffer)
+				nick group (current-buffer) body-text
 				(funcall jabber-alert-muc-function
-					 nick group (current-buffer)))))))))
+					 nick group (current-buffer) body-text))))))))
 
 (defun jabber-muc-process-presence (presence)
   (let* ((from (jabber-xml-get-attribute presence 'from))

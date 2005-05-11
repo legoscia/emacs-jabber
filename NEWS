@@ -52,10 +52,6 @@ Can now display count in frame title.  Update hook added.
 Call jabber-menu to have it there.
 (Not documented yet)
 
-** Message alert hooks changed
-They no longer receive the text of the message.  You'll need to
-rewrite your hooks.
-
 ** Flyspell in chat buffers
 Flyspell will only spell check what you're currently writing.
 (Not documented yet)

@@ -251,14 +251,14 @@ on JIDs where `jabber-activity-show-p'"
 					    jabber-activity-jids))
   (jabber-activity-mode-line-update))
 
-(defun jabber-activity-add (from buffer proposed-alert)
+(defun jabber-activity-add (from buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (let ((jid (jabber-jid-user from)))
     (when (funcall jabber-activity-show-p jid)
       (add-to-list 'jabber-activity-jids jid)
       (jabber-activity-mode-line-update))))
 
-(defun jabber-activity-add-muc (nick group buffer proposed-alert)
+(defun jabber-activity-add-muc (nick group buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p group)
     (add-to-list 'jabber-activity-jids group)

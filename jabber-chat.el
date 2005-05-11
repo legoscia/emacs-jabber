@@ -245,7 +245,10 @@ This function is idempotent."
   ;; Maybe make independent predicate.
   (when (not (jabber-muc-message-p xml-data))
     (let ((from (jabber-xml-get-attribute xml-data 'from))
-	  (error-p (jabber-xml-get-children xml-data 'error)))
+	  (error-p (jabber-xml-get-children xml-data 'error))
+	  (body-text (car (jabber-xml-node-children
+			   (car (jabber-xml-get-children
+				 xml-data 'body))))))
       (with-current-buffer (jabber-chat-create-buffer from)
 	;; Call alert hooks only when something is output
 	(when
@@ -258,9 +261,9 @@ This function is idempotent."
 
 	  (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
 	    (run-hook-with-args hook
-				from (current-buffer)
+				from (current-buffer) body-text
 				(funcall jabber-alert-message-function 
-					 from (current-buffer)))))))))
+					 from (current-buffer) body-text))))))))
 
 (defun jabber-chat-send (body)
   "Send BODY, and display it in chat buffer."
