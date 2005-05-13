@@ -293,8 +293,12 @@ Call this function after disconnection."
        ;; XXX: do these checks make sense?  If so, reinstate them.
        ;;(if (active-minibuffer-window)
        ;;    (run-with-idle-timer 0.01 nil #'jabber-filter process string)
-       ;;(if (string-match " \\w+=''" *xmlq*)
-       ;;    (setq *xmlq* (replace-match "" nil nil *xmlq*)))
+
+       ;; This check is needed for xml.el of Emacs 21, as it chokes on
+       ;; empty attribute values.
+       (save-excursion
+	 (while (search-forward-regexp " \\w+=''" nil t)
+           (replace-match "")))
        
        (setq xml-data (and (ignore-errors
 			     (jabber-xml-skip-tag-forward)
