@@ -190,6 +190,13 @@ any string   character data of this node"
       (setq path (cdr path)))
     node))
 
+(defmacro jabber-xml-let-attributes (attributes xml-data &rest body)
+  "Bind variables to the same-name attribute values in XML-DATA."
+  `(let ,(mapcar #'(lambda (attr)
+		     (list attr `(jabber-xml-get-attribute ,xml-data ',attr)))
+		 attributes)
+     ,@body))
+
 (provide 'jabber-xml)
 
 ;;; arch-tag: ca206e65-7026-4ee8-9af2-ff6a9c5af98a
