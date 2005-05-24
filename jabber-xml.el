@@ -157,6 +157,39 @@ is not present, emulate it with `xml-get-attribute'."
       `(let ((result (xml-get-attribute ,node ,attribute)))
 	 (and (> (length result) 0) result))))
 
+(defun jabber-xml-path (xml-data path)
+  "Find sub-node of XML-DATA according to PATH.
+PATH is a vaguely XPath-inspired list.  Each element can be:
+
+a symbol     go to first child node with this node name
+cons cell    car is string containing namespace URI,
+             cdr is string containing node name.  Find
+             first matching child node.
+any string   character data of this node"
+  (let ((node xml-data))
+    (while (and path node)
+      (let ((step (car path)))
+	(cond
+	 ((symbolp step)
+	  (setq node (car (jabber-xml-get-children node step))))
+	 ((consp step)
+	  ;; This will be easier with namespace-aware use
+	  ;; of xml.el.  It will also be more correct.
+	  ;; Now, it only matches explicit namespace declarations.
+	  (setq node
+		(dolist (x (jabber-xml-get-children node (intern (cdr step))))
+		  (when (string= (jabber-xml-get-attribute x 'xmlns)
+				 (car step))
+		    (return x)))))
+	 ((stringp step)
+	  (setq node (car (jabber-xml-node-children node)))
+	  (unless (stringp node)
+	    (setq node nil)))
+	 (t
+	  (error "Unknown path step: %s" step))))
+      (setq path (cdr path)))
+    node))
+
 (provide 'jabber-xml)
 
 ;;; arch-tag: ca206e65-7026-4ee8-9af2-ff6a9c5af98a
