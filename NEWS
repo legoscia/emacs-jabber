@@ -65,6 +65,9 @@ over the prompt.
 ** Chat buffers in inactive windows are scrolled
 (Not documented yet)
 
+** Roster is sorted by name also
+(Not documented yet)
+
 * New features in jabber.el 0.6.1
 
 ** Message history

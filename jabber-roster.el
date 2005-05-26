@@ -58,6 +58,19 @@ These fields are available:
   :type 'string
   :group 'jabber-roster)
 
+(defcustom jabber-roster-sort-functions
+  '(jabber-roster-sort-by-status jabber-roster-sort-by-displayname)
+  "Sort roster according to these criteria.
+
+These functions should take two roster items A and B, and return:
+<0 if A < B
+0  if A = B
+>0  if A > B"
+  :type 'hook
+  :options '(jabber-roster-sort-by-status 
+	     jabber-roster-sort-by-displayname)
+  :group 'jabber-roster)
+
 (defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
   "Sort by status in this order.  Anything not in list goes last.
 Offline is represented as nil."
@@ -145,12 +158,40 @@ bring up menus of actions.
 (defun jabber-sort-roster ()
   "sort roster according to online status"
   (setq *jabber-roster*
-	(sort *jabber-roster*
-	      #'(lambda (a b)
-		  (let ((a-show (get a 'show))
-			(b-show (get b 'show)))
-		    (> (length (member a-show jabber-sort-order))
-		       (length (member b-show jabber-sort-order))))))))
+	(sort *jabber-roster* #'jabber-roster-sort-items)))
+
+(defun jabber-roster-sort-items (a b)
+  "Sort roster items A and B according to `jabber-roster-sort-functions'.
+Return t if A is less than B."
+  (dolist (fn jabber-roster-sort-functions)
+    (let ((comparison (funcall fn a b)))
+      (cond
+       ((< comparison 0)
+	(return t))
+       ((> comparison 0)
+	(return nil))))))
+
+(defun jabber-roster-sort-by-status (a b)
+  "Sort roster items by online status.
+See `jabber-sort-order' for order used."
+  (flet ((order (item) (length (member (get item 'show) jabber-sort-order))))
+    (let ((a-order (order a))
+	  (b-order (order b)))
+      ;; Note reversed test.  Items with longer X-order go first.
+      (cond
+       ((< a-order b-order)
+	1)
+       ((> a-order b-order)
+	-1)
+       (t
+	0)))))
+
+(defun jabber-roster-sort-by-displayname (a b)
+  "Sort roster items by displayed name."
+  (let ((comparison (compare-strings (jabber-jid-displayname a) 0 nil 
+				     (jabber-jid-displayname b) 0 nil t)))
+    ;; compare-strings returns t when strings are equal.
+    (if (eq comparison t) 0 comparison)))
 
 (defun jabber-fix-status (status)
   "Make status strings more readable"
