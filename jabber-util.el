@@ -99,11 +99,9 @@ properties to add to the result."
 (defun jabber-jid-displayname (string)
   "return the name of the user, if given in roster, else username@server"
   (let ((user (jabber-jid-symbol string)))
-    (let ((roster-item (car (memq user *jabber-roster*))))
-      (if (and roster-item
-	       (> (length (get roster-item 'name)) 0))
-	  (get roster-item 'name)
-	(symbol-name user)))))
+    (if (> (length (get user 'name)) 0)
+	(get user 'name)
+      (symbol-name user))))
 
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
