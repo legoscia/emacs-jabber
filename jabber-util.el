@@ -112,8 +112,11 @@ properties to add to the result."
 
 (defun jabber-jid-symbol (string)
   "return the symbol for the given JID"
-  ;; XXX: "downcase" is poor man's nodeprep.  See XMPP CORE.
-  (intern (downcase (jabber-jid-user string)) jabber-jid-obarray))
+  ;; If it's already a symbol, just return it.
+  (if (symbolp string)
+      string
+    ;; XXX: "downcase" is poor man's nodeprep.  See XMPP CORE.
+    (intern (downcase (jabber-jid-user string)) jabber-jid-obarray)))
 
 (defun jabber-my-jid-p (jid)
   "Return non-nil if the specified JID is equal to the user's JID, modulo resource."
