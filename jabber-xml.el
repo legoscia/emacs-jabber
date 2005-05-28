@@ -97,7 +97,7 @@ Return t iff after a closing tag, otherwise signals an error.
 
 The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
 enough for us."
-  (skip-chars-forward "^<>")
+  (skip-chars-forward "^<")
   (if (not (or
 	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\)*")
 	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+=\"[^\"]*\"\\)*")))
@@ -111,7 +111,7 @@ enough for us."
        ((looking-at ">")
 	(forward-char 1)
 	(loop 
-	 do (skip-chars-forward "^<>")
+	 do (skip-chars-forward "^<")
 	 until (looking-at (regexp-quote (concat "</" node-name ">")))
 	 do (jabber-xml-skip-tag-forward))
 	(goto-char (match-end 0))
