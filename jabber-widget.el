@@ -20,8 +20,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'widget)
-(eval-when-compile
-  (require 'wid-edit))
+(require 'wid-edit)
 (require 'jabber-util)
 (require 'jabber-disco)
 
