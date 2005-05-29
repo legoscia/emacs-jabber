@@ -89,7 +89,7 @@ things.
 jabber.el is developed by Tom Berger (e-mail
 @email{object@@intellectronica.net}, JID @code{object@@jabber.org.uk}) and
 Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
-@code{legoscia@@charente.de}).  There is a web page at
+@code{legoscia@@jabber.cd.chalmers.se}).  There is a web page at
 @uref{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
 project page at @uref{http://sourceforge.net/projects/emacs-jabber}.
 
