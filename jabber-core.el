@@ -85,6 +85,11 @@ Used for SASL authentication.")
 (defvar jabber-stream-error-chain '(jabber-process-stream-error)
   "Stream errors are sent to these functions, in order")
 
+(defvar jabber-choked-count 0
+  "Number of successive times that the process buffer has been nonempty.")
+
+(defvar jabber-choked-timer nil)
+
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
@@ -131,6 +136,7 @@ With prefix argument, register a new account."
     (setq *xmlq* "")
     (setq *jabber-authenticated* nil)
     (jabber-clear-roster)
+    (jabber-reset-choked)
 
     ;; Call the function responsible for establishing a bidirectional
     ;; data stream  to the Jabber Server, *jabber-connection* is set
@@ -171,6 +177,9 @@ With prefix argument, register a new account."
 	      (goto-char (point-max))
 	      (insert (format "sending %S\n\n" stream-header)))))
 
+      (setq jabber-choked-timer
+	    (run-with-timer 5 5 #'jabber-check-choked))
+
       (accept-process-output *jabber-connection*))
     ;; Next thing happening is the server sending its own <stream:stream> start tag.
     ;; That is handled in jabber-filter.
@@ -207,6 +216,9 @@ tag, or nil if we're connecting to a pre-XMPP server."
 (defun jabber-disconnected ()
   "Re-initialise jabber package variables.
 Call this function after disconnection."
+  (when jabber-choked-timer
+    (cancel-timer jabber-choked-timer)
+    (setq jabber-choked-timer nil))
   (when (and (processp *jabber-connection*)
 	     (process-buffer *jabber-connection*))
     (kill-buffer (process-buffer *jabber-connection*)))
@@ -307,6 +319,9 @@ Call this function after disconnection."
 			     (jabber-xml-skip-tag-forward)
 			     (> (point) (point-min)))
 			   (ignore-errors (xml-parse-region (point-min) (point)))))
+       (if xml-data
+	   (jabber-reset-choked))
+
        while xml-data
        do
        ;; If there's a problem with writing the XML log,
@@ -325,6 +340,45 @@ Call this function after disconnection."
        ;; We explicitly don't catch errors in jabber-process-input,
        ;; to facilitate debugging.
        (jabber-process-input (car xml-data))))))
+
+(defun jabber-reset-choked ()
+  (setq jabber-choked-count 0))
+
+(defun jabber-check-choked ()
+  ;; "Choked" means that data is sitting in the process buffer
+  ;; without being parsed, despite several attempts.
+  (if (zerop (buffer-size (process-buffer *jabber-connection*)))
+      (jabber-reset-choked)
+    (incf jabber-choked-count)
+    (if (and (> jabber-choked-count 3)
+	     ;; Now we're definitely choked.  Take action.
+	     ;; But ask user first.
+	     (yes-or-no-p "jabber.el is severely confused.  Bail out? "))
+	(run-with-idle-timer 0.1 nil 'jabber-choked-bail-out)
+      (jabber-reset-choked))))
+
+(defun jabber-choked-bail-out ()
+  ;; So here we are.  Something in the process buffer prevents us
+  ;; from continuing normally.  Let's die honorably by providing
+  ;; bug report material.
+  (with-current-buffer (generate-new-buffer "*jabber-bug*")
+    (insert "jabber.el couldn't cope with the data received from the server.
+This should never happen, but apparently it did.
+
+The information below will be helpful in tracking down and fixing
+the bug.  You may want to edit out any sensitive information.
+
+Please go to
+http://sourceforge.net/tracker/?group_id=88346&atid=586350 and
+submit a bug report, including the information below.
+
+")
+    (goto-address)
+    (emacs-version t)
+    (insert "\n\nThe following couldn't be parsed:\n")
+    (insert-buffer (process-buffer *jabber-connection*))
+    (switch-to-buffer (current-buffer)))
+  (jabber-disconnect))
 
 (defun jabber-process-input (xml-data)
   "process an incoming parsed tag"
