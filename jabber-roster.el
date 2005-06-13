@@ -135,9 +135,14 @@ Trailing newlines are always removed, regardless of this variable."
   "face for displaying offline users"
   :group 'jabber-roster)
 
-(defvar jabber-roster-mode-map (copy-keymap jabber-common-keymap))
-(define-key jabber-roster-mode-map (kbd "RET") 'jabber-chat-with-jid-at-point)
-(define-key jabber-roster-mode-map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
+(defvar jabber-roster-mode-map nil)
+
+(unless jabber-roster-mode-map
+  (setq jabber-roster-mode-map (make-sparse-keymap))
+  (set-keymap-parent jabber-roster-mode-map jabber-common-keymap)
+  (define-key jabber-roster-mode-map (kbd "TAB") 'jabber-go-to-next-jid)
+  (define-key jabber-roster-mode-map (kbd "RET") 'jabber-chat-with-jid-at-point)
+  (define-key jabber-roster-mode-map (kbd "C-k") 'jabber-roster-delete-jid-at-point))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
@@ -369,6 +374,18 @@ marking the extent of the roster entry.")
 		;; end markers.
 		(set-marker-insertion-type marker-start t)
 		(setcdr entry (cons marker-start marker-end))))))))))
+
+(defun jabber-go-to-next-jid ()
+  "Move the cursor to the next jid in the buffer"
+  (interactive)
+  (let ((next (next-single-property-change (point) 'jabber-jid)))
+    (when (and next
+               (not (get-text-property next 'jabber-jid)))
+      (setq next (next-single-property-change next 'jabber-jid)))
+    (unless next
+      (setq next (next-single-property-change (point-min) 'jabber-jid)))
+    (if next (goto-char (1+ next))
+      (goto-char (point-min)))))
 
 (provide 'jabber-roster)
 
