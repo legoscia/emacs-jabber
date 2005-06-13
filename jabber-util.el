@@ -263,7 +263,10 @@ CONTEXT is a string describing the action."
 			 " succeeded"
 		       (concat
 			" failed: "
-			(jabber-parse-error (jabber-iq-error xml-data))))))))
+			(let ((the-error (jabber-iq-error xml-data)))
+			  (if the-error
+			      (jabber-parse-error the-error)
+			    "No error message given"))))))))
 
 (defconst jabber-error-messages
   (list
