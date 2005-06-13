@@ -271,9 +271,10 @@ Return nil if nothing known about that combination."
   "Print names, affiliations, and roles of participants in GROUP."
   (interactive (list (jabber-muc-read-completing "Group: ")))
   (with-current-buffer (jabber-muc-create-buffer group)
-    (jabber-chat-buffer-display 'jabber-muc-system-prompt nil
-				'(jabber-muc-print-names)
-				(cdr (assoc group jabber-muc-participants)))))
+    (let ((jabber-chat-fill-long-lines nil))
+      (jabber-chat-buffer-display 'jabber-muc-system-prompt nil
+				  '(jabber-muc-print-names)
+				  (cdr (assoc group jabber-muc-participants))))))
 
 (defun jabber-muc-print-names (participants)
   "Format and insert data in PARTICIPANTS."
