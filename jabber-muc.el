@@ -311,6 +311,45 @@ Return nil if nothing known about that combination."
 		    'jabber-report-success "Role change")))
 
 (add-to-list 'jabber-jid-muc-menu
+	     (cons "Set affiliation (ban, member, admin)" 'jabber-muc-set-affiliation))
+
+(defun jabber-muc-set-affiliation (group nickname-or-jid nickname-p affiliation reason)
+  "Set affiliation of NICKNAME-OR-JID in GROUP to AFFILIATION.
+If NICKNAME-P is non-nil, NICKNAME-OR-JID is a nickname in the
+group, else it is a JID."
+  (interactive
+   (let ((group (jabber-muc-read-completing "Group: "))
+	 (nickname-p (y-or-n-p "Specify user by room nickname? ")))
+     (list
+      group
+      (if nickname-p
+	  (jabber-muc-read-nickname group "Nickname: ")
+	(jabber-read-jid-completing "User: "))
+      nickname-p
+      (completing-read "New affiliation: "
+		       '(("none") ("outcast") ("member") ("admin") ("owner")) nil t)
+      (read-string "Reason: "))))
+  (let ((jid
+	 (if nickname-p
+	     (let ((participants (cdr (assoc group jabber-muc-participants))))
+	       (unless participants
+		 (error "Couldn't find group %s" group))
+	       (let ((participant (cdr (assoc nickname-or-jid participants))))
+		 (unless participant
+		   (error "Couldn't find %s in group %s" nickname-or-jid group))
+		 (or (plist-get participant 'jid)
+		     (error "JID of %s in group %s is unknown" nickname-or-jid group))))
+	   nickname-or-jid)))
+    (jabber-send-iq group "set"
+		    `(query ((xmlns . "http://jabber.org/protocol/muc#admin"))
+			    (item ((jid . ,jid)
+				   (affiliation . ,affiliation))
+				  ,(unless (zerop (length reason))
+				     `(reason () ,reason))))
+		    'jabber-report-success "Affiliation change"
+		    'jabber-report-success "Affiliation change")))
+
+(add-to-list 'jabber-jid-muc-menu
 	     (cons "Invite someone to chatroom" 'jabber-muc-invite))
 
 (defun jabber-muc-invite (jid group reason)

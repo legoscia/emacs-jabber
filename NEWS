@@ -26,6 +26,8 @@ Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
 *** Invitations
 Both sending and receiving invitiations is supported.
 (Not documented yet)
+*** Basic affiliation change support
+(Not finished, not documented)
 
 ** Vcard viewer and editor
 (Not documented yet)
