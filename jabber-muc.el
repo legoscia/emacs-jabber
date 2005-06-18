@@ -535,10 +535,11 @@ Return nil if X-MUC is nil."
 	(reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
 	(status-code (jabber-xml-get-attribute
 		      (car (jabber-xml-get-children x-muc 'status))
-		      'code)))
+		      'code))
+	(error-node (car (jabber-xml-get-children presence 'error))))
     ;; handle leaving a room
     (cond 
-     ((string= type "unavailable")
+     ((or (string= type "unavailable") (string= type "error"))
       ;; are we leaving?
       (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
 	  (progn
@@ -549,6 +550,12 @@ Return nil if X-MUC is nil."
 	       nil
 	       '(insert)
 	       (cond
+		((string= type "error")
+		 (jabber-propertize
+		  (concat "Error entering room"
+			  (when error-node
+			    (concat ": " (jabber-parse-error error-node))))
+		  'face 'jabber-chat-error))
 		((equal status-code "301")
 		 (concat "You have been banned"
 			 (when actor (concat " by " actor))
@@ -580,7 +587,6 @@ Return nil if X-MUC is nil."
 		     (jabber-xml-get-attribute item 'nick)))
 	    (t
 	     (concat nickname " has left the chatroom")))))))
-     ;; XXX: add errors here
      (t 
       ;; someone is entering
       (let ((new-participant (not (jabber-muc-participant-plist group nickname)))
