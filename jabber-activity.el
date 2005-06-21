@@ -143,13 +143,16 @@ It is called after `jabber-activity-mode-string' and
 
 (defun jabber-activity-make-string-default (jid)
   "Return the nick of the JID.	If no nick is available, return
-the user name part of the JID."
-  (let ((nick (jabber-jid-displayname jid))
-	(user (jabber-jid-user jid))
-	(username (jabber-jid-username jid)))
-    (if (and username (string= nick user))
-	username
-      nick)))
+the user name part of the JID.  In private MUC conversations,
+return the user's nickname."
+  (if (jabber-muc-sender-p jid)
+      (jabber-jid-resource jid)
+    (let ((nick (jabber-jid-displayname jid))
+	  (user (jabber-jid-user jid))
+	  (username (jabber-jid-username jid)))
+      (if (and username (string= nick user))
+	  username
+	nick))))
 
 (defun jabber-activity-make-strings-default (jids)
   "Apply `jabber-activity-make-string' on JIDS"
@@ -188,10 +191,18 @@ least `jabber-activity-shorten-minimum' long."
 		       (1+ (jabber-activity-common-prefix cur prev))
 		       (1+ (jabber-activity-common-prefix cur next)))))))))
 
+(defun jabber-activity-find-buffer-name (jid)
+  "Find the name of the buffer that messages from JID would use."
+  (or (and (jabber-jid-resource jid)
+	   (get-buffer (jabber-muc-private-get-buffer 
+			(jabber-jid-user jid)
+			(jabber-jid-resource jid))))
+      (get-buffer (jabber-chat-get-buffer jid))
+      (get-buffer (jabber-muc-get-buffer jid))))
+
 (defun jabber-activity-show-p-default (jid)
   "Returns t only if there is an invisible buffer for JID"
-  (let ((buffer (or (get-buffer (jabber-chat-get-buffer jid))
-		    (get-buffer (jabber-muc-get-buffer jid)))))
+  (let ((buffer (jabber-activity-find-buffer-name jid)))
     (and (buffer-live-p buffer)
 	 (not (get-buffer-window buffer 'visible)))))
 
@@ -253,7 +264,10 @@ on JIDs where `jabber-activity-show-p'"
 
 (defun jabber-activity-add (from buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
-  (let ((jid (jabber-jid-user from)))
+  ;; In case of private MUC message, we want to keep the full JID.
+  (let ((jid (if (jabber-muc-sender-p from)
+		 from
+	       (jabber-jid-user from))))
     (when (funcall jabber-activity-show-p jid)
       (add-to-list 'jabber-activity-jids jid)
       (jabber-activity-mode-line-update))))
@@ -283,8 +297,7 @@ buffer exists, switch back to most recently used buffer."
   (interactive)
   (if (or jid-param jabber-activity-jids)
       (let ((jid (or jid-param (car jabber-activity-jids))))
-	(switch-to-buffer (or (get-buffer (jabber-chat-get-buffer jid))
-			      (get-buffer (jabber-muc-get-buffer jid))))
+	(switch-to-buffer (jabber-activity-find-buffer-name jid))
 	(jabber-activity-clean))
     ;; Switch back to the buffer used last
     (switch-to-buffer nil)))

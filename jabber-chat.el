@@ -244,15 +244,22 @@ This function is idempotent."
   ;; XXX: there's more to being a chat message than not being MUC.
   ;; Maybe make independent predicate.
   (when (not (jabber-muc-message-p xml-data))
+    ;; Note that we handle private MUC messages here.
     (let ((from (jabber-xml-get-attribute xml-data 'from))
 	  (error-p (jabber-xml-get-children xml-data 'error))
 	  (body-text (car (jabber-xml-node-children
 			   (car (jabber-xml-get-children
 				 xml-data 'body))))))
-      (with-current-buffer (jabber-chat-create-buffer from)
+      (with-current-buffer (if (jabber-muc-sender-p from)
+			       (jabber-muc-private-create-buffer
+				(jabber-jid-user from)
+				(jabber-jid-resource from))
+			     (jabber-chat-create-buffer from))
 	;; Call alert hooks only when something is output
 	(when
-	    (jabber-chat-buffer-display 'jabber-chat-print-prompt
+	    (jabber-chat-buffer-display (if (jabber-muc-sender-p from)
+					    'jabber-muc-private-print-prompt
+					  'jabber-chat-print-prompt)
 					xml-data
 					(if error-p
 					    '(jabber-chat-print-error)

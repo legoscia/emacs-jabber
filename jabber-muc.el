@@ -53,8 +53,8 @@ Values are lists of nickname strings.")
 (defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
   "The format specification for the name of groupchat buffers.
 
-These fields are available (all are about the person you are chatting
-with):
+These fields are available (all are about the group you are chatting
+in):
 
 %n   Roster name of group, or JID if no nickname set
 %j   Bare JID (without resource)"
@@ -70,6 +70,27 @@ These fields are available:
 %n, %u, %r
      Nickname in groupchat
 %j   Full JID (room@server/nick)"
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-muc-private-buffer-format "*-jabber-muc-priv-%g-%n-*"
+  "The format specification for the buffer name for private MUC messages.
+
+These fields are available:
+
+%g   Roster name of group, or JID if no nickname set
+%n   Nickname of the group member you're chatting with"
+  :type 'string
+  :group 'jabber-chat)
+
+(defcustom jabber-muc-private-foreign-prompt-format "[%t] %g/%n> "
+  "The format specification for lines others type in a private MUC buffer.
+
+These fields are available:
+
+%t  Time, formatted according to `jabber-chat-time-format'
+%n  Nickname in room
+%g  Short room name (either roster name or username part of JID)"
   :type 'string
   :group 'jabber-chat)
 
@@ -90,6 +111,27 @@ This function is idempotent."
     (make-local-variable 'jabber-group)
     (setq jabber-group group)
     (setq jabber-send-function 'jabber-muc-send)
+    (current-buffer)))
+
+(defun jabber-muc-private-get-buffer (group nickname)
+  "Return the chat buffer for private chat with NICKNAME in GROUP.
+Either a string or a buffer is returned, so use `get-buffer' or
+`get-buffer-create'."
+  (format-spec jabber-muc-private-buffer-format
+	       (list
+		(cons ?g (jabber-jid-displayname group))
+		(cons ?n nickname))))
+
+(defun jabber-muc-private-create-buffer (group nickname)
+  "Prepare a buffer for chatting with NICKNAME in GROUP.
+This function is idempotent."
+  (with-current-buffer (get-buffer-create (jabber-muc-private-get-buffer group nickname))
+    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
+    (make-local-variable 'jabber-chatting-with)
+    (setq jabber-chatting-with (concat group "/" nickname))
+    (setq jabber-send-function 'jabber-chat-send)
+    ;;(setq header-line-format jabber-chat-header-line-format)
+
     (current-buffer)))
 
 (defun jabber-muc-send (body)
@@ -445,6 +487,30 @@ That does not include private messages in a groupchat."
      (and (string= type "error")
 	  (assoc from *jabber-active-groupchats*)))))
 
+(defun jabber-muc-sender-p (jid)
+  "Return non-nil if JID is a full JID of an MUC participant."
+  (and (assoc (jabber-jid-user jid) *jabber-active-groupchats*)
+       (jabber-jid-resource jid)))
+
+(defun jabber-muc-private-message-p (message)
+  "Return non-nil if MESSAGE is a private message in a groupchat."
+  (let ((from (jabber-xml-get-attribute message 'from))
+	(type (jabber-xml-get-attribute message 'type)))
+    (and
+     (not (string= type "groupchat"))
+     (jabber-muc-sender-p from))))
+
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Open private chat" 'jabber-muc-private))
+
+(defun jabber-muc-private (group nickname)
+  "Open private chat with NICKNAME in GROUP."
+  (interactive
+   (let* ((group (jabber-muc-read-completing "Group: "))
+	  (nickname (jabber-muc-read-nickname group "Nickname: ")))
+     (list group nickname)))
+  (switch-to-buffer (jabber-muc-private-create-buffer group nickname)))
+
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
   (let ((from (jabber-xml-get-attribute presence 'from)))
@@ -478,6 +544,25 @@ Return nil if X-MUC is nil."
 		 'face 'jabber-chat-prompt-foreign
 		 'help-echo (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " nick " in " jabber-group)))
       (jabber-muc-system-prompt))))
+
+(defun jabber-muc-private-print-prompt (xml-data)
+  "Print prompt for private MUC message in XML-DATA."
+  (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
+	(group (jabber-jid-user (jabber-xml-get-attribute xml-data 'from)))
+	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+    (insert (jabber-propertize
+	     (format-spec jabber-muc-private-foreign-prompt-format
+			  (list
+			   (cons ?t (format-time-string 
+				     (if timestamp
+					 jabber-chat-delayed-time-format
+				       jabber-chat-time-format)
+				     timestamp))
+			   (cons ?n nick)
+			   (cons ?g (or (jabber-jid-rostername group)
+					(jabber-jid-username group)))))
+	     'face 'jabber-chat-prompt-foreign
+	     'help-echo (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " nick " in " jabber-group)))))
 
 (defun jabber-muc-system-prompt (&rest ignore)
   "Print system prompt for MUC."
