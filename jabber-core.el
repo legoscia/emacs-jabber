@@ -297,8 +297,14 @@ Call this function after disconnection."
 	   ;; If the server is XMPP compliant, i.e. there is a version attribute
 	   ;; and it's >= 1.0, there will be a stream:features tag shortly,
 	   ;; so just wait for that.
+
+	   ;; the stream feature is only sent if the initiating entity has
+	   ;; sent 1.0 in the stream header. if sasl is not supported then
+	   ;; we don't send 1.0 in the header and therefore we shouldn't wait
+	   ;; even if 1.0 is present in the receiving stream.
 	   (unless (and jabber-stream-version
-			(>= (string-to-number jabber-stream-version) 1.0))
+			(>= (string-to-number jabber-stream-version) 1.0)
+			(jabber-have-sasl-p))
 	     ;; Logon or register
 	     (funcall jabber-call-on-connection nil))
 	 
