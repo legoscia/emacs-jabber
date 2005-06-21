@@ -96,12 +96,15 @@ properties to add to the result."
   (string-match "[^/]*" string)
   (match-string 0 string))
 
-(defun jabber-jid-displayname (string)
-  "return the name of the user, if given in roster, else username@server"
+(defun jabber-jid-rostername (string)
+  "return the name of the user, if given in roster, else nil"
   (let ((user (jabber-jid-symbol string)))
     (if (> (length (get user 'name)) 0)
-	(get user 'name)
-      (symbol-name user))))
+	(get user 'name))))
+
+(defun jabber-jid-displayname (string)
+  "return the name of the user, if given in roster, else username@server"
+  (or (jabber-jid-rostername string) string))
 
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
