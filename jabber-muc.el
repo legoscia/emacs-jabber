@@ -94,6 +94,16 @@ These fields are available:
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-muc-private-header-line-format
+  '(" " (:eval (jabber-jid-resource jabber-chatting-with))
+    " in " (:eval (jabber-jid-displayname (jabber-jid-user jabber-chatting-with)))
+    "\t" jabber-events-message)
+  "The specification for the header line of private MUC chat buffers.
+
+The format is that of `mode-line-format' and `header-line-format'."
+  :type 'sexp
+  :group 'jabber-chat)
+
 (defun jabber-muc-get-buffer (group)
   "Return the chat buffer for chatroom GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -130,7 +140,7 @@ This function is idempotent."
     (make-local-variable 'jabber-chatting-with)
     (setq jabber-chatting-with (concat group "/" nickname))
     (setq jabber-send-function 'jabber-chat-send)
-    ;;(setq header-line-format jabber-chat-header-line-format)
+    (setq header-line-format jabber-muc-private-header-line-format)
 
     (current-buffer)))
 
