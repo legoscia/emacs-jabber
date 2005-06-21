@@ -104,7 +104,10 @@ properties to add to the result."
 
 (defun jabber-jid-displayname (string)
   "return the name of the user, if given in roster, else username@server"
-  (or (jabber-jid-rostername string) string))
+  (or (jabber-jid-rostername string)
+      (if (symbolp string)
+	  (symbol-name string)
+	string)))
 
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
