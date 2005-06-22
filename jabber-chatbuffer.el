@@ -72,9 +72,8 @@ window or at `fill-column', whichever is shorter."
 
 (unless jabber-chat-mode-map
   (setq jabber-chat-mode-map (make-sparse-keymap))
-  (set-keymap-parent jabber-chat-mode-map jabber-common-keymap))
-
-(define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send)
+  (set-keymap-parent jabber-chat-mode-map jabber-common-keymap)
+  (define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send))
 
 (defun jabber-chat-buffer-send ()
   (interactive)
