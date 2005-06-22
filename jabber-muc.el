@@ -639,28 +639,32 @@ Return nil if X-MUC is nil."
       (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
 	  (progn
 	    (jabber-muc-remove-groupchat group)
-	    (with-current-buffer (jabber-muc-create-buffer group)
-	      (jabber-chat-buffer-display 
-	       'jabber-muc-system-prompt
-	       nil
-	       '(insert)
-	       (cond
-		((string= type "error")
-		 (jabber-propertize
-		  (concat "Error entering room"
-			  (when error-node
-			    (concat ": " (jabber-parse-error error-node))))
-		  'face 'jabber-chat-error))
-		((equal status-code "301")
-		 (concat "You have been banned"
-			 (when actor (concat " by " actor))
-			 (when reason (concat " - '" reason "'"))))
-		((equal status-code "307")
-		 (concat "You have been kicked"
-			 (when actor (concat " by " actor))
-			 (when reason (concat " - '" reason "'"))))
-		(t
-		 "You have left the chatroom")))))
+	    ;; If there is no buffer for this groupchat, don't bother
+	    ;; creating one just to tell that user left the room.
+	    (let ((buffer (get-buffer (jabber-muc-get-buffer group))))
+	      (when buffer
+		(with-current-buffer buffer
+		  (jabber-chat-buffer-display 
+		   'jabber-muc-system-prompt
+		   nil
+		   '(insert)
+		   (cond
+		    ((string= type "error")
+		     (jabber-propertize
+		      (concat "Error entering room"
+			      (when error-node
+				(concat ": " (jabber-parse-error error-node))))
+		      'face 'jabber-chat-error))
+		    ((equal status-code "301")
+		     (concat "You have been banned"
+			     (when actor (concat " by " actor))
+			     (when reason (concat " - '" reason "'"))))
+		    ((equal status-code "307")
+		     (concat "You have been kicked"
+			     (when actor (concat " by " actor))
+			     (when reason (concat " - '" reason "'"))))
+		    (t
+		     "You have left the chatroom")))))))
 	;; or someone else?
 	(jabber-muc-remove-participant group nickname)
 	(with-current-buffer (jabber-muc-create-buffer group)
