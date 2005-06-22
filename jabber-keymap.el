@@ -28,7 +28,6 @@
   (define-key jabber-common-keymap "\C-c\C-i" 'jabber-popup-info-menu)
   (define-key jabber-common-keymap "\C-c\C-m" 'jabber-popup-muc-menu)
   (define-key jabber-common-keymap "\C-c\C-s" 'jabber-popup-service-menu)
-  (define-key jabber-common-keymap [mouse-2] 'jabber-popup-combined-menu)
   (define-key jabber-common-keymap [?\t] 'forward-button)
   (define-key jabber-common-keymap [backtab] 'backward-button)
   )

@@ -140,6 +140,7 @@ Trailing newlines are always removed, regardless of this variable."
 (unless jabber-roster-mode-map
   (setq jabber-roster-mode-map (make-sparse-keymap))
   (set-keymap-parent jabber-roster-mode-map jabber-common-keymap)
+  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu)
   (define-key jabber-roster-mode-map (kbd "TAB") 'jabber-go-to-next-jid)
   (define-key jabber-roster-mode-map (kbd "RET") 'jabber-chat-with-jid-at-point)
   (define-key jabber-roster-mode-map (kbd "C-k") 'jabber-roster-delete-jid-at-point))

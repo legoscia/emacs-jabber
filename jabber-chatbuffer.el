@@ -18,6 +18,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 'jabber-keymap)
+
 (defvar jabber-point-insert nil
   "Position where the message being composed starts")
 
@@ -66,7 +68,11 @@ window or at `fill-column', whichever is shorter."
 (put 'jabber-chat-mode 'flyspell-mode-predicate
   'jabber-chat-mode-flyspell-verify)
 
-(defvar jabber-chat-mode-map (copy-keymap jabber-common-keymap))
+(defvar jabber-chat-mode-map nil)
+
+(unless jabber-chat-mode-map
+  (setq jabber-chat-mode-map (make-sparse-keymap))
+  (set-keymap-parent jabber-chat-mode-map jabber-common-keymap))
 
 (define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send)
 
