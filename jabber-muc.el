@@ -199,14 +199,15 @@ Return nil if nothing known about that combination."
 	(setf (cdr participants) (delq participant (cdr participants)))))))
 
 (defun jabber-muc-read-completing (prompt)
-  "Read the name of a joined chatroom."
-  (jabber-read-jid-completing prompt
-			      (if (null *jabber-active-groupchats*)
-				  (error "You haven't joined any group")
-				(mapcar (lambda (x) (jabber-jid-symbol (car x)))
-					*jabber-active-groupchats*))
-			      t
-			      jabber-group))
+  "Read the name of a joined chatroom, or use chatroom of current buffer, if any."
+  (or jabber-group
+      (jabber-read-jid-completing prompt
+				  (if (null *jabber-active-groupchats*)
+				      (error "You haven't joined any group")
+				    (mapcar (lambda (x) (jabber-jid-symbol (car x)))
+					    *jabber-active-groupchats*))
+				  t
+				  jabber-group)))
 
 (defun jabber-muc-read-nickname (group prompt)
   "Read the nickname of a participant in GROUP."
