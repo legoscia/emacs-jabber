@@ -309,6 +309,7 @@ buffer exists, switch back to most recently used buffer."
 With a numeric arg, enable this display if arg is positive."
   :global t
   :group 'jabber-activity
+  :init-value t
   (if jabber-activity-mode
       (progn
 	;; XEmacs compatibilty hack from erc-track
