@@ -833,7 +833,7 @@ Eight alerts are already written for all three alert categories.  These
 all obey the result from the corresponding message function.
 
 The @code{beep} alerts simply sound the terminal bell by calling
-@code{ding}.  They are enabled by default.
+@code{ding}.  They are disabled by default.
 
 The @code{echo} alerts display a message in the echo area by calling
 @code{message}.  They are enabled by default.
@@ -848,6 +848,7 @@ The @code{display} alerts display but do not select the buffer in
 question, using the function @code{display-buffer}.  @xref{Choosing
 Window, , Choosing a Window for Display, elisp, GNU Emacs Lisp
 Reference Manual}, for information about customizing its behaviour.
+This is enabled by default for info requests.
 
 The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,

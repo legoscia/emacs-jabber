@@ -26,8 +26,7 @@
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
   :group 'jabber)
 
-(defcustom jabber-alert-message-hooks '(jabber-message-beep
-					jabber-message-echo
+(defcustom jabber-alert-message-hooks '(jabber-message-echo
 					jabber-message-scroll)
   "Hooks run when a new message arrives.
 
@@ -107,8 +106,7 @@ every time."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-hooks 
-  '(jabber-presence-beep 
-    jabber-presence-update-roster
+  '(jabber-presence-update-roster
     jabber-presence-echo)
   "Hooks run when a user's presence changes.
 
@@ -148,7 +146,7 @@ All hooks refrain from action if this function returns nil."
   :type 'function
   :group 'jabber-alerts)
 
-(defcustom jabber-alert-info-message-hooks '(jabber-info-beep jabber-info-echo)
+(defcustom jabber-alert-info-message-hooks '(jabber-info-display jabber-info-echo)
   "Hooks run when an info request is completed.
 
 First argument is WHAT, a symbol telling the kind of info request completed.
