@@ -12,6 +12,8 @@ New modular design gives increased extensibility.
 (Not documented yet)
 *** Long lines are filled
 (Not documented yet)
+*** Rare timestamps are printed by default
+(Not documented yet)
 
 ** MUC features
 *** Different default nicknames for different MUC rooms

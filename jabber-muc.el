@@ -561,6 +561,7 @@ Return nil if X-MUC is nil."
   (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 	(group (jabber-jid-user (jabber-xml-get-attribute xml-data 'from)))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+    (jabber-maybe-print-rare-time timestamp)
     (insert (jabber-propertize
 	     (format-spec jabber-muc-private-foreign-prompt-format
 			  (list

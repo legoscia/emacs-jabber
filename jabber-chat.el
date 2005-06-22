@@ -76,6 +76,29 @@ See `format-time-string' for valid values."
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-print-rare-time t
+  "Non-nil means to print \"rare time\" indications in chat buffers.
+The default settings tell every new hour."
+  :type 'boolean
+  :group 'jabber-chat)
+
+(defcustom jabber-rare-time-format "%a %e %b %Y %H:00"
+  "The format specification for the rare time information.
+Rare time information will be printed whenever the current time,
+formatted according to this string, is different to the last
+rare time printed."
+  :type 'string
+  :group 'jabber-chat)
+
+(defface jabber-rare-time-face
+  '((t (:foreground "darkgreen" :underline t)))
+  "face for displaying the rare time info"
+  :group 'jabber-chat)
+
+(defvar jabber-rare-time ""
+  "Latest rare time printed")
+(make-variable-buffer-local 'jabber-rare-time)
+
 (defcustom jabber-chat-local-prompt-format "[%t] %n> "
   "The format specification for lines you type in the chat buffer.
 
@@ -293,10 +316,22 @@ This function is idempotent."
 			       body
 			       'face 'jabber-chat-text-local)))
 
+(defun jabber-maybe-print-rare-time (timestamp)
+  "Print rare time, if changed since last time printed."
+  (let ((new-time (format-time-string jabber-rare-time-format timestamp)))
+    (unless (string= new-time jabber-rare-time)
+      (setq jabber-rare-time new-time)
+      (when jabber-print-rare-time
+	(let ((inhibit-read-only t))
+	  (goto-char jabber-point-insert)
+	  (insert (jabber-propertize jabber-rare-time 'face 'jabber-rare-time-face) "\n")
+	  (setq jabber-point-insert (point)))))))
+
 (defun jabber-chat-print-prompt (xml-data)
   "Print prompt for received message in XML-DATA."
   (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+    (jabber-maybe-print-rare-time timestamp)
     (insert (jabber-propertize 
 	     (format-spec jabber-chat-foreign-prompt-format
 			  (list
@@ -316,6 +351,7 @@ This function is idempotent."
 (defun jabber-chat-self-prompt (timestamp)
   "Print prompt for sent message.
 TIMESTAMP is the timestamp to print, or nil for now."
+  (jabber-maybe-print-rare-time timestamp)
   (insert (jabber-propertize 
 	   (format-spec jabber-chat-local-prompt-format
 			(list
