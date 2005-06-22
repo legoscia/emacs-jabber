@@ -37,7 +37,7 @@
 (unless jabber-browse-mode-map
   (setq jabber-browse-mode-map (make-sparse-keymap))
   (set-keymap-parent jabber-browse-mode-map jabber-common-keymap)
-  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu))
+  (define-key jabber-browse-mode-map [mouse-2] 'jabber-popup-combined-menu))
 
 (defcustom jabber-browse-mode-hook nil
   "Hook run when entering Browse mode."
