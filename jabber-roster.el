@@ -176,6 +176,11 @@ bring up menus of actions.
 
 (put 'jabber-roster-mode 'mode-class 'special)
 
+(defun jabber-switch-to-roster-buffer ()
+  "Switch to roster buffer."
+  (interactive)
+  (switch-to-buffer jabber-roster-buffer))
+
 (defun jabber-sort-roster ()
   "sort roster according to online status"
   (setq *jabber-roster*

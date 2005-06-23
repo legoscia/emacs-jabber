@@ -266,6 +266,18 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			       (priority () ,(jabber-escape-xml (int-to-string *jabber-current-priority*)))))
   (jabber-display-roster))
 
+(defun jabber-send-away-presence ()
+  "Set status to away.
+Status description is empty.  Priority is unchanged."
+  (interactive)
+  (jabber-send-presence "away" "" *jabber-current-priority*))
+
+(defun jabber-send-xa-presence ()
+  "Send extended away presence.
+Status description is empty.  Priority is unchanged."
+  (interactive)
+  (jabber-send-presence "xa" "" *jabber-current-priority*))
+
 (defun jabber-send-default-presence ()
   "Send default presence.
 Default presence is specified by `jabber-default-priority', `jabber-default-show',

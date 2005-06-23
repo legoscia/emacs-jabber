@@ -28,6 +28,10 @@ Both sending and receiving invitiations is supported.
 (Not finished)
 *** Private MUC messages
 
+** Global key bindings
+Global keymap under C-x C-j.
+(Not documented yet)
+
 ** Vcard viewer and editor
 
 ** Roster export

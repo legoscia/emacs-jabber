@@ -32,6 +32,20 @@
   (define-key jabber-common-keymap [backtab] 'backward-button)
   )
 
+(defvar jabber-global-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c" 'jabber-connect)
+    (define-key map "\C-d" 'jabber-disconnect)
+    (define-key map "\C-r" 'jabber-switch-to-roster-buffer)
+    (define-key map "\C-j" 'jabber-chat-with)
+    (define-key map "\C-a" 'jabber-send-away-presence)
+    (define-key map "\C-o" 'jabber-send-default-presence)
+    (define-key map "\C-x" 'jabber-send-xa-presence)
+    map)
+  "Global Jabber keymap (usually under C-x C-j)")
+
+(define-key ctl-x-map "\C-j" jabber-global-keymap)
+
 (provide 'jabber-keymap)
 
 ;;; arch-tag: 22a9993d-a4a7-40ef-a025-7cff6c3f5587
