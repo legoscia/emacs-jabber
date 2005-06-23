@@ -1,7 +1,7 @@
 \input texinfo          @c -*-texinfo-*-
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.6.1
+@settitle jabber.el manual 0.7
 @c %**end of header
 
 @dircategory Emacs
@@ -10,9 +10,9 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.6.1.
+This manual is for jabber.el, version 0.7.
 
-Copyright @copyright{} 2004 Magnus Henoch, Tom Berger.
+Copyright @copyright{} 2004, 2005 Magnus Henoch, Tom Berger.
 
 @quotation
 Permission is granted to make and distribute verbatim copies or
@@ -75,9 +75,8 @@ interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
 
-jabber.el does not yet support SSL, STARTTLS, GPG, advanced MUC
-features, sending and receiving roster items, and various other
-things.
+jabber.el does not yet support STARTTLS, GPG, sending and receiving
+roster items, and various other things.
 
 @menu
 * Contact::                     
@@ -260,6 +259,10 @@ Information, MUC (Multi-User Chat, or groupchat) and Services, opened
 by @kbd{C-c C-c}, @kbd{C-c C-r}, @kbd{C-c C-i}, @kbd{C-c C-m} and
 @kbd{C-c C-s}, respectively.
 
+A list of keybindings is displayed at the top of the roster buffer.
+You can turn it off by setting @code{jabber-roster-show-bindings} to
+nil.
+
 You can call @code{jabber-display-roster} to redisplay your roster
 according to changed preferences (@pxref{Customizing the roster
 buffer}).  This will not refetch your roster from the server.
@@ -289,7 +292,8 @@ To join a groupchat, type @kbd{M-x jabber-groupchat-join}.  You will
 be prompted for the groupchat to join, and your nickname in the
 groupchat.  This nickname doesn't need to have any correlation to your
 JID; in fact, groupchats are usually (but not always) configured such
-that only moderators can see your JID.
+that only moderators can see your JID.  You can change your nickname
+with @kbd{M-x jabber-muc-nick}.
 
 Groupchat messages will be displayed in a buffer called
 @code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
@@ -311,8 +315,77 @@ voice), and ``none'' (not in room).  Affiliations are ``owner'',
 If you have moderator privileges, you can change the role of a
 participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
 the role to ``none''.  Granting and revoking voice are ``participant''
-and ``visitor'', respectively.  Changing affiliations is not yet
-supported.
+and ``visitor'', respectively.  ``moderator'' gives moderator
+privileges, obviously.  The role of a participant is ephemeral, and
+disappears when leaving the room.
+
+If you have admin or owner privileges, you can change the affiliation
+of a user.  Affiliation is persistent, and based on JIDs.  ``outcast''
+means banning the user.  ``member'' gives the user voice by default,
+in rooms where that is not always the case.  ``admin'' and ``owner''
+give admin and owner privileges, respectively.  ``none'' is the
+absence of these properties.  Depending of your affiliation and the
+MUC implementation, you might not be allowed to perform all of these
+changes, and maybe not in one step.
+
+@menu
+* Automation::                  
+* Invitations::                 
+* Private messages::            
+@end menu
+
+@node Automation, Invitations, Groupchat, Groupchat
+@section Automation
+
+@vindex jabber-muc-default-nicknames
+@vindex jabber-muc-autojoin
+@findex jabber-muc-autojoin
+@cindex Default MUC nickname
+@cindex Autojoin chat rooms
+
+You can select a default nickname by setting @code{jabber-nickname}.
+Additionally, you can set different nicknames for different groups, by
+customizing @code{jabber-muc-default-nicknames}.  There you specify
+the JID of the group, and your preferred nickname.
+
+If you want to automatically join certain rooms when connecting, you
+can set @code{jabber-muc-autojoin} to a list containing the JIDs of
+the rooms you want to enter.  To disable this feature, remove
+@code{jabber-muc-autojoin} from @code{jabber-post-connect-hook}.
+
+@node Invitations, Private messages, Automation, Groupchat
+@section Invitations
+
+@cindex Invitations
+@findex jabber-muc-invite
+
+You can invite someone to a groupchat with @kbd{M-x jabber-muc-invite}
+(also available in the MUC menu).  Pay attention to the order of the
+arguments --- as both users and rooms are just JIDs, it is technically
+possible to invite a room to a user, but that's probably not what you
+want.
+
+When you receive an invitation, it appears in the chat buffer along
+with two buttons, ``Accept'' and ``Decline''.  Pressing ``Accept''
+enters the room, as you would expect.  Pressing ``Decline'' gives you
+an opportunity to state the reason why you're not joining.
+
+@node Private messages,  , Invitations, Groupchat
+@section Private messages
+
+@cindex Private MUC messages
+@findex jabber-muc-private
+
+You can open a private chat with a participant in a chat room with
+@kbd{M-x jabber-muc-private} (or by using the MUC menu).  This creates
+a buffer with the name
+@code{*-jabber-muc-priv-@var{group}-@var{nickname}-*} (customizable by
+@code{jabber-muc-private-buffer-format}), which behaves mostly like an
+ordinary chat buffer.  This buffer will also be created if someone
+sends a private message to you.
+
+Private MUC messages use the same alerts as normal chat messages.
+@xref{Message alerts}.
 
 @node Services, Modeline status, Groupchat, Top
 @chapter Services
@@ -477,6 +550,25 @@ If you set @code{jabber-mode-line-compact} to nil, you get a complete
 breakdown of presence status.  That gives you six numbers indicating
 the number of chatty, online, away, extended away, dnd, and offline
 contacts, respectively.
+
+@node Personal information
+@chapter Personal information
+
+@cindex vCard
+@findex jabber-vcard-get
+@findex jabber-vcard-edit
+
+The Jabber way of handling personal information (name, addresses,
+phone numbers, etc) is ``vCards'' encoded in XML.  You can get
+information about a user by running @kbd{M-x jabber-vcard-get}, and
+you can edit your own information by running @kbd{M-x
+jabber-vcard-edit}.
+
+The form for editing your information can be slightly confusing ---
+you are allowed to enter any number of addresses, phone numbers and
+e-mail addresses, each of which has a set of orthogonal properties.
+You can add and remove items with the [INS] and [DEL] buttons,
+respectively.
 
 @node Keepalive, Tracking activity, Modeline status, Top
 @chapter Keepalive
@@ -690,6 +782,7 @@ the encryption program through @kbd{M-x customize-group RET tls} or
 @vindex jabber-roster-line-format
 @vindex jabber-resource-line-format
 @vindex jabber-roster-buffer
+@vindex jabber-roster-show-bindings
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
@@ -706,6 +799,10 @@ preceded by a percent sign:
 @code{jabber-roster-buffer} specifies the name of the roster buffer.
 If you change this, the new name will be used the next time you
 connect.
+
+@code{jabber-roster-show-bindings} controls whether to show a list of
+keybindings at the top of the roster buffer.  You need to run @kbd{M-x
+jabber-display-roster} after changing this variable to update the display.
 
 @table @code
 @item %c

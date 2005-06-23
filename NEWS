@@ -18,23 +18,17 @@ New modular design gives increased extensibility.
 ** MUC features
 *** Different default nicknames for different MUC rooms
 See jabber-muc-default-nicknames.
-(Not documented yet)
 *** Autojoin MUC rooms on connection
 See jabber-muc-autojoin.
-(Not documented yet)
 *** Change nickname
 Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
-(Not documented yet)
 *** Invitations
 Both sending and receiving invitiations is supported.
-(Not documented yet)
 *** Basic affiliation change support
-(Not finished, not documented)
+(Not finished)
 *** Private MUC messages
-(Not documented yet)
 
 ** Vcard viewer and editor
-(Not documented yet)
 
 ** Roster export
 (Not documented yet)
