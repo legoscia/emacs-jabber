@@ -165,7 +165,8 @@ These fields are available:
 
 (defvar jabber-chat-printers '(jabber-chat-print-subject
 			       jabber-chat-print-body
-			       jabber-chat-print-url)
+			       jabber-chat-print-url
+			       jabber-chat-goto-address)
   "List of functions that may be able to print part of a message.
 Each function receives the entire <message/> stanza as argument.")
 
@@ -426,26 +427,12 @@ TIMESTAMP is the timestamp to print, or nil for now."
 			(car (jabber-xml-get-children x 'desc))))))
 	(insert (jabber-propertize
 		 "URL: " 'face 'jabber-chat-prompt-system))
-
-	(if (featurep 'button)
-	    (insert-button (if (not (zerop (length desc)))
-			       (format "%s <%s>" desc url)
-			     url)
-			   'url url
-			   'action
-			   #'(lambda (button) 
-			       (browse-url (button-get button 'url))))
-	  ;; Simple button replacement
-	  (let ((keymap (make-keymap)))
-	    (define-key keymap "\r" 
-	      `(lambda () (interactive)
-		 (browse-url ,url)))
-	    (insert (jabber-propertize
-		     (if (not (zerop (length desc)))
-			 (format "%s <%s>" desc url)
-		       url)
-		     'keymap keymap))))
+	(insert (format "%s <%s>" desc url))
 	(insert "\n")))))
+
+(defun jabber-chat-goto-address (&rest ignore)
+  "Call `goto-address' on the newly written text."
+  (goto-address))
 
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Send message" 'jabber-send-message))
