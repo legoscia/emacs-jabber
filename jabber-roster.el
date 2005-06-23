@@ -94,6 +94,11 @@ Trailing newlines are always removed, regardless of this variable."
   :type 'boolean
   :group 'jabber-roster)
 
+(defcustom jabber-roster-show-bindings t
+  "Show keybindings in roster buffer?"
+  :type 'boolean
+  :group 'jabber-roster)
+
 (defcustom jabber-roster-mode-hook nil
   "Hook run when entering Roster mode."
   :group 'jabber-roster
@@ -227,7 +232,14 @@ marking the extent of the roster entry.")
 	  (current-column (current-column)))
       (erase-buffer)
       (setq jabber-roster-positions nil)
-      (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n__________________________________\n\n")
+      (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n")
+      (when jabber-roster-show-bindings
+	(insert "RET      Open chat buffer        C-k      Delete roster item
+C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
+C-c C-i  Info menu               C-c C-r  Roster menu
+C-c C-s  Service menu
+"))
+      (insert "__________________________________\n\n")
       (let ((map (make-sparse-keymap)))
 	(define-key map [mouse-2] #'jabber-send-presence)
 	(insert (jabber-propertize (concat (format " - %s"
