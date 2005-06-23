@@ -47,6 +47,7 @@ this permission notice are preserved on all copies.
 * Groupchat::                   
 * Services::                    
 * Modeline status::             
+* Personal information::        
 * Keepalive::                   
 * Tracking activity::           
 * Watch buddies::               
@@ -531,7 +532,7 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-@node Modeline status, Keepalive, Services, Top
+@node Modeline status, Personal information, Services, Top
 @chapter Modeline status
 
 @cindex modeline
@@ -551,7 +552,7 @@ breakdown of presence status.  That gives you six numbers indicating
 the number of chatty, online, away, extended away, dnd, and offline
 contacts, respectively.
 
-@node Personal information
+@node Personal information, Keepalive, Modeline status, Top
 @chapter Personal information
 
 @cindex vCard
@@ -570,7 +571,7 @@ e-mail addresses, each of which has a set of orthogonal properties.
 You can add and remove items with the [INS] and [DEL] buttons,
 respectively.
 
-@node Keepalive, Tracking activity, Modeline status, Top
+@node Keepalive, Tracking activity, Personal information, Top
 @chapter Keepalive
 
 @cindex keepalive
@@ -1363,9 +1364,11 @@ jabber.el.
 * RFC 3921 (XMPP-IM)::          
 * JEP-0004 (Data Forms)::       
 * JEP-0020 (Feature Negotiation)::  
+* JEP-0022 (Message Events)::   
 * JEP-0030 (Service Discovery)::  
 * JEP-0045 (Multi-User Chat)::  
 * JEP-0050 (Ad-Hoc Commands)::  
+* JEP-0054 (vcard-temp)::       
 * JEP-0055 (Jabber Search)::    
 * JEP-0065 (SOCKS5 Bytestreams)::  
 * JEP-0068 (Field Standardization for Data Forms)::  
@@ -1433,12 +1436,20 @@ The field types ``jid-single'', ``jid-multi'' and ``list-multi'' are
 not implemented, due to programmer laziness.  Let us know if you need
 them.
 
-@node JEP-0020 (Feature Negotiation), JEP-0030 (Service Discovery), JEP-0004 (Data Forms), Protocol support
+@node JEP-0020 (Feature Negotiation), JEP-0022 (Message Events), JEP-0004 (Data Forms), Protocol support
 @section JEP-0020 (Feature Negotiation)
 
 There are no known limitations or bugs in JEP-0020 support.
 
-@node JEP-0030 (Service Discovery), JEP-0045 (Multi-User Chat), JEP-0020 (Feature Negotiation), Protocol support
+@node JEP-0022 (Message Events), JEP-0030 (Service Discovery), JEP-0020 (Feature Negotiation), Protocol support
+@section JEP-0022 (Message Events)
+
+jabber.el understands all four specified kinds of message events
+(offline, delivered, displayed, and composing) and by default requests
+all of them.  It also reports those three events that make sense for
+clients.
+
+@node JEP-0030 (Service Discovery), JEP-0045 (Multi-User Chat), JEP-0022 (Message Events), Protocol support
 @section JEP-0030 (Service Discovery)
 
 Service discovery is supported, both as client and server, with the
@@ -1452,12 +1463,12 @@ Publishing items is not supported.
 @section JEP-0045 (Multi-User Chat)
 
 jabber.el supports parts of JEP-0045.  Entering, leaving and chatting
-work.  Invitations don't.  Private messages are handled quite
-unintuitively.  Changing roles of participants (basic moderation) is
-implemented, but changing affiliations is not.  Room configuration is
-supported.
+work.  So do invitations and private messages.  Room configuration is
+supported.  Changing roles of participants (basic moderation) is
+implemented, as is changing affiliations, but requesting affiliation
+lists is not yet supported.
 
-@node JEP-0050 (Ad-Hoc Commands), JEP-0055 (Jabber Search), JEP-0045 (Multi-User Chat), Protocol support
+@node JEP-0050 (Ad-Hoc Commands), JEP-0054 (vcard-temp), JEP-0045 (Multi-User Chat), Protocol support
 @section JEP-0050 (Ad-Hoc Commands)
 
 jabber.el is probably the first implementation of JEP-0050 (see
@@ -1465,7 +1476,14 @@ jabber.el is probably the first implementation of JEP-0050 (see
 on jdev from 2004-03-10}).  Both the client and server parts are
 supported.
 
-@node JEP-0055 (Jabber Search), JEP-0065 (SOCKS5 Bytestreams), JEP-0050 (Ad-Hoc Commands), Protocol support
+@node JEP-0054 (vcard-temp), JEP-0055 (Jabber Search), JEP-0050 (Ad-Hoc Commands), Protocol support
+@section JEP-0054 (vcard-temp)
+
+Both displaying other users' vCards and editing your own vCard are
+supported.  The implementation tries to follow the schema in the JEP
+accurately.
+
+@node JEP-0055 (Jabber Search), JEP-0065 (SOCKS5 Bytestreams), JEP-0054 (vcard-temp), Protocol support
 @section JEP-0055 (Jabber Search)
 
 JEP-0055 is supported, both with traditional fields and with Data
