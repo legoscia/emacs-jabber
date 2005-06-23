@@ -140,15 +140,25 @@ Trailing newlines are always removed, regardless of this variable."
   "face for displaying offline users"
   :group 'jabber-roster)
 
-(defvar jabber-roster-mode-map nil)
+(defvar jabber-roster-mode-map 
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map jabber-common-keymap)
+    (define-key map [mouse-2] 'jabber-popup-combined-menu)
+    (define-key map (kbd "TAB") 'jabber-go-to-next-jid)
+    (define-key map (kbd "RET") 'jabber-chat-with-jid-at-point)
+    (define-key map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
 
-(unless jabber-roster-mode-map
-  (setq jabber-roster-mode-map (make-sparse-keymap))
-  (set-keymap-parent jabber-roster-mode-map jabber-common-keymap)
-  (define-key jabber-roster-mode-map [mouse-2] 'jabber-popup-combined-menu)
-  (define-key jabber-roster-mode-map (kbd "TAB") 'jabber-go-to-next-jid)
-  (define-key jabber-roster-mode-map (kbd "RET") 'jabber-chat-with-jid-at-point)
-  (define-key jabber-roster-mode-map (kbd "C-k") 'jabber-roster-delete-jid-at-point))
+    (define-key map "e" 'jabber-roster-change)
+    (define-key map "s" 'jabber-send-subscription-request)
+    (define-key map "q" 'bury-buffer)
+    (define-key map "i" 'jabber-get-disco-items)
+    (define-key map "j" 'jabber-groupchat-join)
+    (define-key map "I" 'jabber-get-disco-info)
+    (define-key map "b" 'jabber-get-browse)
+    (define-key map "v" 'jabber-get-version)
+    (define-key map "a" 'jabber-send-presence)
+    ;;(define-key map "D" 'jabber-disconnect)
+    map))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
@@ -235,6 +245,11 @@ marking the extent of the roster entry.")
       (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n")
       (when jabber-roster-show-bindings
 	(insert "RET      Open chat buffer        C-k      Delete roster item
+e        Edit item               s        Send subscription request
+q        Bury buffer             i        Get disco items
+I        Get disco info          b        Browse
+j        Join groupchat (MUC)    v        Get client version
+a        Send presence
 C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
 C-c C-i  Info menu               C-c C-r  Roster menu
 C-c C-s  Service menu
