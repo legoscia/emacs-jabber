@@ -579,7 +579,7 @@ Return nil if X-MUC is nil."
 
 (defun jabber-muc-system-prompt (&rest ignore)
   "Print system prompt for MUC."
-  (jabber-maybe-print-rare-time timestamp)
+  (jabber-maybe-print-rare-time nil)
   (insert (jabber-propertize
 	   (format-spec jabber-groupchat-prompt-format
 			(list
