@@ -1371,6 +1371,7 @@ jabber.el.
 * JEP-0054 (vcard-temp)::       
 * JEP-0055 (Jabber Search)::    
 * JEP-0065 (SOCKS5 Bytestreams)::  
+* JEP-0066 (Out of Band Data)::  
 * JEP-0068 (Field Standardization for Data Forms)::  
 * JEP-0077 (In-Band Registration)::  
 * JEP-0078 (Non-SASL Authentication)::  
@@ -1492,7 +1493,7 @@ specified by the JEP is a subset of those allowed in JEP-0077,
 handling of those two form types are merged.  @ref{JEP-0077 (In-Band
 Registration)}.
 
-@node JEP-0065 (SOCKS5 Bytestreams), JEP-0068 (Field Standardization for Data Forms), JEP-0055 (Jabber Search), Protocol support
+@node JEP-0065 (SOCKS5 Bytestreams), JEP-0066 (Out of Band Data), JEP-0055 (Jabber Search), Protocol support
 @section JEP-0065 (SOCKS5 Bytestreams)
 
 JEP-0065 support seems to work, but it is not yet enabled by default.
@@ -1505,7 +1506,15 @@ Psi's ``fast mode''
 (@uref{http://delta.affinix.com/specs/stream.html}), which gives
 greater flexibility with regards to NAT, is not implemented.
 
-@node JEP-0068 (Field Standardization for Data Forms), JEP-0077 (In-Band Registration), JEP-0065 (SOCKS5 Bytestreams), Protocol support
+@node JEP-0066 (Out of Band Data), JEP-0068 (Field Standardization for Data Forms), JEP-0065 (SOCKS5 Bytestreams), Protocol support
+@section JEP-0066 (Out of Band Data)
+
+jabber.el will display URLs sent in message stanzas qualified by
+the @code{jabber:x:oob} namespace, as described in this JEP.  Sending
+such URLs or doing anything with iq stanzas (using the
+@code{jabber:iq:oob} namespace) is not supported.
+
+@node JEP-0068 (Field Standardization for Data Forms), JEP-0077 (In-Band Registration), JEP-0066 (Out of Band Data), Protocol support
 @section JEP-0068 (Field Standardization for Data Forms)
 
 JEP-0068 is only used in the context of creating a new Jabber account,
