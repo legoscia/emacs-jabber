@@ -111,8 +111,8 @@ properties to add to the result."
 
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
-  (when (string-match "\\(.*@.*\\)/\\(.*\\)" string)
-    (match-string 2 string)))
+  (when (string-match "^\\(\\([^/]*@\\)?[^/]*\\)/\\(.*\\)" string)
+    (match-string 3 string)))
 
 (defun jabber-jid-symbol (string)
   "return the symbol for the given JID"
