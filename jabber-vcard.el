@@ -44,7 +44,7 @@
 ;;   Value is a list, each element representing a separate address.
 ;;   The car of each address is a list of types; possible values are
 ;;   HOME, WORK, POSTAL, PARCEL, DOM, INTL, PREF.
-;;   The cdr of each address is an alist, with keys POBOX, EXTADR,
+;;   The cdr of each address is an alist, with keys POBOX, EXTADD,
 ;;   STREET, LOCALITY, REGION, PCODE, CTRY, and values being strings.
 ;;
 ;; TEL:
@@ -117,7 +117,7 @@ The top node should be the `vCard' node."
 	  (let (components)
 	    (dolist (component (jabber-xml-node-children adr))
 	      (when (and (memq (jabber-xml-node-name component)
-			       '(POBOX EXTADR STREET LOCALITY REGION
+			       '(POBOX EXTADD STREET LOCALITY REGION
 				       PCODE CTRY))
 			 (not (zerop (length
 				      (car (jabber-xml-node-children
@@ -281,7 +281,7 @@ The top node should be the `vCard' node."
 				       (PREF . "Preferred")))
 
 (defconst jabber-vcard-address-fields '((POBOX . "Post box")
-					(EXTADR . "Ext. address")
+					(EXTADD . "Ext. address")
 					(STREET . "Street")
 					(LOCALITY . "Locality")
 					(REGION . "Region")
@@ -396,7 +396,7 @@ The top node should be the `vCard' node."
 			      (cons :tag "Post box" :format "%t: %v"
 				    (const :format "" POBOX) (string :format "%v"))
 			      (cons :tag "Ext. address" :format "%t: %v"
-				    (const :format "" EXTADR) (string :format "%v"))
+				    (const :format "" EXTADD) (string :format "%v"))
 			      (cons :tag "Street" :format "%t: %v"
 				    (const :format "" STREET) (string :format "%v"))
 			      (cons :tag "Locality" :format "%t: %v"
