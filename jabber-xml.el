@@ -119,15 +119,15 @@ enough for us."
        (t
 	(error "Unfinished tag"))))))
 
-(defmacro jabber-xml-node-name (node)
+(defsubst jabber-xml-node-name (node)
   "Return the tag associated with NODE.
 The tag is a lower-case symbol."
-  `(if (listp ,node) (car ,node)))
+  (if (listp node) (car node)))
 
-(defmacro jabber-xml-node-attributes (node)
+(defsubst jabber-xml-node-attributes (node)
   "Return the list of attributes of NODE.
 The list can be nil."
-  `(if (listp ,node) (nth 1 ,node)))
+  (if (listp node) (nth 1 node)))
 
 (defsubst jabber-xml-node-children (node)
   "Return the list of children of NODE.
@@ -148,14 +148,16 @@ CHILD-NAME should be a lower case symbol."
 	      (push child match))))
     (nreverse match)))
 
-(defmacro jabber-xml-get-attribute (node attribute)
+;; `xml-get-attribute' returns "" if the attribute is not found, which
+;; is not very useful.  Therefore, we use `xml-get-attribute-or-nil'
+;; if present, or emulate its behavior.
+(if (fboundp 'xml-get-attribute-or-nil)
+    (defalias 'jabber-xml-get-attribute 'xml-get-attribute-or-nil)
+  (defsubst jabber-xml-get-attribute (node attribute)
     "Get from NODE the value of ATTRIBUTE.
-Return nil if the attribute was not found. If `xml-get-attribute-or-nil'
-is not present, emulate it with `xml-get-attribute'."
-    (if (fboundp 'xml-get-attribute-or-nil)
-	`(xml-get-attribute-or-nil ,node ,attribute)
-      `(let ((result (xml-get-attribute ,node ,attribute)))
-	 (and (> (length result) 0) result))))
+Return nil if the attribute was not found."
+    (let ((result (xml-get-attribute node attribute)))
+      (and (> (length result) 0) result))))
 
 (defun jabber-xml-path (xml-data path)
   "Find sub-node of XML-DATA according to PATH.
