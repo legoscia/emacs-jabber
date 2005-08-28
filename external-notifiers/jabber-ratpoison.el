@@ -20,8 +20,12 @@
 
 (defun jabber-ratpoison-message (msg)
   "Show MSG in Ratpoison"
-  (let ((process-connection-type))
-    (start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " msg))))
+  ;; Possible errors include not finding the ratpoison binary, and
+  ;; too many pipes open because of message flood.
+  (condition-case e
+      (let ((process-connection-type))
+	(start-process "ratpoison" nil "ratpoison" "-c" (concat "echo " msg)))
+    (error nil)))
   
 (define-jabber-alert ratpoison "Show a message through the Ratpoison window manager"
   'jabber-ratpoison-message)
