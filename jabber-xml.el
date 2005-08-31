@@ -29,6 +29,9 @@
 	;; Form feeds might appear in code you copy, etc.  Nevertheless,
 	;; it's invalid XML.
 	(setq newstr (jabber-replace-in-string newstr "\f" "\n"))
+	;; Other control characters are also illegal, except for
+	;; tab, CR, and LF.
+	(setq newstr (jabber-replace-in-string newstr "[\000-\010\013\014\016-\037]" " "))
 	(setq newstr (jabber-replace-in-string newstr "&" "&amp;"))
 	(setq newstr (jabber-replace-in-string newstr "<" "&lt;"))
 	(setq newstr (jabber-replace-in-string newstr ">" "&gt;"))
