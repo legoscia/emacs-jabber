@@ -157,6 +157,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map "b" 'jabber-get-browse)
     (define-key map "v" 'jabber-get-version)
     (define-key map "a" 'jabber-send-presence)
+    (define-key map "g" 'jabber-display-roster)
     ;;(define-key map "D" 'jabber-disconnect)
     map))
 
