@@ -1,6 +1,7 @@
 
-eval included_here=\$$(echo INCLUDED_$FLAVOR)
-eval excluded_here=\$$(echo EXCLUDED_$FLAVOR)
+UNDERSCORED_FLAVOR=$(echo $FLAVOR | sed 's/-/_/')
+eval included_here=\$$(echo INCLUDED_$UNDERSCORED_FLAVOR)
+eval excluded_here=\$$(echo EXCLUDED_$UNDERSCORED_FLAVOR)
 
 included_all=$(for i in ${!INCLUDED_*} ; do
     eval echo \$$i
