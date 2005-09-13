@@ -10,9 +10,9 @@ New modular design gives increased extensibility.
 *** Received URLs are displayed
 (Not documented yet)
 *** Long lines are filled
-(Not documented yet)
+See jabber-chat-fill-long-lines.
 *** Rare timestamps are printed by default
-(Not documented yet)
+See jabber-print-rare-time and jabber-rare-time-format.
 
 ** MUC features
 *** Different default nicknames for different MUC rooms
@@ -63,7 +63,6 @@ Flyspell will only spell check what you're currently writing.
 See `jabber-chat-time-format' and `jabber-chat-delayed-time-format'.
 You can see the complete timestamp in a tooltip by holding the mouse
 over the prompt.
-(Not documented yet)
 
 ** Chat buffers in inactive windows are scrolled
 (Not documented yet)

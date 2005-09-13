@@ -829,11 +829,17 @@ the resource.
 @section Customizing the chat buffer
 
 @vindex jabber-chat-time-format
+@vindex jabber-chat-delayed-time-format
+@vindex jabber-print-rare-time
+@vindex jabber-rare-time-format
 @vindex jabber-chat-local-prompt-format
 @vindex jabber-chat-foreign-prompt-format
 @vindex jabber-chat-prompt-local
 @vindex jabber-chat-prompt-foreign
 @vindex jabber-chat-header-line-format
+@vindex jabber-chat-fill-long-lines
+@cindex Chat buffer
+@cindex Timestamps
 
 You can customize the look of the prompts in the chat buffer.  There
 are separate settings for local (i.e. your own messages) and foreign
@@ -863,11 +869,27 @@ format is identical to that passed to @code{format-time-string}.
 @xref{Time Conversion, , Time Conversion, elisp, GNU Emacs Lisp
 Reference Manual}.
 
+@code{jabber-chat-delayed-time-format} is used instead of
+@code{jabber-chat-time-format} for delayed messages (messages sent while
+you were offline, or fetched from history).  This way you can have short
+timestamps everywhere except where you need long ones.  You can always
+see the complete timestamp in a tooltip by hovering over the prompt with
+the mouse.
+
+By default, timestamps are printed in the chat buffer every hour (at
+``rare'' times).  This can be toggled with
+@code{jabber-print-rare-time}.  You can customize the displayed time by
+setting @code{jabber-rare-time-format}.  Rare timestamps will be printed
+whenever time formatted by that format string would change.
+
 You can also customize the header line of chat buffers, by modifying
 the variable @code{jabber-chat-header-line-format}.  The format of
 that variable is the same as that of @code{mode-line-format} and
 @code{header-line-format}.  @xref{Mode Line Format, , Mode-Line
 Format, elisp, GNU Emacs Lisp Reference Manual}.
+
+The variable @code{jabber-chat-fill-long-lines} controls whether long
+lines in the chat buffer are filled.
 
 @node Customizing alerts, Hooks, Customizing the chat buffer, Customization
 @section Customizing alerts
