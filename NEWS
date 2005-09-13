@@ -7,7 +7,6 @@ See variable `jabber-connection-type'.
 
 ** Chat buffers rewritten
 New modular design gives increased extensibility.
-(Not documented yet)
 *** Received URLs are displayed
 (Not documented yet)
 *** Long lines are filled

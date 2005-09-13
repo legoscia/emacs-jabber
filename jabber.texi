@@ -1135,6 +1135,7 @@ look.  Knowledge of Jabber protocols is assumed.
 * Roster structure::            
 * Listening for new requests::  
 * Sending new requests::        
+* Chat printers::               
 * Extending service discovery::  
 * Stanza chains::               
 @end menu
@@ -1249,7 +1250,7 @@ To return an error to the Jabber entity that sent the query, use
 @code{jabber-signal-error}.  The signal is caught by
 @code{jabber-process-iq}, which takes care of sending the error.
 
-@node Sending new requests, Extending service discovery, Listening for new requests, Hacking and extending
+@node Sending new requests, Chat printers, Listening for new requests, Hacking and extending
 @section Sending new requests
 
 @findex jabber-send-iq
@@ -1301,7 +1302,33 @@ Of course, the previous example could have used
 @code{jabber-report-success} for the error message.  It's a matter of
 UI taste.
 
-@node Extending service discovery, Stanza chains, Sending new requests, Hacking and extending
+@node Chat printers, Extending service discovery, Sending new requests, Hacking and extending
+@section Chat printers
+
+@vindex jabber-chat-printers
+@vindex jabber-body-printers
+@cindex Chat printers
+@cindex Body printers
+
+Chat printers are functions that print a certain aspect of an incoming
+message in a chat buffer.  Included are functions for printing subjects
+(@code{jabber-chat-print-subject}), bodies
+(@code{jabber-chat-print-body}, and @code{jabber:x:oob}-style URLs
+(@code{jabber-chat-print-url}).  The functions in
+@code{jabber-chat-printers} are called in order, with the entire
+@code{<message/>} stanza as argument, and are expected to call
+@code{insert} if they have anything to add.
+
+Body printers are a subgroup of chat printers.  They are exclusive; only
+one of them applies to any given message.  The idea is that
+``higher-quality'' parts of the message override pieces included for
+backwards compatibility.  Included are @code{jabber-muc-print-invite}
+and @code{jabber-chat-normal-body}; functions for XHTML-IM and PGP
+encrypted messages may be written in the future.  The functions in
+@code{jabber-body-printers} are called in order until one of them
+returns non-nil.
+
+@node Extending service discovery, Stanza chains, Chat printers, Hacking and extending
 @section Service discovery
 
 @vindex jabber-advertised-features
