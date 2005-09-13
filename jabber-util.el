@@ -161,7 +161,8 @@ the default is inferred from context."
 			    nil require-match nil 'jabber-jid-history jid-at-point)))
       (if (and input (assoc-ignore-case input jid-completion-table))
 	  (symbol-name (cdr (assoc-ignore-case input jid-completion-table)))
-	input))))
+	(and (not (zerop (length input)))
+	     input)))))
 
 (defun jabber-read-node (prompt)
   "Read node name, taking default from disco item at point."
