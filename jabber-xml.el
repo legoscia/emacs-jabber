@@ -96,13 +96,14 @@
 
 (defun jabber-xml-skip-tag-forward ()
   "Skip to end of tag or matching closing tag if present.
-Return t iff after a closing tag, otherwise signals an error.
+Return t iff after a closing tag, otherwise throws an 'unfinished
+tag with value nil.
 
 The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
 enough for us."
   (skip-chars-forward "^<")
   (if (not (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\|[ \t\n]+[^=]+=\"[^\"]*\"\\)*"))
-      (error "Not looking at tag")
+      (throw 'unfinished nil)
     (let ((node-name (match-string 1)))
       (goto-char (match-end 0))
       (cond
@@ -118,7 +119,7 @@ enough for us."
 	(goto-char (match-end 0))
 	t)
        (t
-	(error "Unfinished tag"))))))
+	(throw 'unfinished nil))))))
 
 (defsubst jabber-xml-node-name (node)
   "Return the tag associated with NODE.

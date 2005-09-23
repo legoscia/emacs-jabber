@@ -325,10 +325,10 @@ Call this function after disconnection."
 	 (while (search-forward-regexp " \\w+=''" nil t)
            (replace-match "")))
        
-       (setq xml-data (and (ignore-errors
+       (setq xml-data (and (catch 'unfinished
 			     (jabber-xml-skip-tag-forward)
 			     (> (point) (point-min)))
-			   (ignore-errors (xml-parse-region (point-min) (point)))))
+			   (xml-parse-region (point-min) (point))))
        (if xml-data
 	   (jabber-reset-choked))
 
