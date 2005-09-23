@@ -202,7 +202,8 @@ tag, or nil if we're connecting to a pre-XMPP server."
   (interactive)
   (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
-      (when (memq (process-status *jabber-connection*) '(open run))
+      (when (and *jabber-connection*
+		 (memq (process-status *jabber-connection*) '(open run)))
 	(run-hooks 'jabber-pre-disconnect-hook)
 	(funcall jabber-conn-send-function "</stream:stream>")
 	;; let the server close the stream
@@ -236,7 +237,7 @@ Call this function after disconnection."
 
 (defun jabber-sentinel (process event)
   "alert user about lost connection"
-  (unless *jabber-disconnecting*
+  (unless (or *jabber-disconnecting* (not *jabber-connected*))
     (beep)
     (run-hooks 'jabber-lost-connection-hook)
     (message "Jabber connection lost: `%s'" event)
@@ -412,11 +413,10 @@ submit a bug report, including the information below.
 
 (defun jabber-process-stream-error (xml-data)
   "Process an incoming stream error."
-  (let ((*jabber-disconnecting* t))
-    (beep)
-    (run-hooks 'jabber-lost-connection-hook)
-    (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
-    (jabber-disconnected)))
+  (beep)
+  (run-hooks 'jabber-lost-connection-hook)
+  (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
+  (jabber-disconnect))
 
 (defun jabber-bind-and-establish-session (xml-data)
   ;; Now we have a stream:features tag.  We expect it to contain bind and
