@@ -101,9 +101,7 @@ Return t iff after a closing tag, otherwise signals an error.
 The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
 enough for us."
   (skip-chars-forward "^<")
-  (if (not (or
-	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\)*")
-	    (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+=\"[^\"]*\"\\)*")))
+  (if (not (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\|[ \t\n]+[^=]+=\"[^\"]*\"\\)*"))
       (error "Not looking at tag")
     (let ((node-name (match-string 1)))
       (goto-char (match-end 0))
