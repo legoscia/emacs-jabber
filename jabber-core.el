@@ -219,13 +219,12 @@ Call this function after disconnection."
   (when jabber-choked-timer
     (cancel-timer jabber-choked-timer)
     (setq jabber-choked-timer nil))
-  (when (and (processp *jabber-connection*)
-	     (process-buffer *jabber-connection*))
-    (kill-buffer (process-buffer *jabber-connection*)))
+
   (when (get-buffer jabber-roster-buffer)
     (with-current-buffer (get-buffer jabber-roster-buffer)
       (let ((inhibit-read-only t))
 	(erase-buffer))))
+
   (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *xmlq* "")
@@ -241,6 +240,10 @@ Call this function after disconnection."
     (beep)
     (run-hooks 'jabber-lost-connection-hook)
     (message "Jabber connection lost: `%s'" event)
+    ;; If there is data left (maybe a stream error) process it first
+    (with-current-buffer (process-buffer process)
+      (unless (zerop (buffer-size))
+	(jabber-filter process)))
     (jabber-disconnected)))
 
 (defun jabber-pre-filter (process string)
