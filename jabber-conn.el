@@ -60,6 +60,16 @@ and 5223 for SSL connections."
 		(const :tag "Standard TCP/IP connection" network))
   :group 'jabber-conn)
 
+(defcustom jabber-connection-ssl-program nil
+  "Program used for SSL/TLS connections.
+nil means prefer gnutls but fall back to openssl.
+'gnutls' means use gnutls (through `open-tls-stream').
+'openssl means use openssl (through `open-ssl-stream')."
+  :type '(choice (const :tag "Prefer gnutls, fall back to openssl" nil)
+		 (const :tag "Use gnutls" gnutls)
+		 (const :tag "Use openssl" openssl))
+  :group 'jabber-conn)
+
 (defvar jabber-connect-methods
   '((network jabber-network-connect jabber-network-send)
     (ssl jabber-ssl-connect jabber-ssl-send))
@@ -103,9 +113,11 @@ Third item is the send function.")
 	  (coding-system-for-write 'utf-8)
 	  (connect-function
 	   (cond
-	    ((fboundp 'open-tls-stream)
+	    ((and (memq jabber-connection-ssl-program '(nil gnutls))
+		  (fboundp 'open-tls-stream))
 	     'open-tls-stream)
-	    ((fboundp 'open-ssl-stream)
+	    ((and (memq jabber-connection-ssl-program '(nil openssl))
+		  (fboundp 'open-ssl-stream))
 	     'open-ssl-stream)
 	    (t
 	     (error "Neither TLS nor SSL connect functions available")))))

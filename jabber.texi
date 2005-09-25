@@ -757,6 +757,7 @@ priority during a session with @code{jabber-send-presence}.
 @vindex jabber-network-server
 @vindex jabber-port
 @vindex jabber-connection-type
+@vindex jabber-connection-ssl-program
 @cindex SSL
 @cindex TLS
 
@@ -774,6 +775,12 @@ use.  @code{network} means normal unencrypted network connection
 through GnuTLS or OpenSSL (port 5223).  You can change the settings of
 the encryption program through @kbd{M-x customize-group RET tls} or
 @kbd{M-x customize-group RET ssl}, respectively.
+
+By default, GnuTLS will be used if the @code{tls} library is available,
+and if that fails, OpenSSL will be used if the @code{ssl} library is
+available.  You can force the use of either program by setting
+@code{jabber-connection-ssl-program} to @code{gnutls} or @code{openssl},
+respectively.
 
 @node Customizing the roster buffer, Customizing the chat buffer, Connection settings, Customization
 @section Customizing the roster buffer
