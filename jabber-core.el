@@ -446,7 +446,9 @@ submit a bug report, including the information below.
 	       (car
 		(jabber-xml-get-children
 		 (jabber-iq-query xml-data) 'jid))))))
-    ;; Maybe this isn't the resource we asked for.
+    ;; Maybe this isn't the JID we asked for.
+    (setq jabber-username (jabber-jid-username jid))
+    (setq jabber-server (jabber-jid-server jid))
     (setq jabber-resource (jabber-jid-resource jid)))
 
   ;; Been there, done that.  Time to establish a session.
