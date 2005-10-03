@@ -96,6 +96,11 @@ properties to add to the result."
   (string-match "[^/]*" string)
   (match-string 0 string))
 
+(defun jabber-jid-server (string)
+  "Return the server portion of a JID."
+  (string-match "^\\(.*@\\)?\\([^@/]+\\)\\(/.*\\)?$" string)
+  (match-string 2 string))
+
 (defun jabber-jid-rostername (string)
   "return the name of the user, if given in roster, else nil"
   (let ((user (jabber-jid-symbol string)))
