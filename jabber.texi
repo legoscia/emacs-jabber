@@ -284,6 +284,7 @@ call @code{jabber-display-roster} manually.
 @findex jabber-groupchat-get-config
 @findex jabber-muc-names
 @findex jabber-muc-set-role
+@findex jabber-muc-set-topic
 
 The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
@@ -299,6 +300,9 @@ with @kbd{M-x jabber-muc-nick}.
 Groupchat messages will be displayed in a buffer called
 @code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
 chat buffer.
+
+To change the topic of a groupchat, type @kbd{M-x
+jabber-muc-set-topic}.
 
 To leave a groupchat, type @kbd{M-x jabber-groupchat-leave}.
 
@@ -857,6 +861,7 @@ the resource.
 @vindex jabber-chat-prompt-local
 @vindex jabber-chat-prompt-foreign
 @vindex jabber-chat-header-line-format
+@vindex jabber-muc-header-line-format
 @vindex jabber-chat-fill-long-lines
 @cindex Chat buffer
 @cindex Timestamps
@@ -906,7 +911,8 @@ You can also customize the header line of chat buffers, by modifying
 the variable @code{jabber-chat-header-line-format}.  The format of
 that variable is the same as that of @code{mode-line-format} and
 @code{header-line-format}.  @xref{Mode Line Format, , Mode-Line
-Format, elisp, GNU Emacs Lisp Reference Manual}.
+Format, elisp, GNU Emacs Lisp Reference Manual}.  For MUC buffers,
+@code{jabber-muc-header-line-format} is used instead.
 
 The variable @code{jabber-chat-fill-long-lines} controls whether long
 lines in the chat buffer are filled.
@@ -1348,6 +1354,7 @@ UI taste.
 @section Chat printers
 
 @vindex jabber-chat-printers
+@vindex jabber-muc-printers
 @vindex jabber-body-printers
 @cindex Chat printers
 @cindex Body printers
@@ -1360,6 +1367,9 @@ message in a chat buffer.  Included are functions for printing subjects
 @code{jabber-chat-printers} are called in order, with the entire
 @code{<message/>} stanza as argument, and are expected to call
 @code{insert} if they have anything to add.
+
+For MUC, the functions in @code{jabber-muc-printers} are prepended to
+those in @code{jabber-chat-printers}.
 
 Body printers are a subgroup of chat printers.  They are exclusive; only
 one of them applies to any given message.  The idea is that

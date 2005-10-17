@@ -37,6 +37,9 @@ Values are lists of nickname strings.")
 (defvar jabber-group nil
   "the groupchat you are participating in")
 
+(defvar jabber-muc-topic ""
+  "The topic of the current MUC room.")
+
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
@@ -73,6 +76,15 @@ These fields are available:
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-muc-header-line-format
+  '(" " (:eval (jabber-jid-displayname jabber-group))
+    "\t" jabber-muc-topic)
+  "The specification for the header line of MUC buffers.
+
+The format is that of `mode-line-format' and `header-line-format'."
+  :type 'sexp
+  :group 'jabber-chat)
+
 (defcustom jabber-muc-private-buffer-format "*-jabber-muc-priv-%g-%n-*"
   "The format specification for the buffer name for private MUC messages.
 
@@ -104,6 +116,10 @@ The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
   :group 'jabber-chat)
 
+(defvar jabber-muc-printers '(jabber-muc-snarf-topic)
+  "List of functions that may be able to print part of a MUC message.
+This gets prepended to `jabber-chat-printers', which see.")
+
 (defun jabber-muc-get-buffer (group)
   "Return the chat buffer for chatroom GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -119,8 +135,10 @@ This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-muc-get-buffer group))
     (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
     (make-local-variable 'jabber-group)
+    (make-local-variable 'jabber-muc-topic)
     (setq jabber-group group)
     (setq jabber-send-function 'jabber-muc-send)
+    (setq header-line-format jabber-muc-header-line-format)
     (current-buffer)))
 
 (defun jabber-muc-private-get-buffer (group nickname)
@@ -341,6 +359,23 @@ Return nil if nothing known about that combination."
 			     (plist-get plist 'affiliation)
 			     (or (plist-get plist 'jid) ""))))
 		 participants)))
+
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Set topic" 'jabber-muc-set-topic))
+
+(defun jabber-muc-set-topic (group topic)
+  "Set topic of GROUP to TOPIC."
+  (interactive
+   (let ((group (jabber-muc-read-completing "Group: ")))
+     (list group
+	   (jabber-read-with-input-method "New topic: " jabber-muc-topic))))
+  (jabber-send-message group topic nil "groupchat"))
+
+(defun jabber-muc-snarf-topic (xml-data)
+  "Record subject (topic) of the given <message/>, if any."
+  (let ((new-topic (jabber-xml-path xml-data '(subject ""))))
+    (when new-topic
+      (setq jabber-muc-topic new-topic))))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set role (kick, voice, op)" 'jabber-muc-set-role))
@@ -610,7 +645,8 @@ Return nil if X-MUC is nil."
 					xml-data
 					(if error-p
 					    '(jabber-chat-print-error)
-					  jabber-chat-printers)
+					  (append jabber-muc-printers
+						  jabber-chat-printers))
 					xml-data)
 	  
 	  (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))

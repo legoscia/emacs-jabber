@@ -26,6 +26,7 @@ Both sending and receiving invitiations is supported.
 *** Basic affiliation change support
 (Not finished)
 *** Private MUC messages
+*** Support for setting and displaying topic
 
 ** Global key bindings
 Global keymap under C-x C-j.
