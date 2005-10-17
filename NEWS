@@ -53,7 +53,6 @@ Can now display count in frame title.  Update hook added.
 
 ** Jabber menu in menubar not enabled by default
 Call jabber-menu to have it there.
-(Not documented yet)
 
 ** Flyspell in chat buffers
 Flyspell will only spell check what you're currently writing.

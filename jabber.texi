@@ -711,6 +711,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @menu
 * Account settings::            
 * Connection settings::         
+* Miscellaneous settings::      
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
 * Customizing alerts::          
@@ -751,7 +752,7 @@ priority during a session with @code{jabber-send-presence}.
 
 @code{jabber-nickname} is your default nickname for groupchats.
 
-@node Connection settings, Customizing the roster buffer, Account settings, Customization
+@node Connection settings, Miscellaneous settings, Account settings, Customization
 @section Connection settings
 
 @vindex jabber-network-server
@@ -782,7 +783,19 @@ available.  You can force the use of either program by setting
 @code{jabber-connection-ssl-program} to @code{gnutls} or @code{openssl},
 respectively.
 
-@node Customizing the roster buffer, Customizing the chat buffer, Connection settings, Customization
+@node Miscellaneous settings, Customizing the roster buffer, Connection settings, Customization
+@section Miscellaneous settings
+
+@findex jabber-menu
+@cindex Menus
+
+If you want a Jabber menu on the menu bar with some common commands,
+type @kbd{M-x jabber-menu}.  You can remove it again with @kbd{C-u M-x
+jabber-menu}.  Unfortunately, this cannot be changed through Customize
+settings, so you need to add @code{(jabber-menu)} to your @file{.emacs}
+to enable it permanently.
+
+@node Customizing the roster buffer, Customizing the chat buffer, Miscellaneous settings, Customization
 @section Customizing the roster buffer
 
 @vindex jabber-sort-order

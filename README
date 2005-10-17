@@ -54,6 +54,9 @@ the other choices can be found via tab completion).
 Your roster is displayed in a buffer called *-jabber-*.  To
 disconnect, type M-x jabber-disconnect.
 
+You may want to use the menu bar to execute Jabber commands.  To
+enable the Jabber menu, type M-x jabber-menu.
+
 For a less terse description, read the enclosed manual.
 
 For bug reports, help requests and other feedback, use the trackers
