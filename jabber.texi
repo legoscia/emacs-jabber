@@ -802,12 +802,17 @@ to enable it permanently.
 @node Customizing the roster buffer, Customizing the chat buffer, Miscellaneous settings, Customization
 @section Customizing the roster buffer
 
+@vindex jabber-roster-sort-functions
 @vindex jabber-sort-order
 @vindex jabber-show-resources
 @vindex jabber-roster-line-format
 @vindex jabber-resource-line-format
 @vindex jabber-roster-buffer
 @vindex jabber-roster-show-bindings
+
+@code{jabber-roster-sort-functions} controls how roster items are
+sorted.  By default, contacts are sorted first by presence, and then
+alphabetically by displayed name.
 
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show

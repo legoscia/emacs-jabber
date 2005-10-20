@@ -65,7 +65,7 @@ These fields are available:
 These functions should take two roster items A and B, and return:
 <0 if A < B
 0  if A = B
->0  if A > B"
+>0 if A > B"
   :type 'hook
   :options '(jabber-roster-sort-by-status 
 	     jabber-roster-sort-by-displayname)
