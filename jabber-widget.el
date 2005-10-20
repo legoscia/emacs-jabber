@@ -225,13 +225,18 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 (defun jabber-render-xdata-search-results (xdata)
   "Render search results in x:data form."
 
+  (let ((title (car (jabber-xml-get-children xdata 'title))))
+    (when title
+      (insert (jabber-propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
+  
+  (if (jabber-xml-get-children xdata 'reported)
+      (jabber-render-xdata-search-results-multi xdata)
+    (jabber-render-xdata-search-results-single xdata)))
+
+(defun jabber-render-xdata-search-results-multi (xdata)
+  "Render multi-record search results."
   (let (fields
 	(jid-fields 0))
-
-    (let ((title (car (jabber-xml-get-children xdata 'title))))
-      (when title
-	(insert (jabber-propertize (car (jabber-xml-node-children title)) 'face 'jabber-title-medium) "\n")))
-
     (let ((reported (car (jabber-xml-get-children xdata 'reported)))
 	  (column 0))
       (dolist (field (jabber-xml-get-children reported 'field))
@@ -287,6 +292,19 @@ Return a list of strings, each of which to be included as cdata in a <value/> ta
 	    (put-text-property start-of-line (point)
 			       'jabber-jid jid))
 	(insert "\n")))))
+
+(defun jabber-render-xdata-search-results-single (xdata)
+  "Render single-record search results."
+  (dolist (field (jabber-xml-get-children xdata 'field))
+    (let ((label (jabber-xml-get-attribute field 'label))
+	  (type (jabber-xml-get-attribute field 'type))
+	  (values (mapcar #'(lambda (val)
+			      (car (jabber-xml-node-children val)))
+			  (jabber-xml-get-children field 'value))))
+      ;; XXX: consider type
+      (insert (jabber-propertize (concat label ": ") 'face 'bold))
+      (indent-to 30)
+      (insert (apply #'concat values) "\n"))))
 
 (defun jabber-xdata-formtype (x)
   "Return the form type of the xdata form in X, by JEP-0068.
