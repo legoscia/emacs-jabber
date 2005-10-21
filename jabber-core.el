@@ -123,6 +123,16 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
 (defvar jabber-process-buffer "*-jabber-process-*"
   "The name of the process buffer")
 
+(defcustom jabber-use-sasl t
+  "If non-nil, use SASL if possible.
+SASL will still not be used if the library for it is missing or
+if the server doesn't support it.
+
+Disabling this shouldn't be necessary, but it may solve certain
+problems."
+  :type 'boolean
+  :group 'jabber-core)
+
 (defsubst jabber-have-sasl-p ()
   "Return non-nil if SASL functions are available."
   (fboundp 'jabber-sasl-start-auth))
@@ -164,7 +174,7 @@ With prefix argument, register a new account."
 				 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'"
 				 ;; Not supporting SASL is not XMPP compliant,
 				 ;; so don't pretend we are.
-				 (if (jabber-have-sasl-p)
+				 (if (and (jabber-have-sasl-p) jabber-use-sasl)
 				     " version='1.0'"
 				   "")
 				 ">
@@ -191,6 +201,7 @@ With prefix argument, register a new account."
 otherwise JEP-0077.  The STREAM-FEATURES argument is the stream features
 tag, or nil if we're connecting to a pre-XMPP server."
   (if (and stream-features
+	   jabber-use-sasl
 	   (jabber-have-sasl-p)
 	   jabber-stream-version
 	   (>= (string-to-number jabber-stream-version) 1.0))
@@ -308,6 +319,7 @@ Call this function after disconnection."
 	   ;; even if 1.0 is present in the receiving stream.
 	   (unless (and jabber-stream-version
 			(>= (string-to-number jabber-stream-version) 1.0)
+			jabber-use-sasl
 			(jabber-have-sasl-p))
 	     ;; Logon or register
 	     (funcall jabber-call-on-connection nil))
