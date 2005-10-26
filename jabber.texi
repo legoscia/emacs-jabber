@@ -46,11 +46,8 @@ this permission notice are preserved on all copies.
 * Basic operation::             
 * Groupchat::                   
 * Services::                    
-* Modeline status::             
 * Personal information::        
-* Keepalive::                   
-* Tracking activity::           
-* Watch buddies::               
+* Useful features::             
 * Message history::             
 * Customization::               
 * Hacking and extending::       
@@ -130,12 +127,12 @@ things you might have to change.}  Save your changes, and type
 @kbd{M-x jabber-connect} to connect.
 
 If you do not yet have a Jabber account, you can register one.  Enter
-your desired username for @code{jabber-username} and the server you
-wish to use for @code{jabber-server}, save, and type @kbd{C-u M-x
-jabber-connect}.  If the server supports in-band registration, you
-will be presented with a registration form to fill out and send.
-There you will have to enter your username again.  Enter the same
-username in both places, otherwise jabber.el will be confused.
+your desired username for @code{jabber-username} and the server you wish
+to use for @code{jabber-server}, save, and type @kbd{C-u M-x
+jabber-connect}.  If the server supports in-band registration, you will
+be presented with a registration form to fill out and send.  There the
+username you chose will be prefilled.  Don't change it, otherwise
+jabber.el will be confused.
 
 If you successfully connect, jabber.el will download your roster and
 display it in a buffer called @code{*-jabber-*}.
@@ -236,7 +233,10 @@ you to send a subscription request back to that person.
 To request subscription to someone, type @kbd{M-x
 jabber-send-subscription-request}.  You will be prompted for the JID
 to send it to.  This command can also be accessed through the Roster
-menu, by typing @kbd{C-c C-r} in the roster buffer.
+menu, by typing @kbd{C-c C-r} in the roster buffer.  After that, you
+will probably want to give the contact a more readable name.  The
+command for that is @code{jabber-roster-change}, which is also available
+in the Roster menu.
 
 @node Roster buffer,  , Presence subscription, Basic operation
 @section The roster buffer
@@ -312,31 +312,15 @@ will be rendered in new buffer.
 
 To see which people are in a groupchat, type @kbd{M-x
 jabber-muc-names}.  This gives a list of nicknames, ``roles'',
-``affiliations'', and possibly JIDs.  The possible roles are
-``moderator'', ``participant'' (has voice), ``visitor'' (doesn't have
-voice), and ``none'' (not in room).  Affiliations are ``owner'',
-``admin'', ``member'', ``outcast'' (banned), and ``none''.
+``affiliations'', and possibly JIDs.  @xref{MUC Administration}, for
+the meaning of roles and affiliations.
 
-If you have moderator privileges, you can change the role of a
-participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
-the role to ``none''.  Granting and revoking voice are ``participant''
-and ``visitor'', respectively.  ``moderator'' gives moderator
-privileges, obviously.  The role of a participant is ephemeral, and
-disappears when leaving the room.
-
-If you have admin or owner privileges, you can change the affiliation
-of a user.  Affiliation is persistent, and based on JIDs.  ``outcast''
-means banning the user.  ``member'' gives the user voice by default,
-in rooms where that is not always the case.  ``admin'' and ``owner''
-give admin and owner privileges, respectively.  ``none'' is the
-absence of these properties.  Depending of your affiliation and the
-MUC implementation, you might not be allowed to perform all of these
-changes, and maybe not in one step.
 
 @menu
 * Automation::                  
 * Invitations::                 
 * Private messages::            
+* MUC Administration::          
 @end menu
 
 @node Automation, Invitations, Groupchat, Groupchat
@@ -375,7 +359,7 @@ with two buttons, ``Accept'' and ``Decline''.  Pressing ``Accept''
 enters the room, as you would expect.  Pressing ``Decline'' gives you
 an opportunity to state the reason why you're not joining.
 
-@node Private messages,  , Invitations, Groupchat
+@node Private messages, MUC Administration, Invitations, Groupchat
 @section Private messages
 
 @cindex Private MUC messages
@@ -392,7 +376,60 @@ sends a private message to you.
 Private MUC messages use the same alerts as normal chat messages.
 @xref{Message alerts}.
 
-@node Services, Modeline status, Groupchat, Top
+@node MUC Administration,  , Private messages, Groupchat
+@section Administration
+
+The possible roles are:
+
+@table @samp
+@item moderator
+Has voice, can change other people's roles.
+
+@item participant
+Has voice.
+
+@item visitor
+Doesn't have voice (can't send messages to everyone, but can send
+private messages)
+
+@item none
+Not in room.
+@end table
+
+Affiliations are:
+
+@table @samp
+@item owner
+Can destroy room, appoint admins, make people members, ban people.
+
+@item admin
+Can make people members or ban people.
+
+@item member
+Different privileges depending on room configuration (room may be
+members-only, or grant voice only to members)
+
+@item none
+Rights depend on room configuration.
+
+@item outcast
+Banned from the room
+@end table
+
+If you have moderator privileges, you can change the role of a
+participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
+the role to ``none''.  Granting and revoking voice are ``participant''
+and ``visitor'', respectively.  ``moderator'' gives moderator
+privileges, obviously.  The role of a participant is ephemeral, and
+disappears when leaving the room.
+
+If you have admin or owner privileges, you can change the affiliation of
+a user.  Affiliation is persistent, and based on JIDs.  Depending of
+your affiliation and the MUC implementation, you might not be allowed to
+perform all kinds of changes, and maybe not in one step.
+
+
+@node Services, Personal information, Groupchat, Top
 @chapter Services
 
 @cindex Browse buffers
@@ -403,10 +440,10 @@ transports and other names.  The use of these is described here.
 
 The functions described in this chapter use @dfn{browse buffers}.
 Browse buffers are named @code{*-jabber-browse-:-@var{service}-*},
-sometimes with a numerical suffix.  They have the same keybindings as
-the roster buffer, and if you call a function operating on a JID while
-point is over a JID, that JID will be the default value, so you don't
-have to type it or copy it yourself.
+sometimes with a numerical suffix.  The different menus have the same
+keybindings as in the roster buffer, and if you call a function
+operating on a JID while point is over a JID, that JID will be the
+default value, so you don't have to type it or copy it yourself.
 
 @menu
 * Service discovery and browsing::  
@@ -434,14 +471,17 @@ server, to see what services are provided locally.  Note, however,
 that this is no restriction; you can use services from all over the
 network.
 
-To start browsing, type @kbd{M-x jabber-get-browse} and enter the JID
-you want to browse.  For service discovery there are two commands,
+For service discovery there are two commands,
 @code{jabber-get-disco-items} and @code{jabber-get-disco-info},
 depending on whether you want information about that specific JID or
-about services related to it, respectively.
+about services related to it, respectively.  To start browsing, type
+@kbd{M-x jabber-get-browse} and enter the JID you want to browse.
 
 These commands can be accessed from the Info menu, which is opened by
 typing @kbd{C-c C-i}.
+
+If you think that the interface to service discovery is awkward and
+should be replaced with something better, you are completely right.
 
 @node Registering, Searching, Service discovery and browsing, Services
 @section Registering
@@ -466,9 +506,9 @@ the password of your Jabber account, ask to register with your Jabber
 server.
 
 Please note that any passwords sent in this way will be sent in
-cleartext to your Jabber server, as jabber.el doesn't support
-encryption yet, and possibly sent in cleartext from your server to the
-server hosting the service.
+cleartext to your Jabber server, unless you have enabled SSL encryption
+(@pxref{Connection settings}), and possibly sent in cleartext from your
+server to the server hosting the service.
 
 jabber.el will then request a registration form from that service.  If
 for some reason the service does not answer (maybe network problems,
@@ -513,14 +553,14 @@ browse buffer.
 
 jabber.el supports a subset of JEP-0050, the standard for Ad-Hoc
 Commands.  As the name implies, this can be used for just about
-anything.  However, at the time of this writing it seems that
-jabber.el is the only implementation.
+anything.  It has been used for remote-controlling clients (e.g. Psi),
+and administering services (e.g. PyMSNt).
 
-Currently, ad-hoc commands are used for setting presence remotely.  If
-you realize that you forgot to set your client to ``away'' with a low
-priority, you can do it remotely.@footnote{Most Jabber servers support
-kicking a client off the net by logging in with another client with
-exactly the same resource.}
+Currently, jabber.el uses ad-hoc commands for setting presence remotely.
+If you realize that you forgot to set your client to ``away'' with a low
+priority, you can do it remotely.@footnote{Most Jabber servers also
+support kicking a client off the net by logging in with another client
+with exactly the same resource.}
 
 The commands for executing ad-hoc commands are available under the
 Service menu, which is opened by typing @kbd{C-c C-s}.
@@ -536,27 +576,7 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-@node Modeline status, Personal information, Services, Top
-@chapter Modeline status
-
-@cindex modeline
-@findex jabber-mode-line-mode
-@vindex jabber-mode-line-mode
-@vindex jabber-mode-line-compact
-
-By typing @kbd{M-x jabber-mode-line-mode} you toggle display of some
-status in mode lines.  The information is your own presence status,
-and some numbers showing the status of your roster contacts.  By
-default, there are three numbers, for ``online'' (chatty and online),
-``away'' (away, extended away and do not disturb) and offline
-contacts.
-
-If you set @code{jabber-mode-line-compact} to nil, you get a complete
-breakdown of presence status.  That gives you six numbers indicating
-the number of chatty, online, away, extended away, dnd, and offline
-contacts, respectively.
-
-@node Personal information, Keepalive, Modeline status, Top
+@node Personal information, Useful features, Services, Top
 @chapter Personal information
 
 @cindex vCard
@@ -575,8 +595,41 @@ e-mail addresses, each of which has a set of orthogonal properties.
 You can add and remove items with the [INS] and [DEL] buttons,
 respectively.
 
-@node Keepalive, Tracking activity, Personal information, Top
-@chapter Keepalive
+@node Useful features, Message history, Personal information, Top
+@chapter Useful features
+
+jabber.el includes a number of features meant to improve the user
+interface and do other useful things.
+
+@menu
+* Modeline status::             
+* Keepalive::                   
+* Tracking activity::           
+* Watch buddies::               
+@end menu
+
+@node Modeline status, Keepalive, Useful features, Useful features
+@section Modeline status
+
+@cindex modeline
+@findex jabber-mode-line-mode
+@vindex jabber-mode-line-mode
+@vindex jabber-mode-line-compact
+
+By typing @kbd{M-x jabber-mode-line-mode} you toggle display of some
+status in mode lines.  The information is your own presence status,
+and some numbers showing the status of your roster contacts.  By
+default, there are three numbers, for ``online'' (chatty and online),
+``away'' (away, extended away and do not disturb) and offline
+contacts.
+
+If you set @code{jabber-mode-line-compact} to nil, you get a complete
+breakdown of presence status.  That gives you six numbers indicating
+the number of chatty, online, away, extended away, dnd, and offline
+contacts, respectively.
+
+@node Keepalive, Tracking activity, Modeline status, Useful features
+@section Keepalive
 
 @cindex keepalive
 @findex jabber-keepalive-start
@@ -602,8 +655,8 @@ You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.
 
-@node Tracking activity, Watch buddies, Keepalive, Top
-@chapter Tracking activity
+@node Tracking activity, Watch buddies, Keepalive, Useful features
+@section Tracking activity
 
 @cindex Activity
 @findex jabber-activity-mode
@@ -630,8 +683,8 @@ If you try to exit Emacs while you still have unread messages, you
 will be notified and asked about this.  If you don't like that, set
 @code{jabber-activity-query-unread} to nil.
 
-@node Watch buddies, Message history, Tracking activity, Top
-@chapter Watch buddies
+@node Watch buddies,  , Tracking activity, Useful features
+@section Watch buddies
 
 @cindex watch
 @findex jabber-watch-add
@@ -648,7 +701,7 @@ online.  jabber.el will remember this for the rest of your Emacs
 session (it's not saved to disk, though), but if you want to get rid
 of it, type @kbd{M-x jabber-watch-remove}.
 
-@node Message history, Customization, Watch buddies, Top
+@node Message history, Customization, Useful features, Top
 @chapter Message history
 
 @cindex history
@@ -826,14 +879,6 @@ a contact has more than one connected resource.
 contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
 
-@code{jabber-roster-buffer} specifies the name of the roster buffer.
-If you change this, the new name will be used the next time you
-connect.
-
-@code{jabber-roster-show-bindings} controls whether to show a list of
-keybindings at the top of the roster buffer.  You need to run @kbd{M-x
-jabber-display-roster} after changing this variable to update the display.
-
 @table @code
 @item %c
 "*" if the contact is connected, or " " if not
@@ -853,6 +898,14 @@ Status string specified by contact
 the values correspond to the values of the resource in question, and
 that the @code{%p} escape is available, which inserts the priority of
 the resource.
+
+@code{jabber-roster-buffer} specifies the name of the roster buffer.
+If you change this, the new name will be used the next time you
+connect.
+
+@code{jabber-roster-show-bindings} controls whether to show a list of
+keybindings at the top of the roster buffer.  You need to run @kbd{M-x
+jabber-display-roster} after changing this variable to update the display.
 
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
@@ -965,9 +1018,11 @@ mailing list, or to the Sourceforge patch tracker.
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
 removing the function from/to the hook.  For other things, there are
-corresponding general hooks, that are defvars instead of defcustoms,
-and that are to be managed by Lisp code.  They have the same name as
-the alert hooks minus the @code{-alert} part.
+corresponding general hooks, that are defvars instead of defcustoms, and
+that are to be managed by Lisp code.  They have the same name as the
+alert hooks minus the @code{-alert} part,
+i.e. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
+etc.
 
 @menu
 * Standard alerts::             
@@ -980,7 +1035,7 @@ the alert hooks minus the @code{-alert} part.
 @node Standard alerts, Presence alerts, Customizing alerts, Customizing alerts
 @subsection Standard alerts
 
-Eight alerts are already written for all three alert categories.  These
+Eight alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
 
 The @code{beep} alerts simply sound the terminal bell by calling
@@ -1024,9 +1079,9 @@ The @code{festival} alerts speak the message using the Emacs interface
 of the Festival speech synthesis system (see
 @uref{http://www.cstr.ed.ac.uk/projects/festival/}).
 
-Some of these functions are in the @file{jabber-alert.el} file, and
-the others are in the directory @file{external-notifiers}.  You can
-use them as templates or inspiration for your own alerts.
+Some of these functions are in the @file{jabber-alert.el} file, and the
+others are in their own files.  You can use them as templates or
+inspiration for your own alerts.
 
 @node Presence alerts, Message alerts, Standard alerts, Customizing alerts
 @subsection Presence alerts
@@ -1038,7 +1093,9 @@ Set @code{jabber-alert-presence-message-function} to your desired
 function.  This function should look like:
 
 @example
-(@var{function} @var{who} @var{oldstatus} @var{newstatus} @var{statustext})
+(defun @var{function} (@var{who} @var{oldstatus} @var{newstatus} @var{statustext})
+   ...
+   )
 @end example
 
 @var{who} is the JID symbol (@pxref{Roster structure}),
@@ -1065,10 +1122,10 @@ function.  This last argument is usually the only one they use.
 @vindex jabber-message-alert-same-buffer
 
 If you don't want message alerts when the chat buffer in question is
-already the current buffer, set
-@code{jabber-message-alert-same-buffer} to nil.  This affects the
-behaviour of the default message function, so you'll have to
-reimplement this functionality if you create an own message function.
+already the current buffer, set @code{jabber-message-alert-same-buffer}
+to nil.  This affects the behaviour of the default message function, so
+you'll have to reimplement this functionality if you write your own
+message function.
 
 Set @code{jabber-alert-message-function} to your desired
 function.@footnote{Logically it should be
@@ -1076,7 +1133,9 @@ function.@footnote{Logically it should be
 really ugly.}  This function should look like:
 
 @example
-(@var{function} @var{from} @var{buffer} @var{text})
+(defun @var{function} (@var{from} @var{buffer} @var{text})
+   ...
+   )
 @end example
 
 @var{from} is the JID symbol (@pxref{Roster structure}), @var{buffer}
@@ -1101,7 +1160,9 @@ Set @code{jabber-alert-muc-function} to your desired
 function.  This function should look like:
 
 @example
-(@var{function} @var{nick} @var{group} @var{buffer} @var{text})
+(defun @var{function} (@var{nick} @var{group} @var{buffer} @var{text})
+   ...
+   )
 @end example
 
 @var{nick} is the nickname, @var{group} is the JID of the group,
@@ -1188,8 +1249,8 @@ look.  Knowledge of Jabber protocols is assumed.
 * Roster structure::            
 * Listening for new requests::  
 * Sending new requests::        
-* Chat printers::               
 * Extending service discovery::  
+* Chat printers::               
 * Stanza chains::               
 @end menu
 
@@ -1220,6 +1281,11 @@ is represented as
 Note the empty string as the third element of the @code{frobozz}
 list.  It is not present in newer (post-21.3) versions of
 @file{xml.el}, but it's probably best to assume it might be there.
+
+If you want to see what an XML tag would look like, use
+@code{jabber-sexp2xml}, which takes a tag and returns a string.  You
+will usually not need it in your code, as you can use
+@code{jabber-send-sexp} to send away your tags to the server.
 
 @node Roster structure, Listening for new requests, XML representation, Hacking and extending
 @section Roster structure
@@ -1303,7 +1369,7 @@ To return an error to the Jabber entity that sent the query, use
 @code{jabber-signal-error}.  The signal is caught by
 @code{jabber-process-iq}, which takes care of sending the error.
 
-@node Sending new requests, Chat printers, Listening for new requests, Hacking and extending
+@node Sending new requests, Extending service discovery, Listening for new requests, Hacking and extending
 @section Sending new requests
 
 @findex jabber-send-iq
@@ -1355,37 +1421,7 @@ Of course, the previous example could have used
 @code{jabber-report-success} for the error message.  It's a matter of
 UI taste.
 
-@node Chat printers, Extending service discovery, Sending new requests, Hacking and extending
-@section Chat printers
-
-@vindex jabber-chat-printers
-@vindex jabber-muc-printers
-@vindex jabber-body-printers
-@cindex Chat printers
-@cindex Body printers
-
-Chat printers are functions that print a certain aspect of an incoming
-message in a chat buffer.  Included are functions for printing subjects
-(@code{jabber-chat-print-subject}), bodies
-(@code{jabber-chat-print-body}, and @code{jabber:x:oob}-style URLs
-(@code{jabber-chat-print-url}).  The functions in
-@code{jabber-chat-printers} are called in order, with the entire
-@code{<message/>} stanza as argument, and are expected to call
-@code{insert} if they have anything to add.
-
-For MUC, the functions in @code{jabber-muc-printers} are prepended to
-those in @code{jabber-chat-printers}.
-
-Body printers are a subgroup of chat printers.  They are exclusive; only
-one of them applies to any given message.  The idea is that
-``higher-quality'' parts of the message override pieces included for
-backwards compatibility.  Included are @code{jabber-muc-print-invite}
-and @code{jabber-chat-normal-body}; functions for XHTML-IM and PGP
-encrypted messages may be written in the future.  The functions in
-@code{jabber-body-printers} are called in order until one of them
-returns non-nil.
-
-@node Extending service discovery, Stanza chains, Chat printers, Hacking and extending
+@node Extending service discovery, Chat printers, Sending new requests, Hacking and extending
 @section Service discovery
 
 @vindex jabber-advertised-features
@@ -1418,7 +1454,37 @@ access is always granted.  One such function is provided,
 username and server (not necessarily resource) are equal to those of
 the user.
 
-@node Stanza chains,  , Extending service discovery, Hacking and extending
+@node Chat printers, Stanza chains, Extending service discovery, Hacking and extending
+@section Chat printers
+
+@vindex jabber-chat-printers
+@vindex jabber-muc-printers
+@vindex jabber-body-printers
+@cindex Chat printers
+@cindex Body printers
+
+Chat printers are functions that print a certain aspect of an incoming
+message in a chat buffer.  Included are functions for printing subjects
+(@code{jabber-chat-print-subject}), bodies
+(@code{jabber-chat-print-body}, and @code{jabber:x:oob}-style URLs
+(@code{jabber-chat-print-url}).  The functions in
+@code{jabber-chat-printers} are called in order, with the entire
+@code{<message/>} stanza as argument, and are expected to call
+@code{insert} if they have anything to add.
+
+For MUC, the functions in @code{jabber-muc-printers} are prepended to
+those in @code{jabber-chat-printers}.
+
+Body printers are a subgroup of chat printers.  They are exclusive; only
+one of them applies to any given message.  The idea is that
+``higher-quality'' parts of the message override pieces included for
+backwards compatibility.  Included are @code{jabber-muc-print-invite}
+and @code{jabber-chat-normal-body}; functions for XHTML-IM and PGP
+encrypted messages may be written in the future.  The functions in
+@code{jabber-body-printers} are called in order until one of them
+returns non-nil.
+
+@node Stanza chains,  , Chat printers, Hacking and extending
 @section Stanza chains
 
 @vindex jabber-message-chain
@@ -1427,15 +1493,11 @@ the user.
 
 If you really need to get under the skin of jabber.el, you can add
 functions to the lists @code{jabber-message-chain},
-@code{jabber-iq-chain} and @code{jabber-presence-chain}.  Normally
-those lists contain only the functions jabber.el needs to do its job,
-i.e. @code{jabber-process-message}, @code{jabber-process-iq} and
-@code{jabber-process-presence}, respectively.
-
-The functions in these lists will be called in order when an XML
-stanza of the corresponding type arrives, with the entire XML stanza
-passed as the only argument.  Earlier functions can modify the stanza
-to change the behaviour of downstream functions.
+@code{jabber-iq-chain} and @code{jabber-presence-chain}.  The functions
+in these lists will be called in order when an XML stanza of the
+corresponding type arrives, with the entire XML stanza passed as the
+only argument.  Earlier functions can modify the stanza to change the
+behaviour of downstream functions.
 
 @node Protocol support, Concept index, Hacking and extending, Top
 @appendix Protocol support
