@@ -1,4 +1,4 @@
-;; jabber-roster.el - displaying the roster
+;; jabber-roster.el - displaying the roster    -*- encoding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -28,18 +28,43 @@
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
 
-(defcustom jabber-roster-line-format " %c %n - %s (%S)\n"
+(defcustom jabber-roster-line-format " %c %u %n - %s (%S)\n"
   "The format specification of the lines in the roster display.
 
 These fields are available:
 
 %c   \"*\" if the contact is connected, or \" \" if not
+%u   sUbscription state - see below
 %n   Nickname of contact, or JID if no nickname
 %j   Bare JID of contact (without resource)
 %r   Highest-priority resource of contact
 %s   Availability of contact as string (\"Online\", \"Away\" etc)
-%S   Status string specified by contact"
+%S   Status string specified by contact
+
+%u is replaced by one of the strings given by
+`jabber-roster-subscription-display'."
   :type 'string
+  :group 'jabber-roster)
+
+(defcustom jabber-roster-subscription-display '(("none" . " ")
+						("from" . "←")
+						("to" . "→")
+						("both" . "⇄"))
+  "Strings used for indicating subscription status of contacts.
+\"none\" means that there is no subscription between you and the
+contact.
+\"from\" means that the contact has a subscription to you, but you
+have no subscription to the contact.
+\"to\" means that you have a subscription to the contact, but the
+contact has no subscription to you.
+\"both\" means a mutual subscription.
+
+Having a \"presence subscription\" means being able to see the
+other person's presence."
+  :type '(list (cons :format "%v" (const :format "" "none") (string :tag "None"))
+	       (cons :format "%v" (const :format "" "from") (string :tag "From"))
+	       (cons :format "%v" (const :format "" "to") (string :tag "To"))
+	       (cons :format "%v" (const :format "" "both") (string :tag "Both")))
   :group 'jabber-roster)
 
 (defcustom jabber-resource-line-format "     %r - %s (%S), priority %p\n"
@@ -306,6 +331,8 @@ C-c C-s  Service menu
   (let ((buddy-str (format-spec jabber-roster-line-format
 				(list 
 				 (cons ?c (if (get buddy 'connected) "*" " "))
+				 (cons ?u (cdr (assoc (or (get buddy 'subscription) "none")
+						      jabber-roster-subscription-display)))
 				 (cons ?n (if (> (length (get buddy 'name)) 0)
 					      (get buddy 'name)
 					    (symbol-name buddy)))
