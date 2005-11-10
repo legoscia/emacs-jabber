@@ -1,4 +1,4 @@
-;; jabber-roster.el - displaying the roster    -*- encoding: utf-8; -*-
+;; jabber-roster.el - displaying the roster    -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
