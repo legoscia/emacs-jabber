@@ -74,7 +74,6 @@ window or at `fill-column', whichever is shorter."
     (define-key map "\r" 'jabber-chat-buffer-send)
     map))
 
-(add-hook 'jabber-chat-buffer-send-hook 'jabber-clear-completion-alist)
 (defun jabber-chat-buffer-send ()
   (interactive)
   (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
