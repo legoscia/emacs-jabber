@@ -68,13 +68,13 @@ window or at `fill-column', whichever is shorter."
 (put 'jabber-chat-mode 'flyspell-mode-predicate
   'jabber-chat-mode-flyspell-verify)
 
-(defvar jabber-chat-mode-map nil)
+(defvar jabber-chat-mode-map 
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map jabber-common-keymap)
+    (define-key map "\r" 'jabber-chat-buffer-send)
+    map))
 
-(unless jabber-chat-mode-map
-  (setq jabber-chat-mode-map (make-sparse-keymap))
-  (set-keymap-parent jabber-chat-mode-map jabber-common-keymap)
-  (define-key jabber-chat-mode-map "\r" 'jabber-chat-buffer-send))
-
+(add-hook 'jabber-chat-buffer-send-hook 'jabber-clear-completion-alist)
 (defun jabber-chat-buffer-send ()
   (interactive)
   (let ((body (delete-and-extract-region jabber-point-insert (point-max))))

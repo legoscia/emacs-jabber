@@ -19,18 +19,16 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-(defvar jabber-common-keymap nil)
-
-(unless jabber-common-keymap
-  (setq jabber-common-keymap (make-sparse-keymap))
-  (define-key jabber-common-keymap "\C-c\C-c" 'jabber-popup-chat-menu)
-  (define-key jabber-common-keymap "\C-c\C-r" 'jabber-popup-roster-menu)
-  (define-key jabber-common-keymap "\C-c\C-i" 'jabber-popup-info-menu)
-  (define-key jabber-common-keymap "\C-c\C-m" 'jabber-popup-muc-menu)
-  (define-key jabber-common-keymap "\C-c\C-s" 'jabber-popup-service-menu)
-  (define-key jabber-common-keymap [?\t] 'forward-button)
-  (define-key jabber-common-keymap [backtab] 'backward-button)
-  )
+(defvar jabber-common-keymap 
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'jabber-popup-chat-menu)
+    (define-key map "\C-c\C-r" 'jabber-popup-roster-menu)
+    (define-key map "\C-c\C-i" 'jabber-popup-info-menu)
+    (define-key map "\C-c\C-m" 'jabber-popup-muc-menu)
+    (define-key map "\C-c\C-s" 'jabber-popup-service-menu)
+    (define-key map [?\t] 'forward-button)
+    (define-key map [backtab] 'backward-button)
+    map))
 
 (defvar jabber-global-keymap
   (let ((map (make-sparse-keymap)))
