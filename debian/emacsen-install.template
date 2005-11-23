@@ -1,5 +1,5 @@
 
-UNDERSCORED_FLAVOR=$(echo $FLAVOR | sed 's/-/_/')
+UNDERSCORED_FLAVOR=$(echo $FLAVOR | sed 's/-/_/g')
 eval included_here=\$$(echo INCLUDED_$UNDERSCORED_FLAVOR)
 eval excluded_here=\$$(echo EXCLUDED_$UNDERSCORED_FLAVOR)
 
