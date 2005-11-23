@@ -172,7 +172,8 @@ DEFAULTS takes precedence over values specified in the form."
 				   :tag (or label var)
 				   :value (if default-value
 					      (cdr default-value)
-					    (not (string= (car (xml-node-children (car values))) "0")))))
+					    (not (null
+						  (member (car (xml-node-children (car values))) '("1" "true")))))))
 	      jabber-widget-alist)
 	(if (or label var)
 	    (widget-insert " " (or label var) "\n")))
