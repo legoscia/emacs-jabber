@@ -456,19 +456,25 @@ TIMESTAMP is the timestamp to print, or nil for now."
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Start chat" 'jabber-chat-with))
 
-(defun jabber-chat-with (jid)
-  "open an empty chat window for chatting with JID"
-  (interactive (list (jabber-read-jid-completing "chat with:")))
-  (switch-to-buffer (jabber-chat-create-buffer jid)))
+(defun jabber-chat-with (jid &optional other-window)
+  "Open an empty chat window for chatting with JID.
+With a prefix argument, open buffer in other window."
+  (interactive (list (jabber-read-jid-completing "chat with:")
+		     current-prefix-arg))
+  (let ((buffer (jabber-chat-create-buffer jid)))
+    (if other-window
+	(switch-to-buffer-other-window buffer)
+      (switch-to-buffer buffer))))
 
-(defun jabber-chat-with-jid-at-point ()
+(defun jabber-chat-with-jid-at-point (&optional other-window)
   "Start chat with JID at point.
-Signal an error if there is no JID at point."
-  (interactive)
+Signal an error if there is no JID at point.
+With a prefix argument, open buffer in other window."
+  (interactive "P")
   (let ((jid-at-point (get-text-property (point)
 					 'jabber-jid)))
     (if jid-at-point
-	(jabber-chat-with jid-at-point)
+	(jabber-chat-with jid-at-point other-window)
       (error "No contact at point"))))
 
 (provide 'jabber-chat)
