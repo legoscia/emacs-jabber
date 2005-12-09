@@ -190,7 +190,7 @@ DEFAULTS takes precedence over values specified in the form."
 					(car (jabber-xml-node-children (car values)))
 					"")))
 	       jabber-widget-alist))))
-      (when desc
+      (when (and desc (car (jabber-xml-node-children desc)))
 	(widget-insert "\n" (car (jabber-xml-node-children desc))))
       (widget-insert "\n"))))
 
