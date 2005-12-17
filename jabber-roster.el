@@ -28,7 +28,7 @@
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
 
-(defcustom jabber-roster-line-format " %c %u %n - %s (%S)\n"
+(defcustom jabber-roster-line-format " %c %-25n %u %-8s  %S\n"
   "The format specification of the lines in the roster display.
 
 These fields are available:
@@ -46,10 +46,10 @@ These fields are available:
   :type 'string
   :group 'jabber-roster)
 
-(defcustom jabber-roster-subscription-display '(("none" . " ")
-						("from" . "←")
-						("to" . "→")
-						("both" . "⇄"))
+(defcustom jabber-roster-subscription-display '(("none" . "   ")
+						("from" . "<  ")
+						("to" . "  >")
+						("both" . "<->"))
   "Strings used for indicating subscription status of contacts.
 \"none\" means that there is no subscription between you and the
 contact.
@@ -60,7 +60,10 @@ contact has no subscription to you.
 \"both\" means a mutual subscription.
 
 Having a \"presence subscription\" means being able to see the
-other person's presence."
+other person's presence.
+
+Some fancy arrows you might want to use, if your system can
+display them: ← → ⇄ ↔"
   :type '(list (cons :format "%v" (const :format "" "none") (string :tag "None"))
 	       (cons :format "%v" (const :format "" "from") (string :tag "From"))
 	       (cons :format "%v" (const :format "" "to") (string :tag "To"))
