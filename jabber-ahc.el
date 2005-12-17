@@ -194,7 +194,7 @@ access allowed.  nil means open for everyone."
 		    (t
 		     (let ((children (mapcar #'jabber-xml-node-name (jabber-xml-node-children actions)))
 			   (default-action (jabber-xml-get-attribute actions 'execute)))
-		       (if (memq (intern default-action) children)
+		       (if (or (null default-action) (memq (intern default-action) children))
 			   children
 			 (cons (intern default-action) children)))))))
 	      (dolist (button-title button-titles)
