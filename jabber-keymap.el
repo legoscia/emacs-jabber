@@ -19,6 +19,12 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+;; button.el was introduced in Emacs 22
+(condition-case e
+    (require 'button)
+  (error nil))
+
 (defvar jabber-common-keymap 
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'jabber-popup-chat-menu)
@@ -26,8 +32,11 @@
     (define-key map "\C-c\C-i" 'jabber-popup-info-menu)
     (define-key map "\C-c\C-m" 'jabber-popup-muc-menu)
     (define-key map "\C-c\C-s" 'jabber-popup-service-menu)
-    (define-key map [?\t] 'forward-button)
-    (define-key map [backtab] 'backward-button)
+    ;; note that {forward,backward}-button are not autoloaded.
+    ;; thus the `require' above.
+    (when (fboundp 'forward-button)
+      (define-key map [?\t] 'forward-button)
+      (define-key map [backtab] 'backward-button))
     map))
 
 (defvar jabber-global-keymap

@@ -477,7 +477,7 @@ group, else it is a JID."
 		   `(lambda (&rest ignore) (interactive)
 		      (jabber-groupchat-join ,group
 					     (jabber-muc-read-my-nickname ,group)))))
-	      (if (featurep 'button)
+	      (if (fboundp 'insert-button)
 		  (insert-button "Accept"
 				 'action action)
 	      ;; Simple button replacement
@@ -502,7 +502,7 @@ group, else it is a JID."
 					   (list (cons 'to ,inviter))
 					   (unless (zerop (length reason))
 					     (list 'reason nil reason))))))))))
-	      (if (featurep 'button)
+	      (if (fboundp 'insert-button)
 		  (insert-button "Decline"
 				 'action action)
 		;; Simple button replacement

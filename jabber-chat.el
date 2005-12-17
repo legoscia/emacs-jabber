@@ -22,11 +22,6 @@
 (require 'jabber-chatbuffer)
 (require 'jabber-history)
 
-;; button was introduced in Emacs 22
-(condition-case e
-    (require 'button)
-  (error nil))
-
 (defgroup jabber-chat nil "chat display options"
   :group 'jabber)
 
