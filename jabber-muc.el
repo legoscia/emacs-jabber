@@ -484,7 +484,8 @@ group, else it is a JID."
 	      (let ((keymap (make-keymap)))
 		(define-key keymap "\r" action)
 		(insert (jabber-propertize "Accept"
-					   'keymap keymap))))
+					   'keymap keymap
+					   'face 'highlight))))
 
 	    (insert "\t")
 
@@ -509,7 +510,8 @@ group, else it is a JID."
 		(let ((keymap (make-keymap)))
 		  (define-key keymap "\r" action)
 		  (insert (jabber-propertize "Decline"
-					     'keymap keymap)))))))
+					     'keymap keymap
+					     'face 'highlight)))))))
 	  (return t))))))
 
 (defun jabber-muc-autojoin ()
