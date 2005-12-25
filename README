@@ -73,6 +73,12 @@ default, history will be saved in ~/.jabber_global_message_log; make
 sure that this file has appropriate permissions.  Type M-x
 customize-group RET jabber-history for more options.
 
+By default, jabber.el will send a confirmation when messages sent to
+you are delivered and displayed, and also send "contact is typing"
+notifications.  To change this, type M-x customize-group RET
+jabber-events, and set the three jabber-events-confirm-* variables to
+nil.
+
 File transfer
 =============
 This release of jabber.el contains experimental support for file
