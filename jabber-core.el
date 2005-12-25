@@ -120,7 +120,7 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'string
   :group 'jabber-core)
 
-(defvar jabber-process-buffer "*-jabber-process-*"
+(defvar jabber-process-buffer " *-jabber-process-*"
   "The name of the process buffer")
 
 (defcustom jabber-use-sasl t
