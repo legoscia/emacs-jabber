@@ -1,4 +1,4 @@
-This is jabber.el 0.6.1, a Jabber client for Emacs.  If you don't know
+This is jabber.el 0.7, a Jabber client for Emacs.  If you don't know
 what Jabber is, see http://www.jabber.org .
 
 Home page:    http://emacs-jabber.sourceforge.net
@@ -26,8 +26,8 @@ and patches are very welcome.
 SASL
 ====
 jabber.el will use the SASL library of FLIM (Faithful Library about
-Internet Message) if it's present.  If not, it will fall back to
-JEP-0077 authentication.
+Internet Message; it is also included in newer versions of Gnus) if
+it's present.  If not, it will fall back to JEP-0077 authentication.
 
 Installation
 ============
@@ -46,13 +46,11 @@ jabber-presence-watch.
 Usage
 =====
 To start using it, type M-x jabber-customize and set your username and
-server.  Then, type M-x jabber-connect to connect (with prefix
-argument, register new account) and M-x jabber-send-presence to send
-presence (when asked for "show", an empty string means "online", and
-the other choices can be found via tab completion).
+server.  Then, type C-x C-j C-c (or equivalently M-x jabber-connect)
+to connect (with prefix argument, register new account).
 
 Your roster is displayed in a buffer called *-jabber-*.  To
-disconnect, type M-x jabber-disconnect.
+disconnect, type C-x C-j C-d or M-x jabber-disconnect.
 
 You may want to use the menu bar to execute Jabber commands.  To
 enable the Jabber menu, type M-x jabber-menu.
@@ -61,6 +59,19 @@ For a less terse description, read the enclosed manual.
 
 For bug reports, help requests and other feedback, use the trackers
 and forums at the project page mentioned above.
+
+Configuration
+=============
+All available configuration options are described in the manual.  This
+section only serves to point out the most important ones.
+
+To change how you are notified about incoming events, type M-x
+customize-group RET jabber-alerts.
+
+To activate logging of all chats, set jabber-history-enabled to t.  By
+default, history will be saved in ~/.jabber_global_message_log; make
+sure that this file has appropriate permissions.  Type M-x
+customize-group RET jabber-history for more options.
 
 File transfer
 =============
