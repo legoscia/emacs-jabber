@@ -399,7 +399,7 @@ submit a bug report, including the information below.
     (goto-address)
     (emacs-version t)
     (insert "\n\nThe following couldn't be parsed:\n")
-    (insert-buffer (process-buffer *jabber-connection*))
+    (insert-buffer-substring (process-buffer *jabber-connection*))
     (switch-to-buffer (current-buffer)))
   (jabber-disconnect))
 
