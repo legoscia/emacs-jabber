@@ -129,7 +129,7 @@ there are unread messages which otherwise would be lost."
 (defvar jabber-activity-mode-string ""
   "The mode string for jabber activity")
 
-(defvar jabber-actitity-count-string "0"
+(defvar jabber-activity-count-string "0"
   "Number of active JIDs as a string.")
 
 (defvar jabber-activity-update-hook nil
