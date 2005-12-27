@@ -60,7 +60,7 @@
   (interactive)
 
   (when jabber-keepalive-timer
-    (cancel-timer jabber-keepalive-timer)
+    (jabber-cancel-timer jabber-keepalive-timer)
     (setq jabber-keepalive-timer nil)))
 
 (defun jabber-keepalive-do ()
@@ -79,12 +79,12 @@
 
 (defun jabber-keepalive-got-response (&rest args)
   (message "%s: got keepalive response" (current-time-string))
-  (cancel-timer jabber-keepalive-timeout-timer)
+  (jabber-cancel-timer jabber-keepalive-timeout-timer)
   (setq jabber-keepalive-timeout-timer nil))
 
 (defun jabber-keepalive-timeout ()
   (message "%s: keepalive timeout, connection considered lost" (current-time-string))
-  (cancel-timer jabber-keepalive-timer)
+  (jabber-cancel-timer jabber-keepalive-timer)
   (setq jabber-keepalive-timer nil)
 
   (run-hooks jabber-lost-connection-hook)

@@ -229,7 +229,7 @@ tag, or nil if we're connecting to a pre-XMPP server."
   "Re-initialise jabber package variables.
 Call this function after disconnection."
   (when jabber-choked-timer
-    (cancel-timer jabber-choked-timer)
+    (jabber-cancel-timer jabber-choked-timer)
     (setq jabber-choked-timer nil))
 
   (when (get-buffer jabber-roster-buffer)

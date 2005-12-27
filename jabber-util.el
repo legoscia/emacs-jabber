@@ -84,6 +84,14 @@ properties to add to the result."
     (+ (* 65536.0 (car specified-time))
        (cadr specified-time))))
 
+(cond
+ ((fboundp 'cancel-timer)
+  (defalias 'jabber-cancel-timer 'cancel-timer))
+ ((fboundp 'delete-itimer)
+  (defalias 'jabber-cancel-timer 'delete-itimer))
+ (t
+  (error "No `cancel-timer' function found")))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
   (when (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
