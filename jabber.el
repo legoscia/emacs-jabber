@@ -102,6 +102,14 @@
 (require 'jabber-vcard)
 (require 'jabber-events)
 
+;; XXX: automate this some time
+(autoload 'jabber-export-roster "jabber-export"
+  "Create buffer from which roster can be exported to a file."
+  t)
+(autoload 'jabber-import-roster "jabber-export"
+  "Create buffer for roster import from FILE."
+  t)
+
 (defvar *jabber-current-status* ""
   "the users current presence staus")
 
