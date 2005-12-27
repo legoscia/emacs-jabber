@@ -49,6 +49,8 @@ this permission notice are preserved on all copies.
 * Personal information::        
 * Useful features::             
 * Message history::             
+* Message events::              
+* Roster import and export::    
 * Customization::               
 * Hacking and extending::       
 * Protocol support::            
@@ -98,6 +100,10 @@ jabber.el.  If you have used Jabber before and are familiar with the
 terminology, you might find it a bit too basic --- in that case, just
 skim it, making sure to pick up the commands mentioned.
 
+There are a handful of global keybindings for common commands.  They
+start with @kbd{C-x C-j}, and you can get a list of them by typing
+@kbd{C-x C-j C-h}.
+
 @menu
 * Connecting::                  
 * Chatting::                    
@@ -129,10 +135,10 @@ things you might have to change.}  Save your changes, and type
 If you do not yet have a Jabber account, you can register one.  Enter
 your desired username for @code{jabber-username} and the server you wish
 to use for @code{jabber-server}, save, and type @kbd{C-u M-x
-jabber-connect}.  If the server supports in-band registration, you will
-be presented with a registration form to fill out and send.  There the
-username you chose will be prefilled.  Don't change it, otherwise
-jabber.el will be confused.
+jabber-connect} or @kbd{C-u C-x C-j C-c}.  If the server supports
+in-band registration, you will be presented with a registration form to
+fill out and send.  There the username you chose will be prefilled.
+Don't change it, otherwise jabber.el will be confused.
 
 If you successfully connect, jabber.el will download your roster and
 display it in a buffer called @code{*-jabber-*}.
@@ -141,7 +147,7 @@ By default, you will appear as ``online'' to your contacts.  To change
 this to e.g. ``away'', type @kbd{M-x jabber-send-presence}.
 @xref{Presence}, for more information.
 
-To disconnect, type @kbd{M-x jabber-disconnect}.
+To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
@@ -160,8 +166,9 @@ bring up the ``chat menu'' by typing @kbd{C-c C-c}.  If you do the
 latter while point is on a roster entry, that entry will be the
 default value when you are asked for whom to chat with.
 
-You can also use the function @code{jabber-chat-with}, which is what
-the menu item is bound to.
+You can also use the function @code{jabber-chat-with}, which is what the
+menu item is bound to.  This function is bound to @kbd{C-x C-j C-j} in
+the global keymap.
 
 Now, try opening a chat with someone.  A buffer named
 @code{*-jabber-chat-:-@var{person}-*} will be created and selected.
@@ -606,6 +613,7 @@ interface and do other useful things.
 * Keepalive::                   
 * Tracking activity::           
 * Watch buddies::               
+* Spell checking::              
 @end menu
 
 @node Modeline status, Keepalive, Useful features, Useful features
@@ -662,6 +670,8 @@ respectively.
 @findex jabber-activity-mode
 @vindex jabber-activity-make-strings
 @vindex jabber-activity-query-unread
+@vindex jabber-activity-count-in-title
+@vindex jabber-activity-count-in-title-format
 
 When you're working on something important you might want to delay
 responding to incoming messages.  However, when you're done working,
@@ -670,7 +680,7 @@ of buffers in your Emacs session, and a jabber chat buffer can easily
 get lost.
 
 When you type @kbd{M-x jabber-activity-mode} Emacs starts keeping
-track of the buddies which have messages you since last you visited
+track of the buddies which have messaged you since last you visited
 their buffer, and will display them in mode line.  As soon as you
 visit their buffer they disappear from the mode line, indicating that
 you've read their message.
@@ -683,7 +693,18 @@ If you try to exit Emacs while you still have unread messages, you
 will be notified and asked about this.  If you don't like that, set
 @code{jabber-activity-query-unread} to nil.
 
-@node Watch buddies,  , Tracking activity, Useful features
+If you want to display the number of unread buffers in the frame title,
+set @code{jabber-activity-count-in-title} to t.  The format of the
+number can be changed through
+@code{jabber-activity-count-in-title-format}.
+
+For complete customizability, write a hook function for
+@code{jabber-activity-update-hook}.  From that function, you can take
+action based on @code{jabber-activity-jids},
+@code{jabber-activity-mode-string}, and
+@code{jabber-activity-count-string}.
+
+@node Watch buddies, Spell checking, Tracking activity, Useful features
 @section Watch buddies
 
 @cindex watch
@@ -701,7 +722,18 @@ online.  jabber.el will remember this for the rest of your Emacs
 session (it's not saved to disk, though), but if you want to get rid
 of it, type @kbd{M-x jabber-watch-remove}.
 
-@node Message history, Customization, Useful features, Top
+@node Spell checking,  , Watch buddies, Useful features
+@section Spell checking
+
+You can activate spell checking in a chat buffer with @kbd{M-x
+flyspell-mode}.  It will check only what you are currently writing, not
+what you receive or what you have already sent.  You may want to add
+@code{flyspell-mode} to @code{jabber-chat-mode-hook}.
+
+For more information about Emacs spell checking, @xref{Spelling, ,
+Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
+
+@node Message history, Message events, Useful features, Top
 @chapter Message history
 
 @cindex history
@@ -755,7 +787,73 @@ presented with the per-contact history file strategy, history rotation
 works for both per-contact and global history logging strategies.
 
 
-@node Customization, Hacking and extending, Message history, Top
+@node Message events, Roster import and export, Message history, Top
+@chapter Message events
+
+@cindex composing
+@cindex delivered
+@cindex displayed
+@vindex jabber-events-request-these
+@vindex jabber-events-confirm-delivered
+@vindex jabber-events-confirm-displayed
+@vindex jabber-events-confirm-composing
+
+In the status line of the chat buffer, you can sometimes see
+notifications about the progress of the message you just sent.  These
+states are possible:
+
+@itemize @bullet
+@item
+Delivered to offline storage (the user will receive it on next logon)
+
+@item
+Delivered to user's client (but not necessarily displayed)
+
+@item
+Displayed to user
+
+@item
+User is composing a reply
+
+@end itemize
+
+The first state is only reported by servers; the other three are
+reported by clients.  jabber.el can report all three of them, and can
+display all four; not all clients support all states, though.
+
+If you don't want jabber.el to send out this information about you, set
+the variables @code{jabber-events-confirm-delivered},
+@code{jabber-events-confirm-displayed}, and/or
+@code{jabber-events-confirm-composing} to nil.  You can make jabber.el
+not to request such information by customizing
+@code{jabber-events-request-these}.
+
+@node Roster import and export, Customization, Message events, Top
+@chapter Roster import and export
+
+@findex jabber-export-roster
+@findex jabber-import-roster
+@cindex export roster
+@cindex import roster
+
+Your roster is saved on the Jabber server, and usually not in the
+client.  However, you might want to save the roster to a file anyway.
+The most common reason for this is probably to copy it to another
+account.
+
+To export your roster to a file, type @kbd{M-x jabber-export-roster}.
+A buffer will appear in which you can edit the data to be exported.
+Changes done in that buffer will not affect your real roster.
+
+To import your roster from a file, type @kbd{M-x jabber-import-roster}.
+You will be able to edit the data before importing it.  Items not in the
+roster will be added; items in the roster will be modified to match
+imported data.  Subscriptions will be updated.
+
+The format of the roster files is the XML used by roster pushes in the
+XMPP protocol, in UTF-8 encoding.
+
+@node Customization, Hacking and extending, Roster import and export, Top
 @chapter Customization
 
 @findex jabber-customize
@@ -1035,6 +1133,9 @@ etc.
 @node Standard alerts, Presence alerts, Customizing alerts, Customizing alerts
 @subsection Standard alerts
 
+@cindex alerts
+@cindex scroll
+
 Eight alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
 
@@ -1078,6 +1179,12 @@ manager.
 The @code{festival} alerts speak the message using the Emacs interface
 of the Festival speech synthesis system (see
 @uref{http://www.cstr.ed.ac.uk/projects/festival/}).
+
+Additionally, for one-to-one and MUC messages, there are @code{scroll}
+alerts (enabled by default), that aim to do the right thing with chat
+buffers that are visible but not active.  Sometimes you want point to
+scroll down, and sometimes not.  These functions should do what you
+mean; if they don't, it's a bug.
 
 Some of these functions are in the @file{jabber-alert.el} file, and the
 others are in their own files.  You can use them as templates or

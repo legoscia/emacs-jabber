@@ -8,7 +8,6 @@ See variable `jabber-connection-type'.
 ** Chat buffers rewritten
 New modular design gives increased extensibility.
 *** Received URLs are displayed
-(Not documented yet)
 *** Long lines are filled
 See jabber-chat-fill-long-lines.
 *** Rare timestamps are printed by default
@@ -30,15 +29,12 @@ Both sending and receiving invitiations is supported.
 
 ** Global key bindings
 Global keymap under C-x C-j.
-(Not documented yet)
 
 ** Vcard viewer and editor
 
 ** Roster export
-(Not documented yet)
 
 ** Message events (JEP-0022)
-(Not documented yet)
 
 ** Easy way to define external notifiers
 See define-jabber-alert.  Alerts for Festival (speech synthesis),
@@ -46,7 +42,6 @@ Sawfish, and xmessage added.
 
 ** Activity mode improved
 Can now display count in frame title.  Update hook added.
-(Not documented yet)
 
 ** Roster display optimized
 
@@ -57,7 +52,6 @@ Call jabber-menu to have it there.
 
 ** Flyspell in chat buffers
 Flyspell will only spell check what you're currently writing.
-(Not documented yet)
 
 ** Different time formats for instant and delayed messages
 See `jabber-chat-time-format' and `jabber-chat-delayed-time-format'.
@@ -65,7 +59,6 @@ You can see the complete timestamp in a tooltip by holding the mouse
 over the prompt.
 
 ** Chat buffers in inactive windows are scrolled
-(Not documented yet)
 
 ** Roster is sorted by name also
 
