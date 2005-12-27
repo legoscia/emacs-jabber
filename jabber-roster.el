@@ -243,10 +243,10 @@ See `jabber-sort-order' for order used."
 
 (defun jabber-roster-sort-by-displayname (a b)
   "Sort roster items by displayed name."
-  (let ((comparison (compare-strings (jabber-jid-displayname a) 0 nil 
-				     (jabber-jid-displayname b) 0 nil t)))
-    ;; compare-strings returns t when strings are equal.
-    (if (eq comparison t) 0 comparison)))
+  (cond
+    ((string< a b) -1)
+    ((string> a b) 1)
+    (t 0)))
 
 (defun jabber-fix-status (status)
   "Make status strings more readable"
