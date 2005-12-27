@@ -244,9 +244,9 @@ See `jabber-sort-order' for order used."
 (defun jabber-roster-sort-by-displayname (a b)
   "Sort roster items by displayed name."
   (cond
-    ((string< a b) -1)
-    ((string> a b) 1)
-    (t 0)))
+   ((string-lessp a b) -1)
+   ((string= a b) 0)
+   (t 1)))
 
 (defun jabber-fix-status (status)
   "Make status strings more readable"
