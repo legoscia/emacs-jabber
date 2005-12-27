@@ -38,8 +38,8 @@ With prefix argument, remove it."
   '("Disconnect" . jabber-disconnect))
 
 (define-key jabber-menu
-  [jabber-menu-browse]
-  '("Browse" . jabber-get-browse))
+    [jabber-menu-roster]
+  '("Switch to roster" . jabber-switch-to-roster-buffer))
 
 (define-key jabber-menu
   [jabber-menu-customize]
@@ -66,11 +66,21 @@ With prefix argument, remove it."
 
 ;;;(dolist (presence jabber-presence-strings)
 ;;;  (jabber-define-status-key (cdr presence) (car presence)))
-(jabber-define-status-key "Online" "")
+;;(jabber-define-status-key "Online" "")
+
 (jabber-define-status-key "Chatty" "chat")
-(jabber-define-status-key "Away" "away")
-(jabber-define-status-key "Extended Away" "xa")
+;;(jabber-define-status-key "Away" "away")
+;;(jabber-define-status-key "Extended Away" "xa")
 (jabber-define-status-key "Do not Disturb" "dnd")
+(define-key jabber-menu
+    [jabber-menu-status jabber-menu-status-xa]
+  '("Extended Away" . jabber-send-xa-presence))
+(define-key jabber-menu
+    [jabber-menu-status jabber-menu-status-away]
+  '("Away" . jabber-send-away-presence))
+(define-key jabber-menu
+    [jabber-menu-status jabber-menu-status-online]
+  '("Online" . jabber-send-default-presence))
 
 (defvar jabber-jid-chat-menu nil
   "Menu items for chat menu")
