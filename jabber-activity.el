@@ -365,6 +365,9 @@ With a numeric arg, enable this display if arg is positive."
 	    (delete jabber-activity-count-in-title-format
 		    icon-title-format)))))
 
+;; XXX: define-minor-mode should probably do this for us, but it doesn't.
+(if jabber-activity-mode (jabber-activity-mode 1))
+
 (provide 'jabber-activity)
 
 ;; arch-tag: 127D7E42-356B-11D9-BE1E-000A95C2FCD0
