@@ -1,3 +1,11 @@
+emacs-jabber (0.7) unstable; urgency=low
+
+  * SSL connections
+  * Roster display optimized
+  * Uncountable minor features and bugfixes
+
+ -- Magnus Henoch <mange@freemail.hu>  Tue, 27 Dec 2005 12:55:10 +0100
+
 emacs-jabber (0.6.1) unstable; urgency=low
 
   * Message history
