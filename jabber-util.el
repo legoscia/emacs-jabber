@@ -188,7 +188,12 @@ the default is inferred from context."
 (defun jabber-read-passwd (&optional prompt)
   "Read Jabber password, either from customized variable or from minibuffer.
 See `jabber-password'."
-  (or jabber-password (read-passwd (or prompt "Jabber password: "))))
+  (if jabber-password
+      ;; Need to copy the password, as sasl.el wants to erase it.  The
+      ;; variable jabber-password is a high-convenience low-security
+      ;; alternative anyway.
+      (copy-sequence jabber-password)
+    (read-passwd (or prompt "Jabber password: "))))
 
 (defun jabber-iq-query (xml-data)
   "Return the query part of an IQ stanza.
