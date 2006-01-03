@@ -46,6 +46,9 @@
 (defvar *jabber-authenticated* nil
   "boolean - are we authenticated")
 
+(defvar *jabber-encrypted* nil
+  "boolean - is the connection encrypted")
+
 (defvar *jabber-disconnecting* nil
   "boolean - are we in the process of disconnecting by free will")
 
@@ -241,6 +244,7 @@ Call this function after disconnection."
   (jabber-clear-roster)
   (setq *xmlq* "")
   (setq *jabber-authenticated* nil)
+  (setq *jabber-encrypted* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (setq jabber-session-id nil)
@@ -410,14 +414,22 @@ submit a bug report, including the information below.
 					   (presence . jabber-presence-chain)
 					   (message . jabber-message-chain)
 					   (stream:error . jabber-stream-error-chain)))))))
-    ;; Special treatment of the stream:features tag.  The first time we get it,
-    ;; it means that we should authenticate.  The second time, we should
-    ;; establish a session.  (The zeroth time it's STARTTLS, but that's not
-    ;; implemented yet.)
+
+    ;; Special treatment of the stream:features tag, which we get up
+    ;; to three times, in the following order:
+    ;; - To initiate STARTTLS (we can skip this step)
+    ;; - To authenticate
+    ;; - To establish a session
     (if (eq tag 'stream:features)
-	(if *jabber-authenticated*
-	    (jabber-bind-and-establish-session xml-data)
-	  (funcall jabber-call-on-connection xml-data))
+	(cond
+	 ((and (not *jabber-encrypted*)
+	       (eq jabber-connection-type 'starttls)
+	       (jabber-xml-get-children xml-data 'starttls))
+	  (jabber-starttls-initiate))
+	 (*jabber-authenticated*
+	  (jabber-bind-and-establish-session xml-data))
+	 (t
+	  (funcall jabber-call-on-connection xml-data)))
       (if jabber-short-circuit-input
 	  (funcall jabber-short-circuit-input xml-data)
 	(dolist (f functions)

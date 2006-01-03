@@ -3,6 +3,9 @@
 ;; Copyright (C) 2005 - Georg Lehner - jorge@magma.com.ni
 ;; mostly inspired by Gnus.
 
+;; Copyright (C) 2005 - Carl Henrik Lunde - chlunde+jabber+@ping.uio.no
+;; (starttls)
+
 ;; This file is a part of jabber.el.
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,6 +30,8 @@
 ;; Try two different TLS/SSL libraries, but don't fail if none available.
 (or (ignore-errors (require 'tls))
     (ignore-errors (require 'ssl)))
+
+(ignore-errors (require 'starttls))
 
 ;; TODO: Add custom flag, to not complain about plain-text passwords
 ;;       in encrypted connections
@@ -57,6 +62,7 @@ and 5223 for SSL connections."
 (defcustom jabber-connection-type 'network
   "Type of connection to the jabber server, ssl or network most likely."
   :type '(radio (const :tag "Encrypted connection, SSL" ssl)
+		(const :tag "Negotiate encrypted connection when available (STARTTLS)" starttls)
 		(const :tag "Standard TCP/IP connection" network))
   :group 'jabber-conn)
 
@@ -72,6 +78,7 @@ nil means prefer gnutls but fall back to openssl.
 
 (defvar jabber-connect-methods
   '((network jabber-network-connect jabber-network-send)
+    (starttls jabber-starttls-connect jabber-ssl-send)
     (ssl jabber-ssl-connect jabber-ssl-send))
   "Alist of connection methods and functions.
 First item is the symbol naming the method.
@@ -121,6 +128,7 @@ Third item is the send function.")
 	     'open-ssl-stream)
 	    (t
 	     (error "Neither TLS nor SSL connect functions available")))))
+      (setq *jabber-encrypted* t)
       (setq *jabber-connection*
 	    (funcall connect-function
 		     "jabber"
@@ -133,6 +141,49 @@ Third item is the send function.")
    it seems we need to send a linefeed afterwards"
   (process-send-string *jabber-connection* string)
   (process-send-string *jabber-connection* "\n"))
+
+(defun jabber-starttls-connect ()
+  "connect via GnuTLS to a Jabber Server"
+    (let ((coding-system-for-read 'utf-8)
+	  (coding-system-for-write 'utf-8))
+      (unless (fboundp 'starttls-open-stream)
+	(error "starttls.el not available"))
+      (setq *jabber-connection*
+	    (starttls-open-stream
+	     "jabber"
+	     (get-buffer-create jabber-process-buffer)
+	     (or jabber-network-server jabber-server)
+	     (or jabber-port 5222)))))
+
+(defun jabber-starttls-initiate ()
+  "Initiate a starttls connection"
+  (setq jabber-short-circuit-input #'jabber-starttls-process-input)
+  (jabber-send-sexp
+   '(starttls ((xmlns . "urn:ietf:params:xml:ns:xmpp-tls")))))
+
+(defun jabber-starttls-process-input (xml-data)
+  "Process result of starttls request"
+  (cond
+   ((eq (car xml-data) 'proceed)
+    (message "STARTTLS result:\n%s\n" (starttls-negotiate *jabber-connection*)))
+   ((eq (car xml-data) 'failure)
+    (ding)
+    (message "STARTTLS negotiation failure: %s"
+	     (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
+    (sit-for 3)
+    (jabber-disconnect)))
+   
+  (setq jabber-short-circuit-input nil)
+  (setq *jabber-encrypted* t)
+
+  ;; Now, we send another stream header.
+  (funcall jabber-conn-send-function
+	   (concat
+	    "<stream:stream to='"
+	    jabber-server
+	    "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"))
+  ;; now see what happens
+  )
 
 (provide 'jabber-conn)
 ;; arch-tag: f95ec240-8cd3-11d9-9dbf-000a95c2fcd0

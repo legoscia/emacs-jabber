@@ -75,7 +75,7 @@ interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
 
-jabber.el does not yet support STARTTLS, GPG, sending and receiving
+jabber.el does not yet support GPG, sending and receiving
 roster items, and various other things.
 
 @menu
@@ -916,6 +916,7 @@ priority during a session with @code{jabber-send-presence}.
 @vindex jabber-connection-ssl-program
 @cindex SSL
 @cindex TLS
+@cindex STARTTLS
 
 @code{jabber-network-server} is the hostname or IP address of your
 server.  If it is set to @code{nil}, jabber.el will use the name in
@@ -928,15 +929,18 @@ connection method.
 @code{jabber-connection-type} specifies what kind of connection to
 use.  @code{network} means normal unencrypted network connection
 (usually on port 5222), and @code{ssl} means encrypted connection
-through GnuTLS or OpenSSL (port 5223).  You can change the settings of
-the encryption program through @kbd{M-x customize-group RET tls} or
-@kbd{M-x customize-group RET ssl}, respectively.
+through GnuTLS or OpenSSL (port 5223), while @code{starttls} will
+initiate an unencrypted connection and switch to encrypted if offered
+by the server.  You can change the settings of the encryption program
+through @kbd{M-x customize-group RET tls} or @kbd{M-x customize-group
+RET ssl}, respectively.
 
 By default, GnuTLS will be used if the @code{tls} library is available,
 and if that fails, OpenSSL will be used if the @code{ssl} library is
 available.  You can force the use of either program by setting
 @code{jabber-connection-ssl-program} to @code{gnutls} or @code{openssl},
-respectively.
+respectively.  If you use @code{starttls} the library with the same name is
+required, and it depends on the GnuTLS command line client.
 
 @node Miscellaneous settings, Customizing the roster buffer, Connection settings, Customization
 @section Miscellaneous settings
@@ -1640,8 +1644,6 @@ jabber.el.
 @section RFC 3920 (XMPP-CORE)
 
 Most of RFC 3920 is supported, with the following exceptions.
-
-The STARTTLS feature is not supported.
 
 SASL is supported only when an external SASL library from FLIM or Gnus
 is present.  As SASL is an essential part to XMPP, jabber.el will send
