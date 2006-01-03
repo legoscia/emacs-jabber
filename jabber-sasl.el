@@ -55,6 +55,15 @@
 	    (lambda (tag)
 	      (car (jabber-xml-node-children tag)))
 	    (jabber-xml-get-children mechanisms 'mechanism)))))
+
+  ;; Watch for plaintext logins over unencrypted connections
+  (when (and (not *jabber-encrypted*)
+	     (member (sasl-mechanism-name jabber-sasl-mechanism)
+		     '("PLAIN" "LOGIN"))
+	     (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
+    (error "Login cancelled"))
+
+  ;; No suitable mechanism?
   (if (null jabber-sasl-mechanism)
       ;; Maybe we can use legacy authentication
       (let ((node (find "http://jabber.org/features/iq-auth"

@@ -45,7 +45,9 @@
 	  (let ((passwd (jabber-read-passwd)))
 	    (if passwd
 		(setq auth `(digest () ,(sha1 (concat jabber-session-id passwd))))))
-	(if (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")
+	;; Plaintext passwords - allow on encrypted connections
+	(if (or *jabber-encrypted*
+		(yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
 	    (let ((passwd (jabber-read-passwd)))
 	      (if passwd
 		  (setq auth `(password () ,passwd))))))
