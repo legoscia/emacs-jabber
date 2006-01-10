@@ -932,8 +932,8 @@ use.  @code{network} means normal unencrypted network connection
 through GnuTLS or OpenSSL (port 5223), while @code{starttls} will
 initiate an unencrypted connection and switch to encrypted if offered
 by the server.  You can change the settings of the encryption program
-through @kbd{M-x customize-group RET tls} or @kbd{M-x customize-group
-RET ssl}, respectively.
+through @kbd{M-x customize-group RET tls}, @kbd{M-x customize-group RET starttls}
+or @kbd{M-x customize-group RET ssl}, respectively.
 
 By default, GnuTLS will be used if the @code{tls} library is available,
 and if that fails, OpenSSL will be used if the @code{ssl} library is
