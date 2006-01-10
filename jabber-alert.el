@@ -278,6 +278,11 @@ Examples:
   :type 'boolean
   :group 'jabber-alerts)
 
+(defcustom jabber-muc-alert-self nil
+  "If nil, don't display MUC alerts for your own messages."
+  :type 'boolean
+  :group 'jabber-alerts)
+
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
   (when proposed-alert
@@ -319,8 +324,10 @@ Examples:
   (when (or jabber-message-alert-same-buffer
 	    (not (memq (selected-window) (get-buffer-window-list buffer))))
     (if nick
-	(format "Message from %s in %s" nick (jabber-jid-displayname
-					      group))
+	(when (or jabber-muc-alert-self
+		  (not (string= nick (cdr (assoc group *jabber-active-groupchats*)))))
+	  (format "Message from %s in %s" nick (jabber-jid-displayname
+						group)))
       (format "Message in %s" (jabber-jid-displayname group)))))
 
 (defun jabber-muc-wave (nick group buffer text proposed-alert)

@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* New features in jabber.el 0.8
+
+** MUC features
+*** Don't display alerts for your own messages
+See jabber-muc-alert-self.
+(Not documented yet)
+
 * New features in jabber.el 0.7
 
 ** SSL connections possible
