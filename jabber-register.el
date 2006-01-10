@@ -118,14 +118,13 @@ CLOSURE-DATA is either 'success or 'error."
   (setq jabber-register-p nil)
   (cond
    ((eq closure-data 'success)
-    (message "Registration successful.  Your JID is %s@%s."
+    (message "Registration successful.  Your JID is %s@%s.  You may now connect to the server."
 	     jabber-username jabber-server)
     (sit-for 3)
-    (jabber-get-auth jabber-server))
+    (jabber-disconnect))
    (t
     (jabber-report-success xml-data "Account registration")
-    (sit-for 3)
-    (jabber-disconnect))))
+    (sit-for 3))))
 
 (defun jabber-remove-register (&rest ignore)
   "Cancel registration.  See `jabber-process-register-or-search'."
