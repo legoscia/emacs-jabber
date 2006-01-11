@@ -115,7 +115,6 @@
 (defun jabber-process-register-secondtime (xml-data closure-data)
   "Receive registration success or failure.
 CLOSURE-DATA is either 'success or 'error."
-  (setq jabber-register-p nil)
   (cond
    ((eq closure-data 'success)
     (message "Registration successful.  Your JID is %s@%s.  You may now connect to the server."
