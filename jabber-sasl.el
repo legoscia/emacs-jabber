@@ -56,13 +56,6 @@
 	      (car (jabber-xml-node-children tag)))
 	    (jabber-xml-get-children mechanisms 'mechanism)))))
 
-  ;; Watch for plaintext logins over unencrypted connections
-  (when (and (not *jabber-encrypted*)
-	     (member (sasl-mechanism-name jabber-sasl-mechanism)
-		     '("PLAIN" "LOGIN"))
-	     (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
-    (error "Login cancelled"))
-
   ;; No suitable mechanism?
   (if (null jabber-sasl-mechanism)
       ;; Maybe we can use legacy authentication
@@ -75,6 +68,13 @@
 	      (setq jabber-short-circuit-input nil)
 	      (jabber-get-auth jabber-server))
 	  (error "No suitable SASL mechanism found")))
+
+    ;; Watch for plaintext logins over unencrypted connections
+    (when (and (not *jabber-encrypted*)
+	       (member (sasl-mechanism-name jabber-sasl-mechanism)
+		       '("PLAIN" "LOGIN"))
+	       (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
+      (error "Login cancelled"))
 
     ;; Start authentication.
     (setq jabber-sasl-client (sasl-make-client jabber-sasl-mechanism jabber-username "xmpp" jabber-server))
