@@ -24,6 +24,8 @@
 (require 'jabber-si-server)
 (require 'jabber-si-client)
 
+(eval-when-compile (require 'cl))
+
 (defvar jabber-socks5-pending-sessions nil
   "List of pending sessions.
 
@@ -265,8 +267,9 @@ This function simply sends a request; the response is handled elsewhere."
 						  (cons 'port (jabber-xml-get-attribute streamhost 'port)))))
 				  (cdr proxy)))
 			     jabber-socks5-proxies-data))
-		  `(lambda (xml-data closure-data)
-		     (jabber-socks5-client-2 xml-data ,jid ,sid ,profile-function)) nil
+		  (lexical-let ((jid jid) (sid sid) (profile-function profile-function))
+		    (lambda (xml-data closure-data)
+		      (jabber-socks5-client-2 xml-data jid sid profile-function))) nil
 		  ;; TODO: error handling
 		  #'jabber-report-success "SOCKS5 negotiation"))
 
@@ -292,8 +295,10 @@ This function simply sends a request; the response is handled elsewhere."
 		    `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
 			     (sid . ,sid))
 			    (activate () ,jid))
-		    `(lambda (xml-data closure-data)
-		       (jabber-socks5-client-3 xml-data ,jid ,sid ,profile-function ,connection)) nil
+		    (lexical-let ((jid jid) (sid sid) (profile-function profile-function)
+				  (connection connection))
+		      (lambda (xml-data closure-data)
+			(jabber-socks5-client-3 xml-data jid sid profile-function connection))) nil
 		       ;; TODO: report error to contact?
 		       #'jabber-report-success "Proxy activation")))
 
@@ -302,8 +307,10 @@ This function simply sends a request; the response is handled elsewhere."
   ;; The response from the proxy does not contain any interesting
   ;; information, beyond success confirmation.
 
-  (funcall profile-function jid sid `(lambda (data)
-				       (process-send-string ,proxy-connection data))))
+  (funcall profile-function jid sid 
+	   (lexical-let ((proxy-connection proxy-connection))
+	     (lambda (data)
+	       (process-send-string proxy-connection data)))))
 
 (provide 'jabber-socks5)
 
