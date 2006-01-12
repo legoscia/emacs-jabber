@@ -561,8 +561,13 @@ That does not include private messages in a groupchat."
 
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
-  (let ((from (jabber-xml-get-attribute presence 'from)))
-    (assoc (jabber-jid-user from) *jabber-active-groupchats*)))
+  (let ((from (jabber-xml-get-attribute presence 'from))
+	(muc-marker (find-if 
+		     (lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
+				   "http://jabber.org/protocol/muc#user"))
+		     (jabber-xml-get-children presence 'x))))
+    (or muc-marker
+	(assoc (jabber-jid-user from) *jabber-active-groupchats*))))
 
 (defun jabber-muc-parse-affiliation (x-muc)
   "Parse X-MUC in the muc#user namespace and return a plist.
