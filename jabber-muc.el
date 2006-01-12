@@ -29,6 +29,12 @@
 Keys are strings, the bare JID of the room.
 Values are strings.")
 
+(defvar jabber-pending-groupchats (make-hash-table)
+  "Hash table of groupchats and nicknames.
+Keys are JID symbols; values are strings.
+This table records the last nickname used to join the particular
+chat room.  Items are thus never removed.")
+
 (defvar jabber-muc-participants nil
   "alist of groupchats and participants
 Keys are strings, the bare JID of the room.
@@ -297,17 +303,21 @@ Return nil if nothing known about that combination."
      (list group (jabber-muc-read-my-nickname group))))
   ;; Remember that this is a groupchat _before_ sending the stanza.
   ;; The response might come quicker than you think.
-  (let ((whichgroup (assoc group *jabber-active-groupchats*)))
-    (if whichgroup
-	(setcdr whichgroup nickname)
-      (add-to-list '*jabber-active-groupchats* (cons group nickname))))
+
+  (puthash (jabber-jid-symbol group) nickname jabber-pending-groupchats)
   
   (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
 			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
 
-  (let ((buffer (jabber-muc-create-buffer group)))
-    ;; We don't want to switch to autojoined groupchats
-    (when (interactive-p)
+  ;; There, stanza sent.  Now we just wait for the MUC service to
+  ;; mirror the stanza.  This is handled in
+  ;; `jabber-muc-process-presence', where a buffer will be created for
+  ;; the room.
+
+  ;; But if the user interactively asked to join, he/she probably
+  ;; wants the buffer to pop up right now.
+  (when (interactive-p)
+    (let ((buffer (jabber-muc-create-buffer group)))
       (switch-to-buffer buffer))))
 
 (defun jabber-muc-read-my-nickname (group)
@@ -533,7 +543,7 @@ That does not include private messages in a groupchat."
     (or 
      (string= type "groupchat")
      (and (string= type "error")
-	  (assoc from *jabber-active-groupchats*)))))
+	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats)))))
 
 (defun jabber-muc-sender-p (jid)
   "Return non-nil if JID is a full JID of an MUC participant."
@@ -562,12 +572,16 @@ That does not include private messages in a groupchat."
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
   (let ((from (jabber-xml-get-attribute presence 'from))
+	(type (jabber-xml-get-attribute presence 'type))
 	(muc-marker (find-if 
 		     (lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
 				   "http://jabber.org/protocol/muc#user"))
 		     (jabber-xml-get-children presence 'x))))
+    ;; This is MUC presence if it has an MUC-namespaced tag...
     (or muc-marker
-	(assoc (jabber-jid-user from) *jabber-active-groupchats*))))
+	;; ...or if it is error presence from a room we tried to join.
+	(and (string= type "error")
+	     (gethash (jabber-jid-symbol from) jabber-pending-groupchats)))))
 
 (defun jabber-muc-parse-affiliation (x-muc)
   "Parse X-MUC in the muc#user namespace and return a plist.
@@ -683,35 +697,36 @@ Return nil if X-MUC is nil."
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
       ;; are we leaving?
-      (if (string= nickname (cdr (assoc group *jabber-active-groupchats*)))
-	  (progn
+      (if (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats))
+	  (let ((message (cond
+			  ((string= type "error")
+			   (concat "Error entering room"
+				   (when error-node
+				     (concat ": " (jabber-parse-error error-node)))))
+			  ((equal status-code "301")
+			   (concat "You have been banned"
+				   (when actor (concat " by " actor))
+				   (when reason (concat " - '" reason "'"))))
+			  ((equal status-code "307")
+			   (concat "You have been kicked"
+				   (when actor (concat " by " actor))
+				   (when reason (concat " - '" reason "'"))))
+			  (t
+			   "You have left the chatroom"))))
 	    (jabber-muc-remove-groupchat group)
 	    ;; If there is no buffer for this groupchat, don't bother
 	    ;; creating one just to tell that user left the room.
 	    (let ((buffer (get-buffer (jabber-muc-get-buffer group))))
-	      (when buffer
-		(with-current-buffer buffer
-		  (jabber-chat-buffer-display 
-		   'jabber-muc-system-prompt
-		   nil
-		   '(insert)
-		   (cond
-		    ((string= type "error")
-		     (jabber-propertize
-		      (concat "Error entering room"
-			      (when error-node
-				(concat ": " (jabber-parse-error error-node))))
-		      'face 'jabber-chat-error))
-		    ((equal status-code "301")
-		     (concat "You have been banned"
-			     (when actor (concat " by " actor))
-			     (when reason (concat " - '" reason "'"))))
-		    ((equal status-code "307")
-		     (concat "You have been kicked"
-			     (when actor (concat " by " actor))
-			     (when reason (concat " - '" reason "'"))))
-		    (t
-		     "You have left the chatroom")))))))
+	      (if buffer
+		  (with-current-buffer buffer
+		    (jabber-chat-buffer-display 
+		     'jabber-muc-system-prompt
+		     nil
+		     '(insert)
+		     (if (string= type "error")
+			 (jabber-propertize message 'face 'jabber-chat-error)
+		       message)))
+		(message "%s: %s" (jabber-jid-displayname group) message))))
 	;; or someone else?
 	(jabber-muc-remove-participant group nickname)
 	(with-current-buffer (jabber-muc-create-buffer group)
@@ -735,6 +750,18 @@ Return nil if X-MUC is nil."
 	     (concat nickname " has left the chatroom")))))))
      (t 
       ;; someone is entering
+
+      (when (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats))
+	;; Our own nick?  We just succeeded in entering the room.
+	(let ((whichgroup (assoc group *jabber-active-groupchats*)))
+	  (if whichgroup
+	      (setcdr whichgroup nickname)
+	    (add-to-list '*jabber-active-groupchats* (cons group nickname)))))	
+
+      ;; Whoever enters, we create a buffer (if it didn't already
+      ;; exist), and print a notice.  This is where autojoined MUC
+      ;; rooms have buffers created for them.  We also remember some
+      ;; metadata.
       (let ((new-participant (not (jabber-muc-participant-plist group nickname)))
 	    (new-plist (jabber-muc-parse-affiliation x-muc)))
 	(jabber-muc-modify-participant group nickname new-plist)
