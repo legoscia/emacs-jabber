@@ -227,6 +227,7 @@ With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 @section Presence subscription
 
 @cindex Presence subscription
+@cindex Subscribing to someone's presence
 @findex jabber-send-subscription-request
 
 Having permission to view the presence status of a person is called
@@ -248,7 +249,7 @@ in the Roster menu.
 @node Roster buffer,  , Presence subscription, Basic operation
 @section The roster buffer
 
-@cindex Roster buffer
+@cindex Roster buffer, basics
 @cindex Menus
 @cindex Key bindings
 @findex jabber-display-roster
@@ -286,37 +287,42 @@ call @code{jabber-display-roster} manually.
 
 @cindex Groupchat
 @cindex MUC
-@findex jabber-groupchat-join
-@findex jabber-groupchat-leave
-@findex jabber-groupchat-get-config
-@findex jabber-muc-names
-@findex jabber-muc-set-role
-@findex jabber-muc-set-topic
+@cindex Chatrooms
 
 The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
 shown here.
 
+@findex jabber-groupchat-join
+@cindex Joining a groupchat
+@cindex Changing nickname
+@cindex Nickname, changing 
 To join a groupchat, type @kbd{M-x jabber-groupchat-join}.  You will
 be prompted for the groupchat to join, and your nickname in the
 groupchat.  This nickname doesn't need to have any correlation to your
 JID; in fact, groupchats are usually (but not always) configured such
 that only moderators can see your JID.  You can change your nickname
-with @kbd{M-x jabber-muc-nick}.
+with @kbd{M-x jabber-muc-nick}.  @xref{Automation}, for setting default 
+nicknames.
 
 Groupchat messages will be displayed in a buffer called
 @code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
 chat buffer.
 
-To change the topic of a groupchat, type @kbd{M-x
-jabber-muc-set-topic}.
+@cindex Topic, MUC
+@findex jabber-muc-set-topic
+To change the topic of a groupchat, type @kbd{M-x jabber-muc-set-topic}.
+The current topic is shown in the header line.
 
+@findex jabber-groupchat-leave
 To leave a groupchat, type @kbd{M-x jabber-groupchat-leave}.
 
+@findex jabber-groupchat-get-config
 If you are the owner of a groupchat, you can change its configuration
 by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
 will be rendered in new buffer.
 
+@findex jabber-muc-names
 To see which people are in a groupchat, type @kbd{M-x
 jabber-muc-names}.  This gives a list of nicknames, ``roles'',
 ``affiliations'', and possibly JIDs.  @xref{MUC Administration}, for
@@ -386,6 +392,23 @@ Private MUC messages use the same alerts as normal chat messages.
 @node MUC Administration,  , Private messages, Groupchat
 @section Administration
 
+Administration of a MUC room mostly consists of managing roles and
+affiliations.  Roles are temporary, and apply until the user leaves the
+room.  Affiliations are permanent, and based on JIDs.
+
+@subsection Roles
+
+@findex jabber-muc-set-role
+@cindex Kicking, MUC
+@cindex Voice, MUC
+@cindex Moderator, MUC
+@cindex Roles, MUC
+If you have moderator privileges, you can change the role of a
+participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
+the role to ``none''.  Granting and revoking voice are ``participant''
+and ``visitor'', respectively.  ``moderator'' gives moderator
+privileges, obviously.
+
 The possible roles are:
 
 @table @samp
@@ -403,6 +426,17 @@ private messages)
 Not in room.
 @end table
 
+@subsection Affiliations
+
+@findex jabber-muc-set-affiliation
+@cindex Affiliations, MUC
+@cindex Banning, MUC
+If you have admin or owner privileges, you can change the affiliation of
+a user with @kbd{M-x jabber-muc-set-affiliation}.  Affiliation is
+persistent, and based on JIDs.  Depending of your affiliation and the
+MUC implementation, you might not be allowed to perform all kinds of
+changes, and maybe not in one step.
+
 Affiliations are:
 
 @table @samp
@@ -413,27 +447,16 @@ Can destroy room, appoint admins, make people members, ban people.
 Can make people members or ban people.
 
 @item member
-Different privileges depending on room configuration (room may be
-members-only, or grant voice only to members)
+Can enter the room, and has voice by default.
 
 @item none
-Rights depend on room configuration.
+Rights depend on room configuration.  The room might be members-only, or
+grant voice only to members.
 
 @item outcast
 Banned from the room
 @end table
 
-If you have moderator privileges, you can change the role of a
-participant with @kbd{M-x jabber-muc-set-role}.  Kicking means setting
-the role to ``none''.  Granting and revoking voice are ``participant''
-and ``visitor'', respectively.  ``moderator'' gives moderator
-privileges, obviously.  The role of a participant is ephemeral, and
-disappears when leaving the room.
-
-If you have admin or owner privileges, you can change the affiliation of
-a user.  Affiliation is persistent, and based on JIDs.  Depending of
-your affiliation and the MUC implementation, you might not be allowed to
-perform all kinds of changes, and maybe not in one step.
 
 
 @node Services, Personal information, Groupchat, Top
@@ -498,6 +521,8 @@ should be replaced with something better, you are completely right.
 @cindex Changing password
 @cindex Gateway registration
 @cindex Password change
+@cindex Account removal
+@cindex Removing an account
 @findex jabber-get-register
 
 Some services, in particular user directories and gateways to legacy
@@ -587,6 +612,7 @@ self-explanatory.
 @chapter Personal information
 
 @cindex vCard
+@cindex Personal information
 @findex jabber-vcard-get
 @findex jabber-vcard-edit
 
@@ -619,7 +645,7 @@ interface and do other useful things.
 @node Modeline status, Keepalive, Useful features, Useful features
 @section Modeline status
 
-@cindex modeline
+@cindex Modeline
 @findex jabber-mode-line-mode
 @vindex jabber-mode-line-mode
 @vindex jabber-mode-line-compact
@@ -639,7 +665,8 @@ contacts, respectively.
 @node Keepalive, Tracking activity, Modeline status, Useful features
 @section Keepalive
 
-@cindex keepalive
+@cindex Keepalive
+@cindex Detecting lost connections
 @findex jabber-keepalive-start
 @findex jabber-keepalive-stop
 @vindex jabber-keepalive-interval
@@ -707,7 +734,8 @@ action based on @code{jabber-activity-jids},
 @node Watch buddies, Spell checking, Tracking activity, Useful features
 @section Watch buddies
 
-@cindex watch
+@cindex Watch
+@cindex Online notifications
 @findex jabber-watch-add
 @findex jabber-watch-remove
 
@@ -725,6 +753,9 @@ of it, type @kbd{M-x jabber-watch-remove}.
 @node Spell checking,  , Watch buddies, Useful features
 @section Spell checking
 
+@cindex flyspell
+@cindex Spell checking
+
 You can activate spell checking in a chat buffer with @kbd{M-x
 flyspell-mode}.  It will check only what you are currently writing, not
 what you receive or what you have already sent.  You may want to add
@@ -736,9 +767,9 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @node Message history, Message events, Useful features, Top
 @chapter Message history
 
-@cindex history
-@cindex backlog
-@cindex rotation
+@cindex History
+@cindex Backlog
+@cindex Rotation
 @vindex jabber-history-enabled
 @vindex jabber-global-history-filename
 @vindex jabber-use-global-history
@@ -790,9 +821,9 @@ works for both per-contact and global history logging strategies.
 @node Message events, Roster import and export, Message history, Top
 @chapter Message events
 
-@cindex composing
-@cindex delivered
-@cindex displayed
+@cindex Composing
+@cindex Delivered
+@cindex Displayed
 @vindex jabber-events-request-these
 @vindex jabber-events-confirm-delivered
 @vindex jabber-events-confirm-displayed
@@ -833,8 +864,8 @@ not to request such information by customizing
 
 @findex jabber-export-roster
 @findex jabber-import-roster
-@cindex export roster
-@cindex import roster
+@cindex Export roster
+@cindex Import roster
 
 Your roster is saved on the Jabber server, and usually not in the
 client.  However, you might want to save the roster to a file anyway.
@@ -883,6 +914,8 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @vindex jabber-resource
 @vindex jabber-default-priority
 @vindex jabber-nickname
+@cindex Username
+@cindex Resource
 
 @code{jabber-username} is the username part of your JID.
 
@@ -914,6 +947,8 @@ priority during a session with @code{jabber-send-presence}.
 @vindex jabber-port
 @vindex jabber-connection-type
 @vindex jabber-connection-ssl-program
+@cindex Connection settings
+@cindex Network settings
 @cindex SSL
 @cindex TLS
 @cindex STARTTLS
@@ -935,6 +970,8 @@ by the server.  You can change the settings of the encryption program
 through @kbd{M-x customize-group RET tls}, @kbd{M-x customize-group RET starttls}
 or @kbd{M-x customize-group RET ssl}, respectively.
 
+@cindex GnuTLS
+@cindex OpenSSL
 By default, GnuTLS will be used if the @code{tls} library is available,
 and if that fails, OpenSSL will be used if the @code{ssl} library is
 available.  You can force the use of either program by setting
@@ -964,7 +1001,9 @@ to enable it permanently.
 @vindex jabber-resource-line-format
 @vindex jabber-roster-buffer
 @vindex jabber-roster-show-bindings
+@cindex Roster buffer, customizing
 
+@cindex Sorting the roster
 @code{jabber-roster-sort-functions} controls how roster items are
 sorted.  By default, contacts are sorted first by presence, and then
 alphabetically by displayed name.
@@ -1012,27 +1051,26 @@ jabber-display-roster} after changing this variable to update the display.
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
 
-@vindex jabber-chat-time-format
-@vindex jabber-chat-delayed-time-format
-@vindex jabber-print-rare-time
-@vindex jabber-rare-time-format
-@vindex jabber-chat-local-prompt-format
-@vindex jabber-chat-foreign-prompt-format
-@vindex jabber-chat-prompt-local
-@vindex jabber-chat-prompt-foreign
-@vindex jabber-chat-header-line-format
-@vindex jabber-muc-header-line-format
-@vindex jabber-chat-fill-long-lines
 @cindex Chat buffer
 @cindex Timestamps
+@cindex Faces, chat buffer
 
 You can customize the look of the prompts in the chat buffer.  There
 are separate settings for local (i.e. your own messages) and foreign
 prompts.
 
+@vindex jabber-chat-text-local
+@vindex jabber-chat-text-foreign
+@code{jabber-chat-text-local} and @code{jabber-chat-text-foreign}
+determine the faces used for chat messages.
+
+@vindex jabber-chat-prompt-local
+@vindex jabber-chat-prompt-foreign
 @code{jabber-chat-prompt-local} and @code{jabber-chat-prompt-foreign}
 determine the faces used for the prompts.
 
+@vindex jabber-chat-local-prompt-format
+@vindex jabber-chat-foreign-prompt-format
 @code{jabber-chat-local-prompt-format} and
 @code{jabber-chat-foreign-prompt-format} determine what text is
 displayed in the prompts.  They are format strings, with the following
@@ -1049,11 +1087,13 @@ prompt, this is the username part of your JID.
 The bare JID of the user
 @end table
 
+@vindex jabber-chat-time-format
 @code{jabber-chat-time-format} defines how @code{%t} shows time.  Its
 format is identical to that passed to @code{format-time-string}.
 @xref{Time Conversion, , Time Conversion, elisp, GNU Emacs Lisp
 Reference Manual}.
 
+@vindex jabber-chat-delayed-time-format
 @code{jabber-chat-delayed-time-format} is used instead of
 @code{jabber-chat-time-format} for delayed messages (messages sent while
 you were offline, or fetched from history).  This way you can have short
@@ -1061,12 +1101,16 @@ timestamps everywhere except where you need long ones.  You can always
 see the complete timestamp in a tooltip by hovering over the prompt with
 the mouse.
 
-By default, timestamps are printed in the chat buffer every hour (at
+@vindex jabber-print-rare-time
+@vindex jabber-rare-time-format
+@vindex jabber-chat-text-localBy default, timestamps are printed in the chat buffer every hour (at
 ``rare'' times).  This can be toggled with
 @code{jabber-print-rare-time}.  You can customize the displayed time by
 setting @code{jabber-rare-time-format}.  Rare timestamps will be printed
 whenever time formatted by that format string would change.
 
+@vindex jabber-chat-header-line-format
+@vindex jabber-muc-header-line-format
 You can also customize the header line of chat buffers, by modifying
 the variable @code{jabber-chat-header-line-format}.  The format of
 that variable is the same as that of @code{mode-line-format} and
@@ -1074,6 +1118,8 @@ that variable is the same as that of @code{mode-line-format} and
 Format, elisp, GNU Emacs Lisp Reference Manual}.  For MUC buffers,
 @code{jabber-muc-header-line-format} is used instead.
 
+@vindex jabber-chat-fill-long-lines
+@cindex Filling long lines in chat buffer
 The variable @code{jabber-chat-fill-long-lines} controls whether long
 lines in the chat buffer are filled.
 
@@ -1137,8 +1183,8 @@ etc.
 @node Standard alerts, Presence alerts, Customizing alerts, Customizing alerts
 @subsection Standard alerts
 
-@cindex alerts
-@cindex scroll
+@cindex Alerts
+@cindex Scroll
 
 Eight alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
@@ -1306,32 +1352,35 @@ The info alert hooks take an extra argument, as could be expected.
 @node Hooks, Debug options, Customizing alerts, Customization
 @section Hooks
 
-@vindex jabber-post-connect-hook
-@vindex jabber-pre-disconnect-hook
-@vindex jabber-post-disconnect-hook
-@vindex jabber-lost-connection-hook
-
 jabber.el provides various hooks that you can use for whatever
 purpose.
 
 @table @code
+@vindex jabber-post-connect-hook
 @item jabber-post-connect-hook
 This hook is called after successful connection and authentication.
 By default it contains @code{jabber-send-default-presence}
 (@pxref{Presence}).
 
+@vindex jabber-lost-connection-hook
 @item jabber-lost-connection-hook
 This hook is called when you have been disconnected for unknown
 reasons.  Usually this isn't noticed for quite a long time.
 
+@vindex jabber-pre-disconnect-hook
 @item jabber-pre-disconnect-hook
 This hook is called just before voluntary disconnection.  This might
 be due to failed authentication, so check
 @code{*jabber-authenticated*} if you want to send a stanza.
 
+@vindex jabber-post-disconnect-hook
 @item jabber-post-disconnect-hook
 This hook is called after disconnection of any kind, possibly just
 after @code{jabber-lost-connection-hook}.
+
+@vindex jabber-chat-mode-hook
+@item jabber-chat-mode-hook
+This hook is called when a new chat buffer is created.
 
 @end table
 
@@ -1339,6 +1388,7 @@ after @code{jabber-lost-connection-hook}.
 @section Debug options
 
 @vindex jabber-debug-log-xml
+@cindex XML log
 
 These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
@@ -1612,6 +1662,8 @@ behaviour of downstream functions.
 
 @node Protocol support, Concept index, Hacking and extending, Top
 @appendix Protocol support
+
+@cindex Supported protocols
 
 These are the protocols currently supported (in full or partially) by
 jabber.el.
