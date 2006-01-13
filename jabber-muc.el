@@ -209,11 +209,81 @@ Return nil if nothing known about that combination."
 	  ;; and maybe this participant is already in the list
 	  (if participant
 	      ;; if so, just update role, affiliation, etc.
-	      ;; XXX: calculate delta and report to user? e.g. "X was given voice"
 	      (setf (cdr participant) new-plist)
 	    (push (cons nickname new-plist) (cdr participants))))
       ;; or we don't
       (push (cons group (list (cons nickname new-plist))) jabber-muc-participants))))
+
+(defun jabber-muc-report-delta (nickname old-plist new-plist reason actor)
+  "Compare OLD-PLIST and NEW-PLIST, and return a string explaining the change.
+Return nil if nothing noteworthy has happened.
+NICKNAME is the user experiencing the change.  REASON and ACTOR, if non-nil,
+are the corresponding presence fields.
+
+This function is only concerned with presence stanzas resulting
+in the user entering/staying in the room."
+  ;; The keys in the plist are affiliation, role and jid.
+  (cond
+   ((null old-plist)
+    ;; User enters the room
+    (concat nickname " enters the room ("
+	    (plist-get new-plist 'role)
+	    (unless (string= (plist-get new-plist 'affiliation) "none")
+	      (concat ", " (plist-get new-plist 'affiliation)))
+	    ")"))
+
+   ;; If affiliation changes, the role change is usually the logical
+   ;; one, so don't report it separately.
+   ((not (string= (plist-get old-plist 'affiliation)
+		  (plist-get new-plist 'affiliation)))
+    (let ((actor-reason (concat (when actor
+				  (concat " by " actor))
+				(when reason
+				  (concat ": " reason))))
+	  (from (plist-get old-plist 'affiliation))
+	  (to (plist-get new-plist 'affiliation)))
+      ;; There are many ways to express these transitions in English.
+      ;; This one favors eloquence over regularity and consistency.
+      (cond
+       ;; Higher affiliation
+       ((or (and (member from '("outcast" "none" "member"))
+		 (member to '("admin" "owner")))
+	    (and (string= from "admin") (string= to "owner")))
+	(concat nickname " has been promoted to " to actor-reason))
+       ;; Lower affiliation
+       ((or (and (member from '("owner" "admin"))
+		 (string= to "member"))
+	    (and (string= from "owner") (string= to "admin")))
+	(concat nickname " has been demoted to " to actor-reason))
+       ;; Become member
+       ((string= to "member")
+	(concat nickname " has been granted membership" actor-reason))
+       ;; Lose membership
+       ((string= to "none")
+	(concat nickname " has been deprived of membership" actor-reason)))))
+
+   ;; Role changes
+   ((not (string= (plist-get old-plist 'role)
+		  (plist-get new-plist 'role)))
+    (let ((actor-reason (concat (when actor
+				  (concat " by " actor))
+				(when reason
+				  (concat ": " reason))))
+	  (from (plist-get old-plist 'role))
+	  (to (plist-get new-plist 'role)))
+      ;; Possible roles are "none" (not in room, hence not of interest
+      ;; in this function), "visitor" (no voice), "participant" (has
+      ;; voice), and "moderator".
+      (cond
+       ((string= to "moderator")
+	(concat nickname " has been granted moderator privileges" actor-reason))
+       ((and (string= from "moderator")
+	     (string= to "participant"))
+	(concat nickname " had moderator privileges revoked" actor-reason))
+       ((string= to "participant")
+	(concat nickname " has been granted voice" actor-reason))
+       ((string= to "visitor")
+	(concat nickname " has been denied voice" actor-reason)))))))
 
 (defun jabber-muc-remove-participant (group nickname)
   "Forget everything about NICKNAME in GROUP."
@@ -678,21 +748,21 @@ Return nil if X-MUC is nil."
 
 (defun jabber-muc-process-presence (presence)
   (let* ((from (jabber-xml-get-attribute presence 'from))
-	(type (jabber-xml-get-attribute presence 'type))
-	(x-muc (find-if 
-		(lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
-				   "http://jabber.org/protocol/muc#user"))
-		(jabber-xml-get-children presence 'x)))
-	(group (jabber-jid-user from))
-	(nickname (jabber-jid-resource from))
-	(symbol (jabber-jid-symbol from))
-	(item (car (jabber-xml-get-children x-muc 'item)))
-	(actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
-	(reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
-	(status-code (jabber-xml-get-attribute
-		      (car (jabber-xml-get-children x-muc 'status))
-		      'code))
-	(error-node (car (jabber-xml-get-children presence 'error))))
+	 (type (jabber-xml-get-attribute presence 'type))
+	 (x-muc (find-if 
+		 (lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
+			       "http://jabber.org/protocol/muc#user"))
+		 (jabber-xml-get-children presence 'x)))
+	 (group (jabber-jid-user from))
+	 (nickname (jabber-jid-resource from))
+	 (symbol (jabber-jid-symbol from))
+	 (item (car (jabber-xml-get-children x-muc 'item)))
+	 (actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
+	 (reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
+	 (status-code (jabber-xml-get-attribute
+		       (car (jabber-xml-get-children x-muc 'status))
+		       'code))
+	 (error-node (car (jabber-xml-get-children presence 'error))))
     ;; handle leaving a room
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
@@ -762,15 +832,17 @@ Return nil if X-MUC is nil."
       ;; exist), and print a notice.  This is where autojoined MUC
       ;; rooms have buffers created for them.  We also remember some
       ;; metadata.
-      (let ((new-participant (not (jabber-muc-participant-plist group nickname)))
+      (let ((old-plist (jabber-muc-participant-plist group nickname))
 	    (new-plist (jabber-muc-parse-affiliation x-muc)))
 	(jabber-muc-modify-participant group nickname new-plist)
-	(when new-participant
-	  (with-current-buffer (jabber-muc-create-buffer group)
-	    (jabber-chat-buffer-display 'jabber-muc-system-prompt
-					nil
-					'(insert)
-					(format "%s enters the chatroom" nickname)))))))))
+	(let ((report (jabber-muc-report-delta nickname old-plist new-plist
+					       reason actor)))
+	  (when report
+	    (with-current-buffer (jabber-muc-create-buffer group)
+	      (jabber-chat-buffer-display 'jabber-muc-system-prompt
+					  nil
+					  '(insert)
+					  report)))))))))
 	      
 (provide 'jabber-muc)
 
