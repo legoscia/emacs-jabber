@@ -158,19 +158,21 @@ See section 9.3 of XMPP Core."
       (insert (jabber-propertize from
 			  'face 'jabber-title-large) "\n\n")
 
-      ;; If closure-data is a function, call it.  If it is a string,
-      ;; output it along with a description of the error.  For other
-      ;; values (e.g. nil), just dump the XML.
-      (cond
-       ((functionp closure-data)
-	(funcall closure-data xml-data))
-       ((stringp closure-data)
-	(insert closure-data ": " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n"))
-       (t
-	(insert (format "%S\n\n" xml-data))))
+      ;; Put point at beginning of data
+      (save-excursion
+	;; If closure-data is a function, call it.  If it is a string,
+	;; output it along with a description of the error.  For other
+	;; values (e.g. nil), just dump the XML.
+	(cond
+	 ((functionp closure-data)
+	  (funcall closure-data xml-data))
+	 ((stringp closure-data)
+	  (insert closure-data ": " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n"))
+	 (t
+	  (insert (format "%S\n\n" xml-data))))
 
-      (dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
-	(run-hook-with-args hook 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer)))))))
+	(dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
+	  (run-hook-with-args hook 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))))
 
 (provide 'jabber-iq)
 
