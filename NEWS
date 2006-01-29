@@ -7,6 +7,10 @@
 See jabber-muc-alert-self.
 (Not documented yet)
 
+** Avatars
+Viewing JEP-0153 avatars (vCard-based) is now supported.
+(Not documented yet)
+
 * New features in jabber.el 0.7
 
 ** SSL connections possible

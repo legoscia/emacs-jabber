@@ -28,7 +28,7 @@
 ;; closely.
 
 ;; Fields not implemented: GEO, LOGO, AGENT, ORG, CATEGORIES, SOUND,
-;; CLASS, KEY, PHOTO.
+;; CLASS, KEY.
 
 ;; The internal data structure used for vCards is an alist.  All
 ;; keys are uppercase symbols.

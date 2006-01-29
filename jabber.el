@@ -101,6 +101,7 @@
 (require 'jabber-activity)
 (require 'jabber-vcard)
 (require 'jabber-events)
+(require 'jabber-vcard-avatars)
 
 ;; XXX: automate this some time
 (autoload 'jabber-export-roster "jabber-export"

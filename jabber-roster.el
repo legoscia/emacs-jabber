@@ -28,11 +28,12 @@
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
 
-(defcustom jabber-roster-line-format " %c %-25n %u %-8s  %S\n"
+(defcustom jabber-roster-line-format " %a %c %-25n %u %-8s  %S\n"
   "The format specification of the lines in the roster display.
 
 These fields are available:
 
+%a   Avatar, if any
 %c   \"*\" if the contact is connected, or \" \" if not
 %u   sUbscription state - see below
 %n   Nickname of contact, or JID if no nickname
@@ -332,9 +333,12 @@ C-c C-s  Service menu
 	(move-to-column current-column)))))
 
 (defun jabber-display-roster-entry (buddy)
-  "Format and insert a roster entry for BUDDY at point."
+  "Format and insert a roster entry for BUDDY at point.
+BUDDY is a JID symbol."
   (let ((buddy-str (format-spec jabber-roster-line-format
 				(list 
+				 (cons ?a (jabber-propertize " "
+							     'display (get buddy 'avatar)))
 				 (cons ?c (if (get buddy 'connected) "*" " "))
 				 (cons ?u (cdr (assoc (or (get buddy 'subscription) "none")
 						      jabber-roster-subscription-display)))
@@ -407,7 +411,8 @@ C-c C-s  Service menu
 	    (insert resource-str)))))))
 
 (defun jabber-presence-update-roster (who &rest ignore)
-  "Update roster without redrawing all of it, if possible."
+  "Update roster without redrawing all of it, if possible.
+WHO is a JID symbol."
   
   (let* ((bare-jid (jabber-jid-symbol 
 		    (jabber-jid-user
