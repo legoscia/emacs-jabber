@@ -170,6 +170,14 @@ The top node should be the `vCard' node."
       (when e-mails
 	(push (cons 'EMAIL e-mails) result)))
 
+    ;; JEP-0153: vCard-based avatars
+    (let ((photo-tag (car (jabber-xml-get-children vcard 'PHOTO))))
+      (when photo-tag
+	(let ((type (jabber-xml-path photo-tag '(TYPE "")))
+	      (binval (jabber-xml-path photo-tag '(BINVAL ""))))
+	  (when (and type binval)
+	    (push (list 'PHOTO type binval) result)))))
+
     result))
 
 (defun jabber-vcard-reassemble (parsed)
@@ -350,7 +358,15 @@ The top node should be the `vCard' node."
 	      (when field
 		(insert (cdr address-field))
 		(indent-to 20)
-		(insert (cdr field) "\n")))))))))
+		(insert (cdr field) "\n")))))))
+
+    ;; JEP-0153: vCard-based avatars
+    (let ((photo-type (nth 1 (assq 'PHOTO parsed)))
+	  (photo-binval (nth 2 (assq 'PHOTO parsed))))
+      (when (and photo-type photo-binval)
+	;; ignore the type, let create-image figure it out.
+	(let ((image (create-image (base64-decode-string photo-binval) nil t)))
+	  (insert-image image "[Photo]"))))))
 
 (defun jabber-vcard-do-edit (xml-data closure-data)
   (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data))))
