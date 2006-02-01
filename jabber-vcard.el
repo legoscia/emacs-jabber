@@ -66,6 +66,7 @@
 (require 'jabber-core)
 (require 'jabber-widget)
 (require 'jabber-iq)
+(require 'jabber-avatar)
 
 (defun jabber-vcard-parse (vcard)
   "Parse the vCard XML structure given in VCARD.
@@ -219,7 +220,28 @@ The top node should be the `vCard' node."
 	       (append '(EMAIL) '(())
 		       (mapcar 'list (car email))
 		       (list (list 'USERID nil (cdr email)))))
-	     (cdr (assq 'EMAIL parsed)))))
+	     (cdr (assq 'EMAIL parsed)))
+	  ;; Put in photo
+	  ,@(let ((photo (cdr (assq 'PHOTO parsed))))
+	      (cond
+	       ;; No photo
+	       ((null photo)
+		nil)
+	       ;; Existing photo
+	       ((listp photo)
+		`((PHOTO ()
+			 (TYPE () ,(nth 0 photo))
+			 (BINVAL () ,(nth 1 photo)))))
+	       ;; New photo from file
+	       (t
+		(access-file photo "Avatar file not found")
+		;; Maximum allowed size is 8 kilobytes
+		(when (> (nth 7 (file-attributes photo)) 8192)
+		  (error "Avatar bigger than 8 kilobytes"))
+		(let ((avatar (jabber-avatar-from-file photo)))
+		  `((PHOTO ()
+			   (TYPE () ,(avatar-mime-type avatar))
+			   (BINVAL () ,(avatar-base64-data avatar))))))))))
 		     
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request vcard" 'jabber-vcard-get))
@@ -366,7 +388,8 @@ The top node should be the `vCard' node."
       (when (and photo-type photo-binval)
 	;; ignore the type, let create-image figure it out.
 	(let ((image (create-image (base64-decode-string photo-binval) nil t)))
-	  (insert-image image "[Photo]"))))))
+	  (insert-image image "[Photo]")
+	  (insert "\n"))))))
 
 (defun jabber-vcard-do-edit (xml-data closure-data)
   (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data)))
@@ -465,6 +488,28 @@ The top node should be the `vCard' node."
 				  (string :tag "Address")))
 		   :value (cdr (assq 'EMAIL parsed))))
 	    jabber-widget-alist)
+
+      (widget-insert "\n")
+      (widget-insert "Photo/avatar:\n")
+      (let* ((photo (assq 'PHOTO parsed))
+	     (avatar (when photo
+		       (jabber-avatar-from-base64-string (nth 2 photo)
+							 (nth 1 photo)))))
+	(push (cons 
+	       'PHOTO
+	       (widget-create
+		`(radio-button-choice (const :tag "None" nil)
+				      ,@(when photo
+					  (list 
+					   `(const :tag 
+						   ,(concat
+						     "Existing: "
+						     (jabber-propertize " "
+									'display (jabber-avatar-image avatar)))
+						   ,(cdr photo))))
+				      (file :must-match t :tag "From file"))
+		:value (cdr photo)))
+	      jabber-widget-alist))
 
       (widget-insert "\n")
       (widget-create 'push-button :notify #'jabber-vcard-submit "Submit")
