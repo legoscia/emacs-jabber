@@ -369,9 +369,12 @@ The top node should be the `vCard' node."
 	  (insert-image image "[Photo]"))))))
 
 (defun jabber-vcard-do-edit (xml-data closure-data)
-  (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data))))
+  (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data)))
+	start-position)
     (with-current-buffer (get-buffer-create "Edit vcard")
       (jabber-init-widget-buffer nil)
+
+      (setq start-position (point))
 
       (dolist (simple-field jabber-vcard-fields)
 	(widget-insert (cdr simple-field))
@@ -468,7 +471,8 @@ The top node should be the `vCard' node."
 
       (widget-setup)
       (widget-minor-mode 1)
-      (switch-to-buffer (current-buffer)))))
+      (switch-to-buffer (current-buffer))
+      (goto-char start-position))))
 
 (defun jabber-vcard-submit (&rest ignore)
   (jabber-send-iq nil
