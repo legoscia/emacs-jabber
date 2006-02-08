@@ -106,7 +106,8 @@ If MIME-TYPE is not specified, try to find it from the image data."
 ;; 		  :height height :width width :base64-data base64-data))))
 
 (defun jabber-avatar-image (avatar)
-  "Create an image from AVATAR."
+  "Create an image from AVATAR.
+Return nil if images of this type are not supported."
   (create-image (with-temp-buffer
 		  (set-buffer-multibyte nil)
 		  (insert (avatar-base64-data avatar))
@@ -118,10 +119,14 @@ If MIME-TYPE is not specified, try to find it from the image data."
 (defun jabber-avatar-compute-size (avatar)
   "Compute and set the width and height fields of AVATAR.
 Return AVATAR."
-  ;; XXX: don't call image-size if not X
-  (let ((size (image-size (jabber-avatar-image avatar) t)))
-    (setf (avatar-width avatar) (car size))
-    (setf (avatar-height avatar) (cdr size))
+  ;; image-size only works when there is a window system.
+  (let ((size (and (display-graphic-p)
+		   (let ((image (jabber-avatar-image avatar)))
+		     (and image
+			  (image-size image t))))))
+    (when size
+      (setf (avatar-width avatar) (car size))
+      (setf (avatar-height avatar) (cdr size)))
     avatar))
 
 ;;;; Avatar cache
