@@ -67,6 +67,7 @@ Retrieves the image to find info about it."
 
 (defun jabber-avatar-from-file (filename)
   "Construct an avatar structure from FILENAME."
+  (require 'mailcap)
   (let ((data (with-temp-buffer
 		(insert-file-contents-literally filename)
 		(buffer-string)))
