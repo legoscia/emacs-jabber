@@ -117,6 +117,7 @@ If MIME-TYPE is not specified, try to find it from the image data."
 (defun jabber-avatar-compute-size (avatar)
   "Compute and set the width and height fields of AVATAR.
 Return AVATAR."
+  ;; XXX: don't call image-size if not X
   (let ((size (image-size (jabber-avatar-image avatar) t)))
     (setf (avatar-width avatar) (car size))
     (setf (avatar-height avatar) (cdr size))
@@ -152,13 +153,14 @@ If there is no cached image, return nil."
       (make-directory jabber-avatar-cache-directory))
 
     (with-current-buffer buffer
-      (setq buffer-file-coding-system 'binary)
-      (if (fboundp 'set-buffer-multibyte)
-	  (set-buffer-multibyte nil))
-      (set-visited-file-name filename t)
-      (insert base64-data)
-      (base64-decode-region (point-min) (point-max))
-      (basic-save-buffer))
+      (let ((require-final-newline nil))
+	(setq buffer-file-coding-system 'binary)
+	(if (fboundp 'set-buffer-multibyte)
+	    (set-buffer-multibyte nil))
+	(set-visited-file-name filename t)
+	(insert base64-data)
+	(base64-decode-region (point-min) (point-max))
+	(basic-save-buffer)))
     (kill-buffer buffer)))
 
 ;;;; Set avatar for contact
