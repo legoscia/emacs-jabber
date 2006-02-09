@@ -110,6 +110,9 @@
 (autoload 'jabber-import-roster "jabber-export"
   "Create buffer for roster import from FILE."
   t)
+(autoload 'jabber-compose "jabber-compose"
+  "Create a buffer for composing a Jabber message."
+  t)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
