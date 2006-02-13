@@ -178,20 +178,25 @@ AVATAR may be one of:
 * An avatar structure.
 * The SHA1 sum of a cached avatar.
 * nil, meaning no avatar."
-  (cond
-   ((avatar-p avatar)
-    (put (jabber-jid-symbol jid) 
-	 'avatar (jabber-avatar-image avatar)))
-   ((stringp avatar)
-    (put (jabber-jid-symbol jid)
-	 'avatar (jabber-avatar-image
-		  (jabber-avatar-from-file
-		   (jabber-avatar-find-cached avatar)))))
-   (t
-    (put (jabber-jid-symbol jid)
-	 'avatar nil)))
+  ;; We want to optimize for the case of same avatar.
+  ;; Loading an image is expensive, so do it lazily.
+  (let ((jid-symbol (jabber-jid-symbol jid))
+	image hash)
+    (cond
+     ((avatar-p avatar)
+      (setq hash (avatar-sha1-sum avatar))
+      (setq image (lambda () (jabber-avatar-image avatar))))
+     ((stringp avatar)
+      (setq hash avatar)
+      (setq image (lambda () (create-image (jabber-avatar-find-cached avatar)))))
+     (t
+      (setq hash nil)
+      (setq image #'ignore)))
 
-  (jabber-presence-update-roster (jabber-jid-symbol jid)))
+    (unless (string= hash (get jid-symbol 'avatar-hash))
+      (put jid-symbol 'avatar (funcall image))
+      (put jid-symbol 'avatar-hash hash)
+      (jabber-presence-update-roster jid-symbol))))
 
 (provide 'jabber-avatar)
 ;; arch-tag: 2405c3f8-8eaa-11da-826c-000a95c2fcd0
