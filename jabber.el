@@ -113,6 +113,18 @@
 (autoload 'jabber-compose "jabber-compose"
   "Create a buffer for composing a Jabber message."
   t)
+(autoload 'jabber-private-get "jabber-private"
+  "Retrieve an item from private XML storage.
+The item to retrieve is identified by NODE-NAME (a symbol) and
+NAMESPACE (a string).
+On success, SUCCESS-CALLBACK is called with the retrieved XML fragment.
+On error, ERROR-CALLBACK is called with the entire IQ result."
+  nil)
+(autoload 'jabber-private-set "jabber-private"
+  "Store FRAGMENT in private XML storage.
+SUCCESS-CALLBACK, SUCCESS-CLOSURE-DATA, ERROR-CALLBACK and
+ERROR-CLOSURE-DATA are used as in `jabber-send-iq'."
+  nil)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
