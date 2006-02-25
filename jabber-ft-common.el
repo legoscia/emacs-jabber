@@ -37,7 +37,7 @@ Return nil if no MD5 summing program is available."
 	     (append (cdr jabber-ft-md5sum-program) (list file-name)))
       ;; Output is "hexsum filename"
       (goto-char (point-min))
-      (forward-word)
+      (forward-word 1)
       (buffer-substring (point-min) (point)))))
 
 (provide 'jabber-ft-common)
