@@ -149,79 +149,83 @@ and it hasn't been sent before."
 
 ;;; COMMON
 
-(add-to-list 'jabber-chat-printers 'jabber-handle-incoming-message-events)
+;; Add function last in chain, so a chat buffer is already created.
+(add-to-list 'jabber-message-chain 'jabber-handle-incoming-message-events t)
 
 (defun jabber-handle-incoming-message-events (xml-data)
-  (let ((x (find "jabber:x:event"
-		 (jabber-xml-get-children xml-data 'x)
-		 :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns))
-		 :test #'string=)))
-    ;; If there's a body, it's not an incoming message event.
-    (if (jabber-xml-get-children xml-data 'body)
-	;; User is done composing, obviously.
-	(progn
-	  (setq jabber-events-composing-p nil)
-	  (jabber-events-update-message)
+  (when (and (not (jabber-muc-message-p xml-data))
+	     (get-buffer (jabber-chat-get-buffer (jabber-xml-get-attribute xml-data 'from))))
+    (with-current-buffer (jabber-chat-get-buffer (jabber-xml-get-attribute xml-data 'from))
+      (let ((x (find "jabber:x:event"
+		     (jabber-xml-get-children xml-data 'x)
+		     :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns))
+		     :test #'string=)))
+	;; If there's a body, it's not an incoming message event.
+	(if (jabber-xml-get-children xml-data 'body)
+	    ;; User is done composing, obviously.
+	    (progn
+	      (setq jabber-events-composing-p nil)
+	      (jabber-events-update-message)
 
-	  ;; Reset variables
-	  (setq jabber-events-display-confirmed nil)
-	  (setq jabber-events-delivery-confirmed nil)
+	      ;; Reset variables
+	      (setq jabber-events-display-confirmed nil)
+	      (setq jabber-events-delivery-confirmed nil)
 
-	  ;; User requests message events
-	  (setq jabber-events-requested 
-		;; There might be empty strings in the XML data,
-		;; which car chokes on.  Having nil values in
-		;; the list won't hurt, therefore car-safe.
-		(mapcar #'car-safe 
-			(jabber-xml-node-children x)))
-	  (setq jabber-events-last-id (jabber-xml-get-attribute
-				       xml-data 'id))
+	      ;; User requests message events
+	      (setq jabber-events-requested 
+		    ;; There might be empty strings in the XML data,
+		    ;; which car chokes on.  Having nil values in
+		    ;; the list won't hurt, therefore car-safe.
+		    (mapcar #'car-safe 
+			    (jabber-xml-node-children x)))
+	      (setq jabber-events-last-id (jabber-xml-get-attribute
+					   xml-data 'id))
 
-	  ;; Send notifications we already know about
-	  (flet ((send-notification 
-		  (type)
-		  (jabber-send-sexp 
-		   `(message 
-		     ((to . ,(jabber-xml-get-attribute xml-data 'from)))
-		     (x ((xmlns . "jabber:x:event"))
-			(,type)
-			(id () ,jabber-events-last-id))))))
-	    ;; Send delivery confirmation if appropriate
-	    (when (and jabber-events-confirm-delivered
-		       (memq 'delivered jabber-events-requested))
-	      (send-notification 'delivered)
-	      (setq jabber-events-delivery-confirmed t))
+	      ;; Send notifications we already know about
+	      (flet ((send-notification 
+		      (type)
+		      (jabber-send-sexp 
+		       `(message 
+			 ((to . ,(jabber-xml-get-attribute xml-data 'from)))
+			 (x ((xmlns . "jabber:x:event"))
+			    (,type)
+			    (id () ,jabber-events-last-id))))))
+		;; Send delivery confirmation if appropriate
+		(when (and jabber-events-confirm-delivered
+			   (memq 'delivered jabber-events-requested))
+		  (send-notification 'delivered)
+		  (setq jabber-events-delivery-confirmed t))
 
-	    ;; Send display confirmation if appropriate
-	    (when (and jabber-events-confirm-displayed
-		       (get-buffer-window (current-buffer) 'visible)
-		       (memq 'displayed jabber-events-requested))
-	      (send-notification 'displayed)
-	      (setq jabber-events-display-confirmed t))
+		;; Send display confirmation if appropriate
+		(when (and jabber-events-confirm-displayed
+			   (get-buffer-window (current-buffer) 'visible)
+			   (memq 'displayed jabber-events-requested))
+		  (send-notification 'displayed)
+		  (setq jabber-events-display-confirmed t))
 
-	    ;; Set up hooks for composition notification
-	    (when (and jabber-events-confirm-composing
-		       (memq 'composing jabber-events-requested))
-	      (add-hook 'post-command-hook 'jabber-events-after-change
-			nil t))))
-      ;; So it has no body.  If it's a message event,
-      ;; the <x/> node should be the only child of the
-      ;; message, and it should contain an <id/> node.
-      ;; We check the latter.
-      (when (and x (jabber-xml-get-children x 'id))
-	;; Currently we don't care about the <id/> node.
+		;; Set up hooks for composition notification
+		(when (and jabber-events-confirm-composing
+			   (memq 'composing jabber-events-requested))
+		  (add-hook 'post-command-hook 'jabber-events-after-change
+			    nil t))))
+	  ;; So it has no body.  If it's a message event,
+	  ;; the <x/> node should be the only child of the
+	  ;; message, and it should contain an <id/> node.
+	  ;; We check the latter.
+	  (when (and x (jabber-xml-get-children x 'id))
+	    ;; Currently we don't care about the <id/> node.
 	
-	;; There's only one node except for the id.
-	(unless
-	    (dolist (possible-node '(offline delivered displayed))
-	      (when (jabber-xml-get-children x possible-node)
-		(setq jabber-events-arrived possible-node)
-		(jabber-events-update-message)
-		(return t)))
-	  ;; Or maybe even zero, which is a negative composing node.
-	  (setq jabber-events-composing-p
-		(not (null (jabber-xml-get-children x 'composing))))
-	  (jabber-events-update-message))))))
+	    ;; There's only one node except for the id.
+	    (unless
+		(dolist (possible-node '(offline delivered displayed))
+		  (when (jabber-xml-get-children x possible-node)
+		    (setq jabber-events-arrived possible-node)
+		    (jabber-events-update-message)
+		    (return t)))
+	      ;; Or maybe even zero, which is a negative composing node.
+	      (setq jabber-events-composing-p
+		    (not (null (jabber-xml-get-children x 'composing))))
+	      (jabber-events-update-message))))))))
 
 (provide 'jabber-events)
 ;; arch-tag: 7b6e61fe-a9b3-11d9-afca-000a95c2fcd0
