@@ -79,7 +79,7 @@
 	    (setq xml (concat xml
 			      (format " %s='%s'"
 				      (symbol-name (car attr))
-				      (cdr attr))))))
+				      (jabber-escape-xml (cdr attr)))))))
       (if (cddr sexp)
 	  (progn
 	    (setq xml (concat xml ">"))
