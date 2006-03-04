@@ -102,6 +102,7 @@
 (require 'jabber-vcard)
 (require 'jabber-events)
 (require 'jabber-vcard-avatars)
+(require 'jabber-autoaway)
 
 ;; XXX: automate this some time
 (autoload 'jabber-export-roster "jabber-export"

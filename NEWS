@@ -2,6 +2,9 @@
 
 * New features in jabber.el 0.8
 
+** Autoaway
+(Not documented yet)
+
 ** MUC features
 *** Don't display alerts for your own messages
 See jabber-muc-alert-self.
