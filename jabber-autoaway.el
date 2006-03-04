@@ -20,6 +20,7 @@
 ;; Boston, MA 02110-1301, USA.
 
 (eval-when-compile (require 'cl))
+(require 'time-date)
 
 (defgroup jabber-autoaway nil
   "Change status to away after idleness"
