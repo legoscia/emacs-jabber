@@ -127,7 +127,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (plist-put resource-plist 'show nil))
 		(setq resource-plist
 		      (plist-put resource-plist 'status
-				 (jabber-unescape-xml presence-status))))
+				 presence-status)))
 
 	       ((string= type "error")
 		(setq newstatus "error")
@@ -139,7 +139,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (plist-put resource-plist 'status
 				 (if error
 				     (jabber-parse-error error)
-				   (jabber-unescape-xml presence-status)))))
+				   presence-status))))
 	       ((or
 		 (string= type "unsubscribe")
 		 (string= type "subscribed")
@@ -154,7 +154,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (plist-put resource-plist 'show (or presence-show "")))
 		(setq resource-plist
 		      (plist-put resource-plist 'status
-				 (jabber-unescape-xml presence-status)))
+				 presence-status))
 		(setq resource-plist
 		      (plist-put resource-plist 'priority priority))
 		(setq newstatus (or presence-show ""))))
@@ -170,14 +170,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 				    buddy
 				    oldstatus
 				    newstatus
-				    (jabber-unescape-xml 
-				     (plist-get resource-plist 'status))
+				    (plist-get resource-plist 'status)
 				    (funcall jabber-alert-presence-message-function 
 					     buddy
 					     oldstatus
 					     newstatus
-					     (jabber-unescape-xml
-					      (plist-get resource-plist 'status))))))))))))
+					     (plist-get resource-plist 'status)))))))))))
 
 (defun jabber-process-subscription-request (from presence-status)
   "process an incoming subscription request"
@@ -189,7 +187,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	       (cons 'type
 		     (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
 					      (jabber-jid-displayname from)
-					      (jabber-unescape-xml presence-status)))
+					      presence-status))
 			 "subscribed"
 		       "unsubscribed")))))
   (when (yes-or-no-p (format "Do you want to subscribe to %s's presence? " from))

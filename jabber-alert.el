@@ -377,7 +377,7 @@ This function is not called directly, but is the default for
 		     newstatus))))
 	  (formattedtext
 	   (if (> (length statustext) 0)
-	       (concat " (" (jabber-unescape-xml statustext) ")")
+	       (concat " (" statustext ")")
 	     "")))
       (concat formattedname formattedstatus formattedtext)))))
 

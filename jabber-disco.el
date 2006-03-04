@@ -86,9 +86,9 @@ nil, access is always granted.")
 	      (category (jabber-xml-get-attribute x 'category))
 	      (type (jabber-xml-get-attribute x 'type)))
 	  (insert (jabber-propertize (if name
-				  (jabber-unescape-xml name)
-				  "Unnamed")
-			      'face 'jabber-title-medium)
+					 name
+				       "Unnamed")
+				     'face 'jabber-title-medium)
 		  "\n\nCategory:\t" category "\n")
 	  (if type
 	      (insert "Type:\t\t" type "\n"))
@@ -113,7 +113,7 @@ nil, access is always granted.")
 	       (jabber-propertize
 		(concat jid "\n" (if node (format "Node: %s\n" node)))
 		'face 'jabber-title-medium)
-	       (jabber-unescape-xml name) "\n\n")
+	       name "\n\n")
 	      'jabber-jid jid
 	      'jabber-node node))))
       (insert "No items found.\n"))))

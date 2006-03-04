@@ -80,7 +80,7 @@
 			(version . "Version:\t")))
 	  (let ((data (jabber-xml-get-attribute item (car attr))))
 	    (if (> (length data) 0)
-		(insert (cdr attr) (jabber-unescape-xml data) "\n"))))
+		(insert (cdr attr) data "\n"))))
 
 	(dolist (ns (jabber-xml-get-children item 'ns))
 	  (if (stringp (car (jabber-xml-node-children ns)))
