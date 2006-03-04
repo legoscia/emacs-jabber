@@ -63,7 +63,7 @@ determined from the incoming packet passed in XML-DATA."
 			    (version () ,jabber-version)
 			    ;; Booting... /vmemacs.el
 			    ;; Shamelessly stolen from someone's sig.
-			    (os () ,(jabber-escape-xml (emacs-version))))
+			    (os () ,(emacs-version)))
 		    nil nil nil nil
 		    id)))
 

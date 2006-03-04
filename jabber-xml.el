@@ -58,7 +58,7 @@
   "converts an SEXP in the format (tagname ((attribute-name . attribute-value)...) children...) and converts it to well-formatted xml."
   (cond
    ((stringp sexp)
-    sexp)
+    (jabber-escape-xml sexp))
    ((listp (car sexp))
     (let ((xml ""))
       (dolist (tag sexp)

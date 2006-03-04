@@ -175,7 +175,7 @@ This function is idempotent."
   (jabber-send-sexp `(message
 		      ((to . ,jabber-group)
 		       (type . "groupchat"))
-		      (body () ,(jabber-escape-xml body)))))
+		      (body () ,body))))
 
 (defun jabber-muc-add-groupchat (group nickname)
   "Remember participating in GROUP under NICKNAME."

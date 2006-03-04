@@ -260,10 +260,10 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (setq *jabber-current-priority* (string-to-int priority))
   (jabber-send-sexp `(presence ()
                                ,(if (> (length status) 0)
-                                    `(status () ,(jabber-escape-xml status)))
+                                    `(status () ,status))
 			       ,(if (> (length show) 0)
-                                    `(show () ,(jabber-escape-xml show)))
-			       (priority () ,(jabber-escape-xml (int-to-string *jabber-current-priority*)))))
+                                    `(show () ,show))
+			       (priority () ,(int-to-string *jabber-current-priority*))))
   (jabber-display-roster))
 
 (defun jabber-send-away-presence ()

@@ -140,7 +140,7 @@ See section 9.3 of XMPP Core."
 				(,condition ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))
 				,(if text
 				     `(text ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))
-					    ,(jabber-escape-xml text)))
+					    ,text))
 				,@app-specific))))
 
 (defun jabber-process-data (xml-data closure-data)
