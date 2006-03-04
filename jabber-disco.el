@@ -46,7 +46,7 @@ called and its return value is used; if it is a list, that list is
 used.  The list should be the XML data to be returned inside the
 <query/> element, like this:
 
-((item ((name . \"Name of first item\")
+\((item ((name . \"Name of first item\")
 	(jid . \"first.item\")
 	(node . \"node\"))))
 
@@ -66,7 +66,7 @@ called and its return value is used; if it is a list, that list is
 used.  The list should be the XML data to be returned inside the
 <query/> element, like this:
 
-((identity ((category . \"client\")
+\((identity ((category . \"client\")
 	    (type . \"pc\")
 	    (name . \"Jabber client\")))
  (feature ((var . \"some-feature\"))))
