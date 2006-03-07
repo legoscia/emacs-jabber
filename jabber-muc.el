@@ -292,15 +292,17 @@ in the user entering/staying in the room."
       (let ((participant (assoc nickname (cdr participants))))
 	(setf (cdr participants) (delq participant (cdr participants)))))))
 
-(defun jabber-muc-read-completing (prompt)
-  "Read the name of a joined chatroom, or use chatroom of current buffer, if any."
+(defun jabber-muc-read-completing (prompt &optional allow-not-joined)
+  "Read the name of a joined chatroom, or use chatroom of current buffer, if any.
+If ALLOW-NOT-JOINED is provided and true, permit choosing any
+JID; only provide completion as a guide."
   (or jabber-group
       (jabber-read-jid-completing prompt
 				  (if (null *jabber-active-groupchats*)
 				      (error "You haven't joined any group")
 				    (mapcar (lambda (x) (jabber-jid-symbol (car x)))
 					    *jabber-active-groupchats*))
-				  t
+				  (not allow-not-joined)
 				  jabber-group)))
 
 (defun jabber-muc-read-nickname (group prompt)
@@ -314,7 +316,7 @@ in the user entering/staying in the room."
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (group)
   "Ask for MUC configuration form"
-  (interactive (list (jabber-muc-read-completing "Configure group: ")))
+  (interactive (list (jabber-muc-read-completing "Configure group: " t)))
   (jabber-send-iq group
 		  "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
