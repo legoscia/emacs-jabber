@@ -103,16 +103,13 @@
 
 (add-to-list 'jabber-presence-element-functions 'jabber-vcard-avatars-presence-element)
 (defun jabber-vcard-avatars-presence-element ()
-  (list
-   `(x ((xmlns . "vcard-temp:x:update"))
-       ;; if "not yet ready to advertise image", don't.
-       ;; that is, we haven't yet checked what avatar we have.
-       ,(unless (and jabber-vcard-avatars-publish
-		     (null jabber-vcard-avatars-current-hash))
-	  ;; otherwise, 
-	  `(photo ()
-		 ,(and jabber-vcard-avatars-publish
-		       jabber-vcard-avatars-current-hash))))))
+  (when jabber-vcard-avatars-publish
+    (list
+     `(x ((xmlns . "vcard-temp:x:update"))
+	 ;; if "not yet ready to advertise image", don't.
+	 ;; that is, we haven't yet checked what avatar we have.
+	 ,(when jabber-vcard-avatars-current-hash
+	    `(photo () ,jabber-vcard-avatars-current-hash))))))
 	     
 (provide 'jabber-vcard-avatars)
 ;; arch-tag: 3e50d460-8eae-11da-826c-000a95c2fcd0
