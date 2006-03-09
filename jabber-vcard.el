@@ -68,6 +68,10 @@
 (require 'jabber-iq)
 (require 'jabber-avatar)
 
+(defvar jabber-vcard-photo nil
+  "The avatar structure for the photo in the vCard edit buffer.")
+(make-variable-buffer-local 'jabber-vcard-photo)
+
 (defun jabber-vcard-parse (vcard)
   "Parse the vCard XML structure given in VCARD.
 The top node should be the `vCard' node."
@@ -166,7 +170,7 @@ The top node should be the `vCard' node."
 			(memq 'X400 types))
 	      (push 'INTERNET types))
 	    
-	    (push (cons types userid) e-mails))))
+    (push (cons types userid) e-mails))))
 
       (when e-mails
 	(push (cons 'EMAIL e-mails) result)))
@@ -183,6 +187,25 @@ The top node should be the `vCard' node."
 
 (defun jabber-vcard-reassemble (parsed)
   "Create a vCard XML structure from PARSED."
+  ;; Save photo in jabber-vcard-photo, to avoid excessive processing.
+  (let ((photo (cdr (assq 'PHOTO parsed))))
+    (cond
+     ;; No photo
+     ((null photo)
+      (setq jabber-vcard-photo nil))
+     ;; Existing photo
+     ((listp photo)
+      (setq jabber-vcard-photo 
+	    (jabber-avatar-from-base64-string 
+	     (nth 2 photo) (nth 1 photo))))
+     ;; New photo from file
+     (t
+      (access-file photo "Avatar file not found")
+      ;; Maximum allowed size is 8 kilobytes
+      (when (> (nth 7 (file-attributes photo)) 8192)
+	(error "Avatar bigger than 8 kilobytes"))
+      (setq jabber-vcard-photo (jabber-avatar-from-file photo)))))
+
   `(vCard ((xmlns . "vcard-temp"))
 	  ;; Put in simple fields
 	  ,@(mapcar
@@ -222,26 +245,10 @@ The top node should be the `vCard' node."
 		       (list (list 'USERID nil (cdr email)))))
 	     (cdr (assq 'EMAIL parsed)))
 	  ;; Put in photo
-	  ,@(let ((photo (cdr (assq 'PHOTO parsed))))
-	      (cond
-	       ;; No photo
-	       ((null photo)
-		nil)
-	       ;; Existing photo
-	       ((listp photo)
-		`((PHOTO ()
-			 (TYPE () ,(nth 0 photo))
-			 (BINVAL () ,(nth 1 photo)))))
-	       ;; New photo from file
-	       (t
-		(access-file photo "Avatar file not found")
-		;; Maximum allowed size is 8 kilobytes
-		(when (> (nth 7 (file-attributes photo)) 8192)
-		  (error "Avatar bigger than 8 kilobytes"))
-		(let ((avatar (jabber-avatar-from-file photo)))
-		  `((PHOTO ()
-			   (TYPE () ,(avatar-mime-type avatar))
-			   (BINVAL () ,(avatar-base64-data avatar))))))))))
+	  ,@(when jabber-vcard-photo
+	      `((PHOTO ()
+		       (TYPE () ,(avatar-mime-type jabber-vcard-photo))
+		       (BINVAL () ,(avatar-base64-data jabber-vcard-photo)))))))
 		     
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request vcard" 'jabber-vcard-get))
@@ -520,14 +527,18 @@ The top node should be the `vCard' node."
       (goto-char start-position))))
 
 (defun jabber-vcard-submit (&rest ignore)
-  (jabber-send-iq nil
-		  "set"
-		  (jabber-vcard-reassemble
-		   (mapcar (lambda (entry)
-			     (cons (car entry) (widget-value (cdr entry))))
-			   jabber-widget-alist))
-		  #'jabber-report-success "Changing vCard"
-		  #'jabber-report-success "Changing vCard"))
+  (let ((to-publish (jabber-vcard-reassemble
+		     (mapcar (lambda (entry)
+			       (cons (car entry) (widget-value (cdr entry))))
+			     jabber-widget-alist))))
+    (jabber-send-iq nil
+		    "set"
+		    to-publish
+		    #'jabber-report-success "Changing vCard"
+		    #'jabber-report-success "Changing vCard")
+    (when (bound-and-true-p jabber-vcard-avatars-publish)
+      (jabber-vcard-avatars-update-current
+       (and jabber-vcard-photo (avatar-sha1-sum jabber-vcard-photo))))))
 
 (provide 'jabber-vcard)
 ;; arch-tag: 65B95E9C-63BD-11D9-94A9-000A95C2FCD0
