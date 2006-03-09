@@ -26,6 +26,11 @@
 (require 'jabber-menu)
 (require 'jabber-muc)
 
+(defvar jabber-presence-element-functions nil
+  "List of functions returning extra elements for <presence/> stanzas.
+Each function takes no arguments and returns a possibly empty list of
+extra child element of the <presence/> stanza.")
+
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (x) (jabber-process-roster x nil)))))
 (defun jabber-process-roster (xml-data closure-data)
@@ -261,7 +266,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
                                     `(status () ,status))
 			       ,(if (> (length show) 0)
                                     `(show () ,show))
-			       (priority () ,(int-to-string *jabber-current-priority*))))
+			       (priority () ,(int-to-string *jabber-current-priority*))
+			       ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
   (jabber-display-roster))
 
 (defun jabber-send-away-presence ()

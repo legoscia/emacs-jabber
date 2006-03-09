@@ -32,6 +32,14 @@
   :group 'jabber-avatar
   :type 'boolean)
 
+(defcustom jabber-vcard-avatars-publish t
+  "Publish your vCard photo as avatar?"
+  :group 'jabber-avatar
+  :type 'boolean)
+
+(defvar jabber-vcard-avatars-current-hash nil
+  "SHA1 hash of avatar currently published through presence.")
+
 (add-to-list 'jabber-presence-chain 'jabber-vcard-avatars-presence)
 (defun jabber-vcard-avatars-presence (xml-data)
   "Look for vCard avatar mark in <presence/> stanza."
@@ -66,7 +74,45 @@
   (jabber-send-iq who "get" '(vCard ((xmlns . "vcard-temp")))
 		  #'jabber-vcard-avatars-vcard who
 		  #'ignore nil))
-      
 
+(add-hook 'jabber-post-connect-hook 'jabber-vcard-avatars-find-current)
+(defun jabber-vcard-avatars-find-current ()
+  "Request our own vCard, to find hash of avatar."
+  (when jabber-vcard-avatars-publish
+    (jabber-send-iq nil "get" '(vCard ((xmlns . "vcard-temp")))
+		    #'jabber-vcard-avatars-find-current-1 t
+		    #'jabber-vcard-avatars-find-current-1 nil)))
+
+(defun jabber-vcard-avatars-find-current-1 (xml-data success)
+  (jabber-vcard-avatars-update-current
+   (and success
+	(let ((photo (assq 'PHOTO (jabber-vcard-parse (jabber-iq-query xml-data)))))
+	  (when photo
+	    (let ((avatar (jabber-avatar-from-base64-string (nth 2 photo)
+							    (nth 1 photo))))
+	      (avatar-sha1-sum avatar)))))))
+
+(defun jabber-vcard-avatars-update-current (new-hash)
+  (let ((old-hash jabber-vcard-avatars-current-hash))
+    (when (not (string= old-hash new-hash))
+      (setq jabber-vcard-avatars-current-hash new-hash)
+      (jabber-vcard-avatars-send-presence))))
+
+(defun jabber-vcard-avatars-send-presence ()
+  (jabber-send-presence *jabber-current-show* *jabber-current-status* *jabber-current-priority*))
+
+(add-to-list 'jabber-presence-element-functions 'jabber-vcard-avatars-presence-element)
+(defun jabber-vcard-avatars-presence-element ()
+  (list
+   `(x ((xmlns . "vcard-temp:x:update"))
+       ;; if "not yet ready to advertise image", don't.
+       ;; that is, we haven't yet checked what avatar we have.
+       ,(unless (and jabber-vcard-avatars-publish
+		     (null jabber-vcard-avatars-current-hash))
+	  ;; otherwise, 
+	  `(photo ()
+		 ,(and jabber-vcard-avatars-publish
+		       jabber-vcard-avatars-current-hash))))))
+	     
 (provide 'jabber-vcard-avatars)
 ;; arch-tag: 3e50d460-8eae-11da-826c-000a95c2fcd0
