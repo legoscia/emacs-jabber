@@ -135,7 +135,7 @@ and it hasn't been sent before."
       (setq jabber-events-display-confirmed t))))
 
 (defun jabber-events-after-change ()
-  (let ((composing-now (not (eq (point-max) jabber-point-insert))))
+  (let ((composing-now (not (= (point-max) jabber-point-insert))))
     (when (and jabber-events-confirm-composing
 	       jabber-chatting-with
 	       (not (eq composing-now jabber-events-composing-sent)))
