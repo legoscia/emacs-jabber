@@ -432,8 +432,9 @@ TIMESTAMP is the timestamp to print, or nil for now."
   "Call `goto-address' on the newly written text."
   (goto-address))
 
+;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu
-	     (cons "Send message" 'jabber-send-message))
+	     (cons "Compose message" 'jabber-compose))
 
 (defun jabber-send-message (to subject body type)
   "send a message tag to the server"
