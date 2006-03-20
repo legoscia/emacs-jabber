@@ -38,7 +38,10 @@ window or at `fill-column', whichever is shorter."
   :group 'jabber-chat
   :type 'boolean)
 
-(defun jabber-chat-mode ()
+(defvar jabber-chat-ewoc nil
+  "The ewoc showing the messages of this chat buffer.")
+
+(defun jabber-chat-mode (ewoc-pp)
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
   ;; Make sure to set this variable somewhere
@@ -48,7 +51,15 @@ window or at `fill-column', whichever is shorter."
   (setq scroll-conservatively 5)
 
   (make-local-variable 'jabber-point-insert)
-  (setq jabber-point-insert (point-min))
+  (make-local-variable 'jabber-chat-ewoc)
+  (unless jabber-chat-ewoc
+    (setq jabber-chat-ewoc
+	  (ewoc-create ewoc-pp nil "---"))
+    (put-text-property (point-min) (point) 'read-only t)
+    (let ((inhibit-read-only t))
+      (put-text-property (point-min) (point) 'front-sticky t)
+      (put-text-property (point-min) (point) 'rear-nonsticky t))
+    (setq jabber-point-insert (point-marker)))
 
   ;;(setq header-line-format jabber-chat-header-line-format)
 
@@ -82,60 +93,6 @@ window or at `fill-column', whichever is shorter."
     ;; no message should be sent.
     (unless (zerop (length body))
       (funcall jabber-send-function body))))
-
-(defun jabber-chat-buffer-display (prompt-function prompt-data output-functions output-data)
-  "Display a message in current buffer.
-PROMPT-FUNCTION is a function that prints the correct prompt at
-point.  It is called with PROMPT-DATA as argument.
-OUTPUT-FUNCTIONS is a list of functions that may or may not print something
-at point.  They are called in order with OUTPUT-DATA as argument.
-If the OUTPUT-FUNCTIONS produce any output, PROMPT-FUNCTION is called
-with point before that output.  If there is no output, there is
-no prompt.  Return non-nil if there is output.
-
-If point is at or after jabber-point-insert, it is advanced.
-If point is before jabber-point-insert, it is not moved."
-  (let ((at-insert-point (eq (point) jabber-point-insert))
-	outputp)
-    (save-excursion
-      (goto-char jabber-point-insert)
-      (setq outputp
-	    (jabber-chat-buffer-display-at-point prompt-function prompt-data output-functions output-data))
-      (setq jabber-point-insert (point))
-      (set-text-properties jabber-point-insert (point-max) nil))
-
-    (when at-insert-point
-      (goto-char jabber-point-insert))
-    outputp))
-
-(defun jabber-chat-buffer-display-at-point (prompt-function prompt-data output-functions output-data)
-  "Display a message at point.
-Arguments are as to `jabber-chat-buffer-display'.
-Return non-nil if any data was inserted."
-  (let ((inhibit-read-only t)
-	(beg (point))
-	(point-insert (set-marker (make-marker) jabber-point-insert)))
-    (set-marker-insertion-type point-insert t)
-
-    (dolist (printer output-functions)
-      (funcall printer output-data)
-      (unless (bolp)
-	(insert "\n")))
-
-    (unless (eq (point) beg)
-      (let ((end (point-marker)))
-	(goto-char beg)
-	(funcall prompt-function prompt-data)
-	(goto-char end)
-	(put-text-property beg end 'read-only t)
-	(put-text-property beg end 'front-sticky t)
-	(put-text-property beg end 'rear-nonsticky t)
-	(when jabber-chat-fill-long-lines
-	  (save-restriction
-	    (narrow-to-region beg end)
-	    (jabber-chat-buffer-fill-long-lines)))
-	;; this is always non-nil, so we return that
-	(setq jabber-point-insert (marker-position point-insert))))))
 
 (defun jabber-chat-buffer-fill-long-lines ()
   "Fill lines that are wider than the window width."

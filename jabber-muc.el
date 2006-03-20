@@ -122,7 +122,7 @@ The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
   :group 'jabber-chat)
 
-(defvar jabber-muc-printers '(jabber-muc-snarf-topic)
+(defvar jabber-muc-printers '()
   "List of functions that may be able to print part of a MUC message.
 This gets prepended to `jabber-chat-printers', which see.")
 
@@ -139,10 +139,11 @@ Either a string or a buffer is returned, so use `get-buffer' or
   "Prepare a buffer for chatroom GROUP.
 This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-muc-get-buffer group))
-    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
-    (make-local-variable 'jabber-group)
+    (unless (eq major-mode 'jabber-chat-mode)
+      (jabber-chat-mode #'jabber-chat-pp))
+
+    (set (make-local-variable 'jabber-group) group)
     (make-local-variable 'jabber-muc-topic)
-    (setq jabber-group group)
     (setq jabber-send-function 'jabber-muc-send)
     (setq header-line-format jabber-muc-header-line-format)
     (current-buffer)))
@@ -160,9 +161,10 @@ Either a string or a buffer is returned, so use `get-buffer' or
   "Prepare a buffer for chatting with NICKNAME in GROUP.
 This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-muc-private-get-buffer group nickname))
-    (if (not (eq major-mode 'jabber-chat-mode)) (jabber-chat-mode))
-    (make-local-variable 'jabber-chatting-with)
-    (setq jabber-chatting-with (concat group "/" nickname))
+    (unless (eq major-mode 'jabber-chat-mode)
+      (jabber-chat-mode #'jabber-chat-pp))
+
+    (set (make-local-variable 'jabber-chatting-with) (concat group "/" nickname))
     (setq jabber-send-function 'jabber-chat-send)
     (setq header-line-format jabber-muc-private-header-line-format)
 
@@ -424,14 +426,19 @@ JID; only provide completion as a guide."
   "Print names, affiliations, and roles of participants in GROUP."
   (interactive (list (jabber-muc-read-completing "Group: ")))
   (with-current-buffer (jabber-muc-create-buffer group)
-    (let ((jabber-chat-fill-long-lines nil))
-      (jabber-chat-buffer-display 'jabber-muc-system-prompt nil
-				  '(jabber-muc-print-names)
-				  (cdr (assoc group jabber-muc-participants))))))
+    (ewoc-enter-last jabber-chat-ewoc (list :notice
+					    (jabber-muc-print-names
+					     (cdr (assoc group jabber-muc-participants)))
+					    :time (current-time)))
+    ;; (let ((jabber-chat-fill-long-lines nil))
+;;       (jabber-chat-buffer-display 'jabber-muc-system-prompt nil
+;; 				  '(jabber-muc-print-names)
+;; 				  (cdr (assoc group jabber-muc-participants))))
+    ))
 
 (defun jabber-muc-print-names (participants)
-  "Format and insert data in PARTICIPANTS."
-  (apply 'insert "Participants:\n"
+  "Format and return data in PARTICIPANTS."
+  (apply 'concat "Participants:\n"
 	 (format "%-15s %-15s %-11s %s\n" "Nickname" "Role" "Affiliation" "JID")
 	 (mapcar (lambda (x)
 		   (let ((plist (cdr x)))
@@ -537,63 +544,64 @@ group, else it is a JID."
 
 (add-to-list 'jabber-body-printers 'jabber-muc-print-invite)
 
-(defun jabber-muc-print-invite (xml-data)
+(defun jabber-muc-print-invite (xml-data who mode)
   "Print MUC invitation"
   (dolist (x (jabber-xml-get-children xml-data 'x))
     (when (string= (jabber-xml-get-attribute x 'xmlns) "http://jabber.org/protocol/muc#user")
       (let ((invitation (car (jabber-xml-get-children x 'invite))))
 	(when invitation
-	  (let ((group (jabber-xml-get-attribute xml-data 'from))
-		(inviter (jabber-xml-get-attribute invitation 'from))
-		(reason (car (jabber-xml-node-children (car (jabber-xml-get-children invitation 'reason))))))
-	    ;; XXX: password
-	    (insert "You have been invited to MUC room " (jabber-jid-displayname group))
-	    (when inviter
-	      (insert " by " (jabber-jid-displayname inviter)))
-	    (insert ".")
-	    (when reason
-	      (insert "  Reason: " reason))
-	    (insert "\n\n")
+	  (when (eql mode :insert)
+	    (let ((group (jabber-xml-get-attribute xml-data 'from))
+		  (inviter (jabber-xml-get-attribute invitation 'from))
+		  (reason (car (jabber-xml-node-children (car (jabber-xml-get-children invitation 'reason))))))
+	      ;; XXX: password
+	      (insert "You have been invited to MUC room " (jabber-jid-displayname group))
+	      (when inviter
+		(insert " by " (jabber-jid-displayname inviter)))
+	      (insert ".")
+	      (when reason
+		(insert "  Reason: " reason))
+	      (insert "\n\n")
 
-	    (let ((action
-		   `(lambda (&rest ignore) (interactive)
-		      (jabber-groupchat-join ,group
-					     (jabber-muc-read-my-nickname ,group)))))
-	      (if (fboundp 'insert-button)
-		  (insert-button "Accept"
-				 'action action)
-	      ;; Simple button replacement
-	      (let ((keymap (make-keymap)))
-		(define-key keymap "\r" action)
-		(insert (jabber-propertize "Accept"
-					   'keymap keymap
-					   'face 'highlight))))
+	      (let ((action
+		     `(lambda (&rest ignore) (interactive)
+			(jabber-groupchat-join ,group
+					       (jabber-muc-read-my-nickname ,group)))))
+		(if (fboundp 'insert-button)
+		    (insert-button "Accept"
+				   'action action)
+		  ;; Simple button replacement
+		  (let ((keymap (make-keymap)))
+		    (define-key keymap "\r" action)
+		    (insert (jabber-propertize "Accept"
+					       'keymap keymap
+					       'face 'highlight))))
 
-	    (insert "\t")
+		(insert "\t")
 
-	    (let ((action
-		   `(lambda (&rest ignore) (interactive)
-		      (let ((reason
-			     (jabber-read-with-input-method
-			      "Reason: ")))
-			(jabber-send-sexp
-			 (list 'message
-			       (list (cons 'to ,group))
-			       (list 'x
-				     (list (cons 'xmlns "http://jabber.org/protocol/muc#user"))
-				     (list 'decline
-					   (list (cons 'to ,inviter))
-					   (unless (zerop (length reason))
-					     (list 'reason nil reason))))))))))
-	      (if (fboundp 'insert-button)
-		  (insert-button "Decline"
-				 'action action)
-		;; Simple button replacement
-		(let ((keymap (make-keymap)))
-		  (define-key keymap "\r" action)
-		  (insert (jabber-propertize "Decline"
-					     'keymap keymap
-					     'face 'highlight)))))))
+		(let ((action
+		       `(lambda (&rest ignore) (interactive)
+			  (let ((reason
+				 (jabber-read-with-input-method
+				  "Reason: ")))
+			    (jabber-send-sexp
+			     (list 'message
+				   (list (cons 'to ,group))
+				   (list 'x
+					 (list (cons 'xmlns "http://jabber.org/protocol/muc#user"))
+					 (list 'decline
+					       (list (cons 'to ,inviter))
+					       (unless (zerop (length reason))
+						 (list 'reason nil reason))))))))))
+		  (if (fboundp 'insert-button)
+		      (insert-button "Decline"
+				     'action action)
+		    ;; Simple button replacement
+		    (let ((keymap (make-keymap)))
+		      (define-key keymap "\r" action)
+		      (insert (jabber-propertize "Decline"
+						 'keymap keymap
+						 'face 'highlight))))))))
 	  (return t))))))
 
 (defun jabber-muc-autojoin ()
@@ -667,7 +675,6 @@ Return nil if X-MUC is nil."
   "Print MUC prompt for message in XML-DATA."
   (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
-    (jabber-maybe-print-rare-time timestamp)
     (if (stringp nick)
 	(insert (jabber-propertize
 		 (format-spec jabber-groupchat-prompt-format
@@ -690,7 +697,6 @@ Return nil if X-MUC is nil."
   (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 	(group (jabber-jid-user (jabber-xml-get-attribute xml-data 'from)))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
-    (jabber-maybe-print-rare-time timestamp)
     (insert (jabber-propertize
 	     (format-spec jabber-muc-private-foreign-prompt-format
 			  (list
@@ -707,7 +713,6 @@ Return nil if X-MUC is nil."
 
 (defun jabber-muc-system-prompt (&rest ignore)
   "Print system prompt for MUC."
-  (jabber-maybe-print-rare-time nil)
   (insert (jabber-propertize
 	   (format-spec jabber-groupchat-prompt-format
 			(list
@@ -728,19 +733,24 @@ Return nil if X-MUC is nil."
 	   (group (jabber-jid-user from))
 	   (nick (jabber-jid-resource from))
 	   (error-p (jabber-xml-get-children xml-data 'error))
+	   (type (cond 
+		  (error-p :muc-error)
+		  ((string= nick (cdr (assoc group *jabber-active-groupchats*)))
+		   :muc-local)
+		  (t :muc-foreign)))
 	   (body-text (car (jabber-xml-node-children
 			   (car (jabber-xml-get-children
-				 xml-data 'body))))))
+				 xml-data 'body)))))
+
+	   (printers (append jabber-muc-printers jabber-chat-printers)))
+
       (with-current-buffer (jabber-muc-create-buffer group)
+	(jabber-muc-snarf-topic xml-data)
 	;; Call alert hooks only when something is output
-	(when
-	    (jabber-chat-buffer-display 'jabber-muc-print-prompt
-					xml-data
-					(if error-p
-					    '(jabber-chat-print-error)
-					  (append jabber-muc-printers
-						  jabber-chat-printers))
-					xml-data)
+	(when (or error-p
+		  (run-hook-with-args-until-success 'printers xml-data type :printp))
+	  (jabber-maybe-print-rare-time
+	   (ewoc-enter-last jabber-chat-ewoc (list type xml-data :time (current-time))))
 	  
 	  (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
 	    (run-hook-with-args hook
@@ -791,35 +801,36 @@ Return nil if X-MUC is nil."
 	    (let ((buffer (get-buffer (jabber-muc-get-buffer group))))
 	      (if buffer
 		  (with-current-buffer buffer
-		    (jabber-chat-buffer-display 
-		     'jabber-muc-system-prompt
-		     nil
-		     '(insert)
-		     (if (string= type "error")
-			 (jabber-propertize message 'face 'jabber-chat-error)
-		       message)))
+		    (jabber-maybe-print-rare-time
+		     (ewoc-enter-last jabber-chat-ewoc
+				      (list (if (string= type "error")
+						:muc-error
+					      :muc-notice)
+					    message
+					    :time (current-time)))))
 		(message "%s: %s" (jabber-jid-displayname group) message))))
 	;; or someone else?
 	(jabber-muc-remove-participant group nickname)
 	(with-current-buffer (jabber-muc-create-buffer group)
-	  (jabber-chat-buffer-display 
-	   'jabber-muc-system-prompt
-	   nil
-	   '(insert)
-	   (cond
-	    ((equal status-code "301")
-	     (concat nickname " has been banned"
-		     (when actor (concat " by " actor))
-		     (when reason (concat " - '" reason "'"))))
-	    ((equal status-code "307")
-	     (concat nickname " has been kicked"
-		     (when actor (concat " by " actor))
-		     (when reason (concat " - '" reason "'"))))
-	    ((equal status-code "303")
-	     (concat nickname " changes nickname to "
-		     (jabber-xml-get-attribute item 'nick)))
-	    (t
-	     (concat nickname " has left the chatroom")))))))
+	  (jabber-maybe-print-rare-time
+	   (ewoc-enter-last
+	    jabber-chat-ewoc
+	    (list :muc-notice
+		  (cond
+		   ((equal status-code "301")
+		    (concat nickname " has been banned"
+			    (when actor (concat " by " actor))
+			    (when reason (concat " - '" reason "'"))))
+		   ((equal status-code "307")
+		    (concat nickname " has been kicked"
+			    (when actor (concat " by " actor))
+			    (when reason (concat " - '" reason "'"))))
+		   ((equal status-code "303")
+		    (concat nickname " changes nickname to "
+			    (jabber-xml-get-attribute item 'nick)))
+		   (t
+		    (concat nickname " has left the chatroom")))
+		  :time (current-time)))))))
      (t 
       ;; someone is entering
 
@@ -841,10 +852,11 @@ Return nil if X-MUC is nil."
 					       reason actor)))
 	  (when report
 	    (with-current-buffer (jabber-muc-create-buffer group)
-	      (jabber-chat-buffer-display 'jabber-muc-system-prompt
-					  nil
-					  '(insert)
-					  report)))))))))
+	      (jabber-maybe-print-rare-time
+	       (ewoc-enter-last
+		jabber-chat-ewoc
+		(list :muc-notice report
+		      :time (current-time))))))))))))
 	      
 (provide 'jabber-muc)
 
