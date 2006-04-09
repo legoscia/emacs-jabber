@@ -1690,6 +1690,7 @@ jabber.el.
 * JEP-0092 (Software Version)::  
 * JEP-0095 (Stream Initiation)::  
 * JEP-0096 (File Transfer)::    
+* JEP-0146 (Remote Controlling Clients)::  
 @end menu
 
 @node RFC 3920 (XMPP-CORE), RFC 3921 (XMPP-IM), Protocol support, Protocol support
@@ -1881,7 +1882,7 @@ testing.
 jabber.el doesn't check service discovery results before sending a
 stream initiation request.
 
-@node JEP-0096 (File Transfer),  , JEP-0095 (Stream Initiation), Protocol support
+@node JEP-0096 (File Transfer), JEP-0146 (Remote Controlling Clients), JEP-0095 (Stream Initiation), Protocol support
 @section JEP-0096 (File Transfer)
 
 Both sending and receiving files is supported, though not enabled by
@@ -1894,6 +1895,11 @@ Ranged transfers are not supported.
 
 In-band bytestreams are not yet supported, even though JEP-0096
 requires them.
+
+@node JEP-0146 (Remote Controlling Clients),  , JEP-0096 (File Transfer), Protocol support
+@section JEP-0146 (Remote Controlling Clients)
+
+The ``set-status'' command in JEP-0146 is supported.
 
 @node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index

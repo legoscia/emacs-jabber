@@ -21,7 +21,7 @@
 
 (require 'jabber-ahc)
 
-(defconst jabber-ahc-presence-node "presence"
+(defconst jabber-ahc-presence-node "http://jabber.org/protocol/rc#set-status"
   "Node used by jabber-ahc-presence")
 
 (jabber-ahc-add jabber-ahc-presence-node "Set presence" 'jabber-ahc-presence
@@ -52,8 +52,10 @@
 		    (type . "form"))
 		   (title nil ,(format "Set presence of %s@%s/%s" jabber-username jabber-server jabber-resource))
 		   (instructions nil "Select new presence status.")
-		   (field ((var . "show")
-			   (label . "Show")
+		   (field ((var . "FORM_TYPE") (type . "hidden"))
+			  (value nil "http://jabber.org/protocol/rc"))
+		   (field ((var . "status")
+			   (label . "Status")
 			   (type . "list-single"))
 			  (value nil ,(if (string= *jabber-current-show* "")
 					  "online"
@@ -63,11 +65,11 @@
 			  (option ((label . "Away")) (value nil "away"))
 			  (option ((label . "Extended away")) (value nil "xa"))
 			  (option ((label . "Do not disturb")) (value nil "dnd")))
-		   (field ((var . "status")
-			   (label . "Status text")
+		   (field ((var . "status-message")
+			   (label . "Message")
 			   (type . "text-single"))
 			  (value nil ,*jabber-current-status*))
-		   (field ((var . "priority")
+		   (field ((var . "status-priority")
 			   (label . "Priority")
 			   (type . "text-single"))
 			  (value nil ,(int-to-string *jabber-current-priority*))))))
@@ -85,14 +87,14 @@
 		;; by this
 		(value (car (jabber-xml-node-children (car (jabber-xml-get-children field 'value))))))
 	    (cond
-	     ((string= var "show")
+	     ((string= var "status")
 	      (setq new-show (if (string= value "online")
 				 ""
 			       value)))
-	     ((string= var "status")
+	     ((string= var "status-message")
 	      (setq new-status value))
-	     ((string= var "priority")
-	      (setq new-priority (string-to-int value))))))
+	     ((string= var "status-priority")
+	      (setq new-priority (string-to-number value))))))
 	(jabber-send-presence new-show new-status new-priority))
       `(command ((xmlns . "http://jabber.org/protocol/commands")
 		 (sessionid . ,sessionid)
