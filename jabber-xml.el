@@ -153,13 +153,17 @@ CHILD-NAME should be a lower case symbol."
 ;; `xml-get-attribute' returns "" if the attribute is not found, which
 ;; is not very useful.  Therefore, we use `xml-get-attribute-or-nil'
 ;; if present, or emulate its behavior.
-(if (fboundp 'xml-get-attribute-or-nil)
-    (defalias 'jabber-xml-get-attribute 'xml-get-attribute-or-nil)
-  (defsubst jabber-xml-get-attribute (node attribute)
-    "Get from NODE the value of ATTRIBUTE.
+(eval-and-compile
+  (if (fboundp 'xml-get-attribute-or-nil)
+      (defsubst jabber-xml-get-attribute (node attribute)
+	"Get from NODE the value of ATTRIBUTE.
 Return nil if the attribute was not found."
-    (let ((result (xml-get-attribute node attribute)))
-      (and (> (length result) 0) result))))
+	(xml-get-attribute-or-nil node attribute))
+    (defsubst jabber-xml-get-attribute (node attribute)
+      "Get from NODE the value of ATTRIBUTE.
+Return nil if the attribute was not found."
+      (let ((result (xml-get-attribute node attribute)))
+	(and (> (length result) 0) result)))))
 
 (defun jabber-xml-path (xml-data path)
   "Find sub-node of XML-DATA according to PATH.
