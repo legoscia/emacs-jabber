@@ -286,7 +286,7 @@ Examples:
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
   (when proposed-alert
-    (jabber-play-sound-file jabber-alert-message-wave)))
+    (play-sound-file jabber-alert-message-wave)))
 
 (defun jabber-message-display (from buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
@@ -333,7 +333,7 @@ Examples:
 (defun jabber-muc-wave (nick group buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-muc-wave'"
   (when proposed-alert
-    (jabber-play-sound-file jabber-alert-muc-wave)))
+    (play-sound-file jabber-alert-muc-wave)))
 
 (defun jabber-muc-display (nick group buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
@@ -384,7 +384,7 @@ This function is not called directly, but is the default for
 (defun jabber-presence-wave (who oldstatus newstatus statustext proposed-alert)
   "Play the wave file specified in `jabber-alert-presence-wave'"
   (if proposed-alert
-      (jabber-play-sound-file jabber-alert-presence-wave)))
+      (play-sound-file jabber-alert-presence-wave)))
 
 ;; This is now defined in jabber-roster.el.
 ;; (defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
@@ -414,7 +414,7 @@ This function uses `jabber-info-message-alist' to find a message."
 (defun jabber-info-wave (infotype buffer proposed-alert)
   "Play the wave file specified in `jabber-alert-info-wave'"
   (if proposed-alert
-      (jabber-play-sound-file jabber-alert-info-wave)))
+      (play-sound-file jabber-alert-info-wave)))
 
 (defun jabber-info-display (infotype buffer proposed-alert)
   "Display buffer of completed request"

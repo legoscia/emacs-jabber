@@ -22,9 +22,6 @@
 (defvar jabber-jid-history nil
   "History of entered JIDs")
 
-(defvar *jabber-sound-playing* nil
-  "is a sound playing right now?")
-
 (cond
  ((fboundp 'replace-in-string)
   (defsubst jabber-replace-in-string (str regexp newtext)
@@ -427,22 +424,6 @@ APP-SPECIFIC is a list of extra XML tags.
 See section 9.3 of XMPP Core."
   (signal 'jabber-error
 	  (list error-type condition text app-specific)))
-
-(defun jabber-play-sound-file (soundfile)
-  (if (not *jabber-sound-playing*)
-      (progn
-	(setq *jabber-sound-playing* t)
-	(run-with-idle-timer 0.01 nil 
-			     #'(lambda (sf)
-			       (condition-case nil
-				   ;; play-sound-file might display "Could not set sample rate" in
-				   ;; echo area.  Don't let this erase the previous message.
-				   (let ((old-message (current-message)))
-				     (play-sound-file sf)
-				     (setq *jabber-sound-playing* nil)
-				     (message "%s" old-message))
-				 (error (setq *jabber-sound-playing* nil))))
-			     soundfile))))
 
 (provide 'jabber-util)
 
