@@ -120,7 +120,9 @@ Return nil if images of this type are not supported."
   "Compute and set the width and height fields of AVATAR.
 Return AVATAR."
   ;; image-size only works when there is a window system.
-  (let ((size (and (display-graphic-p)
+  ;; But display-graphic-p doesn't exist on XEmacs...
+  (let ((size (and (fboundp 'display-graphic-p)
+		   (display-graphic-p)
 		   (let ((image (jabber-avatar-image avatar)))
 		     (and image
 			  (image-size image t))))))
@@ -134,6 +136,7 @@ Return AVATAR."
 (defun jabber-avatar-find-cached (sha1-sum)
   "Return file name of cached image for avatar identified by SHA1-SUM.
 If there is no cached image, return nil."
+  ;; XXX: file-expand-wildcards doesn't exist in XEmacs
   (car (file-expand-wildcards (concat (file-name-as-directory jabber-avatar-cache-directory)
 				      sha1-sum
 				      ".*"))))
