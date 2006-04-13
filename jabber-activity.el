@@ -237,11 +237,14 @@ on JIDs where `jabber-activity-show-p'"
 		 (jabber-propertize
 		  (cdr x)
 		  'face 'jabber-activity-face
-		  'local-map (make-mode-line-mouse-map
-			      'mouse-1 `(lambda ()
-					  (interactive)
-					  (jabber-activity-switch-to
-					   ,(car x))))
+		  ;; XXX: XEmacs doesn't have make-mode-line-mouse-map.
+		  ;; Is there another way to make this work?
+		  'local-map (when (fboundp 'make-mode-line-mouse-map)
+			       (make-mode-line-mouse-map
+				'mouse-1 `(lambda ()
+					    (interactive)
+					    (jabber-activity-switch-to
+					     ,(car x)))))
 		  'help-echo (concat "Jump to "
 				     (jabber-jid-displayname (car x))
 				     "'s buffer"))))
