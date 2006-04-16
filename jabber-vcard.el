@@ -393,10 +393,12 @@ The top node should be the `vCard' node."
     (let ((photo-type (nth 1 (assq 'PHOTO parsed)))
 	  (photo-binval (nth 2 (assq 'PHOTO parsed))))
       (when (and photo-type photo-binval)
-	;; ignore the type, let create-image figure it out.
-	(let ((image (create-image (base64-decode-string photo-binval) nil t)))
-	  (insert-image image "[Photo]")
-	  (insert "\n"))))))
+	(condition-case nil
+	    ;; ignore the type, let create-image figure it out.
+	    (let ((image (create-image (base64-decode-string photo-binval) nil t)))
+	      (insert-image image "[Photo]")
+	      (insert "\n"))
+	  (error (insert "Couldn't display photo\n")))))))
 
 (defun jabber-vcard-do-edit (xml-data closure-data)
   (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data)))
