@@ -197,7 +197,7 @@ The top node should be the `vCard' node."
      ((listp photo)
       (setq jabber-vcard-photo 
 	    (jabber-avatar-from-base64-string 
-	     (nth 2 photo) (nth 1 photo))))
+	     (nth 1 photo) (nth 0 photo))))
      ;; New photo from file
      (t
       (access-file photo "Avatar file not found")
