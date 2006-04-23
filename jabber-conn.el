@@ -33,6 +33,8 @@
 
 (ignore-errors (require 'starttls))
 
+(require 'srv)
+
 ;; TODO: Add custom flag, to not complain about plain-text passwords
 ;;       in encrypted connections
 ;;
@@ -59,7 +61,18 @@ and 5223 for SSL connections."
 		 (integer :tag "Port number"))
   :group 'jabber-conn)
 
-(defcustom jabber-connection-type 'network
+(defcustom jabber-connection-type 
+  (cond
+   ;; Use STARTTLS if we can...
+   ((and (featurep 'starttls)
+	 (or (and (bound-and-true-p starttls-gnutls-program)
+		  (executable-find starttls-gnutls-program))
+	     (and (bound-and-true-p starttls-program)
+		  (executable-find starttls-program))))
+    'starttls)
+   ;; ...else default to unencrypted connection.
+   (t
+    'network))
   "Type of connection to the jabber server, ssl or network most likely."
   :type '(radio (const :tag "Encrypted connection, SSL" ssl)
 		(const :tag "Negotiate encrypted connection when available (STARTTLS)" starttls)
@@ -96,16 +109,36 @@ Third item is the send function.")
     (setq jabber-connect-function (nth 1 entry))
     (setq jabber-conn-send-function (nth 2 entry))))
 
+(defun jabber-srv-targets ()
+  "Find host and port to connect to.
+If we can't find SRV records, use standard defaults."
+  ;; If the user has specified a host or a port, obey that.
+  (if (or jabber-network-server jabber-port)
+      (list (cons (or jabber-network-server jabber-server)
+		  (or jabber-port 5222)))
+    (or (condition-case nil
+	    (srv-lookup (concat "_xmpp-client._tcp." jabber-server))
+	  (error nil))
+	(list (cons jabber-server 5222)))))
+
 ;; Plain TCP/IP connection
 (defun jabber-network-connect ()
-    (let ((coding-system-for-read 'utf-8)
-	  (coding-system-for-write 'utf-8))
-      (setq *jabber-connection* 
-	    (open-network-stream
-	     "jabber"
-	     jabber-process-buffer
-	     (or jabber-network-server jabber-server)
-	     (or jabber-port 5222)))))
+  (let ((coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
+	(targets (jabber-srv-targets)))
+    (catch 'connected
+      (dolist (target targets)
+	(condition-case e
+	    (when (setq *jabber-connection* 
+			(open-network-stream
+			 "jabber"
+			 jabber-process-buffer
+			 (car target)
+			 (cdr target)))
+	      (throw 'connected t))
+	  (error
+	   (message "Couldn't connect to %s: %s" target
+		    (error-message-string e))))))))
 
 (defun jabber-network-send (string)
   "Send a string via a plain TCP/IP connection to the Jabber Server."
@@ -144,16 +177,24 @@ Third item is the send function.")
 
 (defun jabber-starttls-connect ()
   "connect via GnuTLS to a Jabber Server"
-    (let ((coding-system-for-read 'utf-8)
-	  (coding-system-for-write 'utf-8))
-      (unless (fboundp 'starttls-open-stream)
-	(error "starttls.el not available"))
-      (setq *jabber-connection*
-	    (starttls-open-stream
-	     "jabber"
-	     (get-buffer-create jabber-process-buffer)
-	     (or jabber-network-server jabber-server)
-	     (or jabber-port 5222)))))
+  (let ((coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
+	(targets (jabber-srv-targets)))
+    (unless (fboundp 'starttls-open-stream)
+      (error "starttls.el not available"))
+    (catch 'connected
+      (dolist (target targets)
+	(condition-case e
+	    (when (setq *jabber-connection*
+			(starttls-open-stream
+			 "jabber"
+			 (get-buffer-create jabber-process-buffer)
+			 (car target)
+			 (cdr target)))
+	      (throw 'connected t))
+	  (error
+	   (message "Couldn't connect to %s: %s" target
+		    (error-message-string e))))))))
 
 (defun jabber-starttls-initiate ()
   "Initiate a starttls connection"

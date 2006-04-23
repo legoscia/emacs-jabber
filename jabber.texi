@@ -961,6 +961,10 @@ server.  If it is set to @code{nil}, jabber.el will use the name in
 @code{nil}, the default port is selected based on the chosen
 connection method.
 
+If both @code{jabber-network-server} and @code{jabber-port} are nil, and
+a sufficiently modern @code{dns.el} is available, jabber.el will use SRV
+records to find the right hostname and port.
+
 @code{jabber-connection-type} specifies what kind of connection to
 use.  @code{network} means normal unencrypted network connection
 (usually on port 5222), and @code{ssl} means encrypted connection
@@ -1709,7 +1713,7 @@ jabber.el doesn't interpret namespace prefixes.
 
 The @code{xml:lang} attribute is neither interpreted nor generated.
 
-SRV records are not used.
+SRV records are used if a modern version of @code{dns.el} is installed.
 
 @node RFC 3921 (XMPP-IM), JEP-0004 (Data Forms), RFC 3920 (XMPP-CORE), Protocol support
 @section RFC 3921 (XMPP-IM)
