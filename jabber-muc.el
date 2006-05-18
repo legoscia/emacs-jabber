@@ -21,6 +21,7 @@
 
 (require 'jabber-chat)
 (require 'jabber-widget)
+(require 'jabber-newdisco)
 
 (require 'cl)
 
@@ -375,24 +376,55 @@ JID; only provide completion as a guide."
   (interactive 
    (let ((group (jabber-read-jid-completing "group: ")))
      (list group (jabber-muc-read-my-nickname group))))
-  ;; Remember that this is a groupchat _before_ sending the stanza.
-  ;; The response might come quicker than you think.
 
-  (puthash (jabber-jid-symbol group) nickname jabber-pending-groupchats)
+  ;; First, send a disco request to find out what we are connecting
+  ;; to.
+  (jabber-disco-get-info group nil #'jabber-groupchat-join-2
+			 (list group nickname (interactive-p))))
+
+(defun jabber-groupchat-join-2 (closure result)
+  (destructuring-bind (group nickname interactive) closure
+    ;; result might be nil, in which case destructuring-bind would fail.
+    (let ((identities (car result))
+	  (features (cadr result)))
+      (cond
+       ;; Maybe the room doesn't exist yet.
+       ;; XXX: that's not the only possible error.
+       ((null result)
+	(unless (y-or-n-p (format "%s doesn't exist.  Create it? " (jabber-jid-displayname group)))
+	  (error "Non-existent groupchat.")))
+
+       ;; Maybe it isn't a chat room.
+       ((not (find "conference" identities 
+		   :key (lambda (i) (aref i 1))
+		   :test #'string=))
+	(error "%s is not a groupchat." (jabber-jid-displayname group))))
+
+      (let ((password
+	     ;; Is the room password-protected?
+	     (when (member "muc_passwordprotected" features)
+	       (read-passwd (format "Password for %s: " (jabber-jid-displayname group))))))
+    
+	;; Remember that this is a groupchat _before_ sending the stanza.
+	;; The response might come quicker than you think.
+
+	(puthash (jabber-jid-symbol group) nickname jabber-pending-groupchats)
   
-  (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
-			       (x ((xmlns . "http://jabber.org/protocol/muc")))))
+	(jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
+				     (x ((xmlns . "http://jabber.org/protocol/muc"))
+					,@(when password
+					    `((password () ,password))))))
 
-  ;; There, stanza sent.  Now we just wait for the MUC service to
-  ;; mirror the stanza.  This is handled in
-  ;; `jabber-muc-process-presence', where a buffer will be created for
-  ;; the room.
+	;; There, stanza sent.  Now we just wait for the MUC service to
+	;; mirror the stanza.  This is handled in
+	;; `jabber-muc-process-presence', where a buffer will be created for
+	;; the room.
 
-  ;; But if the user interactively asked to join, he/she probably
-  ;; wants the buffer to pop up right now.
-  (when (interactive-p)
-    (let ((buffer (jabber-muc-create-buffer group)))
-      (switch-to-buffer buffer))))
+	;; But if the user interactively asked to join, he/she probably
+	;; wants the buffer to pop up right now.
+	(when interactive
+	  (let ((buffer (jabber-muc-create-buffer group)))
+	    (switch-to-buffer buffer)))))))
 
 (defun jabber-muc-read-my-nickname (group)
   "Read nickname for joining GROUP."
