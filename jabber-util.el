@@ -360,6 +360,15 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
     (concat condition
 	    (if text (format ": %s" text)))))
 
+(defun jabber-error-condition (error-xml)
+  "Parse the given <error/> tag and return the condition symbol."
+  (catch 'condition
+    (dolist (child (jabber-xml-node-children error-xml))
+      (when (string=
+		 (jabber-xml-get-attribute child 'xmlns)
+		 "urn:ietf:params:xml:ns:xmpp-stanzas")
+	(throw 'condition (jabber-xml-node-name child))))))
+
 (defvar jabber-stream-error-messages
   (list
    (cons 'bad-format "Bad XML format")
