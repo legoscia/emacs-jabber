@@ -384,21 +384,26 @@ JID; only provide completion as a guide."
 
 (defun jabber-groupchat-join-2 (closure result)
   (destructuring-bind (group nickname interactive) closure
-    ;; result might be nil, in which case destructuring-bind would fail.
-    (let ((identities (car result))
-	  (features (cadr result)))
+    (let (;; Either success...
+	  (identities (car result))
+	  (features (cadr result))
+	  ;; ...or error
+	  (condition (when (eq (car result) 'error) (jabber-error-condition result))))
       (cond
        ;; Maybe the room doesn't exist yet.
-       ;; XXX: that's not the only possible error.
-       ((null result)
+       ((eq condition 'item-not-found)
 	(unless (y-or-n-p (format "%s doesn't exist.  Create it? " (jabber-jid-displayname group)))
-	  (error "Non-existent groupchat.")))
+	  (error "Non-existent groupchat")))
+
+       ;; Maybe another error occurred.
+       (condition
+	(error "Couldn't query groupchat: %s" (jabber-parse-error result)))
 
        ;; Maybe it isn't a chat room.
        ((not (find "conference" identities 
 		   :key (lambda (i) (aref i 1))
 		   :test #'string=))
-	(error "%s is not a groupchat." (jabber-jid-displayname group))))
+	(error "%s is not a groupchat" (jabber-jid-displayname group))))
 
       (let ((password
 	     ;; Is the room password-protected?
