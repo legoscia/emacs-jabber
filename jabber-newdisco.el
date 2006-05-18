@@ -33,9 +33,11 @@
 
 (defun jabber-disco-get-info (jid node callback closure-data &optional force)
   "Get disco info for JID and NODE.
-Call CALLBACK with CLOSURE-DATA as first argument and info
-result as second argument when result is available.  Call
-CALLBACK with CLOSURE-DATA and nil if an error occurs.
+Call CALLBACK with CLOSURE-DATA as first argument and result as
+second argument when result is available.
+On success, result is (IDENTITIES FEATURES), where each identity is [\"name\"
+\"category\" \"type\"], and each feature is a string.
+On error, result is the error node, recognizable by (eq (car result) 'error).
 
 If CALLBACK is nil, just fetch data.  If FORCE is non-nil,
 invalidate cache and get fresh data."
@@ -51,7 +53,7 @@ invalidate cache and get fresh data."
 		      #'jabber-disco-got-info (cons callback closure-data)
 		      #'(lambda (xml-data callback-data)
 			  (when (car callback-data)
-			    (funcall (car callback-data) (cdr callback-data) nil)))
+			    (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
 		      (cons callback closure-data)))))
 
 (defun jabber-disco-got-info (xml-data callback-data)
@@ -86,8 +88,10 @@ Fill the cache with `jabber-disco-get-info'."
 (defun jabber-disco-get-items (jid node callback closure-data &optional force)
   "Get disco items for JID and NODE.
 Call CALLBACK with CLOSURE-DATA as first argument and items
-result as second argument when result is available.  Call
-CALLBACK with CLOSURE-DATA and nil if an error occurs.
+result as second argument when result is available.
+On success, result is a list of items, where each
+item is [\"name\" \"jid\" \"node\"] (some values may be nil).
+On error, result is the error node, recognizable by (eq (car result) 'error).
 
 If CALLBACK is nil, just fetch data.  If FORCE is non-nil,
 invalidate cache and get fresh data."
@@ -103,7 +107,7 @@ invalidate cache and get fresh data."
 		      #'jabber-disco-got-items (cons callback closure-data)
 		      #'(lambda (xml-data callback-data)
 			  (when (car callback-data)
-			    (funcall (car callback-data) (cdr callback-data) nil)))
+			    (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
 		      (cons callback closure-data)))))
 
 (defun jabber-disco-got-items (xml-data callback-data)
