@@ -51,9 +51,9 @@ invalidate cache and get fresh data."
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#info")
 			       ,(when node `(node . ,node))))
 		      #'jabber-disco-got-info (cons callback closure-data)
-		      #'(lambda (xml-data callback-data)
-			  (when (car callback-data)
-			    (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
+		      (lambda (xml-data callback-data)
+			(when (car callback-data)
+			  (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
 		      (cons callback closure-data)))))
 
 (defun jabber-disco-got-info (xml-data callback-data)
