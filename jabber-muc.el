@@ -398,6 +398,10 @@ JID; only provide completion as a guide."
 	(unless (y-or-n-p (format "%s doesn't exist.  Create it? " (jabber-jid-displayname group)))
 	  (error "Non-existent groupchat")))
 
+       ;; Maybe the room doesn't support disco.
+       ((eq condition 'feature-not-implemented)
+	t				;whatever...
+	)
        ;; Maybe another error occurred.
        (condition
 	(error "Couldn't query groupchat: %s" (jabber-parse-error result)))
