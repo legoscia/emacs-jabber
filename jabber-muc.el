@@ -662,7 +662,8 @@ group, else it is a JID."
 
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
-That does not include private messages in a groupchat."
+That does not include private messages in a groupchat, but does
+include groupchat invites."
   ;; Public groupchat messages have type "groupchat" and are from
   ;; room@server/nick.  Public groupchat errors have type "error" and
   ;; are from room@server.
@@ -671,7 +672,8 @@ That does not include private messages in a groupchat."
     (or 
      (string= type "groupchat")
      (and (string= type "error")
-	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats)))))
+	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats))
+     (jabber-xml-path message '(("http://jabber.org/protocol/muc#user" . "x") invite)))))
 
 (defun jabber-muc-sender-p (jid)
   "Return non-nil if JID is a full JID of an MUC participant."
