@@ -144,11 +144,11 @@ These fields are available:
   "face used for system and special messages"
   :group 'jabber-chat)
 
-(defface jabber-chat-text-local nil
+(defface jabber-chat-text-local '((t ()))
   "Face used for text you write"
   :group 'jabber-chat)
 
-(defface jabber-chat-text-foreign nil
+(defface jabber-chat-text-foreign '((t ()))
   "Face used for text others write"
   :group 'jabber-chat)
 
