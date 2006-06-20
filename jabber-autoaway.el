@@ -64,11 +64,20 @@ information about priority."
   :group 'jabber-autoaway
   :type 'string)
 
+(defcustom jabber-autoaway-verbose nil
+  "If nil, don't print autoaway status messages."
+  :group 'jabber-autoaway
+  :type 'boolean)
+
 (defvar jabber-autoaway-timer nil)
 
 (defvar jabber-autoaway-last-idle-time nil
   "Seconds of idle time the last time we checked.
 This is used to detect whether the user has become unidle.")
+
+(defun jabber-autoaway-message (&rest args)
+  (when jabber-autoaway-verbose
+    (apply #'message args)))
 
 (defun jabber-autoaway-start ()
   "Start autoaway timer."
@@ -77,7 +86,7 @@ This is used to detect whether the user has become unidle.")
     (jabber-cancel-timer jabber-autoaway-timer))
   (setq jabber-autoaway-timer
 	(run-with-timer (* jabber-autoaway-timeout 60) nil #'jabber-autoaway-timer))
-  (message "Autoaway timer started"))
+  (jabber-autoaway-message "Autoaway timer started"))
 
 (defun jabber-autoaway-stop ()
   "Stop autoaway timer."
@@ -85,7 +94,7 @@ This is used to detect whether the user has become unidle.")
   (when jabber-autoaway-timer
     (jabber-cancel-timer jabber-autoaway-timer)
     (setq jabber-autoaway-timer nil)
-    (message "Autoaway timer stopped")))
+    (jabber-autoaway-message "Autoaway timer stopped")))
 
 (defun jabber-autoaway-get-idle-time ()
   "Get idle time in seconds according to chosen method.
@@ -107,7 +116,7 @@ Return nil on error."
 			      nil #'jabber-autoaway-timer))))))
 
 (defun jabber-autoaway-set-idle ()
-  (message "Autoaway triggered")
+  (jabber-autoaway-message "Autoaway triggered")
   ;; Send presence, unless the user has set a custom presence
   (unless (member *jabber-current-show* '("away" "xa" "dnd"))
     (jabber-send-presence 
@@ -122,7 +131,7 @@ Return nil on error."
 
 (defun jabber-autoaway-maybe-unidle ()
   (let ((idle-time (jabber-autoaway-get-idle-time)))
-    (message "Idle for %d seconds" idle-time)
+    (jabber-autoaway-message "Idle for %d seconds" idle-time)
     ;; As long as idle time increases monotonically, stay idle.
     (if (> idle-time jabber-autoaway-last-idle-time)
 	(progn
