@@ -434,6 +434,22 @@ See section 9.3 of XMPP Core."
   (signal 'jabber-error
 	  (list error-type condition text app-specific)))
 
+(defun jabber-handle-uri (uri)
+  "Handle XMPP links according to draft-saintandre-xmpp-iri-04.
+See Info node `(jabber)XMPP URIs'."
+  (interactive "sEnter XMPP URI: ")
+
+  (when (string-match "//" uri)
+    (error "URIs with authority part are not supported"))
+  (unless (string-match "^xmpp:\\([^?]+\\)\\(\\?.*\\)?" uri)
+    (error "Invalid XMPP URI '%s'" uri))
+
+  ;; XXX: should remove hex-coding
+  (let ((jid (match-string 1 uri))
+	(method (match-string 2 uri)))
+    ;; we ignore method for now...
+    (jabber-chat-with jid)))
+
 (provide 'jabber-util)
 
 ;;; arch-tag: cfbb73ac-e2d7-4652-a08d-dc789bcded8a

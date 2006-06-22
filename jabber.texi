@@ -51,6 +51,7 @@ this permission notice are preserved on all copies.
 * Message history::             
 * Message events::              
 * Roster import and export::    
+* XMPP URIs::                   
 * Customization::               
 * Hacking and extending::       
 * Protocol support::            
@@ -859,7 +860,7 @@ the variables @code{jabber-events-confirm-delivered},
 not to request such information by customizing
 @code{jabber-events-request-these}.
 
-@node Roster import and export, Customization, Message events, Top
+@node Roster import and export, XMPP URIs, Message events, Top
 @chapter Roster import and export
 
 @findex jabber-export-roster
@@ -884,7 +885,66 @@ imported data.  Subscriptions will be updated.
 The format of the roster files is the XML used by roster pushes in the
 XMPP protocol, in UTF-8 encoding.
 
-@node Customization, Hacking and extending, Roster import and export, Top
+@node XMPP URIs, Customization, Roster import and export, Top
+@chapter XMPP URIs
+
+@cindex URIs
+@cindex URLs
+@cindex links
+@cindex xmpp: links
+@cindex Mozilla integration
+@cindex web browser integration
+@cindex browser integration
+@findex jabber-handle-uri
+
+Many web page authors use links starting with @samp{xmpp:} for JIDs.
+Your web browser could be made to pass such links to jabber.el, so that
+such links are actually useful and not just decoration.  How to do that
+depends on your operating system and web browser.
+
+@section Mozilla and Unix
+
+If you use a Mozilla-based web browser on a Unix-like operating system,
+follow these steps.
+
+@enumerate
+@item
+Make sure you are running the Emacs server.  @xref{Emacs Server, , Using
+Emacs as a Server, emacs, GNU Emacs Manual}.
+
+@item
+Note the path of the @file{xmppuri.sh} file in the jabber.el
+distribution, and make sure it is executable.
+
+@item
+Set the Mozilla preference @samp{network.protocol-handler.app.xmpp} to
+the path of @file{xmppuri.sh}.  There are two ways to do this:
+
+@itemize
+@item
+Go to the URL @samp{about:config}, right-click in the list, choose ``New
+string'', and enter @samp{network.protocol-handler.app.xmpp} and the
+path in the following dialogs.
+
+@item
+Open or create the file @file{user.js} in your Mozilla profile directory
+(in the same directory as @file{prefs.js}), and add the following line:
+
+@example
+user_pref("network.protocol-handler.app.xmpp", "@var{/path/to}/xmppuri.sh");
+@end example
+
+Restart Mozilla for this change to take effect.
+@end itemize
+@end enumerate
+
+@section Other systems
+
+If you know how to pass an XMPP URI from your browser to the function
+@code{jabber-handle-uri}, your contribution for this section would be
+appreciated.
+
+@node Customization, Hacking and extending, XMPP URIs, Top
 @chapter Customization
 
 @findex jabber-customize
