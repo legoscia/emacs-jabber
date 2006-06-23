@@ -434,7 +434,7 @@ See section 9.3 of XMPP Core."
   (signal 'jabber-error
 	  (list error-type condition text app-specific)))
 
-(defun jabber-handle-uri (uri)
+(defun jabber-handle-uri (uri &rest ignored-args)
   "Handle XMPP links according to draft-saintandre-xmpp-iri-04.
 See Info node `(jabber)XMPP URIs'."
   (interactive "sEnter XMPP URI: ")
