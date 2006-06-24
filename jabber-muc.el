@@ -371,22 +371,24 @@ JID; only provide completion as a guide."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Join groupchat" 'jabber-groupchat-join))
 
-(defun jabber-groupchat-join (group nickname)
-  "join a groupchat, or change nick"
+(defun jabber-groupchat-join (group nickname &optional popup)
+  "join a groupchat, or change nick.
+In interactive calls, or if POPUP is true, switch to the
+groupchat buffer."
   (interactive 
    (let ((group (jabber-read-jid-completing "group: ")))
-     (list group (jabber-muc-read-my-nickname group))))
+     (list group (jabber-muc-read-my-nickname group) t)))
 
   ;; If the user is already in the room, we don't need as many checks.
   (if (assoc group *jabber-active-groupchats*)
-      (jabber-groupchat-join-3 group nickname nil (interactive-p))
+      (jabber-groupchat-join-3 group nickname nil popup)
     ;; Else, send a disco request to find out what we are connecting
     ;; to.
     (jabber-disco-get-info group nil #'jabber-groupchat-join-2
-			   (list group nickname (interactive-p)))))
+			   (list group nickname popup))))
 
 (defun jabber-groupchat-join-2 (closure result)
-  (destructuring-bind (group nickname interactive) closure
+  (destructuring-bind (group nickname popup) closure
     (let ( ;; Either success...
 	  (identities (car result))
 	  (features (cadr result))
@@ -417,9 +419,9 @@ JID; only provide completion as a guide."
 	     (when (member "muc_passwordprotected" features)
 	       (read-passwd (format "Password for %s: " (jabber-jid-displayname group))))))
 
-	(jabber-groupchat-join-3 group nickname password interactive)))))
+	(jabber-groupchat-join-3 group nickname password popup)))))
 
-(defun jabber-groupchat-join-3 (group nickname password interactive)
+(defun jabber-groupchat-join-3 (group nickname password popup)
 
   ;; Remember that this is a groupchat _before_ sending the stanza.
   ;; The response might come quicker than you think.
@@ -438,7 +440,7 @@ JID; only provide completion as a guide."
 
   ;; But if the user interactively asked to join, he/she probably
   ;; wants the buffer to pop up right now.
-  (when interactive
+  (when popup
     (let ((buffer (jabber-muc-create-buffer group)))
       (switch-to-buffer buffer))))
 

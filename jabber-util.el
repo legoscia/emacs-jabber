@@ -1,4 +1,4 @@
-;; jabber-util.el - various utility functions
+;; jabber-util.el - various utility functions    -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
@@ -18,6 +18,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+(eval-when-compile (require 'cl))
 
 (defvar jabber-jid-history nil
   "History of entered JIDs")
@@ -434,6 +436,12 @@ See section 9.3 of XMPP Core."
   (signal 'jabber-error
 	  (list error-type condition text app-specific)))
 
+(defun jabber-unhex (string)
+  "Convert a hex-encoded UTF-8 string to Emacs representation.
+For example, \"ji%C5%99i@%C4%8Dechy.example/v%20Praze\" becomes
+\"jiři@čechy.example/v Praze\"."
+  (decode-coding-string (url-unhex-string string) 'utf-8))
+
 (defun jabber-handle-uri (uri &rest ignored-args)
   "Handle XMPP links according to draft-saintandre-xmpp-iri-04.
 See Info node `(jabber)XMPP URIs'."
@@ -441,15 +449,42 @@ See Info node `(jabber)XMPP URIs'."
 
   (when (string-match "//" uri)
     (error "URIs with authority part are not supported"))
-  (unless (string-match "^xmpp:\\([^?]+\\)\\(\\?.*\\)?" uri)
+
+  ;; This regexp handles three cases:
+  ;; xmpp:romeo@montague.net
+  ;; xmpp:romeo@montague.net?roster
+  ;; xmpp:romeo@montague.net?roster;name=Romeo%20Montague;group=Lovers
+  (unless (string-match "^xmpp:\\([^?]+\\)\\(\\?\\([a-z]+\\)\\(;\\(.*\\)\\)?\\)?" uri)
     (error "Invalid XMPP URI '%s'" uri))
 
-  ;; XXX: should remove hex-coding
-  (let ((jid (match-string 1 uri))
-	(method (match-string 2 uri)))
-    ;; we ignore method for now...
-    (let ((buffer (jabber-chat-with jid)))
-      (raise-frame (window-frame (get-buffer-window buffer))))))
+  ;; We start by raising the Emacs frame.
+  (raise-frame)
+
+  (let ((jid (jabber-unhex (match-string 1 uri)))
+	(method (match-string 3 uri))
+	(args (let ((text (match-string 5 uri)))
+		;; If there are arguments...
+		(when text
+		  ;; ...split the pairs by ';'...
+		  (let ((pairs (split-string text ";")))
+		    (mapcar (lambda (pair)
+			      ;; ...and split keys from values by '='.
+			      (destructuring-bind (key value) 
+				  (split-string pair "=")
+				;; Values can be hex-coded.
+				(cons key (jabber-unhex value))))))))))
+    ;; The full list of methods is at
+    ;; <URL:http://www.jabber.org/registrar/querytypes.html>.
+    (cond
+     ;; Join an MUC.
+     ((string= method "join")
+      (jabber-groupchat-join jid (jabber-muc-read-my-nickname jid) t))
+     ;; Register with a service.
+     ((string= method "register")
+      (jabber-get-register jid))
+     ;; Everything else: open a chat buffer.
+     (t
+      (jabber-chat-with jid)))))
 
 (provide 'jabber-util)
 
