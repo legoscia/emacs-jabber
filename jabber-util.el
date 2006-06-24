@@ -448,7 +448,8 @@ See Info node `(jabber)XMPP URIs'."
   (let ((jid (match-string 1 uri))
 	(method (match-string 2 uri)))
     ;; we ignore method for now...
-    (jabber-chat-with jid)))
+    (let ((buffer (jabber-chat-with jid)))
+      (raise-frame (window-frame (get-buffer-window buffer))))))
 
 (provide 'jabber-util)
 

@@ -577,7 +577,8 @@ If DELAYED is true, print long timestamp
 
 (defun jabber-chat-with (jid &optional other-window)
   "Open an empty chat window for chatting with JID.
-With a prefix argument, open buffer in other window."
+With a prefix argument, open buffer in other window.
+Returns the chat buffer."
   (interactive (list (jabber-read-jid-completing "chat with:")
 		     current-prefix-arg))
   (let ((buffer (jabber-chat-create-buffer jid)))
