@@ -47,12 +47,12 @@
 
     (insert "\n")
     (push (cons :subject
-		(widget-create 'string :value "" :tag "Subject"))
+		(widget-create 'editable-field :value "" :tag "Subject"))
 	  jabber-widget-alist)
 
     (insert "\n")
     (push (cons :text
-		(widget-create 'string :value "" :tag "Text"))
+		(widget-create 'text :value "" :tag "Text"))
 	  jabber-widget-alist)
 
     (insert "\n")
