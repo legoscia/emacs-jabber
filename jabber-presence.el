@@ -270,17 +270,21 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			       ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
   (jabber-display-roster))
 
-(defun jabber-send-away-presence ()
+(defun jabber-send-away-presence (&optional status)
   "Set status to away.
-Status description is empty.  Priority is unchanged."
-  (interactive)
-  (jabber-send-presence "away" "" *jabber-current-priority*))
+With prefix argument, ask for status message."
+  (interactive (list
+		(when current-prefix-arg
+		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
+  (jabber-send-presence "away" status *jabber-current-priority*))
 
-(defun jabber-send-xa-presence ()
+(defun jabber-send-xa-presence (&optional status)
   "Send extended away presence.
-Status description is empty.  Priority is unchanged."
-  (interactive)
-  (jabber-send-presence "xa" "" *jabber-current-priority*))
+With prefix argument, ask for status message."
+  (interactive (list
+		(when current-prefix-arg
+		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
+  (jabber-send-presence "xa" status *jabber-current-priority*))
 
 (defun jabber-send-default-presence ()
   "Send default presence.
