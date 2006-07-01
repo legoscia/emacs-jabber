@@ -48,6 +48,7 @@
     (define-key map "\C-a" 'jabber-send-away-presence)
     (define-key map "\C-o" 'jabber-send-default-presence)
     (define-key map "\C-x" 'jabber-send-xa-presence)
+    (define-key map "\C-p" 'jabber-send-presence)
     map)
   "Global Jabber keymap (usually under C-x C-j)")
 
