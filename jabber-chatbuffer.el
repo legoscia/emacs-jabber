@@ -59,6 +59,7 @@ window or at `fill-column', whichever is shorter."
     (let ((inhibit-read-only t))
       (put-text-property (point-min) (point) 'front-sticky t)
       (put-text-property (point-min) (point) 'rear-nonsticky t))
+    (goto-char (point-max))
     (setq jabber-point-insert (point-marker)))
 
   ;;(setq header-line-format jabber-chat-header-line-format)
