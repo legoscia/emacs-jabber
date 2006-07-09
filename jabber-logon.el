@@ -77,9 +77,7 @@ CLOSURE-DATA should be t on success and nil on failure."
 			"get" 
 			'(query ((xmlns . "jabber:iq:roster")))
 			#'jabber-process-roster 'initial
-			#'jabber-report-success "Roster retrieval")
-
-	(run-hooks 'jabber-post-connect-hook))
+			#'jabber-report-success "Roster retrieval"))
 
     ;; Logon failure
     (jabber-report-success xml-data "Logon")

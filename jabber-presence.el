@@ -93,7 +93,13 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (jabber-display-roster)
     (if (and id (string= type "set"))
 	(jabber-send-iq jabber-server "result" nil
-			nil nil nil nil id))))
+			nil nil nil nil id)))
+
+  ;; After initial roster push, run jabber-post-connect-hook.  We do
+  ;; it here and not before since we want to have the entire roster
+  ;; before we receive any presence stanzas.
+  (when (eq closure-data 'initial)
+    (run-hooks 'jabber-post-connect-hook)))
 
 (add-to-list 'jabber-presence-chain 'jabber-process-presence)
 (defun jabber-process-presence (xml-data)

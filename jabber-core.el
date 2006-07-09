@@ -492,9 +492,7 @@ submit a bug report, including the information below.
 		  "get" 
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
-		  #'jabber-report-success "Roster retrieval")
-
-  (run-hooks 'jabber-post-connect-hook))
+		  #'jabber-report-success "Roster retrieval"))
 
 (defun jabber-clear-roster ()
   "Clean up the roster."
