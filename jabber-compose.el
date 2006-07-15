@@ -45,14 +45,14 @@
 					(list recipient))))
 	  jabber-widget-alist)
 
-    (insert "\n")
+    (insert "\nSubject: ")
     (push (cons :subject
-		(widget-create 'editable-field :value "" :tag "Subject"))
+		(widget-create 'editable-field :value ""))
 	  jabber-widget-alist)
 
-    (insert "\n")
+    (insert "\nText:\n")
     (push (cons :text
-		(widget-create 'text :value "" :tag "Text"))
+		(widget-create 'text :value ""))
 	  jabber-widget-alist)
 
     (insert "\n")
