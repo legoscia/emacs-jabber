@@ -23,6 +23,8 @@
 (require 'jabber-disco)
 (require 'jabber-feature-neg)
 
+(require 'jabber-si-common)
+
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si")
 
 ;; Now, stream methods push data to profiles.  It could be the other
@@ -35,17 +37,7 @@ Each entry is a list, containing:
  * Accept function, taking entire IQ stanza, and signalling a 'forbidden'
    error if request is declined; returning an XML node to return in
    response, or nil of none needed
- * Data function, taking JID of initiator, stream ID, and string
-   containing received data in binary form; receives `nil' on EOF.
-   Returns non-nil to keep connection; nil to close it.")
-
-(defvar jabber-si-stream-methods nil
-  "Supported SI stream methods.
-
-Each entry is a list, containing:
- * The namespace URI of the stream method
- * Accept function, taking JID of initiator, stream ID, profile
-   data function (as above), preparing to accept a request")
+ * \"Connection established\" function.  See `jabber-si-stream-methods'.")
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/si" 'jabber-si-process))
@@ -79,12 +71,12 @@ Each entry is a list, containing:
 	     ;; accept-function might throw a "forbidden" error
 	     ;; on user cancel
 	     (profile-response (funcall profile-accept-function xml-data))
-	     (profile-data-function (nth 2 profile-data))
+	     (profile-connected-function (nth 2 profile-data))
 	     (stream-method-id (nth 1 (assoc "stream-method" stream-method)))
 	     (stream-data (assoc stream-method-id jabber-si-stream-methods))
-	     (stream-accept-function (nth 1 stream-data)))
+	     (stream-accept-function (nth 2 stream-data)))
 	;; prepare stream for the transfer
-	(funcall stream-accept-function to si-id profile-data-function)
+	(funcall stream-accept-function to si-id profile-connected-function)
 	;; return result of feature negotiation of stream type
 	(jabber-send-iq to "result" 
 			`(si ((xmlns . "http://jabber.org/protocol/si"))

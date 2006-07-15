@@ -104,6 +104,10 @@
 (require 'jabber-vcard-avatars)
 (require 'jabber-autoaway)
 
+(require 'jabber-ft-client)
+(require 'jabber-ft-server)
+(require 'jabber-socks5)
+
 ;; XXX: automate this some time
 (autoload 'jabber-export-roster "jabber-export"
   "Create buffer from which roster can be exported to a file."

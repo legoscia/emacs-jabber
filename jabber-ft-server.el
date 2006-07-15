@@ -33,7 +33,7 @@
 (add-to-list 'jabber-si-profiles
 	     (list "http://jabber.org/protocol/si/profile/file-transfer"
 		   'jabber-ft-accept
-		   'jabber-ft-data))
+		   'jabber-ft-server-connected))
 
 (defun jabber-ft-accept (xml-data)
   "Receive IQ stanza containing file transfer request, ask user"
@@ -70,6 +70,7 @@
 	   (buffer (create-file-buffer file-name)))
       (message "Starting download of %s..." (file-name-nondirectory file-name))
       (with-current-buffer buffer
+	(kill-all-local-variables)
 	(setq buffer-file-coding-system 'binary)
 	;; For Emacs, switch buffer to unibyte _before_ anything goes into it,
 	;; otherwise binary files are corrupted.  For XEmacs, it isn't needed,
@@ -85,6 +86,14 @@
     ;; to support range, return something sensible here
     nil))
 
+(defun jabber-ft-server-connected (jid sid send-data-function)
+  ;; We don't really care about the send-data-function.  But if it's
+  ;; a string, it means that we have no connection.
+  (if (stringp send-data-function)
+      (message "File receiving failed: %s" send-data-function)
+    ;; On success, we just return our data receiving function.
+    'jabber-ft-data))
+
 (defun jabber-ft-data (jid sid data)
   "Receive chunk of transferred file."
   (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions))))
@@ -92,12 +101,15 @@
       ;; If data is nil, there is no more data.
       ;; But maybe the remote entity doesn't close the stream -
       ;; then we have to keep track of file size to know when to stop.
+      ;; Return value is whether to keep connection open.
       (when data
 	(insert data))
       (if (and data (< (buffer-size) jabber-ft-size))
 	  t
 	(basic-save-buffer)
-	(message "%s downloaded" (file-name-nondirectory buffer-file-name))))))
+	(message "%s downloaded" (file-name-nondirectory buffer-file-name))
+	(kill-buffer buffer)
+	nil))))
 
 (provide 'jabber-ft-server)
 

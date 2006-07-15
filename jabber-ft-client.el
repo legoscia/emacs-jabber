@@ -18,6 +18,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(eval-when-compile (require 'cl))
+
 (require 'jabber-si-client)
 (require 'jabber-util)
 
@@ -44,16 +46,22 @@
 				,@(when hash
 				    (list (cons 'hash hash))))
 			       (desc () ,desc))
-			`(lambda (jid sid send-data-function)
-			   (jabber-ft-do-send jid sid send-data-function ,filename)))))
+			(lexical-let ((filename filename))
+			  (lambda (jid sid send-data-function)
+			    (jabber-ft-do-send
+			     jid sid send-data-function filename))))))
 
 (defun jabber-ft-do-send (jid sid send-data-function filename)
-  (with-temp-buffer
-    (insert-file-contents-literally filename)
-
-    ;; Ever heard of buffering?
-    (funcall send-data-function (buffer-string))
-    (message "File transfer completed")))
+  (if (stringp send-data-function)
+      (message "File sending failed: %s" send-data-function)
+    (with-temp-buffer
+      (insert-file-contents-literally filename)
+      
+      ;; Ever heard of buffering?
+      (funcall send-data-function (buffer-string))
+      (message "File transfer completed")))
+  ;; File transfer is monodirectional, so ignore received data.
+  #'ignore)
 
 (provide 'jabber-ft-client)
 ;;; arch-tag: fba686d5-37b5-4165-86c5-49b76fa0ea6e

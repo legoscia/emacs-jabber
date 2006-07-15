@@ -15,6 +15,9 @@ Viewing and publishing JEP-0153 avatars (vCard-based) is now
 supported.
 (Not documented yet)
 
+** File transfer
+(Not documented yet)
+
 * New features in jabber.el 0.7
 
 ** SSL connections possible

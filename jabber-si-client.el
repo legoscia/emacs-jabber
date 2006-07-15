@@ -21,18 +21,14 @@
 (require 'jabber-iq)
 (require 'jabber-feature-neg)
 
-(defvar jabber-si-client-methods nil
-  "Supported SI stream methods for initiation.
-
-Each entry is a list, containing:
- * The namespace URI of the stream method
- * A function taking three arguments: JID, SID and profile function to call")
+(require 'jabber-si-common)
 
 (defun jabber-si-initiate (jid profile-namespace profile-data profile-function &optional mime-type)
   "Try to initiate a stream to JID.
 PROFILE-NAMESPACE is, well, the namespace of the profile to use.
 PROFILE-DATA is the XML data to send within the SI request.
-PROFILE-FUNCTION is the function to call upon success.
+PROFILE-FUNCTION is the \"connection established\" function.
+See `jabber-si-stream-methods'.
 MIME-TYPE is the MIME type to specify.
 Returns the SID."
 
@@ -47,7 +43,7 @@ Returns the SID."
 			 (feature ((xmlns . "http://jabber.org/protocol/feature-neg"))
 				  ,(jabber-fn-encode (list
 						      (cons "stream-method"
-							    (mapcar 'car jabber-si-client-methods)))
+							    (mapcar 'car jabber-si-stream-methods)))
 						     'request)))
 		    #'jabber-si-initiate-process (cons profile-function sid)
 		    ;; XXX: use other function here?
@@ -64,7 +60,7 @@ Returns the SID."
 	 (feature-node (car (jabber-xml-get-children query 'feature)))
 	 (feature-alist (jabber-fn-parse feature-node 'response))
 	 (chosen-method (cadr (assoc "stream-method" feature-alist)))
-	 (method-data (assoc chosen-method jabber-si-client-methods)))
+	 (method-data (assoc chosen-method jabber-si-stream-methods)))
     ;; Our work is done.  Hand it over to the stream method.
     (let ((stream-negotiate (nth 1 method-data)))
       (funcall stream-negotiate from sid profile-function))))
