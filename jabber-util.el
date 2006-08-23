@@ -472,7 +472,8 @@ See Info node `(jabber)XMPP URIs'."
 			      (destructuring-bind (key value) 
 				  (split-string pair "=")
 				;; Values can be hex-coded.
-				(cons key (jabber-unhex value))))))))))
+				(cons key (jabber-unhex value))))
+			    pairs))))))
     ;; The full list of methods is at
     ;; <URL:http://www.jabber.org/registrar/querytypes.html>.
     (cond
@@ -482,6 +483,10 @@ See Info node `(jabber)XMPP URIs'."
      ;; Register with a service.
      ((string= method "register")
       (jabber-get-register jid))
+     ;; Run an ad-hoc command
+     ((string= method "command")
+      ;; XXX: does the 'action' attribute make sense?
+      (jabber-ahc-execute-command jid (cdr (assoc "node" args))))
      ;; Everything else: open a chat buffer.
      (t
       (jabber-chat-with jid)))))
