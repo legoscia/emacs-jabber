@@ -186,8 +186,17 @@ and BUFFER, a buffer containing the result."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-message-wave ""
-  "a sound file to play when a message arrived"
+  "A sound file to play when a message arrived.
+See `jabber-alert-message-wave-alist' if you want other sounds
+for specific contacts."
   :type 'file
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-message-wave-alist nil
+  "Specific sound files for messages from specific contacts.
+The keys are regexps matching the JID, and the values are sound
+files."
+  :type '(alist :key-type regexp :value-type file)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-muc-wave ""
@@ -198,6 +207,13 @@ and BUFFER, a buffer containing the result."
 (defcustom jabber-alert-presence-wave ""
   "a sound file to play when a presence arrived"
   :type 'file
+  :group 'jabber-alerts)
+
+(defcustom jabber-alert-presence-wave-alist nil
+  "Specific sound files for presence from specific contacts.
+The keys are regexps matching the JID, and the values are sound
+files."
+  :type '(alist :key-type regexp :value-type file)
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-info-wave ""
@@ -286,7 +302,14 @@ Examples:
 (defun jabber-message-wave (from buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-message-wave'"
   (when proposed-alert
-    (play-sound-file jabber-alert-message-wave)))
+    (let* ((case-fold-search t)
+	   (bare-jid (jabber-jid-user from))
+	   (sound-file (or (dolist (entry jabber-alert-message-wave-alist)
+			     (when (string-match (car entry) bare-jid)
+			       (return (cdr entry))))
+			   jabber-alert-message-wave)))
+      (unless (equal sound-file "")
+	(play-sound-file sound-file)))))
 
 (defun jabber-message-display (from buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
@@ -383,8 +406,15 @@ This function is not called directly, but is the default for
 
 (defun jabber-presence-wave (who oldstatus newstatus statustext proposed-alert)
   "Play the wave file specified in `jabber-alert-presence-wave'"
-  (if proposed-alert
-      (play-sound-file jabber-alert-presence-wave)))
+  (when proposed-alert
+    (let* ((case-fold-search t)
+	   (bare-jid (symbol-name who))
+	   (sound-file (or (dolist (entry jabber-alert-presence-wave-alist)
+			     (when (string-match (car entry) bare-jid)
+			       (return (cdr entry))))
+			   jabber-alert-presence-wave)))
+      (unless (equal sound-file "")
+	(play-sound-file sound-file)))))
 
 ;; This is now defined in jabber-roster.el.
 ;; (defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
