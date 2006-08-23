@@ -224,7 +224,9 @@ CALLBACK with the response as only argument."
 	   (state-data (plist-get (cddr fsm) :state-data))
 	   (state-fn (intern (concat "fsm-" (symbol-name fsm-name)
 				     "-" (symbol-name state)))))
-      (fsm-debug-output "Sent %S to %s in state %s" event fsm-name state)
+      ;; If the event is a list, output only the car, to avoid an
+      ;; overflowing debug buffer.
+      (fsm-debug-output "Sent %S to %s in state %s" (or (car-safe event) event) fsm-name state)
       (let ((result (condition-case e
 			(funcall state-fn fsm state-data event (or callback 'ignore))
 		      (error (cons :error-signaled e)))))
