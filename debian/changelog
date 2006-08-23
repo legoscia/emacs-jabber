@@ -1,3 +1,9 @@
+emacs-jabber (0.7.dev) unstable; urgency=low
+
+  * Development snapshot; unofficial as far as Debian is concerned.
+
+ -- Magnus Henoch <mange@freemail.hu>  Mon, 17 Jul 2006 08:42:33 +0200
+
 emacs-jabber (0.7) unstable; urgency=low
 
   * SSL connections
