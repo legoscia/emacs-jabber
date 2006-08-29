@@ -27,6 +27,8 @@
   :group 'jabber)
 
 (defcustom jabber-autoaway-method (cond
+				   ((fboundp 'current-idle-time)
+				    'jabber-current-idle-time)
 				   ((getenv "DISPLAY")
 				    'jabber-xprintidle-get-idle-time)
 				   ((null window-system)
@@ -35,8 +37,12 @@
 This is a function that takes no arguments, and returns the
 number of seconds since the user was active, or nil on error."
   :group 'jabber-autoaway
-  :type '(choice (const :tag "xprintidle" jabber-xprintidle-get-idle-time)
-		 (const :tag "Watch atime of terminal" jabber-termatime-get-idle-time)
+  :type '(choice (const :tag "Use `current-idle-time' function"
+			jabber-current-idle-time)
+		 (const :tag "xprintidle" 
+			jabber-xprintidle-get-idle-time)
+		 (const :tag "Watch atime of terminal"
+			jabber-termatime-get-idle-time)
 		 function
 		 (const :tag "None" nil)))
 
@@ -163,6 +169,14 @@ The method for finding the terminal only works on GNU/Linux."
 	     (diff (time-to-seconds (time-since atime-of-tty))))
 	(when (> diff 0)
 	  diff)))))
+
+(defun jabber-current-idle-time ()
+  "Get idle time through `current-idle-time'.
+`current-idle-time' was introduced in Emacs 22."
+  (let ((idle-time (current-idle-time)))
+    (if (null idle-time)
+	0
+      (float-time idle-time))))
 
 (provide 'jabber-autoaway)
 ;; arch-tag: 5bcea14c-842d-11da-a120-000a95c2fcd0
