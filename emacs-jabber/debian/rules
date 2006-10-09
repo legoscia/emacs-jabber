@@ -1,0 +1,44 @@
+#!/usr/bin/make -f
+
+export DH_COMPAT=4
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	makeinfo jabber.texi
+	makeinfo --html -o html jabber.texi
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	rm -rf html
+	dh_clean
+
+binary: binary-arch binary-indep
+
+binary-arch:
+
+binary-indep: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs usr/share/emacs/site-lisp/emacs-jabber
+
+	install -m 644 *.el debian/emacs-jabber/usr/share/emacs/site-lisp/emacs-jabber
+	cat debian/emacsen-install.in debian/emacsen-install.template > debian/emacsen-install
+	cat debian/emacsen-remove.in debian/emacsen-remove.template > debian/emacsen-remove
+	dh_installemacsen
+	dh_installdocs html README AUTHORS NEWS
+	dh_installinfo jabber.info
+	dh_installchangelogs
+
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+.PHONY: binary-indep binary-arch binary clean build

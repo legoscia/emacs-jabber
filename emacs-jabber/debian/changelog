@@ -1,0 +1,46 @@
+emacs-jabber (0.7.dev) unstable; urgency=low
+
+  * Development snapshot; unofficial as far as Debian is concerned.
+
+ -- Magnus Henoch <mange@freemail.hu>  Mon, 17 Jul 2006 08:42:33 +0200
+
+emacs-jabber (0.7) unstable; urgency=low
+
+  * SSL connections
+  * Roster display optimized
+  * Uncountable minor features and bugfixes
+
+ -- Magnus Henoch <mange@freemail.hu>  Tue, 27 Dec 2005 12:55:10 +0100
+
+emacs-jabber (0.6.1) unstable; urgency=low
+
+  * Message history
+  * Activity tracking
+  * Notification for specific people going online
+  * Support for /me
+  * Improved MUC support
+
+ -- Magnus Henoch <mange@freemail.hu>  Thu, 23 Dec 2004 19:04:58 +0100
+
+emacs-jabber (0.6) unstable; urgency=low
+
+  * Chat buffer no longer uses minibuffer
+  * Roster and chat buffer prompts are customizable
+
+ -- Magnus Henoch <mange@freemail.hu>  Sat, 16 Oct 2004 21:11:58 +0200
+
+emacs-jabber (0.5.1) unstable; urgency=low
+
+  * Nicknames are accepted where JIDs are accepted.
+  * Roster line spacing customizable (default is none)
+  * Experimental file transfer support (see README)
+
+ -- Magnus Henoch <mange@freemail.hu>  Sat,  8 May 2004 21:49:26 +0200
+
+emacs-jabber (0.5) unstable; urgency=low
+
+  * Initial debianization.
+
+ -- Magnus Henoch <mange@freemail.hu>  Fri,  2 Apr 2004 23:04:36 +0200
+
+
