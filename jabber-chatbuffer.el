@@ -55,11 +55,11 @@ window or at `fill-column', whichever is shorter."
   (unless jabber-chat-ewoc
     (setq jabber-chat-ewoc
 	  (ewoc-create ewoc-pp nil "---"))
+    (goto-char (point-max))
     (put-text-property (point-min) (point) 'read-only t)
     (let ((inhibit-read-only t))
       (put-text-property (point-min) (point) 'front-sticky t)
       (put-text-property (point-min) (point) 'rear-nonsticky t))
-    (goto-char (point-max))
     (setq jabber-point-insert (point-marker)))
 
   ;;(setq header-line-format jabber-chat-header-line-format)

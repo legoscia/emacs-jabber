@@ -380,11 +380,10 @@ This function is used as an ewoc prettyprinter."
       (save-restriction
 	(narrow-to-region beg (point))
 	(jabber-chat-buffer-fill-long-lines)))
-;; XXX: are these needed?
-;;     (put-text-property beg (point) 'read-only t)
-;;     (put-text-property beg (point) 'front-sticky t)
-;;     (put-text-property beg (point) 'rear-nonsticky t)
-    ))
+
+    (put-text-property beg (point) 'read-only t)
+    (put-text-property beg (point) 'front-sticky t)
+    (put-text-property beg (point) 'rear-nonsticky t)))
 
 (defun jabber-rare-time-needed (time1 time2)
   "Return non-nil if a timestamp should be printed between TIME1 and TIME2."
