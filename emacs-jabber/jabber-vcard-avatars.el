@@ -27,8 +27,8 @@
 
 (require 'jabber-avatar)
 
-(defcustom jabber-vcard-avatars-retrieve (and (fboundp 'display-graphic-p)
-					      (display-graphic-p))
+(defcustom jabber-vcard-avatars-retrieve (and (fboundp 'display-images-p)
+					      (display-images-p))
   "Automatically download vCard avatars?"
   :group 'jabber-avatar
   :type 'boolean)

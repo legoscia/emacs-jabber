@@ -1,3 +1,3 @@
 copy: *.el
 copy: *.patch
-tar.gz: emacs-jabber name=emacs-jabber-20060826 base=emacs-jabber
+tar.gz: emacs-jabber name=emacs-jabber-20061013 base=emacs-jabber

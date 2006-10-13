@@ -147,7 +147,9 @@ See JEP-0030."
 			    (funcall func xml-data)
 			  func)))
 	    (jabber-send-iq to "result"
-			    `(query ((xmlns . ,xmlns))
+			    `(query ((xmlns . ,xmlns)
+				     ,@(when node
+					 (list (cons 'node node))))
 				    ,@result)
 			    nil nil nil nil id)))
 

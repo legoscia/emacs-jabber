@@ -305,10 +305,11 @@ and `jabber-default-status'."
   "send a subscription request to jid, showing him your request text, if specified"
   (interactive (list (jabber-read-jid-completing "to: ")
 		     (jabber-read-with-input-method "request: ")))
-  (jabber-send-sexp `(presence ((to . ,to)
-                                (type . "subscribe"))
-                               ,(if (and request (> (length request) 0))
-                                   request))))
+  (jabber-send-sexp `(presence 
+		      ((to . ,to)
+		       (type . "subscribe"))
+		      ,@(when (and request (> (length request) 0))
+			  (list `(status () ,request))))))
 
 (add-to-list 'jabber-jid-roster-menu
 	     (cons "Add/modify roster entry" 'jabber-roster-change))
