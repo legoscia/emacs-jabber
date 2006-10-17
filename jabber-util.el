@@ -491,6 +491,12 @@ See Info node `(jabber)XMPP URIs'."
      (t
       (jabber-chat-with jid)))))
 
+(defun url-xmpp (url)
+  "Handle XMPP URLs from internal Emacs functions."
+  ;; XXX: This parsing roundtrip is redundant, and the parser of the
+  ;; url package might lose information.
+  (jabber-handle-uri (url-recreate-url url)))  
+
 (provide 'jabber-util)
 
 ;;; arch-tag: cfbb73ac-e2d7-4652-a08d-dc789bcded8a
