@@ -22,8 +22,9 @@ supported.
 (Not documented yet)
 
 ** Per-user history files changed
-Previously these file names erroneously contained double quotes.
-You'll need to rename your history files manually.
+For some time after 0.7 these file names erroneously contained double
+quotes.  If you have used the CVS version you'll need to rename your
+history files manually.
 
 * New features in jabber.el 0.7
 
