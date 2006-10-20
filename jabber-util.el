@@ -139,13 +139,18 @@ properties to add to the result."
   (equal (jabber-jid-user jid)
 	 (concat jabber-username "@" jabber-server)))
 
-(defun jabber-read-jid-completing (prompt &optional subset require-match default)
+(defun jabber-read-jid-completing (prompt &optional subset require-match default resource)
   "read a jid out of the current roster from the minibuffer.
 If SUBSET is non-nil, it should be a list of symbols from which
 the JID is to be selected, instead of using the entire roster.
 If REQUIRE-MATCH is non-nil, the JID must be in the list used.
 If DEFAULT is non-nil, it's used as the default value, otherwise
-the default is inferred from context."
+the default is inferred from context.
+RESOURCE is one of the following:
+
+nil         Accept full or bare JID, as entered
+full        Turn bare JIDs to full ones with highest-priority resource
+bare-or-muc Turn full JIDs to bare ones, except for in MUC"
   (let ((jid-at-point (or 
 		       (and default
 			    ;; default can be either a symbol or a string
@@ -158,7 +163,8 @@ the default is inferred from context."
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
-				      (or subset *jabber-roster*))))
+				      (or subset *jabber-roster*)))
+	chosen)
     (dolist (item (or subset *jabber-roster*))
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
@@ -171,10 +177,32 @@ the default is inferred from context."
 					(format "(default %s) " jid-at-point)))
 			    jid-completion-table
 			    nil require-match nil 'jabber-jid-history jid-at-point)))
-      (if (and input (assoc-ignore-case input jid-completion-table))
-	  (symbol-name (cdr (assoc-ignore-case input jid-completion-table)))
-	(and (not (zerop (length input)))
-	     input)))))
+      (setq chosen
+	    (if (and input (assoc-ignore-case input jid-completion-table))
+		(symbol-name (cdr (assoc-ignore-case input jid-completion-table)))
+	      (and (not (zerop (length input)))
+		   input))))
+
+    (when chosen
+      (case resource
+	(full
+	 ;; If JID is bare, add the highest-priority resource.
+	 (if (jabber-jid-resource chosen)
+	     chosen
+	   (let ((highest-resource (get (jabber-jid-symbol chosen) 'resource)))
+	     (if highest-resource
+		 (concat chosen "/" highest-resource)
+	       chosen))))
+	(bare-or-muc
+	 ;; If JID is full and non-MUC, remove resource.
+	 (if (null (jabber-jid-resource chosen))
+	     chosen
+	   (let ((bare (jabber-jid-user chosen)))
+	     (if (assoc bare *jabber-active-groupchats*)
+		 chosen
+	       bare))))
+	(t
+	 chosen)))))
 
 (defun jabber-read-node (prompt)
   "Read node name, taking default from disco item at point."

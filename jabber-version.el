@@ -29,7 +29,7 @@
 	     (cons "Request software version" 'jabber-get-version))
 (defun jabber-get-version (to)
   "Request software version"
-  (interactive (list (jabber-read-jid-completing "Request version of: ")))
+  (interactive (list (jabber-read-jid-completing "Request version of: " nil nil nil 'full)))
   ;; XXX: you will not get any result unless you add the resource to the JID.
   (jabber-send-iq to
 		  "get"

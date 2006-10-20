@@ -27,7 +27,7 @@
 
 (defun jabber-ft-send (jid filename desc)
   "Attempt to send FILENAME to JID."
-  (interactive (list (jabber-read-jid-completing "Send file to: ")
+  (interactive (list (jabber-read-jid-completing "Send file to: " nil nil nil 'full)
 		     (read-file-name "Send which file: " nil nil t)
 		     (jabber-read-with-input-method "Description (optional): ")))
   (if (zerop (length desc)) (setq desc nil))

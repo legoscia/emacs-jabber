@@ -255,7 +255,7 @@ The top node should be the `vCard' node."
 
 (defun jabber-vcard-get (jid)
   "Request vcard from JID."
-  (interactive (list (jabber-read-jid-completing "Request vcard from: ")))
+  (interactive (list (jabber-read-jid-completing "Request vcard from: " nil nil nil 'bare-or-muc)))
   (jabber-send-iq jid
 		  "get"
 		  '(vCard ((xmlns . "vcard-temp")))
