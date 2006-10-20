@@ -174,6 +174,9 @@ Trailing newlines are always removed, regardless of this variable."
     (set-keymap-parent map jabber-common-keymap)
     (define-key map [mouse-2] 'jabber-popup-combined-menu)
     (define-key map (kbd "TAB") 'jabber-go-to-next-jid)
+    (define-key map (kbd "S-TAB") 'jabber-go-to-previous-jid)
+    (define-key map (kbd "M-TAB") 'jabber-go-to-previous-jid)
+    (define-key map (kbd "<backtab>") 'jabber-go-to-previous-jid)
     (define-key map (kbd "RET") 'jabber-chat-with-jid-at-point)
     (define-key map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
 
@@ -457,6 +460,18 @@ WHO is a JID symbol."
       (setq next (next-single-property-change (point-min) 'jabber-jid)))
     (if next (goto-char (1+ next))
       (goto-char (point-min)))))
+
+(defun jabber-go-to-previous-jid ()
+  "Move the cursor to the previous jid in the buffer"
+  (interactive)
+  (let ((previous (previous-single-property-change (point) 'jabber-jid)))
+    (when (and previous
+               (not (get-text-property previous 'jabber-jid)))
+      (setq previous (previous-single-property-change previous 'jabber-jid)))
+    (unless previous
+      (setq previous (previous-single-property-change (point-max) 'jabber-jid)))
+    (if previous (goto-char previous)
+      (goto-char (point-max)))))
 
 (provide 'jabber-roster)
 

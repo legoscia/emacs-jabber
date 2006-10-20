@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20061013
+%define cvsdate 20061021
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -45,7 +45,7 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name
-%patch1 -p1
+#%patch1 -p1
 
 %build
 makeinfo jabber.texi
@@ -82,6 +82,10 @@ makeinfo jabber.texi
 
 
 %changelog
+* Sat Oct 21 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-20061021
+- cvs-20061021
+- Obsolete patch removed
+
 * Fri Oct 13 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-20061013
 - cvs-20061013
 
