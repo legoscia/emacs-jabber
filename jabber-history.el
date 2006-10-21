@@ -134,10 +134,6 @@ Jabber history files."
     (set-text-properties 0 (length body) nil body)
     ;; Encode text as Lisp string - get decoding for free
     (setq body (prin1-to-string body))
-    (when from
-      (setq from (prin1-to-string from)))
-    (when to
-      (setq to (prin1-to-string to)))
     ;; Encode LF and CR
     (while (string-match "\n" body)
       (setq body (replace-match "\\n" nil t body nil)))
@@ -147,9 +143,11 @@ Jabber history files."
 		    (jabber-encode-time (or timestamp (current-time)))
 		    (or direction
 			"in")
-		    (or from
+		    (or (when from
+			  (prin1-to-string from))
 			"\"me\"")
-		    (or to
+		    (or (when to
+			  (prin1-to-string to))
 			"\"me\"")
 		    body))
     (let ((coding-system-for-write 'utf-8)
