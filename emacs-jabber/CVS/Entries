@@ -22,7 +22,6 @@
 /jabber-ft-client.el/1.5/Fri Oct 20 15:24:58 2006//
 /jabber-ft-common.el/1.2/Sat Feb 25 11:53:29 2006//
 /jabber-ft-server.el/1.12/Sat Jul 15 12:15:50 2006//
-/jabber-history.el/1.24/Sun Jan 22 20:19:04 2006//
 /jabber-iq.el/1.19/Sat Mar  4 00:32:47 2006//
 /jabber-keepalive.el/1.5/Tue Dec 27 22:11:26 2005//
 /jabber-keymap.el/1.8/Sat Jul  1 08:02:26 2006//
@@ -35,7 +34,6 @@
 /jabber-private.el/1.1/Wed Jan 11 12:50:30 2006//
 /jabber-ratpoison.el/1.1/Wed Aug 31 20:10:15 2005//
 /jabber-register.el/1.6/Wed Jan 11 12:50:17 2006//
-/jabber-roster.el/1.39/Tue Oct 17 17:30:52 2006//
 /jabber-sasl.el/2.6/Thu Jan 12 09:23:35 2006//
 /jabber-sawfish.el/1.1/Wed Aug 31 20:10:15 2005//
 /jabber-screen.el/1.1/Wed Aug 31 20:10:15 2005//
@@ -58,3 +56,5 @@
 /srv.el/2.1/Sun Apr 23 15:09:56 2006//
 /xmppuri.sh/2.1/Thu Jun 22 23:54:54 2006//
 D/debian////
+/jabber-history.el/1.25/Sat Oct 21 22:18:07 2006//
+/jabber-roster.el/1.40/Sat Oct 21 22:18:07 2006//
