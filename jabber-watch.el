@@ -21,9 +21,13 @@
 
 (require 'jabber-util)
 
-(defvar jabber-watch-alist nil
+(defcustom jabber-watch-alist nil
   "Alist of buddies for which an extra notification should be sent
-when they come online, with comment strings as values.")
+when they come online, with comment strings as values."
+  ;; XXX: change symbol to jid-symbol or something, and update
+  ;; documentation
+  :type '(alist :key-type symbol :value-type string)
+  :group 'jabber-watch)
 
 (defun jabber-presence-watch (who oldstatus newstatus
 				  statustext proposed-alert)
