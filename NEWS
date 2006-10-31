@@ -9,6 +9,7 @@
 *** Don't display alerts for your own messages
 See jabber-muc-alert-self.
 (Not documented yet)
+*** Presence changes are sent to MUC rooms too
 
 ** Avatars
 Viewing and publishing JEP-0153 avatars (vCard-based) is now
