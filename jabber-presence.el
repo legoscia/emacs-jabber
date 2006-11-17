@@ -284,6 +284,33 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (priority () ,(number-to-string *jabber-current-priority*))
     ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
 
+(defun jabber-send-directed-presence (jid type)
+  "Send a directed presence stanza to JID."
+  (interactive
+   (list (jabber-read-jid-completing "Send directed presence to: ")
+	 (completing-read "Type (default is online): "
+			  '(("online")
+			    ("away")
+			    ("xa")
+			    ("dnd")
+			    ("chatty")
+			    ("probe")
+			    ("unavailable"))
+			  nil t nil nil "online")))
+  (cond
+   ((member type '("probe" "unavailable"))
+    (jabber-send-sexp `(presence ((to . ,jid)
+				  (type . ,type)))))
+
+   (t
+    (let ((*jabber-current-show*
+	   (if (string= type "online")
+	       ""
+	     type))
+	  (*jabber-current-status* nil))
+      (jabber-send-sexp `(presence ((to . ,jid))
+				   ,@(jabber-presence-children)))))))
+
 (defun jabber-send-away-presence (&optional status)
   "Set status to away.
 With prefix argument, ask for status message."
