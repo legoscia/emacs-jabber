@@ -266,15 +266,50 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       (setq priority (int-to-string priority)))
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
-  (setq *jabber-current-priority* (string-to-int priority))
-  (jabber-send-sexp `(presence ()
-                               ,(if (> (length status) 0)
-                                    `(status () ,status))
-			       ,(if (> (length show) 0)
-                                    `(show () ,show))
-			       (priority () ,(int-to-string *jabber-current-priority*))
-			       ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
+  (setq *jabber-current-priority* (string-to-number priority))
+  (let ((subelements (jabber-presence-children)))
+    ;; First send presence to everyone subscribed
+    (jabber-send-sexp `(presence () ,@subelements))
+    ;; Then send to every joined MUC room
+    (dolist (groupchat *jabber-active-groupchats*)
+      (jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements))))
   (jabber-display-roster))
+
+(defun jabber-presence-children ()
+  "Return the children for a <presence/> stanza."
+  `(,(when (> (length *jabber-current-status*) 0)
+       `(status () ,*jabber-current-status*))
+    ,(when (> (length *jabber-current-show*) 0)
+	 `(show () ,*jabber-current-show*))
+    (priority () ,(number-to-string *jabber-current-priority*))
+    ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
+
+(defun jabber-send-directed-presence (jid type)
+  "Send a directed presence stanza to JID."
+  (interactive
+   (list (jabber-read-jid-completing "Send directed presence to: ")
+	 (completing-read "Type (default is online): "
+			  '(("online")
+			    ("away")
+			    ("xa")
+			    ("dnd")
+			    ("chatty")
+			    ("probe")
+			    ("unavailable"))
+			  nil t nil nil "online")))
+  (cond
+   ((member type '("probe" "unavailable"))
+    (jabber-send-sexp `(presence ((to . ,jid)
+				  (type . ,type)))))
+
+   (t
+    (let ((*jabber-current-show*
+	   (if (string= type "online")
+	       ""
+	     type))
+	  (*jabber-current-status* nil))
+      (jabber-send-sexp `(presence ((to . ,jid))
+				   ,@(jabber-presence-children)))))))
 
 (defun jabber-send-away-presence (&optional status)
   "Set status to away.

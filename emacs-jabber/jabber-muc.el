@@ -60,6 +60,14 @@ Values are lists of nickname strings.")
   :group 'jabber-chat
   :type '(repeat (string :tag "JID of room")))
 
+(defcustom jabber-muc-disable-disco-check nil
+  "If non-nil, disable checking disco#info of rooms before joining them.
+Disco information can tell whether the room exists and whether it is
+password protected, but some servers do not support it.  If you want
+to join chat rooms on such servers, set this variable to t."
+  :group 'jabber-chat
+  :type 'boolean)
+
 (defcustom jabber-groupchat-buffer-format "*-jabber-groupchat-%n-*"
   "The format specification for the name of groupchat buffers.
 
@@ -380,7 +388,9 @@ groupchat buffer."
      (list group (jabber-muc-read-my-nickname group) t)))
 
   ;; If the user is already in the room, we don't need as many checks.
-  (if (assoc group *jabber-active-groupchats*)
+  (if (or (assoc group *jabber-active-groupchats*)
+	  ;; Or if the users asked us not to check disco info.
+	  jabber-muc-disable-disco-check)
       (jabber-groupchat-join-3 group nickname nil popup)
     ;; Else, send a disco request to find out what we are connecting
     ;; to.
@@ -431,7 +441,8 @@ groupchat buffer."
   (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group nickname)))
 			       (x ((xmlns . "http://jabber.org/protocol/muc"))
 				  ,@(when password
-				      `((password () ,password))))))
+				      `((password () ,password))))
+			       ,@(jabber-presence-children)))
 
   ;; There, stanza sent.  Now we just wait for the MUC service to
   ;; mirror the stanza.  This is handled in

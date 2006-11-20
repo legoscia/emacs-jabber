@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20061022
+%define cvsdate 20061119
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -80,15 +80,18 @@ makeinfo jabber.texi
 
 
 %changelog
-* Sun Oct 22 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-20061022
+* Sun Nov 19 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061119
+- cvs-alt0.20061119
+
+* Sun Oct 22 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061022
 - cvs-20061022
 - Obsolete patch really removed (author claims that he really fix bug)
 
-* Sat Oct 21 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-20061021
+* Sat Oct 21 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061021
 - cvs-20061021
 - Obsolete patch removed
 
-* Fri Oct 13 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-20061013
+* Fri Oct 13 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061013
 - cvs-20061013
 
 * Sat Aug 26 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20060826
