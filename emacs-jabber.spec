@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20061119
+%define cvsdate 20061208
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -80,6 +80,9 @@ makeinfo jabber.texi
 
 
 %changelog
+* Fri Dec  8 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061208
+- jabber-emacs.el additionals
+
 * Sun Nov 19 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061119
 - cvs-alt0.20061119
 
