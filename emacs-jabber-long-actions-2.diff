@@ -1,0 +1,14 @@
+--- /home/jsv/cvs/emacs-jabber/jabber-chat.el.~1.72.~	2006-11-10 18:06:10.000000000 +0300
++++ jabber-chat.el	2006-12-14 12:44:02.000000000 +0300
+@@ -507,8 +507,9 @@
+     (when body
+ 
+       (when (eql mode :insert)
+-	(if (string-match "^/me \\(.*\\)$" body)
+-	    (let ((action (match-string 1 body))
++	(if (and (> (length body) 4)
++		 (string-equal (substring body 0 4) "/me "))
++	    (let ((action (substring body 4))
+ 		  (nick (cond
+ 			 ((eq who :local)
+ 			  jabber-nickname)
