@@ -1,6 +1,7 @@
 ;; jabber-time.el - time reporting by JEP-0090
 
 ;; Copyright (C) 2006 - Kirill A. Kroinskiy - catap@catap.ru
+;; Copyright (C) 2006 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -22,6 +23,7 @@
 (require 'jabber-iq)
 (require 'jabber-util)
 
+(require 'time-date)
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request time" 'jabber-get-tiem))
@@ -60,6 +62,54 @@
       (when tz
 	(insert "Time zone:\t" tz)))))
 
+;; the only difference between these two functions is the
+;; jabber-read-jid-completing call.
+(defun jabber-get-last-online (to)
+  "Request time since a user was last online, or uptime of a component."
+  (interactive (list (jabber-read-jid-completing "Get last online for: "
+						 nil nil nil 'bare-or-muc)))
+  (jabber-send-iq to
+		  "get"
+		  '(query ((xmlns . "jabber:iq:last")))
+		  #'jabber-process-data #'jabber-process-last
+		  #'jabber-process-data "Last online request failed"))
+
+(defun jabber-get-idle-time (to)
+  "Request idle time of user."
+  (interactive (list (jabber-read-jid-completing "Get idle time for: " 
+						 nil nil nil 'full)))
+  (jabber-send-iq to
+		  "get"
+		  '(query ((xmlns . "jabber:iq:last")))
+		  #'jabber-process-data #'jabber-process-last
+		  #'jabber-process-data "Idle time request failed"))
+
+(defun jabber-process-last (xml-data)
+  "Handle resultts from jabber:iq:last requests."
+  (let* ((from (jabber-xml-get-attribute xml-data 'from))
+	 (query (jabber-iq-query xml-data))
+	 (seconds (jabber-xml-get-attribute query 'seconds))
+	 (message (car (jabber-xml-node-children query))))
+    (cond
+     ((jabber-jid-resource from)
+      ;; Full JID: idle time
+      (insert (format "Idle for %s seconds" seconds) "\n"))
+     ((jabber-jid-username from)
+      ;; Bare JID with username: time since online
+      (insert (format "Last online %s seconds ago" seconds) "\n")
+      (let ((seconds (condition-case nil
+			 (string-to-number seconds)
+		       (error nil))))
+	(when (numberp seconds)
+	  (insert "That is, at "
+		  (format-time-string "%Y-%m-%d %T"
+				      (time-subtract (current-time)
+						     (seconds-to-time seconds)))
+		  "\n"))))
+     (t
+      ;; Only hostname: uptime
+      (insert (format "Uptime: %s seconds" seconds) "\n")))))
+
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:time" 'jabber-return-time))
 (add-to-list 'jabber-advertised-features "jabber:iq:time")
 (defun jabber-return-time (xml-data)
@@ -69,7 +119,9 @@ determined from the incoming packet passed in XML-DATA."
 	(id (jabber-xml-get-attribute xml-data 'id)))
     (jabber-send-iq to "result"
 		    `(query ((xmlns . "jabber:iq:time"))
-			    (display () ,(format-time-string "%a %b %d %H:%M:%S %Y"))
+			    ;; what is ``human-readable'' format?
+			    ;; the same way as formating using by tkabber
+			    (display () ,(format-time-string "%a %b %d %H:%M:%S %Z %Y"))
 			    (tz () ,(format-time-string "%Z"))
 			    (utc () ,(jabber-encode-legacy-time nil)))
 		    nil nil nil nil

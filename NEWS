@@ -30,6 +30,12 @@ history files manually.
 ** New function: jabber-send-directed-presence
 (Not documented yet)
 
+** Entity time supported (XEP-0090)
+(Not documented yet)
+
+** Last activity supported (XEP-0012)
+(Not documented yet)
+
 * New features in jabber.el 0.7
 
 ** SSL connections possible
