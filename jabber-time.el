@@ -26,7 +26,7 @@
 (require 'time-date)
 
 (add-to-list 'jabber-jid-info-menu
-	     (cons "Request time" 'jabber-get-tiem))
+	     (cons "Request time" 'jabber-get-time))
 (defun jabber-get-time (to)
   "Request time"
   (interactive (list (jabber-read-jid-completing "Request time of: ")))
