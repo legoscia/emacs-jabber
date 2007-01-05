@@ -636,6 +636,7 @@ jabber.el includes a number of features meant to improve the user
 interface and do other useful things.
 
 @menu
+* Autoaway::                    
 * Modeline status::             
 * Keepalive::                   
 * Tracking activity::           
@@ -643,7 +644,44 @@ interface and do other useful things.
 * Spell checking::              
 @end menu
 
-@node Modeline status, Keepalive, Useful features, Useful features
+@node Autoaway, Modeline status, Useful features, Useful features
+@section Autoaway
+
+@cindex autoaway
+@cindex idle
+@cindex xprintidle
+@vindex jabber-autoaway-method
+
+It is possible to automatically set your status to ``away'' when you
+haven't used your computer for a while.  This lets your contacts know
+that you might not answer immediately.
+
+To activate this feature, add @code{jabber-autoaway-start} to
+@code{jabber-post-connect-hook}, e.g:
+@example
+(add-hook 'jabber-post-connect-hook 'jabber-autoaway-start)
+@end example
+
+There are different methods to find how long you have been ``idle''.
+The method to use is specified by @code{jabber-autoaway-method}.  The
+value of this variable should be a function that returns the number of
+seconds you have been idle.  Three functions are provided.
+
+If you are running Emacs 22 and thus have the @code{current-idle-time}
+function, it is used by default.  Note that this method only measures
+the time since you last interacted with Emacs, and thus disregards
+activity in other programs.
+
+If you are using the X Window System, you can use the
+@uref{http://www.dtek.chalmers.se/~henoch/text/xprintidle.html,
+xprintidle} program.  Make sure that @code{jabber-xprintidle-program} is
+set to the correct file name.  This uses the same method as XScreensaver
+to find your idle time.
+
+If you are using Emacs on a GNU/Linux terminal, the function
+@code{jabber-termatime-get-idle-time} is used by default.
+
+@node Modeline status, Keepalive, Autoaway, Useful features
 @section Modeline status
 
 @cindex Modeline
@@ -1012,6 +1050,7 @@ priority during a session with @code{jabber-send-presence}.
 @cindex SSL
 @cindex TLS
 @cindex STARTTLS
+@cindex SRV records
 
 @code{jabber-network-server} is the hostname or IP address of your
 server.  If it is set to @code{nil}, jabber.el will use the name in

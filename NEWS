@@ -3,11 +3,9 @@
 * New features in jabber.el 0.7.1
 
 ** STARTTLS
-(Not documented yet)
 
 ** SRV records
 Requires No Gnus.
-(Not documented yet)
 
 ** Message composition buffer
 Try jabber-compose.
@@ -17,7 +15,6 @@ Try jabber-compose.
 See manual for setup.
 
 ** Autoaway
-(Not documented yet)
 
 ** MUC features
 *** Don't display alerts for your own messages
