@@ -1,7 +1,7 @@
 \input texinfo          @c -*-texinfo-*-
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.7
+@settitle jabber.el manual 0.7.1
 @c %**end of header
 
 @dircategory Emacs
@@ -10,7 +10,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.7.
+This manual is for jabber.el, version 0.7.1.
 
 Copyright @copyright{} 2004, 2005 Magnus Henoch, Tom Berger.
 
@@ -47,6 +47,7 @@ this permission notice are preserved on all copies.
 * Groupchat::                   
 * Services::                    
 * Personal information::        
+* Avatars::                     
 * Useful features::             
 * Message history::             
 * Message events::              
@@ -609,7 +610,7 @@ for JID and node.  (If you already know those, you could of course
 enter them yourself)  The form you get should hopefully be
 self-explanatory.
 
-@node Personal information, Useful features, Services, Top
+@node Personal information, Avatars, Services, Top
 @chapter Personal information
 
 @cindex vCard
@@ -629,7 +630,34 @@ e-mail addresses, each of which has a set of orthogonal properties.
 You can add and remove items with the [INS] and [DEL] buttons,
 respectively.
 
-@node Useful features, Message history, Personal information, Top
+This is also where you set your avatar (@pxref{Avatars}).  The size of
+your avatar file is limited to 8 kilobytes.
+
+@node Avatars, Useful features, Personal information, Top
+@chapter Avatars
+
+@cindex avatars
+@vindex jabber-vcard-avatars-retrieve
+@vindex jabber-vcard-avatars-publish
+@vindex jabber-avatar-cache-directory
+
+jabber.el supports viewing and publishing avatars according to XEP-0153,
+vCard-Based Avatars.  By default, if you have an avatar in your vCard
+(@pxref{Personal information}), it will be published for others to see,
+and if other people publish their avatars, they will be displayed in the
+roster buffer and in the header line of chat buffers, assuming that your
+Emacs can display images.
+
+To disable retrieval of other people's avatars, set
+@code{jabber-vcard-avatars-retrieve} to nil.  To disable publishing of
+your own avatar, set @code{jabber-vcard-avatars-publish} to nil.
+
+Avatars are cached in the directory specified by
+@code{jabber-avatar-cache-directory}, by default
+@file{~/.jabber-avatars/}.  The cache is never cleaned, so you might
+want to do that yourself from time to time.
+
+@node Useful features, Message history, Avatars, Top
 @chapter Useful features
 
 jabber.el includes a number of features meant to improve the user
@@ -1901,7 +1929,7 @@ accurately.
 JEP-0055 is supported, both with traditional fields and with Data
 Forms (@pxref{JEP-0004 (Data Forms)}).  As the traditional fields
 specified by the JEP is a subset of those allowed in JEP-0077,
-handling of those two form types are merged.  @ref{JEP-0077 (In-Band
+handling of those two form types are merged.  @xref{JEP-0077 (In-Band
 Registration)}.
 
 @node JEP-0065 (SOCKS5 Bytestreams), JEP-0066 (Out of Band Data), JEP-0055 (Jabber Search), Protocol support
