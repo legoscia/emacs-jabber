@@ -2,6 +2,20 @@
 
 * New features in jabber.el 0.7.1
 
+** STARTTLS
+(Not documented yet)
+
+** SRV records
+Requires No Gnus.
+(Not documented yet)
+
+** Message composition buffer
+Try jabber-compose.
+(Not documented yet)
+
+** XMPP URIs are handled
+See manual for setup.
+
 ** Autoaway
 (Not documented yet)
 
@@ -10,6 +24,8 @@
 See jabber-muc-alert-self.
 (Not documented yet)
 *** Presence changes are sent to MUC rooms too
+*** Check room features before joining
+(Not documented yet)
 
 ** Avatars
 Viewing and publishing JEP-0153 avatars (vCard-based) is now
