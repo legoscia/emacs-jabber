@@ -1,3 +1,2 @@
-copy: *.diff
 copy: *.el
-tar.gz: emacs-jabber name=emacs-jabber-20061214 base=emacs-jabber
+tar.gz: emacs-jabber name=emacs-jabber-20070108 base=emacs-jabber

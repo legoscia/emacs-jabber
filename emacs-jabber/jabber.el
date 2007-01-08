@@ -103,6 +103,7 @@
 (require 'jabber-events)
 (require 'jabber-vcard-avatars)
 (require 'jabber-autoaway)
+(require 'jabber-time)
 
 (require 'jabber-ft-client)
 (require 'jabber-ft-server)

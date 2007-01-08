@@ -1,20 +1,32 @@
 -*- mode: outline -*-
 
-* New features in jabber.el 0.8
+* New features in jabber.el 0.7.1
+
+** STARTTLS
+
+** SRV records
+Requires No Gnus.
+
+** Message composition buffer
+Try jabber-compose.
+(Not documented yet)
+
+** XMPP URIs are handled
+See manual for setup.
 
 ** Autoaway
-(Not documented yet)
 
 ** MUC features
 *** Don't display alerts for your own messages
 See jabber-muc-alert-self.
 (Not documented yet)
 *** Presence changes are sent to MUC rooms too
+*** Check room features before joining
+(Not documented yet)
 
 ** Avatars
 Viewing and publishing JEP-0153 avatars (vCard-based) is now
 supported.
-(Not documented yet)
 
 ** File transfer
 (Not documented yet)
@@ -28,6 +40,12 @@ quotes.  If you have used the CVS version you'll need to rename your
 history files manually.
 
 ** New function: jabber-send-directed-presence
+(Not documented yet)
+
+** Entity time supported (XEP-0090)
+(Not documented yet)
+
+** Last activity supported (XEP-0012)
 (Not documented yet)
 
 * New features in jabber.el 0.7

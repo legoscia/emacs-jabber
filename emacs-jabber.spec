@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20061214
+%define cvsdate 20070108
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -15,7 +15,6 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
 Source: %name-%cvsdate.tar.gz
 Source1: %pkg_name-emacs.el
-Patch0: %name-long-actions-2.diff
 
 BuildArch: noarch
 Requires: emacs-common emacs-gnus
@@ -45,7 +44,6 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name
-%patch0 -p0
 
 %build
 makeinfo jabber.texi
@@ -82,6 +80,12 @@ makeinfo jabber.texi
 
 
 %changelog
+* Mon Jan  8 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-20070108
+- Patch0 removed (fixed in upstream)
+
+* Mon Jan  8 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070108
+- cvs-20070108
+
 * Thu Dec 14 2006 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20061214
 - Patch0 replaced by new version
 
