@@ -354,8 +354,10 @@ This function is used as an ewoc prettyprinter."
 	((:error :notice)
 	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
 					internal-time)))
-	((:muc-local :muc-foreign)
-	 (jabber-muc-print-prompt (cadr data)))
+	(:muc-local
+	 (jabber-muc-print-prompt (cadr data) t))
+        (:muc-foreign
+         (jabber-muc-print-prompt (cadr data)))
 	((:muc-notice :muc-error)
 	 (jabber-muc-system-prompt))))
     

@@ -734,7 +734,7 @@ Return nil if X-MUC is nil."
 			(jabber-xml-node-attributes
 			 (car (jabber-xml-get-children x-muc 'item))))))
 
-(defun jabber-muc-print-prompt (xml-data)
+(defun jabber-muc-print-prompt (xml-data &optional local)
   "Print MUC prompt for message in XML-DATA."
   (let ((nick (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 	(timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
@@ -751,7 +751,8 @@ Return nil if X-MUC is nil."
 			       (cons ?u nick)
 			       (cons ?r nick)
 			       (cons ?j (concat jabber-group "/" nick))))
-		 'face 'jabber-chat-prompt-foreign
+		 'face (if local 'jabber-chat-prompt-local
+                         'jabber-chat-prompt-foreign)
 		 'help-echo (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " nick " in " jabber-group)))
       (jabber-muc-system-prompt))))
 
