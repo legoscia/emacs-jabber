@@ -12,7 +12,7 @@
 @copying
 This manual is for jabber.el, version 0.7.1.
 
-Copyright @copyright{} 2004, 2005 Magnus Henoch, Tom Berger.
+Copyright @copyright{} 2004, 2005, 2006, 2007 Magnus Henoch, Tom Berger.
 
 @quotation
 Permission is granted to make and distribute verbatim copies or
@@ -146,8 +146,8 @@ If you successfully connect, jabber.el will download your roster and
 display it in a buffer called @code{*-jabber-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
-this to e.g. ``away'', type @kbd{M-x jabber-send-presence}.
-@xref{Presence}, for more information.
+this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
+C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
 
@@ -245,8 +245,9 @@ jabber-send-subscription-request}.  You will be prompted for the JID
 to send it to.  This command can also be accessed through the Roster
 menu, by typing @kbd{C-c C-r} in the roster buffer.  After that, you
 will probably want to give the contact a more readable name.  The
-command for that is @code{jabber-roster-change}, which is also available
-in the Roster menu.
+command for that is @code{jabber-roster-change}, which is also
+available in the Roster menu or by typing @kbd{e} on a person in the
+roster buffer.
 
 @node Roster buffer,  , Presence subscription, Basic operation
 @section The roster buffer
@@ -1152,8 +1153,12 @@ contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
 
 @table @code
+@item %a
+Avatar of contact, if any
 @item %c
 "*" if the contact is connected, or " " if not
+@item %u
+Subscription state - see below
 @item %n
 Nickname of contact, or JID if no nickname
 @item %j
@@ -1178,6 +1183,9 @@ connect.
 @code{jabber-roster-show-bindings} controls whether to show a list of
 keybindings at the top of the roster buffer.  You need to run @kbd{M-x
 jabber-display-roster} after changing this variable to update the display.
+
+@code{%u} is replaced by one of the strings given by
+`jabber-roster-subscription-display'.
 
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
@@ -1214,6 +1222,10 @@ The time when the message was sent or received
 The nickname of the user.  For the foreign prompt, this is the name of
 the contact in the roster, or the JID if no name set.  For the local
 prompt, this is the username part of your JID.
+@item %u
+The username of the user.
+@item %r
+The resource.
 @item %j
 The bare JID of the user
 @end table
@@ -1296,10 +1308,10 @@ mailing list, or to the Sourceforge patch tracker.
 
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
-removing the function from/to the hook.  For other things, there are
-corresponding general hooks, that are defvars instead of defcustoms, and
-that are to be managed by Lisp code.  They have the same name as the
-alert hooks minus the @code{-alert} part,
+removing the function to and from the hook.  For other things, there
+are corresponding general hooks, that are defvars instead of
+defcustoms, and that are to be managed by Lisp code.  They have the
+same name as the alert hooks minus the @code{-alert} part,
 i.e. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
 etc.
 
