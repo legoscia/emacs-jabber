@@ -50,6 +50,7 @@ this permission notice are preserved on all copies.
 * Services::                    
 * Personal information::        
 * Avatars::                     
+* Time queries::                
 * Useful features::             
 * Message history::             
 * Message events::              
@@ -755,7 +756,7 @@ respectively.
 This is also where you set your avatar (@pxref{Avatars}).  The size of
 your avatar file is limited to 8 kilobytes.
 
-@node Avatars, Useful features, Personal information, Top
+@node Avatars, Time queries, Personal information, Top
 @chapter Avatars
 
 @cindex avatars
@@ -779,7 +780,29 @@ Avatars are cached in the directory specified by
 @file{~/.jabber-avatars/}.  The cache is never cleaned, so you might
 want to do that yourself from time to time.
 
-@node Useful features, Message history, Avatars, Top
+@node Time queries, Useful features, Avatars, Top
+@chapter Time queries
+
+@cindex time query
+@findex jabber-get-time
+With @kbd{M-x jabber-get-time}, you can ask what time an entity (client,
+server or component) thinks it is, and what time zone it thinks it is
+in.
+
+@cindex last online
+@findex jabber-get-last-online
+You can query a server about when a certain user was last seen online.
+Use @kbd{M-x jabber-get-last-online} for that.
+
+@cindex uptime, query
+@cindex idle time, query
+@findex jabber-get-idle-time
+You can also ask a client about how long a user has been idle with
+@kbd{M-x jabber-get-idle-time}.  Not all clients support this,
+e.g. jabber.el doesn't.  This command can also tell the uptime of a
+server or component.
+
+@node Useful features, Message history, Time queries, Top
 @chapter Useful features
 
 jabber.el includes a number of features meant to improve the user
