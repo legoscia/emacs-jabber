@@ -309,6 +309,17 @@ that only moderators can see your JID.  You can change your nickname
 with @kbd{M-x jabber-muc-nick}.  @xref{Automation}, for setting default 
 nicknames.
 
+@cindex query groupchat
+@vindex jabber-muc-disable-disco-check
+When trying to join a room, jabber.el first sends a service discovery
+info request to the room, to find out whether it exists and what
+features are enabled (in particular whether the room is
+password-protected).  However, this can cause problems with some buggy
+MUC services (or services that respond in a way that jabber.el doesn't
+expect).  A workaround for that is to set
+@code{jabber-muc-disable-disco-check} to t; however, the bug should be
+unearthed and fixed.
+
 Groupchat messages will be displayed in a buffer called
 @code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
 chat buffer.

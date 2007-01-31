@@ -20,7 +20,6 @@ See manual for setup.
 See jabber-muc-alert-self.
 *** Presence changes are sent to MUC rooms too
 *** Check room features before joining
-(Not documented yet)
 
 ** Avatars
 Viewing and publishing JEP-0153 avatars (vCard-based) is now
