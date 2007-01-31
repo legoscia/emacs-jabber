@@ -1,4 +1,4 @@
-This is jabber.el 0.7, a Jabber client for Emacs.  If you don't know
+This is jabber.el 0.7.1, a Jabber client for Emacs.  If you don't know
 what Jabber is, see http://www.jabber.org .
 
 Home page:    http://emacs-jabber.sourceforge.net
@@ -6,6 +6,7 @@ Project page: http://sourceforge.net/projects/emacs-jabber
 Wiki page:    http://www.emacswiki.org/cgi-bin/wiki/JabberEl
 Mailing list: http://lists.sourceforge.net/lists/listinfo/emacs-jabber-general
 and:          http://dir.gmane.org/gmane.emacs.jabber.general
+MUC room:     jabber.el@conference.jabber.se   
 
 GNU Emacs
 =========
@@ -27,24 +28,27 @@ SASL
 ====
 jabber.el will use the SASL library of FLIM (Faithful Library about
 Internet Message; it is also included in newer versions of Gnus) if
-it's present.  If not, it will fall back to JEP-0077 authentication.
+it's present.  If not, it will fall back to XEP-0077 authentication.
 
 TLS/SSL
 =======
-To get an encrypted connection, you need either tls.el (from Gnus) or
-ssl.el.  These are interfaces to GnuTLS and OpenSSL, respectively; use
-the appropriate one.  Recent versions of tls.el support both programs,
-though.  The version of ssl.el distributed with Gnus is outdated; use
-the one from W3 CVS instead:
+To get an encrypted connection, the most convenient option is to
+install starttls.el from Gnus (currently only present in the
+development version).  This requires GnuTLS to be installed, but
+requires no configuration at all.
+
+You can also use either tls.el (from Gnus) or ssl.el.  These are
+interfaces to GnuTLS and OpenSSL, respectively; use the appropriate
+one.  Recent versions of tls.el support both programs, though.  The
+version of ssl.el distributed with Gnus is outdated; use the one from
+W3 CVS instead:
 http://cvs.savannah.gnu.org/viewcvs/w3/lisp/ssl.el?root=w3
 
-To actually use encryption, customize the variables
-jabber-connection-type and jabber-connection-ssl-program.
+To actually use encryption with one of these libraries, customize the
+variables jabber-connection-type and jabber-connection-ssl-program.
 
 Note that only the connection from you to the server is encrypted;
 there is no guarantee of other connections being encrypted.
-
-StartTLS is not supported in this version of jabber.el.
 
 Installation
 ============
@@ -98,6 +102,11 @@ nil.
 
 File transfer
 =============
-This release of jabber.el contains experimental support for file
-transfer.  It is not enabled by default.  See the file
-filetransfer.txt for details.
+This release of jabber.el contains support for file transfer.  You may
+need to configure some variables to make it work; see the manual for
+details.
+
+XMPP URIs
+=========
+It is possible to make various web browsers pass links starting with
+"xmpp:" to jabber.el.  See the manual, section "XMPP URIs".
