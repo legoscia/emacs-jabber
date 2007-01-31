@@ -719,7 +719,7 @@ browse buffer.
 @findex jabber-ahc-get-list
 @findex jabber-ahc-execute-command
 
-jabber.el supports a subset of JEP-0050, the standard for Ad-Hoc
+jabber.el supports a subset of XEP-0050, the standard for Ad-Hoc
 Commands.  As the name implies, this can be used for just about
 anything.  It has been used for remote-controlling clients (e.g. Psi),
 and administering services (e.g. PyMSNt).
@@ -1974,31 +1974,35 @@ These are the protocols currently supported (in full or partially) by
 jabber.el.
 
 @menu
-* RFC 3920 (XMPP-CORE)::        
-* RFC 3921 (XMPP-IM)::          
-* JEP-0004 (Data Forms)::       
-* JEP-0020 (Feature Negotiation)::  
-* JEP-0022 (Message Events)::   
-* JEP-0030 (Service Discovery)::  
-* JEP-0045 (Multi-User Chat)::  
-* JEP-0050 (Ad-Hoc Commands)::  
-* JEP-0054 (vcard-temp)::       
-* JEP-0055 (Jabber Search)::    
-* JEP-0065 (SOCKS5 Bytestreams)::  
-* JEP-0066 (Out of Band Data)::  
-* JEP-0068 (Field Standardization for Data Forms)::  
-* JEP-0077 (In-Band Registration)::  
-* JEP-0078 (Non-SASL Authentication)::  
-* JEP-0082 (Jabber Date and Time Profiles)::  
-* JEP-0086 (Error Condition Mappings)::  
-* JEP-0091 (Delayed Delivery)::  
-* JEP-0092 (Software Version)::  
-* JEP-0095 (Stream Initiation)::  
-* JEP-0096 (File Transfer)::    
-* JEP-0146 (Remote Controlling Clients)::  
+* RFC 3920::                    XMPP-CORE
+* RFC 3921::                    XMPP-IM
+* XEP-0004::                    Data Forms
+* XEP-0012::                    Last Activity
+* XEP-0020::                    Feature Negotiation
+* XEP-0022::                    Message Events
+* XEP-0030::                    Service Discovery
+* XEP-0045::                    Multi-User Chat
+* XEP-0049::                    Private XML Storage
+* XEP-0050::                    Ad-Hoc Commands
+* XEP-0054::                    vcard-temp
+* XEP-0055::                    Jabber Search
+* XEP-0065::                    SOCKS5 Bytestreams
+* XEP-0066::                    Out of Band Data
+* XEP-0068::                    Field Standardization for Data Forms
+* XEP-0077::                    In-Band Registration
+* XEP-0078::                    Non-SASL Authentication
+* XEP-0082::                    Jabber Date and Time Profiles
+* XEP-0086::                    Error Condition Mappings
+* XEP-0090::                    Entity Time
+* XEP-0091::                    Delayed Delivery
+* XEP-0092::                    Software Version
+* XEP-0095::                    Stream Initiation
+* XEP-0096::                    File Transfer
+* XEP-0146::                    Remote Controlling Clients
+* XEP-0153::                    vCard-Based Avatars
 @end menu
 
-@node RFC 3920 (XMPP-CORE), RFC 3921 (XMPP-IM), Protocol support, Protocol support
+@node RFC 3920, RFC 3921, Protocol support, Protocol support
 @section RFC 3920 (XMPP-CORE)
 
 Most of RFC 3920 is supported, with the following exceptions.
@@ -2016,7 +2020,7 @@ The @code{xml:lang} attribute is neither interpreted nor generated.
 
 SRV records are used if a modern version of @code{dns.el} is installed.
 
-@node RFC 3921 (XMPP-IM), JEP-0004 (Data Forms), RFC 3920 (XMPP-CORE), Protocol support
+@node RFC 3921, XEP-0004, RFC 3920, Protocol support
 @section RFC 3921 (XMPP-IM)
 
 Most of RFC 3921 is supported, with the following exceptions.
@@ -2025,16 +2029,17 @@ Messages of type ``headline'' are not treated in any special way.
 
 The @code{<thread/>} element is not used or generated.
 
-Neither sending nor receiving ``directed presence'' is supported.
+Sending ``directed presence'' is supported; however, presence stanzas
+received from contacts not in roster are ignored.
 
 Privacy lists are not supported at all.
 
 jabber.el doesn't support XMPP-E2E or ``im:'' CPIM URIs.
 
-@node JEP-0004 (Data Forms), JEP-0020 (Feature Negotiation), RFC 3921 (XMPP-IM), Protocol support
-@section JEP-0004 (Data Forms)
+@node XEP-0004, XEP-0012, RFC 3921, Protocol support
+@section XEP-0004 (Data Forms)
 
-JEP-0004 support is good enough for many purposes.  Limitations are
+XEP-0004 support is good enough for many purposes.  Limitations are
 the following.
 
 Forms in incoming messages are not interpreted.  See each specific
@@ -2050,91 +2055,97 @@ The field types ``jid-single'', ``jid-multi'' and ``list-multi'' are
 not implemented, due to programmer laziness.  Let us know if you need
 them.
 
-@node JEP-0020 (Feature Negotiation), JEP-0022 (Message Events), JEP-0004 (Data Forms), Protocol support
-@section JEP-0020 (Feature Negotiation)
+@node XEP-0012, XEP-0020, XEP-0004, Protocol support
+@section XEP-0012 (Last Activity)
 
-There are no known limitations or bugs in JEP-0020 support.
+jabber.el can generate all three query types described in the protocol.
+However, it does not answer to such requests.
 
-@node JEP-0022 (Message Events), JEP-0030 (Service Discovery), JEP-0020 (Feature Negotiation), Protocol support
-@section JEP-0022 (Message Events)
+@node XEP-0020, XEP-0022, XEP-0012, Protocol support
+@section XEP-0020 (Feature Negotiation)
+
+There are no known limitations or bugs in XEP-0020 support.
+
+@node XEP-0022, XEP-0030, XEP-0020, Protocol support
+@section XEP-0022 (Message Events)
 
 jabber.el understands all four specified kinds of message events
 (offline, delivered, displayed, and composing) and by default requests
 all of them.  It also reports those three events that make sense for
 clients.
 
-@node JEP-0030 (Service Discovery), JEP-0045 (Multi-User Chat), JEP-0022 (Message Events), Protocol support
-@section JEP-0030 (Service Discovery)
+@node XEP-0030, XEP-0045, XEP-0022, Protocol support
+@section XEP-0030 (Service Discovery)
 
-Service discovery is supported, both as client and server, with the
-following limitations.  Currently, the client part is not used by any
-code, but is provided only as a user tool.  The user interface is not
-appealing.
+Service discovery is supported, both as client and server.  When used in
+the code, service discovery results are cached indefinitely.
 
-Publishing items is not supported.
+@node XEP-0045, XEP-0049, XEP-0030, Protocol support
+@section XEP-0045 (Multi-User Chat)
 
-@node JEP-0045 (Multi-User Chat), JEP-0050 (Ad-Hoc Commands), JEP-0030 (Service Discovery), Protocol support
-@section JEP-0045 (Multi-User Chat)
-
-jabber.el supports parts of JEP-0045.  Entering, leaving and chatting
+jabber.el supports parts of XEP-0045.  Entering, leaving and chatting
 work.  So do invitations and private messages.  Room configuration is
 supported.  Changing roles of participants (basic moderation) is
 implemented, as is changing affiliations, but requesting affiliation
 lists is not yet supported.
 
-@node JEP-0050 (Ad-Hoc Commands), JEP-0054 (vcard-temp), JEP-0045 (Multi-User Chat), Protocol support
-@section JEP-0050 (Ad-Hoc Commands)
+@node XEP-0049, XEP-0050, XEP-0045, Protocol support
+@section XEP-0049 (Private XML Storage)
 
-jabber.el is probably the first implementation of JEP-0050 (see
+jabber.el contains an implementation of XEP-0049; however it is not used
+for anything right now.
+
+@node XEP-0050, XEP-0054, XEP-0049, Protocol support
+@section XEP-0050 (Ad-Hoc Commands)
+
+jabber.el is probably the first implementation of XEP-0050 (see
 @uref{http://article.gmane.org/gmane.network.jabber.devel/21413, post
 on jdev from 2004-03-10}).  Both the client and server parts are
 supported.
 
-@node JEP-0054 (vcard-temp), JEP-0055 (Jabber Search), JEP-0050 (Ad-Hoc Commands), Protocol support
-@section JEP-0054 (vcard-temp)
+@node XEP-0054, XEP-0055, XEP-0050, Protocol support
+@section XEP-0054 (vcard-temp)
 
 Both displaying other users' vCards and editing your own vCard are
-supported.  The implementation tries to follow the schema in the JEP
+supported.  The implementation tries to follow the schema in the XEP
 accurately.
 
-@node JEP-0055 (Jabber Search), JEP-0065 (SOCKS5 Bytestreams), JEP-0054 (vcard-temp), Protocol support
-@section JEP-0055 (Jabber Search)
+@node XEP-0055, XEP-0065, XEP-0054, Protocol support
+@section XEP-0055 (Jabber Search)
 
-JEP-0055 is supported, both with traditional fields and with Data
-Forms (@pxref{JEP-0004 (Data Forms)}).  As the traditional fields
-specified by the JEP is a subset of those allowed in JEP-0077,
-handling of those two form types are merged.  @xref{JEP-0077 (In-Band
-Registration)}.
+XEP-0055 is supported, both with traditional fields and with Data Forms
+(@pxref{XEP-0004}).  As the traditional fields specified by the XEP is a
+subset of those allowed in XEP-0077, handling of those two form types
+are merged.  @xref{XEP-0077}.
 
-@node JEP-0065 (SOCKS5 Bytestreams), JEP-0066 (Out of Band Data), JEP-0055 (Jabber Search), Protocol support
-@section JEP-0065 (SOCKS5 Bytestreams)
+@node XEP-0065, XEP-0066, XEP-0055, Protocol support
+@section XEP-0065 (SOCKS5 Bytestreams)
 
-JEP-0065 support seems to work, but it is not yet enabled by default.
-
-Currently jabber.el cannot act as a server, not even on on Emacsen
-that support server sockets (GNU Emacs 22 and up).  Therefore it
-relies on proxies.  Proxies have to be entered and queried manually.
+XEP-0065 is supported.  Currently jabber.el cannot act as a server, not
+even on on Emacsen that support server sockets (GNU Emacs 22 and up).
+Therefore it relies on proxies.  Proxies have to be entered and queried
+manually.
 
 Psi's ``fast mode''
 (@uref{http://delta.affinix.com/specs/stream.html}), which gives
 greater flexibility with regards to NAT, is not implemented.
 
-@node JEP-0066 (Out of Band Data), JEP-0068 (Field Standardization for Data Forms), JEP-0065 (SOCKS5 Bytestreams), Protocol support
-@section JEP-0066 (Out of Band Data)
+@node XEP-0066, XEP-0068, XEP-0065, Protocol support
+@section XEP-0066 (Out of Band Data)
 
 jabber.el will display URLs sent in message stanzas qualified by
-the @code{jabber:x:oob} namespace, as described in this JEP.  Sending
+the @code{jabber:x:oob} namespace, as described in this XEP.  Sending
 such URLs or doing anything with iq stanzas (using the
 @code{jabber:iq:oob} namespace) is not supported.
 
-@node JEP-0068 (Field Standardization for Data Forms), JEP-0077 (In-Band Registration), JEP-0066 (Out of Band Data), Protocol support
-@section JEP-0068 (Field Standardization for Data Forms)
+@node XEP-0068, XEP-0077, XEP-0066, Protocol support
+@section XEP-0068 (Field Standardization for Data Forms)
 
-JEP-0068 is only used in the context of creating a new Jabber account,
+XEP-0068 is only used in the context of creating a new Jabber account,
 to prefill the username field of the registration form.
 
-@node JEP-0077 (In-Band Registration), JEP-0078 (Non-SASL Authentication), JEP-0068 (Field Standardization for Data Forms), Protocol support
-@section JEP-0077 (In-Band Registration)
+@node XEP-0077, XEP-0078, XEP-0068, Protocol support
+@section XEP-0077 (In-Band Registration)
 
 In-band registration is supported for all purposes.  That means
 registering a new Jabber account, changing Jabber password, removing a
@@ -2145,66 +2156,70 @@ redirections are not.
 jabber.el will not prevent or alert a user trying to change a password
 over an unencrypted connection.
 
-@node JEP-0078 (Non-SASL Authentication), JEP-0082 (Jabber Date and Time Profiles), JEP-0077 (In-Band Registration), Protocol support
-@section JEP-0078 (Non-SASL Authentication)
+@node XEP-0078, XEP-0082, XEP-0077, Protocol support
+@section XEP-0078 (Non-SASL Authentication)
 
 Non-SASL authentication is supported, both plaintext and digest.
 Digest is preferred, and a warning is displayed to the user if only
 plaintext is available.
 
-@node JEP-0082 (Jabber Date and Time Profiles), JEP-0086 (Error Condition Mappings), JEP-0078 (Non-SASL Authentication), Protocol support
-@section JEP-0082 (Jabber Date and Time Profiles)
+@node XEP-0082, XEP-0086, XEP-0078, Protocol support
+@section XEP-0082 (Jabber Date and Time Profiles)
 
-The DateTime profile of JEP-0082 is supported.  Currently this is only
+The DateTime profile of XEP-0082 is supported.  Currently this is only
 used for file transfer.
 
-@node JEP-0086 (Error Condition Mappings), JEP-0091 (Delayed Delivery), JEP-0082 (Jabber Date and Time Profiles), Protocol support
-@section JEP-0086 (Error Condition Mappings)
+@node XEP-0086, XEP-0090, XEP-0082, Protocol support
+@section XEP-0086 (Error Condition Mappings)
 
 Legacy errors are interpreted, but never generated.  XMPP style error
 messages take precedence when errors are reported to the user.
 
-@node JEP-0091 (Delayed Delivery), JEP-0092 (Software Version), JEP-0086 (Error Condition Mappings), Protocol support
-@section JEP-0091 (Delayed Delivery)
+@node XEP-0090, XEP-0091, XEP-0086, Protocol support
+@section XEP-0090 (Entity Time)
+
+jabber.el can query other entities for their time, and return the
+current time to those who ask.
+
+@node XEP-0091, XEP-0092, XEP-0090, Protocol support
+@section XEP-0091 (Delayed Delivery)
 
 The time specified on delayed incoming messages is interpreted, and
 displayed in chat buffers instead of the current time.
 
-@node JEP-0092 (Software Version), JEP-0095 (Stream Initiation), JEP-0091 (Delayed Delivery), Protocol support
-@section JEP-0092 (Software Version)
+@node XEP-0092, XEP-0095, XEP-0091, Protocol support
+@section XEP-0092 (Software Version)
 
 The user can request the version of any entity.  jabber.el answers
 version requests to anyone, giving ``jabber.el'' as name, and the
 Emacs version as OS.
 
-@node JEP-0095 (Stream Initiation), JEP-0096 (File Transfer), JEP-0092 (Software Version), Protocol support
-@section JEP-0095 (Stream Initiation)
+@node XEP-0095, XEP-0096, XEP-0092, Protocol support
+@section XEP-0095 (Stream Initiation)
 
-JEP-0095 is supported, both incoming and outgoing, with the following
-exceptions.  It is not enabled by default, as it hasn't received much
-testing.
+XEP-0095 is supported, both incoming and outgoing, except that jabber.el
+doesn't check service discovery results before sending a stream
+initiation request.
 
-jabber.el doesn't check service discovery results before sending a
-stream initiation request.
+@node XEP-0096, XEP-0146, XEP-0095, Protocol support
+@section XEP-0096 (File Transfer)
 
-@node JEP-0096 (File Transfer), JEP-0146 (Remote Controlling Clients), JEP-0095 (Stream Initiation), Protocol support
-@section JEP-0096 (File Transfer)
+Both sending and receiving files is supported.  If a suitable program is
+found, MD5 hashes of outgoing files are calculated and sent.  However,
+hashes of received files are not checked.  Ranged transfers are not
+supported.  In-band bytestreams are not yet supported, even though
+XEP-0096 requires them.
 
-Both sending and receiving files is supported, though not enabled by
-default.  The following limitations apply.
+@node XEP-0146, XEP-0153, XEP-0096, Protocol support
+@section XEP-0146 (Remote Controlling Clients)
 
-The hash of a file being sent is not calculated and sent in the
-request.
+The ``set-status'' command in XEP-0146 is supported.
 
-Ranged transfers are not supported.
+@node XEP-0153,  , XEP-0146, Protocol support
+@section XEP-0153 (vCard-Based Avatars)
 
-In-band bytestreams are not yet supported, even though JEP-0096
-requires them.
-
-@node JEP-0146 (Remote Controlling Clients),  , JEP-0096 (File Transfer), Protocol support
-@section JEP-0146 (Remote Controlling Clients)
-
-The ``set-status'' command in JEP-0146 is supported.
+vCard-based avatars are supported, both publishing and displaying.  The
+pixel size limits on avatars are not enforced.
 
 @node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index
