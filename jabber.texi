@@ -1471,6 +1471,7 @@ function.
 @subsection MUC alerts
 
 @vindex jabber-alert-muc-function
+@vindex jabber-muc-alert-self
 @findex jabber-muc-default-message
 
 Set @code{jabber-alert-muc-function} to your desired
@@ -1493,6 +1494,9 @@ The default function, @code{jabber-muc-default-message}, returns
 All MUC alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.
+
+By default, no alert is made for messages from yourself.  To change
+that, customize the variable @code{jabber-muc-alert-self}.
 
 @node Info alerts,  , MUC alerts, Customizing alerts
 @subsection Info alerts

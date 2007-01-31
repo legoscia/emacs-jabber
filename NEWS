@@ -18,7 +18,6 @@ See manual for setup.
 ** MUC features
 *** Don't display alerts for your own messages
 See jabber-muc-alert-self.
-(Not documented yet)
 *** Presence changes are sent to MUC rooms too
 *** Check room features before joining
 (Not documented yet)
