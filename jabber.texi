@@ -1498,7 +1498,10 @@ The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,
 enter the names of the sound files in
 @code{jabber-alert-message-wave}, @code{jabber-alert-presence-wave}
-and @code{jabber-alert-info-wave}, respectively.
+and @code{jabber-alert-info-wave}, respectively.  You can specify
+specific sound files for contacts matching a regexp in the variables
+@code{jabber-alert-message-wave-alist} and
+@code{jabber-alert-presence-wave-alist}.
 
 The @code{screen} alerts send a message through the Screen terminal
 manager (see @uref{http://www.gnu.org/software/screen/}).  They do no
