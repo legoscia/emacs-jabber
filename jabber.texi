@@ -46,6 +46,7 @@ this permission notice are preserved on all copies.
 * Basic operation::             
 * Groupchat::                   
 * Composing messages::          
+* File transfer::               
 * Services::                    
 * Personal information::        
 * Avatars::                     
@@ -473,7 +474,7 @@ Banned from the room
 @end table
 
 
-@node Composing messages, Services, Groupchat, Top
+@node Composing messages, File transfer, Groupchat, Top
 @chapter Composing messages
 
 @findex jabber-compose
@@ -490,7 +491,99 @@ These features are implemented by the message composing tool.  Type
 @kbd{M-x jabber-compose} to start it.  In the buffer that comes up, you
 can specify recipients, enter a subject, and type your message.
 
-@node Services, Personal information, Composing messages, Top
+@node File transfer, Services, Composing messages, Top
+@chapter File transfer
+
+@cindex File transfer
+@cindex Sending files
+
+jabber.el has limited support for file transfer.  The most important
+limit is that files sent and received are kept in buffers, so Emacs must
+be able to allocate enough memory for the entire file, and the file size
+must be smaller than the maximum buffer size.@footnote{The maximum
+buffer size is kept in the variable @code{most-positive-fixnum}.  On
+most 32-bit systems, this is 128 or 256 megabytes, depending on your
+Emacs version.}
+
+jabber.el is able to exchange files with most Jabber clients (and also
+some MSN transports), but notably not with the official Google Talk
+client.  The Google Talk client uses a different file transfer protocol
+that, at the time of this release, has not been published.
+
+@menu
+* Receiving files::             
+* Sending files::               
+@end menu
+
+@node Receiving files, Sending files, File transfer, File transfer
+@section Receiving files
+
+Receiving files requires no configuration.  When someone wants to send a
+file to you, you are asked (through @code{yes-or-no-p}) whether you want
+to accept the file.  If you answer yes, you get to choose where to save
+the file.
+
+If the sender's client is correctly configured (this is often not the
+case; see below), the file transfer will start.  Currently, the only way
+to watch the progress is to inspect the buffer of the file being
+transfered; @kbd{C-x C-b} is one way of doing that.  @xref{List Buffers,
+, Listing Existing Buffers, emacs, GNU Emacs Manual}.  When the transfer
+is done, the message ``@var{file} downloaded'' appears in the echo area,
+and the buffer is killed.
+
+If this doesn't happen, it is most likely the sender's fault.  The
+sender needs to have a public IP address, either directly, through port
+forwarding (in which case the client needs to be configured with the
+real public IP address), or through an XEP-0065 proxy.  If you have
+activated XML logging (@pxref{Debug options}), you can see the IP
+address that the other client is asking you to connect to there.  Often
+you will find that this is an internal IP address (often starts with
+@code{192.168}).  See the documentation of the sender's client for
+setting this up.
+
+@node Sending files,  , Receiving files, File transfer
+@section Sending files
+
+@cindex proxy, file transfer
+@cindex file transfer proxy
+@cindex XEP-0065 proxy
+
+To send a file to someone, you need an XEP-0065 proxy.@footnote{This
+requirement is not inherent in the protocol, only in the current file
+transfer implementation of jabber.el, and in Emacs versions earlier than
+22.}  If your Jabber server hosts such a proxy, it will be found
+automatically, otherwise it needs to be manually configured.
+
+You can check whether your Jabber server has a proxy with @kbd{M-x
+jabber-get-disco-items}; see @ref{Service discovery and browsing}.
+
+@vindex jabber-socks5-proxies
+@findex jabber-socks5-query-all-proxies
+To configure a proxy manually, customize the variable
+@code{jabber-socks5-proxies}.  Putting @code{proxy.jabber.se} there
+should work.  Type @kbd{M-x jabber-socks5-query-all-proxies} to see if
+the proxies answer.
+
+@findex jabber-ft-send
+Now, you can type @kbd{M-x jabber-ft-send} to send a file to someone.
+You need to enter the correct full JID, including resource, to get this
+right.  If the contact is logged in with only one client, and you can
+see it online, just typing the JID or roster name is enough.  If you run
+the command from a chat buffer, the JID of the contact is given as
+the default value.
+
+If the contact has several clients online, you probably want to send the
+file to a particular one.  If you run this command from within a chat
+buffer, the default target will be the one that last sent a message to
+you.  If you just type a bare JID or a roster name, the client with the
+highest priority will get the file.
+
+If the contact accepts the file, and the contact's client succeeds in
+connecting to the proxy, jabber.el will send the file through the
+proxy.  During this time, your Emacs will be blocked, so you might want
+to avoid sending large files over slow connections.
+
+@node Services, Personal information, File transfer, Top
 @chapter Services
 
 @cindex Browse buffers
