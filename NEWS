@@ -35,7 +35,6 @@ quotes.  If you have used the CVS version you'll need to rename your
 history files manually.
 
 ** New function: jabber-send-directed-presence
-(Not documented yet)
 
 ** Entity time supported (XEP-0090)
 

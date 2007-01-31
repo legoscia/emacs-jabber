@@ -228,6 +228,17 @@ presence that is sent, change the variables
 
 With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 
+@cindex directed presence
+@cindex send directed presence
+@findex jabber-send-directed-presence
+You can send ``directed presence'' with @kbd{M-x
+jabber-send-directed-presence}.  This is mostly useful to manage
+transports---sending directed presence is a way to turn them on and
+off.  You can also send directed presence to an annoying contact to
+appear as away or offline to that contact.  Note, however, that in both
+of these cases, all subscribed entities will get your next global
+presence update.
+
 @node Presence subscription, Roster buffer, Presence, Basic operation
 @section Presence subscription
 
