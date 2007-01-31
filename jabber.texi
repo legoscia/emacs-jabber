@@ -45,6 +45,7 @@ this permission notice are preserved on all copies.
 * Introduction::                
 * Basic operation::             
 * Groupchat::                   
+* Composing messages::          
 * Services::                    
 * Personal information::        
 * Avatars::                     
@@ -285,7 +286,7 @@ You can choose not to have the roster updated automatically on
 presence changes (@pxref{Presence alerts}).  In that case, you need to
 call @code{jabber-display-roster} manually.
 
-@node Groupchat, Services, Basic operation, Top
+@node Groupchat, Composing messages, Basic operation, Top
 @chapter Groupchat
 
 @cindex Groupchat
@@ -461,8 +462,24 @@ Banned from the room
 @end table
 
 
+@node Composing messages, Services, Groupchat, Top
+@chapter Composing messages
 
-@node Services, Personal information, Groupchat, Top
+@findex jabber-compose
+@cindex composing messages
+@cindex message composition
+
+The chat buffer interface can be inconvenient for some purposes.  As you
+can't use @kbd{RET} to insert a newline (use @kbd{C-j} for that),
+writing a longer message can be painful.  Also, it is not possible to
+include a subject in the message, or send the message to multiple
+recipients.
+
+These features are implemented by the message composing tool.  Type
+@kbd{M-x jabber-compose} to start it.  In the buffer that comes up, you
+can specify recipients, enter a subject, and type your message.
+
+@node Services, Personal information, Composing messages, Top
 @chapter Services
 
 @cindex Browse buffers

@@ -9,7 +9,6 @@ Requires No Gnus.
 
 ** Message composition buffer
 Try jabber-compose.
-(Not documented yet)
 
 ** XMPP URIs are handled
 See manual for setup.
