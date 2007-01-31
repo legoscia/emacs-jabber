@@ -257,12 +257,13 @@ See `jabber-sort-order' for order used."
 
 (defun jabber-fix-status (status)
   "Make status strings more readable"
-  (when (string-match "\n+$" status)
-    (setq status (replace-match "" t t status)))
-  (when jabber-remove-newlines
-    (while (string-match "\n" status)
-      (setq status (replace-match " " t t status))))
-  status)
+  (when status
+    (when (string-match "\n+$" status)
+      (setq status (replace-match "" t t status)))
+    (when jabber-remove-newlines
+      (while (string-match "\n" status)
+	(setq status (replace-match " " t t status))))
+    status))
 
 (defvar jabber-roster-positions nil
   "Alist tracking positions of items in the roster.
