@@ -29,7 +29,8 @@
 	     (cons "Request time" 'jabber-get-time))
 (defun jabber-get-time (to)
   "Request time"
-  (interactive (list (jabber-read-jid-completing "Request time of: ")))
+  (interactive (list (jabber-read-jid-completing "Request time of: "
+						 nil nil nil 'full)))
   (jabber-send-iq to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:time")))
@@ -60,7 +61,7 @@
 	(insert (format-time-string "%Y-%m-%d %T" (jabber-parse-legacy-time utc)))))
       (insert "\n")
       (when tz
-	(insert "Time zone:\t" tz)))))
+	(insert "Time zone:\t" tz "\n")))))
 
 ;; the only difference between these two functions is the
 ;; jabber-read-jid-completing call.

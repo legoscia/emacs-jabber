@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070108
+%define cvsdate 20070201
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -61,6 +61,9 @@ makeinfo jabber.texi
 %add_lisp_loadpath %buildroot%_emacslispdir/%pkg_name
 %byte_recompile_lispdir
 
+%__mkdir_p %buildroot%_bindir
+%__install -m 755 xmppuri.sh %buildroot%_bindir
+
 %post
 %install_info %pkg_name.info
 
@@ -69,18 +72,23 @@ makeinfo jabber.texi
 
 
 %files
-%doc README AUTHORS NEWS
+%_bindir/*
 %dir %_emacslispdir/%pkg_name
 %_emacslispdir/%pkg_name/*.elc
 %_infodir/%pkg_name.info*
 %config(noreplace) %_emacs_sitestart_dir/%pkg_name.el
+%doc README AUTHORS NEWS
 
 %files el
 %_emacslispdir/%pkg_name/*.el
 
 
 %changelog
-* Mon Jan  8 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-20070108
+* Thu Feb  1 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070201
+- cvs-20070201
+- xmppuri.sh handler added
+
+* Mon Jan  8 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070108
 - Patch0 removed (fixed in upstream)
 
 * Mon Jan  8 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070108

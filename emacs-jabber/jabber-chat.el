@@ -354,8 +354,10 @@ This function is used as an ewoc prettyprinter."
 	((:error :notice)
 	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
 					internal-time)))
-	((:muc-local :muc-foreign)
-	 (jabber-muc-print-prompt (cadr data)))
+	(:muc-local
+	 (jabber-muc-print-prompt (cadr data) t))
+        (:muc-foreign
+         (jabber-muc-print-prompt (cadr data)))
 	((:muc-notice :muc-error)
 	 (jabber-muc-system-prompt))))
     
@@ -507,9 +509,8 @@ If DELAYED is true, print long timestamp
     (when body
 
       (when (eql mode :insert)
-	(if (and (> (length body) 4)
-		 (string-equal (substring body 0 4) "/me "))
-	    (let ((action (substring body 4))
+	(if (string-match "^/me \\(.*\\)$" body)
+	    (let ((action (match-string 1 body))
 		  (nick (cond
 			 ((eq who :local)
 			  jabber-nickname)

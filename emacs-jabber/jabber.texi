@@ -12,7 +12,7 @@
 @copying
 This manual is for jabber.el, version 0.7.1.
 
-Copyright @copyright{} 2004, 2005 Magnus Henoch, Tom Berger.
+Copyright @copyright{} 2004, 2005, 2006, 2007 Magnus Henoch, Tom Berger.
 
 @quotation
 Permission is granted to make and distribute verbatim copies or
@@ -45,9 +45,12 @@ this permission notice are preserved on all copies.
 * Introduction::                
 * Basic operation::             
 * Groupchat::                   
+* Composing messages::          
+* File transfer::               
 * Services::                    
 * Personal information::        
 * Avatars::                     
+* Time queries::                
 * Useful features::             
 * Message history::             
 * Message events::              
@@ -146,8 +149,8 @@ If you successfully connect, jabber.el will download your roster and
 display it in a buffer called @code{*-jabber-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
-this to e.g. ``away'', type @kbd{M-x jabber-send-presence}.
-@xref{Presence}, for more information.
+this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
+C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
 
@@ -225,6 +228,17 @@ presence that is sent, change the variables
 
 With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 
+@cindex directed presence
+@cindex send directed presence
+@findex jabber-send-directed-presence
+You can send ``directed presence'' with @kbd{M-x
+jabber-send-directed-presence}.  This is mostly useful to manage
+transports---sending directed presence is a way to turn them on and
+off.  You can also send directed presence to an annoying contact to
+appear as away or offline to that contact.  Note, however, that in both
+of these cases, all subscribed entities will get your next global
+presence update.
+
 @node Presence subscription, Roster buffer, Presence, Basic operation
 @section Presence subscription
 
@@ -245,8 +259,9 @@ jabber-send-subscription-request}.  You will be prompted for the JID
 to send it to.  This command can also be accessed through the Roster
 menu, by typing @kbd{C-c C-r} in the roster buffer.  After that, you
 will probably want to give the contact a more readable name.  The
-command for that is @code{jabber-roster-change}, which is also available
-in the Roster menu.
+command for that is @code{jabber-roster-change}, which is also
+available in the Roster menu or by typing @kbd{e} on a person in the
+roster buffer.
 
 @node Roster buffer,  , Presence subscription, Basic operation
 @section The roster buffer
@@ -284,7 +299,7 @@ You can choose not to have the roster updated automatically on
 presence changes (@pxref{Presence alerts}).  In that case, you need to
 call @code{jabber-display-roster} manually.
 
-@node Groupchat, Services, Basic operation, Top
+@node Groupchat, Composing messages, Basic operation, Top
 @chapter Groupchat
 
 @cindex Groupchat
@@ -306,6 +321,17 @@ JID; in fact, groupchats are usually (but not always) configured such
 that only moderators can see your JID.  You can change your nickname
 with @kbd{M-x jabber-muc-nick}.  @xref{Automation}, for setting default 
 nicknames.
+
+@cindex query groupchat
+@vindex jabber-muc-disable-disco-check
+When trying to join a room, jabber.el first sends a service discovery
+info request to the room, to find out whether it exists and what
+features are enabled (in particular whether the room is
+password-protected).  However, this can cause problems with some buggy
+MUC services (or services that respond in a way that jabber.el doesn't
+expect).  A workaround for that is to set
+@code{jabber-muc-disable-disco-check} to t; however, the bug should be
+unearthed and fixed.
 
 Groupchat messages will be displayed in a buffer called
 @code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
@@ -460,8 +486,116 @@ Banned from the room
 @end table
 
 
+@node Composing messages, File transfer, Groupchat, Top
+@chapter Composing messages
 
-@node Services, Personal information, Groupchat, Top
+@findex jabber-compose
+@cindex composing messages
+@cindex message composition
+
+The chat buffer interface can be inconvenient for some purposes.  As you
+can't use @kbd{RET} to insert a newline (use @kbd{C-j} for that),
+writing a longer message can be painful.  Also, it is not possible to
+include a subject in the message, or send the message to multiple
+recipients.
+
+These features are implemented by the message composing tool.  Type
+@kbd{M-x jabber-compose} to start it.  In the buffer that comes up, you
+can specify recipients, enter a subject, and type your message.
+
+@node File transfer, Services, Composing messages, Top
+@chapter File transfer
+
+@cindex File transfer
+@cindex Sending files
+
+jabber.el has limited support for file transfer.  The most important
+limit is that files sent and received are kept in buffers, so Emacs must
+be able to allocate enough memory for the entire file, and the file size
+must be smaller than the maximum buffer size.@footnote{The maximum
+buffer size is kept in the variable @code{most-positive-fixnum}.  On
+most 32-bit systems, this is 128 or 256 megabytes, depending on your
+Emacs version.}
+
+jabber.el is able to exchange files with most Jabber clients (and also
+some MSN transports), but notably not with the official Google Talk
+client.  The Google Talk client uses a different file transfer protocol
+that, at the time of this release, has not been published.
+
+@menu
+* Receiving files::             
+* Sending files::               
+@end menu
+
+@node Receiving files, Sending files, File transfer, File transfer
+@section Receiving files
+
+Receiving files requires no configuration.  When someone wants to send a
+file to you, you are asked (through @code{yes-or-no-p}) whether you want
+to accept the file.  If you answer yes, you get to choose where to save
+the file.
+
+If the sender's client is correctly configured (this is often not the
+case; see below), the file transfer will start.  Currently, the only way
+to watch the progress is to inspect the buffer of the file being
+transfered; @kbd{C-x C-b} is one way of doing that.  @xref{List Buffers,
+, Listing Existing Buffers, emacs, GNU Emacs Manual}.  When the transfer
+is done, the message ``@var{file} downloaded'' appears in the echo area,
+and the buffer is killed.
+
+If this doesn't happen, it is most likely the sender's fault.  The
+sender needs to have a public IP address, either directly, through port
+forwarding (in which case the client needs to be configured with the
+real public IP address), or through an XEP-0065 proxy.  If you have
+activated XML logging (@pxref{Debug options}), you can see the IP
+address that the other client is asking you to connect to there.  Often
+you will find that this is an internal IP address (often starts with
+@code{192.168}).  See the documentation of the sender's client for
+setting this up.
+
+@node Sending files,  , Receiving files, File transfer
+@section Sending files
+
+@cindex proxy, file transfer
+@cindex file transfer proxy
+@cindex XEP-0065 proxy
+
+To send a file to someone, you need an XEP-0065 proxy.@footnote{This
+requirement is not inherent in the protocol, only in the current file
+transfer implementation of jabber.el, and in Emacs versions earlier than
+22.}  If your Jabber server hosts such a proxy, it will be found
+automatically, otherwise it needs to be manually configured.
+
+You can check whether your Jabber server has a proxy with @kbd{M-x
+jabber-get-disco-items}; see @ref{Service discovery and browsing}.
+
+@vindex jabber-socks5-proxies
+@findex jabber-socks5-query-all-proxies
+To configure a proxy manually, customize the variable
+@code{jabber-socks5-proxies}.  Putting @code{proxy.jabber.se} there
+should work.  Type @kbd{M-x jabber-socks5-query-all-proxies} to see if
+the proxies answer.
+
+@findex jabber-ft-send
+Now, you can type @kbd{M-x jabber-ft-send} to send a file to someone.
+You need to enter the correct full JID, including resource, to get this
+right.  If the contact is logged in with only one client, and you can
+see it online, just typing the JID or roster name is enough.  If you run
+the command from a chat buffer, the JID of the contact is given as
+the default value.
+
+If the contact has several clients online, you probably want to send the
+file to a particular one.  If you run this command from within a chat
+buffer, the default target will be the one that last sent a message to
+you.  If you just type a bare JID or a roster name, the client with the
+highest priority will get the file.
+
+If the contact accepts the file, and the contact's client succeeds in
+connecting to the proxy, jabber.el will send the file through the
+proxy.  During this time, your Emacs will be blocked, so you might want
+to avoid sending large files over slow connections.
+
+@node Services, Personal information, File transfer, Top
 @chapter Services
 
 @cindex Browse buffers
@@ -585,7 +719,7 @@ browse buffer.
 @findex jabber-ahc-get-list
 @findex jabber-ahc-execute-command
 
-jabber.el supports a subset of JEP-0050, the standard for Ad-Hoc
+jabber.el supports a subset of XEP-0050, the standard for Ad-Hoc
 Commands.  As the name implies, this can be used for just about
 anything.  It has been used for remote-controlling clients (e.g. Psi),
 and administering services (e.g. PyMSNt).
@@ -633,7 +767,7 @@ respectively.
 This is also where you set your avatar (@pxref{Avatars}).  The size of
 your avatar file is limited to 8 kilobytes.
 
-@node Avatars, Useful features, Personal information, Top
+@node Avatars, Time queries, Personal information, Top
 @chapter Avatars
 
 @cindex avatars
@@ -657,7 +791,29 @@ Avatars are cached in the directory specified by
 @file{~/.jabber-avatars/}.  The cache is never cleaned, so you might
 want to do that yourself from time to time.
 
-@node Useful features, Message history, Avatars, Top
+@node Time queries, Useful features, Avatars, Top
+@chapter Time queries
+
+@cindex time query
+@findex jabber-get-time
+With @kbd{M-x jabber-get-time}, you can ask what time an entity (client,
+server or component) thinks it is, and what time zone it thinks it is
+in.
+
+@cindex last online
+@findex jabber-get-last-online
+You can query a server about when a certain user was last seen online.
+Use @kbd{M-x jabber-get-last-online} for that.
+
+@cindex uptime, query
+@cindex idle time, query
+@findex jabber-get-idle-time
+You can also ask a client about how long a user has been idle with
+@kbd{M-x jabber-get-idle-time}.  Not all clients support this,
+e.g. jabber.el doesn't.  This command can also tell the uptime of a
+server or component.
+
+@node Useful features, Message history, Time queries, Top
 @chapter Useful features
 
 jabber.el includes a number of features meant to improve the user
@@ -1152,8 +1308,12 @@ contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
 
 @table @code
+@item %a
+Avatar of contact, if any
 @item %c
 "*" if the contact is connected, or " " if not
+@item %u
+Subscription state - see below
 @item %n
 Nickname of contact, or JID if no nickname
 @item %j
@@ -1178,6 +1338,9 @@ connect.
 @code{jabber-roster-show-bindings} controls whether to show a list of
 keybindings at the top of the roster buffer.  You need to run @kbd{M-x
 jabber-display-roster} after changing this variable to update the display.
+
+@code{%u} is replaced by one of the strings given by
+`jabber-roster-subscription-display'.
 
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
@@ -1214,6 +1377,10 @@ The time when the message was sent or received
 The nickname of the user.  For the foreign prompt, this is the name of
 the contact in the roster, or the JID if no name set.  For the local
 prompt, this is the username part of your JID.
+@item %u
+The username of the user.
+@item %r
+The resource.
 @item %j
 The bare JID of the user
 @end table
@@ -1296,10 +1463,10 @@ mailing list, or to the Sourceforge patch tracker.
 
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
-removing the function from/to the hook.  For other things, there are
-corresponding general hooks, that are defvars instead of defcustoms, and
-that are to be managed by Lisp code.  They have the same name as the
-alert hooks minus the @code{-alert} part,
+removing the function to and from the hook.  For other things, there
+are corresponding general hooks, that are defvars instead of
+defcustoms, and that are to be managed by Lisp code.  They have the
+same name as the alert hooks minus the @code{-alert} part,
 i.e. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
 etc.
 
@@ -1342,7 +1509,10 @@ The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,
 enter the names of the sound files in
 @code{jabber-alert-message-wave}, @code{jabber-alert-presence-wave}
-and @code{jabber-alert-info-wave}, respectively.
+and @code{jabber-alert-info-wave}, respectively.  You can specify
+specific sound files for contacts matching a regexp in the variables
+@code{jabber-alert-message-wave-alist} and
+@code{jabber-alert-presence-wave-alist}.
 
 The @code{screen} alerts send a message through the Screen terminal
 manager (see @uref{http://www.gnu.org/software/screen/}).  They do no
@@ -1442,6 +1612,7 @@ function.
 @subsection MUC alerts
 
 @vindex jabber-alert-muc-function
+@vindex jabber-muc-alert-self
 @findex jabber-muc-default-message
 
 Set @code{jabber-alert-muc-function} to your desired
@@ -1464,6 +1635,9 @@ The default function, @code{jabber-muc-default-message}, returns
 All MUC alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.
+
+By default, no alert is made for messages from yourself.  To change
+that, customize the variable @code{jabber-muc-alert-self}.
 
 @node Info alerts,  , MUC alerts, Customizing alerts
 @subsection Info alerts
@@ -1800,31 +1974,35 @@ These are the protocols currently supported (in full or partially) by
 jabber.el.
 
 @menu
-* RFC 3920 (XMPP-CORE)::        
-* RFC 3921 (XMPP-IM)::          
-* JEP-0004 (Data Forms)::       
-* JEP-0020 (Feature Negotiation)::  
-* JEP-0022 (Message Events)::   
-* JEP-0030 (Service Discovery)::  
-* JEP-0045 (Multi-User Chat)::  
-* JEP-0050 (Ad-Hoc Commands)::  
-* JEP-0054 (vcard-temp)::       
-* JEP-0055 (Jabber Search)::    
-* JEP-0065 (SOCKS5 Bytestreams)::  
-* JEP-0066 (Out of Band Data)::  
-* JEP-0068 (Field Standardization for Data Forms)::  
-* JEP-0077 (In-Band Registration)::  
-* JEP-0078 (Non-SASL Authentication)::  
-* JEP-0082 (Jabber Date and Time Profiles)::  
-* JEP-0086 (Error Condition Mappings)::  
-* JEP-0091 (Delayed Delivery)::  
-* JEP-0092 (Software Version)::  
-* JEP-0095 (Stream Initiation)::  
-* JEP-0096 (File Transfer)::    
-* JEP-0146 (Remote Controlling Clients)::  
+* RFC 3920::                    XMPP-CORE
+* RFC 3921::                    XMPP-IM
+* XEP-0004::                    Data Forms
+* XEP-0012::                    Last Activity
+* XEP-0020::                    Feature Negotiation
+* XEP-0022::                    Message Events
+* XEP-0030::                    Service Discovery
+* XEP-0045::                    Multi-User Chat
+* XEP-0049::                    Private XML Storage
+* XEP-0050::                    Ad-Hoc Commands
+* XEP-0054::                    vcard-temp
+* XEP-0055::                    Jabber Search
+* XEP-0065::                    SOCKS5 Bytestreams
+* XEP-0066::                    Out of Band Data
+* XEP-0068::                    Field Standardization for Data Forms
+* XEP-0077::                    In-Band Registration
+* XEP-0078::                    Non-SASL Authentication
+* XEP-0082::                    Jabber Date and Time Profiles
+* XEP-0086::                    Error Condition Mappings
+* XEP-0090::                    Entity Time
+* XEP-0091::                    Delayed Delivery
+* XEP-0092::                    Software Version
+* XEP-0095::                    Stream Initiation
+* XEP-0096::                    File Transfer
+* XEP-0146::                    Remote Controlling Clients
+* XEP-0153::                    vCard-Based Avatars
 @end menu
 
-@node RFC 3920 (XMPP-CORE), RFC 3921 (XMPP-IM), Protocol support, Protocol support
+@node RFC 3920, RFC 3921, Protocol support, Protocol support
 @section RFC 3920 (XMPP-CORE)
 
 Most of RFC 3920 is supported, with the following exceptions.
@@ -1842,7 +2020,7 @@ The @code{xml:lang} attribute is neither interpreted nor generated.
 
 SRV records are used if a modern version of @code{dns.el} is installed.
 
-@node RFC 3921 (XMPP-IM), JEP-0004 (Data Forms), RFC 3920 (XMPP-CORE), Protocol support
+@node RFC 3921, XEP-0004, RFC 3920, Protocol support
 @section RFC 3921 (XMPP-IM)
 
 Most of RFC 3921 is supported, with the following exceptions.
@@ -1851,16 +2029,17 @@ Messages of type ``headline'' are not treated in any special way.
 
 The @code{<thread/>} element is not used or generated.
 
-Neither sending nor receiving ``directed presence'' is supported.
+Sending ``directed presence'' is supported; however, presence stanzas
+received from contacts not in roster are ignored.
 
 Privacy lists are not supported at all.
 
 jabber.el doesn't support XMPP-E2E or ``im:'' CPIM URIs.
 
-@node JEP-0004 (Data Forms), JEP-0020 (Feature Negotiation), RFC 3921 (XMPP-IM), Protocol support
-@section JEP-0004 (Data Forms)
+@node XEP-0004, XEP-0012, RFC 3921, Protocol support
+@section XEP-0004 (Data Forms)
 
-JEP-0004 support is good enough for many purposes.  Limitations are
+XEP-0004 support is good enough for many purposes.  Limitations are
 the following.
 
 Forms in incoming messages are not interpreted.  See each specific
@@ -1876,91 +2055,97 @@ The field types ``jid-single'', ``jid-multi'' and ``list-multi'' are
 not implemented, due to programmer laziness.  Let us know if you need
 them.
 
-@node JEP-0020 (Feature Negotiation), JEP-0022 (Message Events), JEP-0004 (Data Forms), Protocol support
-@section JEP-0020 (Feature Negotiation)
+@node XEP-0012, XEP-0020, XEP-0004, Protocol support
+@section XEP-0012 (Last Activity)
 
-There are no known limitations or bugs in JEP-0020 support.
+jabber.el can generate all three query types described in the protocol.
+However, it does not answer to such requests.
 
-@node JEP-0022 (Message Events), JEP-0030 (Service Discovery), JEP-0020 (Feature Negotiation), Protocol support
-@section JEP-0022 (Message Events)
+@node XEP-0020, XEP-0022, XEP-0012, Protocol support
+@section XEP-0020 (Feature Negotiation)
+
+There are no known limitations or bugs in XEP-0020 support.
+
+@node XEP-0022, XEP-0030, XEP-0020, Protocol support
+@section XEP-0022 (Message Events)
 
 jabber.el understands all four specified kinds of message events
 (offline, delivered, displayed, and composing) and by default requests
 all of them.  It also reports those three events that make sense for
 clients.
 
-@node JEP-0030 (Service Discovery), JEP-0045 (Multi-User Chat), JEP-0022 (Message Events), Protocol support
-@section JEP-0030 (Service Discovery)
+@node XEP-0030, XEP-0045, XEP-0022, Protocol support
+@section XEP-0030 (Service Discovery)
 
-Service discovery is supported, both as client and server, with the
-following limitations.  Currently, the client part is not used by any
-code, but is provided only as a user tool.  The user interface is not
-appealing.
+Service discovery is supported, both as client and server.  When used in
+the code, service discovery results are cached indefinitely.
 
-Publishing items is not supported.
+@node XEP-0045, XEP-0049, XEP-0030, Protocol support
+@section XEP-0045 (Multi-User Chat)
 
-@node JEP-0045 (Multi-User Chat), JEP-0050 (Ad-Hoc Commands), JEP-0030 (Service Discovery), Protocol support
-@section JEP-0045 (Multi-User Chat)
-
-jabber.el supports parts of JEP-0045.  Entering, leaving and chatting
+jabber.el supports parts of XEP-0045.  Entering, leaving and chatting
 work.  So do invitations and private messages.  Room configuration is
 supported.  Changing roles of participants (basic moderation) is
 implemented, as is changing affiliations, but requesting affiliation
 lists is not yet supported.
 
-@node JEP-0050 (Ad-Hoc Commands), JEP-0054 (vcard-temp), JEP-0045 (Multi-User Chat), Protocol support
-@section JEP-0050 (Ad-Hoc Commands)
+@node XEP-0049, XEP-0050, XEP-0045, Protocol support
+@section XEP-0049 (Private XML Storage)
 
-jabber.el is probably the first implementation of JEP-0050 (see
+jabber.el contains an implementation of XEP-0049; however it is not used
+for anything right now.
+
+@node XEP-0050, XEP-0054, XEP-0049, Protocol support
+@section XEP-0050 (Ad-Hoc Commands)
+
+jabber.el is probably the first implementation of XEP-0050 (see
 @uref{http://article.gmane.org/gmane.network.jabber.devel/21413, post
 on jdev from 2004-03-10}).  Both the client and server parts are
 supported.
 
-@node JEP-0054 (vcard-temp), JEP-0055 (Jabber Search), JEP-0050 (Ad-Hoc Commands), Protocol support
-@section JEP-0054 (vcard-temp)
+@node XEP-0054, XEP-0055, XEP-0050, Protocol support
+@section XEP-0054 (vcard-temp)
 
 Both displaying other users' vCards and editing your own vCard are
-supported.  The implementation tries to follow the schema in the JEP
+supported.  The implementation tries to follow the schema in the XEP
 accurately.
 
-@node JEP-0055 (Jabber Search), JEP-0065 (SOCKS5 Bytestreams), JEP-0054 (vcard-temp), Protocol support
-@section JEP-0055 (Jabber Search)
+@node XEP-0055, XEP-0065, XEP-0054, Protocol support
+@section XEP-0055 (Jabber Search)
 
-JEP-0055 is supported, both with traditional fields and with Data
-Forms (@pxref{JEP-0004 (Data Forms)}).  As the traditional fields
-specified by the JEP is a subset of those allowed in JEP-0077,
-handling of those two form types are merged.  @xref{JEP-0077 (In-Band
-Registration)}.
+XEP-0055 is supported, both with traditional fields and with Data Forms
+(@pxref{XEP-0004}).  As the traditional fields specified by the XEP is a
+subset of those allowed in XEP-0077, handling of those two form types
+are merged.  @xref{XEP-0077}.
 
-@node JEP-0065 (SOCKS5 Bytestreams), JEP-0066 (Out of Band Data), JEP-0055 (Jabber Search), Protocol support
-@section JEP-0065 (SOCKS5 Bytestreams)
+@node XEP-0065, XEP-0066, XEP-0055, Protocol support
+@section XEP-0065 (SOCKS5 Bytestreams)
 
-JEP-0065 support seems to work, but it is not yet enabled by default.
-
-Currently jabber.el cannot act as a server, not even on on Emacsen
-that support server sockets (GNU Emacs 22 and up).  Therefore it
-relies on proxies.  Proxies have to be entered and queried manually.
+XEP-0065 is supported.  Currently jabber.el cannot act as a server, not
+even on on Emacsen that support server sockets (GNU Emacs 22 and up).
+Therefore it relies on proxies.  Proxies have to be entered and queried
+manually.
 
 Psi's ``fast mode''
 (@uref{http://delta.affinix.com/specs/stream.html}), which gives
 greater flexibility with regards to NAT, is not implemented.
 
-@node JEP-0066 (Out of Band Data), JEP-0068 (Field Standardization for Data Forms), JEP-0065 (SOCKS5 Bytestreams), Protocol support
-@section JEP-0066 (Out of Band Data)
+@node XEP-0066, XEP-0068, XEP-0065, Protocol support
+@section XEP-0066 (Out of Band Data)
 
 jabber.el will display URLs sent in message stanzas qualified by
-the @code{jabber:x:oob} namespace, as described in this JEP.  Sending
+the @code{jabber:x:oob} namespace, as described in this XEP.  Sending
 such URLs or doing anything with iq stanzas (using the
 @code{jabber:iq:oob} namespace) is not supported.
 
-@node JEP-0068 (Field Standardization for Data Forms), JEP-0077 (In-Band Registration), JEP-0066 (Out of Band Data), Protocol support
-@section JEP-0068 (Field Standardization for Data Forms)
+@node XEP-0068, XEP-0077, XEP-0066, Protocol support
+@section XEP-0068 (Field Standardization for Data Forms)
 
-JEP-0068 is only used in the context of creating a new Jabber account,
+XEP-0068 is only used in the context of creating a new Jabber account,
 to prefill the username field of the registration form.
 
-@node JEP-0077 (In-Band Registration), JEP-0078 (Non-SASL Authentication), JEP-0068 (Field Standardization for Data Forms), Protocol support
-@section JEP-0077 (In-Band Registration)
+@node XEP-0077, XEP-0078, XEP-0068, Protocol support
+@section XEP-0077 (In-Band Registration)
 
 In-band registration is supported for all purposes.  That means
 registering a new Jabber account, changing Jabber password, removing a
@@ -1971,66 +2156,70 @@ redirections are not.
 jabber.el will not prevent or alert a user trying to change a password
 over an unencrypted connection.
 
-@node JEP-0078 (Non-SASL Authentication), JEP-0082 (Jabber Date and Time Profiles), JEP-0077 (In-Band Registration), Protocol support
-@section JEP-0078 (Non-SASL Authentication)
+@node XEP-0078, XEP-0082, XEP-0077, Protocol support
+@section XEP-0078 (Non-SASL Authentication)
 
 Non-SASL authentication is supported, both plaintext and digest.
 Digest is preferred, and a warning is displayed to the user if only
 plaintext is available.
 
-@node JEP-0082 (Jabber Date and Time Profiles), JEP-0086 (Error Condition Mappings), JEP-0078 (Non-SASL Authentication), Protocol support
-@section JEP-0082 (Jabber Date and Time Profiles)
+@node XEP-0082, XEP-0086, XEP-0078, Protocol support
+@section XEP-0082 (Jabber Date and Time Profiles)
 
-The DateTime profile of JEP-0082 is supported.  Currently this is only
+The DateTime profile of XEP-0082 is supported.  Currently this is only
 used for file transfer.
 
-@node JEP-0086 (Error Condition Mappings), JEP-0091 (Delayed Delivery), JEP-0082 (Jabber Date and Time Profiles), Protocol support
-@section JEP-0086 (Error Condition Mappings)
+@node XEP-0086, XEP-0090, XEP-0082, Protocol support
+@section XEP-0086 (Error Condition Mappings)
 
 Legacy errors are interpreted, but never generated.  XMPP style error
 messages take precedence when errors are reported to the user.
 
-@node JEP-0091 (Delayed Delivery), JEP-0092 (Software Version), JEP-0086 (Error Condition Mappings), Protocol support
-@section JEP-0091 (Delayed Delivery)
+@node XEP-0090, XEP-0091, XEP-0086, Protocol support
+@section XEP-0090 (Entity Time)
+
+jabber.el can query other entities for their time, and return the
+current time to those who ask.
+
+@node XEP-0091, XEP-0092, XEP-0090, Protocol support
+@section XEP-0091 (Delayed Delivery)
 
 The time specified on delayed incoming messages is interpreted, and
 displayed in chat buffers instead of the current time.
 
-@node JEP-0092 (Software Version), JEP-0095 (Stream Initiation), JEP-0091 (Delayed Delivery), Protocol support
-@section JEP-0092 (Software Version)
+@node XEP-0092, XEP-0095, XEP-0091, Protocol support
+@section XEP-0092 (Software Version)
 
 The user can request the version of any entity.  jabber.el answers
 version requests to anyone, giving ``jabber.el'' as name, and the
 Emacs version as OS.
 
-@node JEP-0095 (Stream Initiation), JEP-0096 (File Transfer), JEP-0092 (Software Version), Protocol support
-@section JEP-0095 (Stream Initiation)
+@node XEP-0095, XEP-0096, XEP-0092, Protocol support
+@section XEP-0095 (Stream Initiation)
 
-JEP-0095 is supported, both incoming and outgoing, with the following
-exceptions.  It is not enabled by default, as it hasn't received much
-testing.
+XEP-0095 is supported, both incoming and outgoing, except that jabber.el
+doesn't check service discovery results before sending a stream
+initiation request.
 
-jabber.el doesn't check service discovery results before sending a
-stream initiation request.
+@node XEP-0096, XEP-0146, XEP-0095, Protocol support
+@section XEP-0096 (File Transfer)
 
-@node JEP-0096 (File Transfer), JEP-0146 (Remote Controlling Clients), JEP-0095 (Stream Initiation), Protocol support
-@section JEP-0096 (File Transfer)
+Both sending and receiving files is supported.  If a suitable program is
+found, MD5 hashes of outgoing files are calculated and sent.  However,
+hashes of received files are not checked.  Ranged transfers are not
+supported.  In-band bytestreams are not yet supported, even though
+XEP-0096 requires them.
 
-Both sending and receiving files is supported, though not enabled by
-default.  The following limitations apply.
+@node XEP-0146, XEP-0153, XEP-0096, Protocol support
+@section XEP-0146 (Remote Controlling Clients)
 
-The hash of a file being sent is not calculated and sent in the
-request.
+The ``set-status'' command in XEP-0146 is supported.
 
-Ranged transfers are not supported.
+@node XEP-0153,  , XEP-0146, Protocol support
+@section XEP-0153 (vCard-Based Avatars)
 
-In-band bytestreams are not yet supported, even though JEP-0096
-requires them.
-
-@node JEP-0146 (Remote Controlling Clients),  , JEP-0096 (File Transfer), Protocol support
-@section JEP-0146 (Remote Controlling Clients)
-
-The ``set-status'' command in JEP-0146 is supported.
+vCard-based avatars are supported, both publishing and displaying.  The
+pixel size limits on avatars are not enforced.
 
 @node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index

@@ -9,7 +9,6 @@ Requires No Gnus.
 
 ** Message composition buffer
 Try jabber-compose.
-(Not documented yet)
 
 ** XMPP URIs are handled
 See manual for setup.
@@ -19,20 +18,16 @@ See manual for setup.
 ** MUC features
 *** Don't display alerts for your own messages
 See jabber-muc-alert-self.
-(Not documented yet)
 *** Presence changes are sent to MUC rooms too
 *** Check room features before joining
-(Not documented yet)
 
 ** Avatars
 Viewing and publishing JEP-0153 avatars (vCard-based) is now
 supported.
 
 ** File transfer
-(Not documented yet)
 
 ** Sound files per contact for alerts
-(Not documented yet)
 
 ** Per-user history files changed
 For some time after 0.7 these file names erroneously contained double
@@ -40,13 +35,10 @@ quotes.  If you have used the CVS version you'll need to rename your
 history files manually.
 
 ** New function: jabber-send-directed-presence
-(Not documented yet)
 
 ** Entity time supported (XEP-0090)
-(Not documented yet)
 
 ** Last activity supported (XEP-0012)
-(Not documented yet)
 
 * New features in jabber.el 0.7
 
