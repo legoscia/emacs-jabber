@@ -75,7 +75,7 @@ Second item is access control function.  That function is passed the
 JID, and returns non-nil if access is granted.  If the second item is
 nil, access is always granted.")
 
-(defun jabber-process-disco-info (xml-data)
+(defun jabber-process-disco-info (jc xml-data)
   "Handle results from info disco requests."
 
   (let ((beginning (point)))
@@ -96,9 +96,12 @@ nil, access is always granted.")
        ((eq (jabber-xml-node-name x) 'feature)
 	(let ((var (jabber-xml-get-attribute x 'var)))
 	  (insert "Feature:\t" var "\n")))))
-    (put-text-property beginning (point) 'jabber-jid (jabber-xml-get-attribute xml-data 'from))))
+    (put-text-property beginning (point) 
+		       'jabber-jid (jabber-xml-get-attribute xml-data 'from))
+    (put-text-property beginning (point)
+		       'jabber-account jc)))
 
-(defun jabber-process-disco-items (xml-data)
+(defun jabber-process-disco-items (jc xml-data)
   "Handle results from items disco requests."
 
   (let ((items (jabber-xml-get-children (jabber-iq-query xml-data) 'item)))
@@ -115,6 +118,7 @@ nil, access is always granted.")
 		'face 'jabber-title-medium)
 	       name "\n\n")
 	      'jabber-jid jid
+	      'jabber-account jc
 	      'jabber-node node))))
       (insert "No items found.\n"))))
 
@@ -173,11 +177,12 @@ See JEP-0030."
 	
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Send items disco query" 'jabber-get-disco-items))
-(defun jabber-get-disco-items (to &optional node)
+(defun jabber-get-disco-items (jc to &optional node)
   "Send a service discovery request for items"
-  (interactive (list (jabber-read-jid-completing "Send items disco request to: ")
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Send items disco request to: ")
 		     (jabber-read-node "Node (or leave empty): ")))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  (list 'query (append (list (cons 'xmlns "http://jabber.org/protocol/disco#items"))
 				       (if (> (length node) 0)
@@ -187,11 +192,12 @@ See JEP-0030."
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Send info disco query" 'jabber-get-disco-info))
-(defun jabber-get-disco-info (to &optional node)
+(defun jabber-get-disco-info (jc to &optional node)
   "Send a service discovery request for info"
-  (interactive (list (jabber-read-jid-completing "Send info disco request to: ")
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Send info disco request to: ")
 		     (jabber-read-node "Node (or leave empty): ")))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  (list 'query (append (list (cons 'xmlns "http://jabber.org/protocol/disco#info"))
 				       (if (> (length node) 0)

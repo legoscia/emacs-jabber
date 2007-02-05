@@ -31,10 +31,10 @@
 
 ;;; Info
 
-(defun jabber-disco-get-info (jid node callback closure-data &optional force)
-  "Get disco info for JID and NODE.
-Call CALLBACK with CLOSURE-DATA as first argument and result as
-second argument when result is available.
+(defun jabber-disco-get-info (jc jid node callback closure-data &optional force)
+  "Get disco info for JID and NODE, using connection JC.
+Call CALLBACK with JC and CLOSURE-DATA as first and second
+arguments and result as third argument when result is available.
 On success, result is (IDENTITIES FEATURES), where each identity is [\"name\"
 \"category\" \"type\"], and each feature is a string.
 On error, result is the error node, recognizable by (eq (car result) 'error).
@@ -46,17 +46,17 @@ invalidate cache and get fresh data."
   (let ((result (gethash (cons jid node) jabber-disco-info-cache)))
     (if result
 	(and callback (run-with-timer 0.1 nil callback closure-data result))
-      (jabber-send-iq jid
+      (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#info")
 			       ,(when node `(node . ,node))))
 		      #'jabber-disco-got-info (cons callback closure-data)
-		      (lambda (xml-data callback-data)
+		      (lambda (jc xml-data callback-data)
 			(when (car callback-data)
-			  (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
+			  (funcall (car callback-data) jc (cdr callback-data) (jabber-iq-error xml-data))))
 		      (cons callback closure-data)))))
 
-(defun jabber-disco-got-info (xml-data callback-data)
+(defun jabber-disco-got-info (jc xml-data callback-data)
   (let ((jid (jabber-xml-get-attribute xml-data 'from))
 	(node (jabber-xml-get-attribute (jabber-iq-query xml-data)
 					'node))
@@ -74,7 +74,7 @@ invalidate cache and get fresh data."
 	   (jabber-xml-get-children (jabber-iq-query xml-data) 'feature)))))
     (puthash (cons jid node) result jabber-disco-info-cache)
     (when (car callback-data)
-      (funcall (car callback-data) (cdr callback-data) result))))
+      (funcall (car callback-data) jc (cdr callback-data) result))))
 
 (defun jabber-disco-get-info-immediately (jid node)
   "Get cached disco info for JID and NODE.
@@ -85,10 +85,11 @@ Fill the cache with `jabber-disco-get-info'."
 
 ;;; Items
 
-(defun jabber-disco-get-items (jid node callback closure-data &optional force)
-  "Get disco items for JID and NODE.
-Call CALLBACK with CLOSURE-DATA as first argument and items
-result as second argument when result is available.
+(defun jabber-disco-get-items (jc jid node callback closure-data &optional force)
+  "Get disco items for JID and NODE, using connection JC.
+Call CALLBACK with JC and CLOSURE-DATA as first and second
+arguments and items result as third argument when result is
+available.
 On success, result is a list of items, where each
 item is [\"name\" \"jid\" \"node\"] (some values may be nil).
 On error, result is the error node, recognizable by (eq (car result) 'error).
@@ -100,17 +101,17 @@ invalidate cache and get fresh data."
   (let ((result (gethash (cons jid node) jabber-disco-items-cache)))
     (if result
 	(and callback (run-with-timer 0.1 nil callback closure-data result))
-      (jabber-send-iq jid
+      (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#items")
 			       ,(when node `(node . ,node))))
 		      #'jabber-disco-got-items (cons callback closure-data)
-		      #'(lambda (xml-data callback-data)
-			  (when (car callback-data)
-			    (funcall (car callback-data) (cdr callback-data) (jabber-iq-error xml-data))))
+		      (lambda (jc xml-data callback-data)
+			(when (car callback-data)
+			  (funcall (car callback-data) jc (cdr callback-data) (jabber-iq-error xml-data))))
 		      (cons callback closure-data)))))
 
-(defun jabber-disco-got-items (xml-data callback-data)
+(defun jabber-disco-got-items (jc xml-data callback-data)
   (let ((jid (jabber-xml-get-attribute xml-data 'from))
 	(node (jabber-xml-get-attribute (jabber-iq-query xml-data)
 					'node))
@@ -124,16 +125,16 @@ invalidate cache and get fresh data."
 	  (jabber-xml-get-children (jabber-iq-query xml-data) 'item))))
     (puthash (cons jid node) result jabber-disco-items-cache)
     (when (car callback-data)
-      (funcall (car callback-data) (cdr callback-data) result))))
+      (funcall (car callback-data) jc (cdr callback-data) result))))
 
 (defun jabber-disco-get-items-immediately (jid node)
   (gethash (cons jid node) jabber-disco-items-cache))
 
 ;;; Publish
 
-(defun jabber-disco-publish (node item-name item-jid item-node)
+(defun jabber-disco-publish (jc node item-name item-jid item-node)
   "Publish the given item under disco node NODE."
-  (jabber-send-iq nil
+  (jabber-send-iq jc nil
 		  "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/disco#items")
 			   ,(when node `(node . ,node)))
@@ -146,9 +147,9 @@ invalidate cache and get fresh data."
 		  'jabber-report-success "Disco publish"
 		  'jabber-report-success "Disco publish"))
 
-(defun jabber-disco-publish-remove (node item-jid item-node)
+(defun jabber-disco-publish-remove (jc node item-jid item-node)
   "Remove the given item from published disco items."
-  (jabber-send-iq nil
+  (jabber-send-iq jc nil
 		  "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/disco#items")
 			   ,(when node `(node . ,node)))

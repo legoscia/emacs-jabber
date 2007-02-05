@@ -57,7 +57,7 @@
 (put 'jabber-browse-mode 'mode-class 'special)
 
 (add-to-list 'jabber-iq-chain 'jabber-process-iq)
-(defun jabber-process-iq (xml-data)
+(defun jabber-process-iq (jc xml-data)
   "process an incoming iq stanza"
   (let* ((id (jabber-xml-get-attribute xml-data 'id))
          (type (jabber-xml-get-attribute xml-data 'type))
@@ -71,7 +71,7 @@
       (let ((callback-cons (nth (cdr (assoc type '(("result" . 0)
 						   ("error" . 1)))) (cdr callback))))
 	(if (consp callback-cons)
-	    (funcall (car callback-cons) xml-data (cdr callback-cons))))
+	    (funcall (car callback-cons) jc xml-data (cdr callback-cons))))
       (setq *jabber-open-info-queries* (delq callback *jabber-open-info-queries*)))
 
      ;; if type is "get" or "set", correct action depends on namespace of request.
@@ -85,15 +85,16 @@
 	     (handler (cdr (assoc (jabber-xml-get-attribute query 'xmlns) which-alist))))
 	(if handler
 	    (condition-case error-var
-		(funcall handler xml-data)
+		(funcall handler jc xml-data)
 	      (jabber-error
-	       (apply 'jabber-send-iq-error from id query (cdr error-var)))
-	      (error (jabber-send-iq-error from id query "wait" 'internal-server-error (error-message-string error-var))))
-	  (jabber-send-iq-error from id query "cancel" 'feature-not-implemented)))))))
+	       (apply 'jabber-send-iq-error jc from id query (cdr error-var)))
+	      (error (jabber-send-iq-error jc from id query "wait" 'internal-server-error (error-message-string error-var))))
+	  (jabber-send-iq-error jc from id query "cancel" 'feature-not-implemented)))))))
 
-(defun jabber-send-iq (to type query success-callback success-closure-data
+(defun jabber-send-iq (jc to type query success-callback success-closure-data
 			  error-callback error-closure-data &optional result-id)
   "Send an iq stanza to the specified entity, and optionally set up a callback.
+JC is the Jabber connection.
 TO is the addressee.
 TYPE is one of \"get\", \"set\", \"result\" or \"error\".
 QUERY is a list containing the child of the iq node in the format `jabber-sexp2xml'
@@ -106,18 +107,19 @@ RESULT-ID is the id to be used for a response to a received iq message.
 `jabber-report-success' and `jabber-process-data' are common callbacks."
   (let ((id (or result-id (apply 'format "emacs-iq-%d.%d.%d" (current-time)))))
     (if (or success-callback error-callback)
-	(setq *jabber-open-info-queries* (cons (list id 
+	(setq *jabber-open-info-queries* (cons (list id
 						     (cons success-callback success-closure-data)
 						     (cons error-callback error-closure-data))
 
 					       *jabber-open-info-queries*)))
-    (jabber-send-sexp (list 'iq (append 
+    (jabber-send-sexp jc
+		      (list 'iq (append 
 				 (if to (list (cons 'to to)))
 				 (list (cons 'type type))
 				 (list (cons 'id id)))
 			    query))))
 
-(defun jabber-send-iq-error (to id original-query error-type condition
+(defun jabber-send-iq-error (jc to id original-query error-type condition
 				&optional text app-specific)
   "Send an error iq stanza to the specified entity in response to a
 previously sent iq stanza.
@@ -132,18 +134,20 @@ TEXT is a string to be sent in the error message, or nil for no text.
 APP-SPECIFIC is a list of extra XML tags.
 
 See section 9.3 of XMPP Core."
-  (jabber-send-sexp `(iq ((to . ,to)
-			  (type . "error")
-			  (id . ,id))
-			 ,original-query
-			 (error ((type . ,error-type))
-				(,condition ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))
-				,(if text
-				     `(text ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))
-					    ,text))
-				,@app-specific))))
+  (jabber-send-sexp 
+   jc
+   `(iq ((to . ,to)
+	 (type . "error")
+	 (id . ,id))
+	,original-query
+	(error ((type . ,error-type))
+	       (,condition ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))
+	       ,(if text
+		    `(text ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas"))
+			   ,text))
+	       ,@app-specific))))
 
-(defun jabber-process-data (xml-data closure-data)
+(defun jabber-process-data (jc xml-data closure-data)
   "Process random results from various requests."
   (let ((from (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
 	(xmlns (jabber-iq-xmlns xml-data))
@@ -165,7 +169,7 @@ See section 9.3 of XMPP Core."
 	;; values (e.g. nil), just dump the XML.
 	(cond
 	 ((functionp closure-data)
-	  (funcall closure-data xml-data))
+	  (funcall closure-data jc xml-data))
 	 ((stringp closure-data)
 	  (insert closure-data ": " (jabber-parse-error (jabber-iq-error xml-data)) "\n\n"))
 	 (t

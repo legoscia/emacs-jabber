@@ -28,7 +28,7 @@
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
 
-(defcustom jabber-roster-line-format " %a %c %-25n %u %-8s  %S\n"
+(defcustom jabber-roster-line-format " %a %c %-25n %u %-8s  %S"
   "The format specification of the lines in the roster display.
 
 These fields are available:
@@ -71,7 +71,7 @@ display them: ← → ⇄ ↔"
 	       (cons :format "%v" (const :format "" "both") (string :tag "Both")))
   :group 'jabber-roster)
 
-(defcustom jabber-resource-line-format "     %r - %s (%S), priority %p\n"
+(defcustom jabber-resource-line-format "     %r - %s (%S), priority %p"
   "The format specification of resource lines in the roster display.
 These are displayed when `jabber-show-resources' permits it.
 
@@ -215,10 +215,13 @@ bring up menus of actions.
   (interactive)
   (switch-to-buffer jabber-roster-buffer))
 
-(defun jabber-sort-roster ()
+(defun jabber-sort-roster (jc)
   "sort roster according to online status"
-  (setq *jabber-roster*
-	(sort *jabber-roster* #'jabber-roster-sort-items)))
+  (let ((state-data (fsm-get-state-data jc)))
+    (plist-put state-data :roster
+	       (sort
+		(plist-get state-data :roster)
+		#'jabber-roster-sort-items))))
 
 (defun jabber-roster-sort-items (a b)
   "Sort roster items A and B according to `jabber-roster-sort-functions'.
@@ -265,10 +268,10 @@ See `jabber-sort-order' for order used."
 	(setq status (replace-match " " t t status))))
     status))
 
-(defvar jabber-roster-positions nil
-  "Alist tracking positions of items in the roster.
-Keys are bare JID symbols.  Values are conses of markers,
-marking the extent of the roster entry.")
+(defvar jabber-roster-ewoc nil
+  "Ewoc displaying the roster.
+There is only one; we don't rely on buffer-local variables or
+such.")
 
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
@@ -283,8 +286,8 @@ marking the extent of the roster entry.")
     (let ((current-line (and (fboundp 'line-number-at-pos) (line-number-at-pos)))
 	  (current-column (current-column)))
       (erase-buffer)
-      (setq jabber-roster-positions nil)
-      (insert (jabber-propertize jabber-server 'face 'jabber-title-large) "\n")
+      (setq jabber-roster-ewoc nil)
+      (insert (jabber-propertize "Jabber roster" 'face 'jabber-title-large) "\n")
       (when jabber-roster-show-bindings
 	(insert "RET      Open chat buffer        C-k      Delete roster item
 e        Edit item               s        Send subscription request
@@ -309,25 +312,32 @@ C-c C-s  Service menu
 					     'jabber-roster-user-online)
 				   ;;'mouse-face (cons 'background-color "light grey")
 				   'keymap map)
-		"\n__________________________________\n\n"))
+		"\n"))
 
-      (jabber-sort-roster)
-      (dolist (buddy *jabber-roster*)
-	(let ((entry-start (point)))
-	  (jabber-display-roster-entry buddy)
-
-	  ;; Keep track of this roster entry's position
-	  (let ((entry (assq buddy jabber-roster-positions)))
-	    (unless entry
-	      (setq entry (cons buddy nil))
-	      (push entry jabber-roster-positions))
-	      (let ((marker-start (set-marker (make-marker) entry-start))
-		    (marker-end (set-marker (make-marker) (point))))
-		;; Text is inserted before start markers, but after
-		;; end markers.
-		(set-marker-insertion-type marker-start t)
-		(setcdr entry (cons marker-start marker-end))))))
-      (insert "__________________________________")
+      (dolist (jc jabber-connections)
+	;; We sort everything before putting it in the ewoc
+	(jabber-sort-roster jc)
+	(let ((before-ewoc (point))
+	      (ewoc (ewoc-create 
+		     (lexical-let ((jc jc))
+		       (lambda (buddy)
+			 (jabber-display-roster-entry jc buddy)))
+		     (concat
+		      (jabber-propertize (concat
+					  (plist-get (fsm-get-state-data jc) :username)
+					  "@"
+					  (plist-get (fsm-get-state-data jc) :server))
+					 'face 'jabber-title-medium)
+		      "\n__________________________________\n")
+		     "__________________________________")))
+	  (plist-put (fsm-get-state-data jc) :roster-ewoc ewoc)
+	  (dolist (buddy (plist-get (fsm-get-state-data jc) :roster))
+	    (ewoc-enter-last ewoc buddy))
+	  (goto-char (point-max))
+	  (insert "\n")
+	  (put-text-property before-ewoc (point)
+			     'jabber-account jc)))
+      
       (goto-char (point-min))
       (setq buffer-read-only t)
       (if (interactive-p)
@@ -337,7 +347,7 @@ C-c C-s  Service menu
 	(goto-line current-line)
 	(move-to-column current-column)))))
 
-(defun jabber-display-roster-entry (buddy)
+(defun jabber-display-roster-entry (jc buddy)
   "Format and insert a roster entry for BUDDY at point.
 BUDDY is a JID symbol."
   (let ((buddy-str (format-spec jabber-roster-line-format
@@ -369,7 +379,9 @@ BUDDY is a JID symbol."
 			  'help-echo
 			  (symbol-name buddy)
 			  'jabber-jid
-			  (symbol-name buddy))
+			  (symbol-name buddy)
+			  'jabber-account
+			  jc)
 			 buddy-str)
     ;; (let ((map (make-sparse-keymap))
     ;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
@@ -413,43 +425,56 @@ BUDDY is a JID symbol."
 				  'jabber-jid
 				  (format "%s/%s" (symbol-name buddy) (car resource)))
 				 resource-str)
-	    (insert resource-str)))))))
+	    (insert "\n" resource-str)))))))
 
-(defun jabber-presence-update-roster (who &rest ignore)
-  "Update roster without redrawing all of it, if possible.
-WHO is a JID symbol."
-  
-  (let* ((bare-jid (jabber-jid-symbol 
-		    (jabber-jid-user
-		     (symbol-name who))))
-	 (entry (assq bare-jid jabber-roster-positions))
-	 (inhibit-read-only t))
-    (jabber-sort-roster)
-    (if (null entry)
+(defun jabber-roster-update (jc new-items changed-items deleted-items)
+  "Update roster, in memory and on display.
+Add NEW-ITEMS, update CHANGED-ITEMS and remove DELETED-ITEMS, all
+three being lists of JID symbols."
+  (let ((roster (plist-get (fsm-get-state-data jc) :roster))
+	(ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc)))
+    (dolist (delete-this deleted-items)
+      (setq roster (delq delete-this roster)))
+    (setq roster (append new-items roster))
+    (plist-put (fsm-get-state-data jc) :roster roster)
+
+    ;; If there is no ewoc yet, create the roster buffer.
+    (if (null ewoc)
 	(jabber-display-roster)
-      (let ((old-start (cadr entry))
-	    (old-end (cddr entry))
-	    (insert-before-this (cadr (memq bare-jid *jabber-roster*))))
-	(with-current-buffer jabber-roster-buffer
-	  (delete-region old-start old-end)
-	  (save-excursion
-	    (let ((new-start 
-		   (marker-position
-		    (if insert-before-this
-			;; If this is not the last entry, go to start
-			;; position of next entry.
-			(cadr (assq insert-before-this jabber-roster-positions))
-		      ;; If this is the last entry, go to end position of second
-		      ;; to last entry.
-		      (cddr (car (last jabber-roster-positions 2)))))))
-	      (goto-char new-start)
-	      (jabber-display-roster-entry bare-jid)
-	      (let ((marker-start (set-marker (make-marker) new-start))
-		    (marker-end (set-marker (make-marker) (point))))
-		;; Text is inserted before start markers, but after
-		;; end markers.
-		(set-marker-insertion-type marker-start t)
-		(setcdr entry (cons marker-start marker-end))))))))))
+      ;; Otherwise, do incremental changes.
+
+      ;; The changed items need to be resorted, so we start by removing
+      ;; them as well.
+      (ewoc-filter ewoc
+		   (lambda (a) (not (or (member a changed-items)
+					(member a deleted-items)))))
+  
+      ;; Now, insert items into ewoc.
+      (let ((to-be-inserted
+	     (sort (append new-items changed-items)
+		   #'jabber-roster-sort-items))
+	    (where (ewoc-nth ewoc 0)))
+	(while to-be-inserted
+	  (cond
+	   ;; If we are at the end of the ewoc, put all elements there.
+	   ((null where)
+	    (dolist (a to-be-inserted)
+	      (ewoc-enter-last ewoc a))
+	    (setq to-be-inserted nil))
+	   ;; If the next element should go here, put it here.
+	   ((jabber-roster-sort-items (car to-be-inserted)
+				      (ewoc-data where))
+	    (ewoc-enter-before ewoc where
+			       (car to-be-inserted))
+	    (setq to-be-inserted (cdr to-be-inserted)))
+	   ;; Else, advance through the ewoc.
+	   (t
+	    (setq where (ewoc-next ewoc where)))))))))
+
+(define-obsolete-function-alias
+  'jabber-presence-update-roster 'ignore
+  nil "jabber-presence-update-roster is not needed anymore.
+Its work is done in `jabber-process-presence'.")
 
 (defun jabber-go-to-next-jid ()
   "Move the cursor to the next jid in the buffer"

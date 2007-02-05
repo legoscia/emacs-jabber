@@ -26,62 +26,52 @@
     (require 'sha1)
   (error (require 'sha1-el)))
 
-(defun jabber-get-auth (to)
+(defun jabber-get-auth (jc to session-id)
   "Send IQ get request in namespace \"jabber:iq:auth\"."
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  `(query ((xmlns . "jabber:iq:auth"))
-			  (username () ,jabber-username))
-		  #'jabber-do-logon nil
+			  (username () ,(plist-get (fsm-get-state-data jc) :username)))
+		  #'jabber-do-logon session-id
 		  #'jabber-report-success "Impossible error - auth field request"))
 
-(defun jabber-do-logon (xml-data closure-data)
+(defun jabber-do-logon (jc xml-data session-id)
   "send username and password in logon attempt"
-  (cond
-   ((string= (jabber-xml-get-attribute xml-data 'type) "result")
-    (let (auth)
-      (if (jabber-xml-get-children (jabber-iq-query xml-data) 'digest)
-	  ;; SHA1 digest passwords allowed
+  (let (auth)
+    (if (jabber-xml-get-children (jabber-iq-query xml-data) 'digest)
+	;; SHA1 digest passwords allowed
+	(let ((passwd (jabber-read-passwd)))
+	  (if passwd
+	      (setq auth `(digest () ,(sha1 (concat session-id passwd))))))
+      ;; Plaintext passwords - allow on encrypted connections
+      (if (or *jabber-encrypted*
+	      (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
 	  (let ((passwd (jabber-read-passwd)))
-	    (if passwd
-		(setq auth `(digest () ,(sha1 (concat jabber-session-id passwd))))))
-	;; Plaintext passwords - allow on encrypted connections
-	(if (or *jabber-encrypted*
-		(yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
-	    (let ((passwd (jabber-read-passwd)))
-	      (if passwd
-		  (setq auth `(password () ,passwd))))))
+	    (when passwd
+	      (setq auth `(password () ,passwd))))))
       
-      ;; If auth is still nil, user cancelled process somewhere
-      (if auth
-	  (jabber-send-iq jabber-server
-			  "set"
-			  `(query ((xmlns . "jabber:iq:auth"))
-				  (username () ,jabber-username)
-				  ,auth
-				  (resource () ,jabber-resource))
-			  #'jabber-process-logon t
-			  #'jabber-process-logon nil)
-	(jabber-disconnect))))
-   (t
-    (error "Logon error ended up in the wrong place"))))
+    ;; If auth is still nil, user cancelled process somewhere
+    (if auth
+	(jabber-send-iq jc jabber-server
+			"set"
+			`(query ((xmlns . "jabber:iq:auth"))
+				(username () ,(plist-get (fsm-get-state-data jc) :username))
+				,auth
+				(resource () ,(plist-get (fsm-get-state-data jc) :resource)))
+			#'jabber-process-logon t
+			#'jabber-process-logon nil)
+      (jabber-disconnect))))
 
-(defun jabber-process-logon (xml-data closure-data)
+(defun jabber-process-logon (jc xml-data closure-data)
   "receive login success or failure, and request roster.
 CLOSURE-DATA should be t on success and nil on failure."
   (if closure-data
       ;; Logon success
-      (progn
-	(setq *jabber-authenticated* t)
-	(jabber-send-iq nil
-			"get" 
-			'(query ((xmlns . "jabber:iq:roster")))
-			#'jabber-process-roster 'initial
-			#'jabber-report-success "Roster retrieval"))
+	(fsm-send jc :authentication-success)
 
     ;; Logon failure
     (jabber-report-success xml-data "Logon")
-    (jabber-disconnect)))
+    (fsm-send jc :authentication-failure)))
 
 (provide 'jabber-logon)
 

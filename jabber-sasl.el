@@ -31,95 +31,72 @@
 
 (require 'jabber-xml)
 
-(defvar jabber-sasl-mechanism nil)
-(defvar jabber-sasl-client nil)
-(defvar jabber-sasl-step nil)
-
-(defun jabber-sasl-start-auth (stream-features)
-  ;; This shouldn't be necessary
-  ;;(setq jabber-call-on-connection nil)
-
-  ;; Reset our own state.
-  (setq jabber-sasl-mechanism nil)
-  (setq jabber-sasl-client nil)
-  (setq jabber-sasl-step nil)
-
-  ;; Hijack all stanzas for a while.
-  (setq jabber-short-circuit-input #'jabber-sasl-process-input)
-
+(defun jabber-sasl-start-auth (jc stream-features)
   ;; Find a suitable common mechanism.
-  (let ((mechanisms (car (jabber-xml-get-children stream-features 'mechanisms))))
-    (setq jabber-sasl-mechanism
+  (let* ((mechanisms (car (jabber-xml-get-children stream-features 'mechanisms)))
+	 (mechanism
 	  (sasl-find-mechanism 
 	   (mapcar
 	    (lambda (tag)
 	      (car (jabber-xml-node-children tag)))
 	    (jabber-xml-get-children mechanisms 'mechanism)))))
 
-  ;; No suitable mechanism?
-  (if (null jabber-sasl-mechanism)
-      ;; Maybe we can use legacy authentication
-      (let ((node (find "http://jabber.org/features/iq-auth"
-			(jabber-xml-get-children stream-features 'auth)
-			:key #'(lambda (node) (jabber-xml-get-attribute node 'xmlns))
-			:test #'string=)))
-	(if node
-	    (progn
-	      (setq jabber-short-circuit-input nil)
-	      (jabber-get-auth jabber-server))
-	  (error "No suitable SASL mechanism found")))
+    ;; No suitable mechanism?
+    (if (null mechanism)
+	;; Maybe we can use legacy authentication
+	(let ((node (find "http://jabber.org/features/iq-auth"
+			  (jabber-xml-get-children stream-features 'auth)
+			  :key #'(lambda (node) (jabber-xml-get-attribute node 'xmlns))
+			  :test #'string=)))
+	  (if node
+	      (fsm-send jc :use-legacy-auth-instead)
+	    (message "No suitable SASL mechanism found")
+	    (fsm-send jc :authentication-failed)))
 
-    ;; Watch for plaintext logins over unencrypted connections
-    (when (and (not *jabber-encrypted*)
-	       (member (sasl-mechanism-name jabber-sasl-mechanism)
-		       '("PLAIN" "LOGIN"))
-	       (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
-      (error "Login cancelled"))
+      ;; Watch for plaintext logins over unencrypted connections
+      (when (and (not *jabber-encrypted*)
+		 (member (sasl-mechanism-name mechanism)
+			 '("PLAIN" "LOGIN"))
+		 (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
+	(error "Login cancelled"))
 
-    ;; Start authentication.
-    (setq jabber-sasl-client (sasl-make-client jabber-sasl-mechanism jabber-username "xmpp" jabber-server))
-    (setq jabber-sasl-step (sasl-next-step jabber-sasl-client nil))
-    (jabber-send-sexp
-     `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
-	     (mechanism . ,(sasl-mechanism-name jabber-sasl-mechanism)))
-	    ,(when (sasl-step-data jabber-sasl-step)
-	       (base64-encode-string (sasl-step-data jabber-sasl-step) t))))))
+      ;; Start authentication.
+      (let* ((client (sasl-make-client mechanism 
+				       (plist-get (fsm-get-state-data jc) :username)
+				       "xmpp"
+				       (plist-get (fsm-get-state-data jc) :server)))
+	     (step (sasl-next-step client nil)))
+	(jabber-send-sexp
+	 jc
+	 `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
+		 (mechanism . ,(sasl-mechanism-name mechanism)))
+		,(when (sasl-step-data step)
+		   (base64-encode-string (sasl-step-data step) t))))
+	(cons client step)))))
 
-(defun jabber-sasl-stop ()
-  (setq jabber-short-circuit-input nil))
-
-(defun jabber-sasl-process-input (xml-data)
-  (let ((sasl-read-passphrase #'jabber-read-passwd))
+(defun jabber-sasl-process-input (jc xml-data sasl-data)
+  (let ((sasl-read-passphrase #'jabber-read-passwd)
+	(client (car sasl-data))
+	(step (cdr sasl-data)))
     (cond
      ((eq (car xml-data) 'challenge)
-      (sasl-step-set-data jabber-sasl-step (base64-decode-string (car (jabber-xml-node-children xml-data))))
-      (setq jabber-sasl-step (sasl-next-step jabber-sasl-client jabber-sasl-step))
+      (sasl-step-set-data step (base64-decode-string (car (jabber-xml-node-children xml-data))))
+      (setq step (sasl-next-step client step))
       (jabber-send-sexp
+       jc
        `(response ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl"))
-		  ,(when (sasl-step-data jabber-sasl-step)
-		     (base64-encode-string (sasl-step-data jabber-sasl-step) t)))))
+		  ,(when (sasl-step-data step)
+		     (base64-encode-string (sasl-step-data step) t)))))
 
      ((eq (car xml-data) 'failure)
-      (ding)
       (message "SASL authentication failure: %s"
 	       (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
-      (sit-for 3)
-      (jabber-disconnect)
-      (jabber-sasl-stop))
+      (fsm-send jc :authentication-failure))
 
      ((eq (car xml-data) 'success)
       (message "Authentication succeeded")
-      (setq *jabber-authenticated* t)
-      (jabber-sasl-stop)
-
-      ;; Now, we send another stream header.
-      (funcall jabber-conn-send-function
-	       (concat
-		"<stream:stream to='"
-		jabber-server
-		"' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"))
-      ;; now see what happens
-))))
+      (fsm-send jc :authentication-success)))
+    (cons client step)))
 
 (provide 'jabber-sasl)
 ;;; arch-tag: 2a4a234d-34d3-49dd-950d-518c899c0fd0

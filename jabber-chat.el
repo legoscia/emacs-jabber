@@ -209,12 +209,12 @@ Either a string or a buffer is returned, so use `get-buffer' or
 		(cons ?j (jabber-jid-user chat-with))
 		(cons ?r (jabber-jid-resource chat-with)))))
 
-(defun jabber-chat-create-buffer (chat-with)
+(defun jabber-chat-create-buffer (jc chat-with)
   "Prepare a buffer for chatting with CHAT-WITH.
 This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (unless (eq major-mode 'jabber-chat-mode)
-      (jabber-chat-mode #'jabber-chat-pp))
+      (jabber-chat-mode jc #'jabber-chat-pp))
 
     (make-local-variable 'jabber-chatting-with)
     (setq jabber-chatting-with chat-with)
@@ -279,7 +279,7 @@ This function is idempotent."
 
 (add-to-list 'jabber-message-chain 'jabber-process-chat)
 
-(defun jabber-process-chat (xml-data)
+(defun jabber-process-chat (jc xml-data)
   "If XML-DATA is a one-to-one chat message, handle it as such."
   ;; XXX: there's more to being a chat message than not being MUC.
   ;; Maybe make independent predicate.
@@ -292,9 +292,10 @@ This function is idempotent."
 				 xml-data 'body))))))
       (with-current-buffer (if (jabber-muc-sender-p from)
 			       (jabber-muc-private-create-buffer
+				jc
 				(jabber-jid-user from)
 				(jabber-jid-resource from))
-			     (jabber-chat-create-buffer from))
+			     (jabber-chat-create-buffer jc from))
 	;; Call alert hooks only when something is output
 	(when (or error-p
 		  (run-hook-with-args-until-success 'jabber-chat-printers xml-data :foreign :printp))
@@ -308,8 +309,8 @@ This function is idempotent."
 				(funcall jabber-alert-message-function 
 					 from (current-buffer) body-text))))))))
 
-(defun jabber-chat-send (body)
-  "Send BODY, and display it in chat buffer."
+(defun jabber-chat-send (jc body)
+  "Send BODY through connection JC, and display it in chat buffer."
   ;; Build the stanza...
   (let* ((id (apply 'format "emacs-msg-%d.%d.%d" (current-time)))
 	 (stanza-to-send `(message 
@@ -325,7 +326,7 @@ This function is idempotent."
       (jabber-maybe-print-rare-time
        (ewoc-enter-last jabber-chat-ewoc (list :local stanza-to-send :time (current-time)))))
     ;; ...and send it...
-    (jabber-send-sexp stanza-to-send)))
+    (jabber-send-sexp jc stanza-to-send)))
 
 (defun jabber-chat-pp (data)
   "Pretty-print a <message/> stanza.
@@ -576,13 +577,17 @@ If DELAYED is true, print long timestamp
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Start chat" 'jabber-chat-with))
 
-(defun jabber-chat-with (jid &optional other-window)
+(defun jabber-chat-with (jc jid &optional other-window)
   "Open an empty chat window for chatting with JID.
 With a prefix argument, open buffer in other window.
 Returns the chat buffer."
-  (interactive (list (jabber-read-jid-completing "chat with:")
-		     current-prefix-arg))
-  (let ((buffer (jabber-chat-create-buffer jid)))
+  (interactive (let ((jid
+		      (jabber-read-jid-completing "chat with:"))
+		     (account
+		      (jabber-read-account)))
+		 (list 
+		  account jid current-prefix-arg)))
+  (let ((buffer (jabber-chat-create-buffer jc jid)))
     (if other-window
 	(switch-to-buffer-other-window buffer)
       (switch-to-buffer buffer))))
@@ -593,9 +598,11 @@ Signal an error if there is no JID at point.
 With a prefix argument, open buffer in other window."
   (interactive "P")
   (let ((jid-at-point (get-text-property (point)
-					 'jabber-jid)))
-    (if jid-at-point
-	(jabber-chat-with jid-at-point other-window)
+					 'jabber-jid))
+	(account (get-text-property (point)
+				    'jabber-account)))
+    (if (and jid-at-point account)
+	(jabber-chat-with account jid-at-point other-window)
       (error "No contact at point"))))
 
 (provide 'jabber-chat)
