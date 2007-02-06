@@ -279,7 +279,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       ;; XXX: implement reverse mapping
       ;; (dolist (groupchat *jabber-active-groupchats*)
 ;; 	(jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements)))
-      )
+      ))
   (jabber-display-roster))
 
 (defun jabber-presence-children ()
