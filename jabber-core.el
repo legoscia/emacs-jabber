@@ -477,22 +477,31 @@ With prefix argument, register a new account."
   (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
       (dolist (c jabber-connections)
-	;;(run-hooks 'jabber-pre-disconnect-hook)
-	(let ((process (plist-get
-			(fsm-get-state-data c)
-			:connection)))
-	  (when (and process
-		     (memq (process-status process) '(open run)))
-	    (jabber-send-string c "</stream:stream>")
-	    ;; let the server close the stream
-	    (accept-process-output process 3)
-	    ;; and do it ourselves as well, just to be sure
-	    (delete-process process))))
+	(jabber-disconnect-one c t))
       (setq jabber-connections nil)
 
       (jabber-disconnected)
       (when (interactive-p)
 	(message "Disconnected from Jabber server")))))
+
+(defun jabber-disconnect-one (jc &optional dont-redisplay)
+  "Disconnect from one Jabber server.
+If DONT-REDISPLAY is non-nil, don't update roster buffer."
+  (interactive (list (jabber-read-account)))
+  ;;(run-hooks 'jabber-pre-disconnect-hook)
+  (let ((process (plist-get
+		  (fsm-get-state-data jc)
+		  :connection)))
+    (when (and process
+	       (memq (process-status process) '(open run)))
+      (jabber-send-string jc "</stream:stream>")
+      ;; let the server close the stream
+      (accept-process-output process 3)
+      ;; and do it ourselves as well, just to be sure
+      (delete-process process)))
+  (setq jabber-connections (remq jc jabber-connections))
+  (unless dont-redisplay
+    (jabber-display-roster)))
 
 (defun jabber-disconnected ()
   "Re-initialise jabber package variables.
