@@ -25,9 +25,10 @@
 
 (require 'jabber-ft-common)
 
-(defun jabber-ft-send (jid filename desc)
+(defun jabber-ft-send (jc jid filename desc)
   "Attempt to send FILENAME to JID."
-  (interactive (list (jabber-read-jid-completing "Send file to: " nil nil nil 'full)
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Send file to: " nil nil nil 'full)
 		     (read-file-name "Send which file: " nil nil t)
 		     (jabber-read-with-input-method "Description (optional): ")))
   (if (zerop (length desc)) (setq desc nil))
@@ -38,7 +39,7 @@
 	 (size (nth 7 attributes))
 	 (date (nth 5 attributes))
 	 (hash (jabber-ft-get-md5 filename)))
-    (jabber-si-initiate jid "http://jabber.org/protocol/si/profile/file-transfer"
+    (jabber-si-initiate jc jid "http://jabber.org/protocol/si/profile/file-transfer"
 			`(file ((xmlns . "http://jabber.org/protocol/si/profile/file-transfer")
 				(name . ,(file-name-nondirectory filename))
 				(size . ,size)
@@ -47,7 +48,7 @@
 				    (list (cons 'hash hash))))
 			       (desc () ,desc))
 			(lexical-let ((filename filename))
-			  (lambda (jid sid send-data-function)
+			  (lambda (jc jid sid send-data-function)
 			    (jabber-ft-do-send
 			     jid sid send-data-function filename))))))
 

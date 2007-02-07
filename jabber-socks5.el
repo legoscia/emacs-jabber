@@ -72,23 +72,23 @@ This is the set function of `jabber-socks5-proxies-data'."
   (when *jabber-connected*
     (jabber-socks5-query-all-proxies)))
 
-(defun jabber-socks5-query-all-proxies (&optional callback)
+(defun jabber-socks5-query-all-proxies (jc &optional callback)
   "Ask all proxies in `jabber-socks5-proxies' for connection information.
 If CALLBACK is non-nil, call it with no arguments when all
 proxies have answered."
-  (interactive)
+  (interactive (list (jabber-read-account)))
   (setq jabber-socks5-proxies-data nil)
   (dolist (proxy jabber-socks5-proxies)
-    (jabber-socks5-query-proxy proxy callback)))
+    (jabber-socks5-query-proxy jc proxy callback)))
 
-(defun jabber-socks5-query-proxy (jid &optional callback)
+(defun jabber-socks5-query-proxy (jc jid &optional callback)
   "Query the SOCKS5 proxy specified by JID for IP and port number."
-  (jabber-send-iq jid "get"
+  (jabber-send-iq jc jid "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/bytestreams")))
 		  #'jabber-socks5-process-proxy-response (list callback t)
 		  #'jabber-socks5-process-proxy-response (list callback nil)))
 
-(defun jabber-socks5-process-proxy-response (xml-data closure-data)
+(defun jabber-socks5-process-proxy-response (jc xml-data closure-data)
   "Process response from proxy query."
   (let* ((query (jabber-iq-query xml-data))
 	 (from (jabber-xml-get-attribute xml-data 'from))
@@ -111,13 +111,14 @@ proxies have answered."
 	(funcall callback)))))
 
 (define-state-machine jabber-socks5
-  :start ((jid sid profile-function role)
+  :start ((jc jid sid profile-function role)
 	  "Start JEP-0065 bytestream with JID.
 SID is the session ID used.
 PROFILE-FUNCTION is the function to call upon success.  See `jabber-si-stream-methods'.
 ROLE is either :initiator or :target.  The initiator sends an IQ
 set; the target waits for one."
-	  (let ((new-state-data (list :jid jid
+	  (let ((new-state-data (list :jc jc
+				      :jid jid
 				      :sid sid
 				      :profile-function profile-function
 				      :role role))
@@ -144,8 +145,9 @@ set; the target waits for one."
 
 (define-enter-state jabber-socks5 seek-proxies (fsm state-data)
   ;; Look for items at the server.
-  (jabber-disco-get-items jabber-server nil
-			  (lambda (fsm result) 
+  (jabber-disco-get-items (plist-get state-data :jc) 
+			  jabber-server nil
+			  (lambda (jc fsm result) 
 			    (fsm-send-sync fsm (cons :items result)))
 			  fsm)
   ;; Spend no more than five seconds looking for a proxy.
@@ -168,8 +170,9 @@ set; the target waits for one."
       (when (null (aref entry 2))
 	(lexical-let ((jid (aref entry 1)))
 	  (jabber-disco-get-info 
+	   (plist-get state-data :jc)
 	   jid nil
-	   (lambda (fsm result)
+	   (lambda (jc fsm result)
 	     (fsm-send-sync fsm (list :info jid result)))
 	   fsm))))
     ;; Remember number of requests sent.  But if none, we just go on.
@@ -205,8 +208,9 @@ set; the target waits for one."
 
 (define-enter-state jabber-socks5 query-proxies (fsm state-data)
   (jabber-socks5-query-all-proxies
-	     (lexical-let ((fsm fsm))
-	       (lambda () (fsm-send-sync fsm :proxies))))
+   (plist-get state-data :jc)
+   (lexical-let ((fsm fsm))
+     (lambda () (fsm-send-sync fsm :proxies))))
   (list state-data 5))
 
 (define-state jabber-socks5 query-proxies (fsm state-data event callback)
@@ -238,6 +242,7 @@ set; the target waits for one."
     ;; This is where initiation of server sockets would go
 
     (jabber-send-iq
+     (plist-get state-data :jc)
      (plist-get state-data :jid) "set"
      `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
 	      (sid . ,(plist-get state-data :sid)))
@@ -256,7 +261,7 @@ set; the target waits for one."
 	     ;; (fast ((xmlns . "http://affinix.com/jabber/stream")))
 	     )
      (lexical-let ((fsm fsm))
-       (lambda (xml-data closure-data)
+       (lambda (jc xml-data closure-data)
 	 (fsm-send-sync fsm (list :iq xml-data)))) 
      nil
      ;; TODO: error handling
@@ -267,7 +272,7 @@ set; the target waits for one."
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/bytestreams" 'jabber-socks5-process))
-(defun jabber-socks5-process (xml-data)
+(defun jabber-socks5-process (jc xml-data)
   "Accept IQ get for SOCKS5 bytestream"
   (let* ((jid (jabber-xml-get-attribute xml-data 'from))
 	 (id (jabber-xml-get-attribute xml-data 'id))
@@ -309,7 +314,11 @@ set; the target waits for one."
     ))
 
 (define-state jabber-socks5 initiate (fsm state-data event callback)
-  (let* ((our-jid (concat jabber-username "@" jabber-server "/" jabber-resource))
+  (let* ((jc (plist-get state-data :jc))
+	 (jc-data (fsm-get-state-data jc))
+	 (our-jid (concat (plist-get jc-data :username) "@"
+			  (plist-get jc-data :server) "/"
+			  (plist-get jc-data :resource)))
 	 (their-jid (plist-get state-data :jid))
 	 (initiator-jid (if (eq (plist-get state-data :role) :initiator) our-jid their-jid))
 	 (target-jid (if (eq (plist-get state-data :role) :initiator) their-jid our-jid)))
@@ -497,6 +506,7 @@ set; the target waits for one."
       (let ((iq-id (plist-get state-data :iq-id)))
 	(when iq-id
 	  (jabber-send-iq 
+	   (plist-get state-data :jc)
 	   (plist-get state-data :jid) "result"
 	   `(query ((xmlns . "http://jabber.org/protocol/bytestreams"))
 		   (streamhost-used ((jid . ,streamhost-jid))))
@@ -507,12 +517,13 @@ set; the target waits for one."
       (if (eq (plist-get state-data :role) :initiator)
 	  (progn
 	    (jabber-send-iq 
+	     (plist-get state-data :jc)
 	     streamhost-jid "set"
 	     `(query ((xmlns . "http://jabber.org/protocol/bytestreams")
 		      (sid . ,(plist-get state-data :sid)))
 		     (activate nil ,(plist-get state-data :jid)))
-	     (lambda (xml-data fsm) (fsm-send-sync fsm :activated)) fsm
-	     (lambda (xml-data fsm) (fsm-send-sync fsm :activation-failed)) fsm)
+	     (lambda (jc xml-data fsm) (fsm-send-sync fsm :activated)) fsm
+	     (lambda (jc xml-data fsm) (fsm-send-sync fsm :activation-failed)) fsm)
 	    (list 'wait-for-activation state-data 10))
 	;; Otherwise, we just let the data flow.
 	(list 'stream-activated state-data nil))))
@@ -544,6 +555,7 @@ set; the target waits for one."
 (define-enter-state jabber-socks5 stream-activated
   (fsm state-data)
   (let ((connection (plist-get state-data :connection))
+	(jc (plist-get state-data :jc))
 	(jid (plist-get state-data :jid))
 	(sid (plist-get state-data :sid))
 	(profile-function (plist-get state-data :profile-function)))
@@ -555,7 +567,7 @@ set; the target waits for one."
     (list (plist-put state-data
 		     :profile-data-function
 		     (funcall profile-function
-			      jid sid
+			      jc jid sid
 			      (lexical-let ((fsm fsm))
 				(lambda (data)
 				  (fsm-send fsm (list :send data))))))
@@ -598,22 +610,23 @@ set; the target waits for one."
 
 (define-enter-state jabber-socks5 fail (fsm state-data)
   "Tell our caller that we failed."
-  (let ((jid (plist-get state-data :jid))
+  (let ((jc (plist-get state-data :jc))
+	(jid (plist-get state-data :jid))
 	(sid (plist-get state-data :sid))
 	(profile-function (plist-get state-data :profile-function))
 	(iq-id (plist-get state-data :iq-id)))
-    (funcall profile-function jid sid (plist-get state-data :error))
+    (funcall profile-function jc jid sid (plist-get state-data :error))
 
     (when iq-id
-      (jabber-send-iq-error jid iq-id nil "cancel"
+      (jabber-send-iq-error jc jid iq-id nil "cancel"
 			    'remote-server-not-found)))
   (list nil nil))
 
-(defun jabber-socks5-client-1 (jid sid profile-function)
+(defun jabber-socks5-client-1 (jc jid sid profile-function)
   "Negotiate a SOCKS5 connection with JID.
 This function simply starts a state machine."
   (add-to-list 'jabber-socks5-pending-sessions
-	       (list sid jid (start-jabber-socks5 jid sid profile-function :initiator))))
+	       (list sid jid (start-jabber-socks5 jc jid sid profile-function :initiator))))
 
 ;; (defun jabber-socks5-client-2 (xml-data jid sid profile-function)
 ;;   "Contact has selected a streamhost to use.  Connect to the proxy."

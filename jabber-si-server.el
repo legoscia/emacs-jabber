@@ -41,7 +41,7 @@ Each entry is a list, containing:
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/si" 'jabber-si-process))
-(defun jabber-si-process (xml-data)
+(defun jabber-si-process (jc xml-data)
 
   (let* ((to (jabber-xml-get-attribute xml-data 'from))
 	 (id (jabber-xml-get-attribute xml-data 'id))
@@ -76,9 +76,9 @@ Each entry is a list, containing:
 	     (stream-data (assoc stream-method-id jabber-si-stream-methods))
 	     (stream-accept-function (nth 2 stream-data)))
 	;; prepare stream for the transfer
-	(funcall stream-accept-function to si-id profile-connected-function)
+	(funcall stream-accept-function jc to si-id profile-connected-function)
 	;; return result of feature negotiation of stream type
-	(jabber-send-iq to "result" 
+	(jabber-send-iq jc to "result" 
 			`(si ((xmlns . "http://jabber.org/protocol/si"))
 			     ,@profile-response
 			     (feature ((xmlns . "http://jabber.org/protocol/feature-neg"))
