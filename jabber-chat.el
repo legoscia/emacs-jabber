@@ -558,13 +558,15 @@ If DELAYED is true, print long timestamp
 (add-to-list 'jabber-jid-chat-menu
 	     (cons "Compose message" 'jabber-compose))
 
-(defun jabber-send-message (to subject body type)
+(defun jabber-send-message (jc to subject body type)
   "send a message tag to the server"
-  (interactive (list (jabber-read-jid-completing "to: ")
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "to: ")
 		     (jabber-read-with-input-method "subject: ")
 		     (jabber-read-with-input-method "body: ")
 		     (read-string "type: ")))
-  (jabber-send-sexp `(message ((to . ,to)
+  (jabber-send-sexp jc
+		    `(message ((to . ,to)
                                ,(if (> (length type) 0)
                                     `(type . ,type)))
                               ,(if (> (length subject) 0)
