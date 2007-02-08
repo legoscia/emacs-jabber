@@ -137,11 +137,11 @@ set; the target waits for one."
 		   'initiate))))
 	    (list new-state new-state-data nil))))
 
-(defun jabber-socks5-accept (jid sid profile-function)
+(defun jabber-socks5-accept (jc jid sid profile-function)
   "Remember that we are waiting for connection from JID, with stream id SID"
   ;; asking the user for permission is done in the profile
   (add-to-list 'jabber-socks5-pending-sessions
-	       (list sid jid (start-jabber-socks5 jid sid profile-function :target))))
+	       (list sid jid (start-jabber-socks5 jc jid sid profile-function :target))))
 
 (define-enter-state jabber-socks5 seek-proxies (fsm state-data)
   ;; Look for items at the server.
@@ -344,7 +344,7 @@ set; the target waits for one."
 	     ;; This is where we would attempt to support zeroconf
 	     (when (and jid host port)
 	       (start-jabber-socks5-connection
-		initiator-jid target-jid jid
+		jc initiator-jid target-jid jid
 		(plist-get state-data :sid) host port fsm))))
 
 	  (list 'wait-for-connection (plist-put state-data :iq-id (jabber-xml-get-attribute xml-data 'id)) 30))
@@ -361,14 +361,14 @@ set; the target waits for one."
 	       (jid host port) streamhost
 	       (when (and jid host port)
 		 (start-jabber-socks5-connection
-		  initiator-jid target-jid jid
+		  jc initiator-jid target-jid jid
 		  (plist-get state-data :sid) host port fsm)))))
 
 	  (list 'wait-for-connection state-data 30))))))))
 
 (define-state-machine jabber-socks5-connection
   :start
-  ((initiator-jid target-jid streamhost-jid sid host port socks5-fsm)
+  ((jc initiator-jid target-jid streamhost-jid sid host port socks5-fsm)
    "Connect to a single JEP-0065 streamhost."
    (let ((coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary))
@@ -385,7 +385,8 @@ set; the target waits for one."
 		 :filter (fsm-make-filter fsm)
 		 :sentinel (fsm-make-sentinel fsm))))
 	   (list 'wait-for-connection 
-		 (list :connection connection
+		 (list :jc jc
+		       :connection connection
 		       :initiator-jid initiator-jid
 		       :target-jid target-jid
 		       :streamhost-jid streamhost-jid
@@ -400,7 +401,8 @@ set; the target waits for one."
 	     (set-process-filter connection (fsm-make-filter fsm))
 	     (set-process-sentinel connection (fsm-make-sentinel fsm))
 	     (list 'authenticate
-		   (list :connection connection
+		   (list :jc jc
+			 :connection connection
 			 :initiator-jid initiator-jid
 			 :target-jid target-jid
 			 :streamhost-jid streamhost-jid
@@ -576,7 +578,8 @@ set; the target waits for one."
 
 (define-state jabber-socks5 stream-activated
   (fsm state-data event callback)
-  (let ((connection (plist-get state-data :connection))
+  (let ((jc (plist-get state-data :jc))
+	(connection (plist-get state-data :connection))
 	(profile-data-function (plist-get state-data :profile-data-function))
 	(sid (plist-get state-data :sid))
 	(jid (plist-get state-data :jid)))
@@ -588,7 +591,7 @@ set; the target waits for one."
      ((eq (car-safe event) :filter)
       ;; Pass data from connection to profile data function
       ;; If the data function requests it, tear down the connection.
-      (unless (funcall profile-data-function jid sid (third event))
+      (unless (funcall profile-data-function jc jid sid (third event))
 	(fsm-send fsm (list :sentinel (second event) "shutdown")))
 
       (list 'stream-activated state-data nil))
@@ -597,7 +600,7 @@ set; the target waits for one."
       ;; Connection terminated.  Shuffle together the remaining data,
       ;; and kill the buffer.
       (delete-process (second event))
-      (funcall profile-data-function jid sid nil)
+      (funcall profile-data-function jc jid sid nil)
       (list 'closed nil nil))
 
      ;; Stray events from earlier state
