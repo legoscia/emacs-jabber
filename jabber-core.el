@@ -83,9 +83,7 @@
   :group 'jabber)
 
 (defcustom jabber-post-connect-hooks '(jabber-send-default-presence
-				       ;; XXX: reactivate
-				       ;;jabber-muc-autojoin
-				      )
+				       jabber-muc-autojoin)
   "*Hooks run after successful connection and authentication.
 The functions should accept one argument, the connection object."
   :type 'hook

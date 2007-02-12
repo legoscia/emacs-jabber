@@ -48,17 +48,29 @@ Values are lists of nickname strings.")
   "The topic of the current MUC room.")
 
 (defcustom jabber-muc-default-nicknames nil
-  "Default nickname for specific MUC rooms."
+  "Obsolete variable.
+Call `jabber-edit-bookmarks' to migrate settings.
+Use `jabber-get-conference-data' in programs."
   :group 'jabber-chat
   :type '(repeat
 	  (cons :format "%v"
 		(string :tag "JID of room")
 		(string :tag "Nickname"))))
+(make-obsolete-variable 
+ 'jabber-muc-default-nicknames
+ "Call `jabber-edit-bookmarks' to migrate settings.
+Use `jabber-get-conference-data' in programs.")
 
 (defcustom jabber-muc-autojoin nil
-  "List of MUC rooms to automatically join on connection."
+  "Obsolete variable.
+Call `jabber-edit-bookmarks' to migrate settings.
+Use `jabber-get-conference-data' in programs."
   :group 'jabber-chat
   :type '(repeat (string :tag "JID of room")))
+(make-obsolete-variable 
+ 'jabber-muc-autojoin
+ "Call `jabber-edit-bookmarks' to migrate settings.
+Use `jabber-get-conference-data' in programs.")
 
 (defcustom jabber-muc-disable-disco-check nil
   "If non-nil, disable checking disco#info of rooms before joining them.
@@ -662,13 +674,21 @@ group, else it is a JID."
 						 'face 'highlight))))))))
 	  (return t))))))
 
-(defun jabber-muc-autojoin ()
-  "Join rooms specified in variable `jabber-muc-autojoin'."
-  (interactive)
-  (dolist (group jabber-muc-autojoin)
-    (jabber-groupchat-join group (or
-				  (cdr (assoc group jabber-muc-default-nicknames))
-				  jabber-nickname))))
+(defun jabber-muc-autojoin (jc)
+  "Join rooms specified in account bookmarks."
+  (interactive (list (jabber-read-account)))
+  (when (or (bound-and-true-p jabber-muc-autojoin)
+	    (bound-and-true-p jabber-muc-default-nicknames))
+    (warn "`jabber-muc-autojoin' and `jabber-muc-default-nicknames' will not be heeded."))
+  (jabber-get-bookmarks
+   jc
+   (lambda (jc bookmarks)
+     (dolist (bookmark bookmarks)
+       (setq bookmark (jabber-parse-conference-bookmark bookmark))
+       (when (and bookmark (plist-get bookmark :autojoin))
+	 (jabber-groupchat-join jc (plist-get bookmark :jid)
+				(or (plist-get bookmark :nick)
+				    jabber-nickname)))))))
 
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
