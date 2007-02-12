@@ -162,6 +162,9 @@ This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-muc-get-buffer group))
     (unless (eq major-mode 'jabber-chat-mode)
       (jabber-chat-mode jc #'jabber-chat-pp))
+    ;; Make sure the connection variable is up to date.  There should
+    ;; probably be a check when sending as well...
+    (setq jabber-buffer-connection jc)
 
     (set (make-local-variable 'jabber-group) group)
     (make-local-variable 'jabber-muc-topic)
