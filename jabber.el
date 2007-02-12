@@ -131,6 +131,15 @@ On error, ERROR-CALLBACK is called with the entire IQ result."
 SUCCESS-CALLBACK, SUCCESS-CLOSURE-DATA, ERROR-CALLBACK and
 ERROR-CLOSURE-DATA are used as in `jabber-send-iq'."
   nil)
+(autoload 'jabber-get-bookmarks "jabber-bookmarks"
+  "Retrieve bookmarks (if needed) and call CONT.
+Arguments to CONT are JC and the bookmark list.  CONT will be
+called as the result of a filter function or a timer.
+If REFRESH is non-nil, always fetch bookmarks."
+  nil)
+(autoload 'jabber-edit-bookmarks "jabber-bookmarks"
+  "Create a buffer for editing bookmarks interactively."
+  t)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
