@@ -29,6 +29,35 @@ Bookmarks are what has been retrieved from the server, as list of
 XML elements.  This is nil if bookmarks have not been retrieved,
 and t if no bookmarks where found.")
 
+(defun jabber-get-conference-data (jc conference-jid cont &optional key)
+  "Get bookmark data for CONFERENCE-JID.
+KEY may be nil or one of :name, :autojoin, :nick and :password.
+If KEY is nil, a plist containing the above keys is returned.
+CONT is called when the result is available, with JC and the
+result as arguments."
+  (jabber-get-bookmarks 
+   jc
+   (lexical-let ((conference-jid conference-jid)
+		 (key key)
+		 (cont cont))
+     (lambda (jc result)
+       (let ((entry
+	      (dolist (node result)
+		(when (and (eq (jabber-xml-node-name node) 'conference)
+			   (string= (jabber-xml-get-attribute node 'jid) conference-jid))
+		  (return
+		   (list :name (jabber-xml-get-attribute node 'name)
+			:autojoin (member (jabber-xml-get-attribute node 'autojoin)
+					  '("true" "1"))
+			:nick (car (jabber-xml-node-children
+				    (car (jabber-xml-get-children node 'nick))))
+			:password (car (jabber-xml-node-children
+					(car (jabber-xml-get-children node 'password))))))))))
+	 (funcall cont jc
+		  (if key
+		      (plist-get entry key)
+		    entry)))))))
+
 (defun jabber-get-bookmarks (jc cont &optional refresh)
   "Retrieve bookmarks (if needed) and call CONT.
 Arguments to CONT are JC and the bookmark list.  CONT will be
@@ -36,7 +65,7 @@ called as the result of a filter function or a timer.
 If REFRESH is non-nil, always fetch bookmarks."
   (let ((bookmarks (gethash (jabber-connection-jid jc) jabber-bookmarks)))
     (if (and (not refresh) bookmarks)
-	(run-with-timer 0.1 nil cont (when (listp bookmarks) bookmarks))
+	(run-with-timer 0.1 nil cont jc (when (listp bookmarks) bookmarks))
       (lexical-let* ((cont cont)
 		     (callback (lambda (jc result) (jabber-get-bookmarks-1 jc result cont))))
 	(jabber-private-get jc 'storage "storage:bookmarks"
