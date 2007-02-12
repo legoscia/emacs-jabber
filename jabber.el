@@ -140,6 +140,13 @@ If REFRESH is non-nil, always fetch bookmarks."
 (autoload 'jabber-edit-bookmarks "jabber-bookmarks"
   "Create a buffer for editing bookmarks interactively."
   t)
+(autoload 'jabber-get-conference-data "jabber-bookmarks"
+  "Get bookmark data for CONFERENCE-JID.
+KEY may be nil or one of :name, :autojoin, :nick and :password.
+If KEY is nil, a plist containing the above keys is returned.
+CONT is called when the result is available, with JC and the
+result as arguments."
+  nil)
 
 (defvar *jabber-current-status* ""
   "the users current presence staus")
