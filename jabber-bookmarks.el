@@ -45,18 +45,25 @@ result as arguments."
 	      (dolist (node result)
 		(when (and (eq (jabber-xml-node-name node) 'conference)
 			   (string= (jabber-xml-get-attribute node 'jid) conference-jid))
-		  (return
-		   (list :name (jabber-xml-get-attribute node 'name)
-			:autojoin (member (jabber-xml-get-attribute node 'autojoin)
-					  '("true" "1"))
-			:nick (car (jabber-xml-node-children
-				    (car (jabber-xml-get-children node 'nick))))
-			:password (car (jabber-xml-node-children
-					(car (jabber-xml-get-children node 'password))))))))))
+		  (return (jabber-parse-conference-bookmark node))))))
 	 (funcall cont jc
 		  (if key
 		      (plist-get entry key)
 		    entry)))))))
+
+(defun jabber-parse-conference-bookmark (node)
+  "Convert a <conference/> tag into a plist.
+The plist may contain the keys :jid, :name, :autojoin,
+:nick and :password."
+  (when (eq (jabber-xml-node-name node) 'conference)
+    (list :jid (jabber-xml-get-attribute node 'jid)
+	  :name (jabber-xml-get-attribute node 'name)
+	  :autojoin (member (jabber-xml-get-attribute node 'autojoin)
+			    '("true" "1"))
+	  :nick (car (jabber-xml-node-children
+		      (car (jabber-xml-get-children node 'nick))))
+	  :password (car (jabber-xml-node-children
+			  (car (jabber-xml-get-children node 'password)))))))
 
 (defun jabber-get-bookmarks (jc cont &optional refresh)
   "Retrieve bookmarks (if needed) and call CONT.
