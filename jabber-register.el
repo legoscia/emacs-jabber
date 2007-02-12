@@ -120,6 +120,7 @@ CLOSURE-DATA is either 'success or 'error."
     (message "Registration successful.  Your JID is %s@%s.  You may now connect to the server."
 	     jabber-username jabber-server)
     (sit-for 3)
+    ;; XXX: disconnect-one
     (jabber-disconnect))
    (t
     (jabber-report-success xml-data "Account registration")

@@ -468,7 +468,7 @@ With prefix argument, register a new account."
      (list :session-established state-data))))
 
 (defun jabber-disconnect ()
-  "disconnect from the jabber server and re-initialise the jabber package variables"
+  "Disconnect from all Jabber servers."
   (interactive)
   ;; XXX: this function is slightly out of sync with the rest of the
   ;; FSM remake.
@@ -678,7 +678,7 @@ submit a bug report, including the information below.
   (beep)
   (run-hooks 'jabber-lost-connection-hook)
   (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
-  (jabber-disconnect))
+  (jabber-disconnect-one jc))
 
 ;; XXX: This function should probably die.  The roster is stored
 ;; inside the connection plists, and the obarray shouldn't be so big

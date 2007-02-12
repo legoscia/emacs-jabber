@@ -60,7 +60,7 @@
 				(resource () ,(plist-get (fsm-get-state-data jc) :resource)))
 			#'jabber-process-logon t
 			#'jabber-process-logon nil)
-      (jabber-disconnect))))
+      (jabber-disconnect-one jc))))
 
 (defun jabber-process-logon (jc xml-data closure-data)
   "receive login success or failure, and request roster.
