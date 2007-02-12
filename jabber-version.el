@@ -22,7 +22,7 @@
 (require 'jabber-iq)
 (require 'jabber-util)
 
-(defconst jabber-version "0.7.1"
+(defconst jabber-version "0.7.1-dev1"
   "version returned to those who query us")
 
 (add-to-list 'jabber-jid-info-menu
