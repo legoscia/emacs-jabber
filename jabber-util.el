@@ -99,6 +99,13 @@ properties to add to the result."
 	    (plist-get (fsm-get-state-data jc) :roster))
 	  jabber-connections)))
 
+(defun jabber-connection-jid (jc)
+  "Return the full JID of the given connection."
+  (let ((sd (fsm-get-state-data jc)))
+    (concat (plist-get sd :username) "@"
+	    (plist-get sd :server) "/"
+	    (plist-get sd :resource))))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
   (when (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
