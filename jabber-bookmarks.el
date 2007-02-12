@@ -70,7 +70,7 @@ The plist may contain the keys :jid, :name, :autojoin,
 Arguments to CONT are JC and the bookmark list.  CONT will be
 called as the result of a filter function or a timer.
 If REFRESH is non-nil, always fetch bookmarks."
-  (let ((bookmarks (gethash (jabber-connection-jid jc) jabber-bookmarks)))
+  (let ((bookmarks (gethash (jabber-connection-bare-jid jc) jabber-bookmarks)))
     (if (and (not refresh) bookmarks)
 	(run-with-timer 0.1 nil cont jc (when (listp bookmarks) bookmarks))
       (lexical-let* ((cont cont)
@@ -79,7 +79,7 @@ If REFRESH is non-nil, always fetch bookmarks."
 			    callback callback)))))
 
 (defun jabber-get-bookmarks-1 (jc result cont)
-  (let ((my-jid (jabber-connection-jid jc))
+  (let ((my-jid (jabber-connection-bare-jid jc))
 	(value 
 	 (if (eq (jabber-xml-node-name result) 'storage)
 	     (or (jabber-xml-node-children result) t)
