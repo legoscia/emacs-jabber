@@ -70,7 +70,7 @@ CLOSURE-DATA should be t on success and nil on failure."
 	(fsm-send jc :authentication-success)
 
     ;; Logon failure
-    (jabber-report-success xml-data "Logon")
+    (jabber-report-success jc xml-data "Logon")
     (fsm-send jc :authentication-failure)))
 
 (provide 'jabber-logon)
