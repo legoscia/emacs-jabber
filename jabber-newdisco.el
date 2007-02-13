@@ -45,7 +45,7 @@ invalidate cache and get fresh data."
     (remhash (cons jid node) jabber-disco-info-cache))
   (let ((result (gethash (cons jid node) jabber-disco-info-cache)))
     (if result
-	(and callback (run-with-timer 0.1 nil callback closure-data result))
+	(and callback (run-with-timer 0.1 nil callback jc closure-data result))
       (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#info")
@@ -100,7 +100,7 @@ invalidate cache and get fresh data."
     (remhash (cons jid node) jabber-disco-items-cache))
   (let ((result (gethash (cons jid node) jabber-disco-items-cache)))
     (if result
-	(and callback (run-with-timer 0.1 nil callback closure-data result))
+	(and callback (run-with-timer 0.1 nil callback jc closure-data result))
       (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#items")
