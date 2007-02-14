@@ -24,16 +24,17 @@
 
 (add-to-list 'jabber-jid-service-menu
 	     (cons "Register with service" 'jabber-get-register))
-(defun jabber-get-register (to)
+(defun jabber-get-register (jc to)
   "Send IQ get request in namespace \"jabber:iq:register\"."
-  (interactive (list (jabber-read-jid-completing "Register with: ")))
-  (jabber-send-iq to
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Register with: ")))
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:register")))
 		  #'jabber-process-data #'jabber-process-register-or-search
 		  #'jabber-report-success "Registration"))
 
-(defun jabber-process-register-or-search (xml-data)
+(defun jabber-process-register-or-search (jc xml-data)
   "Display results from jabber:iq:{register,search} query as a form."
 
   (let ((query (jabber-iq-query xml-data))
@@ -54,6 +55,8 @@
      ((eq type 'search)
       ;; no such thing here
       (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))))
+
+    (set (make-local-variable 'jabber-buffer-connection) jc)
 
     (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n\n")
     (when (and (eq type 'register)
@@ -95,7 +98,7 @@
 		     #'jabber-process-register-secondtime
 		   #'jabber-report-success))
 	(text (concat "Registration with " jabber-submit-to)))
-    (jabber-send-iq jabber-submit-to
+    (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		    "set"
 
 		    (cond
@@ -112,7 +115,7 @@
 
   (message "Registration sent"))
 
-(defun jabber-process-register-secondtime (xml-data closure-data)
+(defun jabber-process-register-secondtime (jc xml-data closure-data)
   "Receive registration success or failure.
 CLOSURE-DATA is either 'success or 'error."
   (cond
@@ -120,17 +123,16 @@ CLOSURE-DATA is either 'success or 'error."
     (message "Registration successful.  Your JID is %s@%s.  You may now connect to the server."
 	     jabber-username jabber-server)
     (sit-for 3)
-    ;; XXX: disconnect-one
-    (jabber-disconnect))
+    (jabber-disconnect-one jc))
    (t
-    (jabber-report-success xml-data "Account registration")
+    (jabber-report-success jc xml-data "Account registration")
     (sit-for 3))))
 
 (defun jabber-remove-register (&rest ignore)
   "Cancel registration.  See `jabber-process-register-or-search'."
 
   (if (yes-or-no-p (concat "Are you sure that you want to cancel your registration to " jabber-submit-to "? "))
-      (jabber-send-iq jabber-submit-to
+      (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		      "set"
 		      '(query ((xmlns . "jabber:iq:register"))
 			      (remove))
