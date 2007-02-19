@@ -1401,7 +1401,8 @@ the mouse.
 
 @vindex jabber-print-rare-time
 @vindex jabber-rare-time-format
-@vindex jabber-chat-text-localBy default, timestamps are printed in the chat buffer every hour (at
+@vindex jabber-chat-text-local
+By default, timestamps are printed in the chat buffer every hour (at
 ``rare'' times).  This can be toggled with
 @code{jabber-print-rare-time}.  You can customize the displayed time by
 setting @code{jabber-rare-time-format}.  Rare timestamps will be printed
