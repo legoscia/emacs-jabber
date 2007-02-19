@@ -127,6 +127,7 @@ and it hasn't been sent before."
 	       ;; don't send to bare jids
 	       (jabber-jid-resource jabber-chatting-with))
       (jabber-send-sexp 
+       jabber-buffer-connection
        `(message 
 	 ((to . ,jabber-chatting-with))
 	 (x ((xmlns . "jabber:x:event"))
@@ -140,6 +141,7 @@ and it hasn't been sent before."
 	       jabber-chatting-with
 	       (not (eq composing-now jabber-events-composing-sent)))
       (jabber-send-sexp 
+       jabber-buffer-connection
        `(message 
 	 ((to . ,jabber-chatting-with))
 	 (x ((xmlns . "jabber:x:event"))
@@ -152,7 +154,7 @@ and it hasn't been sent before."
 ;; Add function last in chain, so a chat buffer is already created.
 (add-to-list 'jabber-message-chain 'jabber-handle-incoming-message-events t)
 
-(defun jabber-handle-incoming-message-events (xml-data)
+(defun jabber-handle-incoming-message-events (jc xml-data)
   (when (and (not (jabber-muc-message-p xml-data))
 	     (get-buffer (jabber-chat-get-buffer (jabber-xml-get-attribute xml-data 'from))))
     (with-current-buffer (jabber-chat-get-buffer (jabber-xml-get-attribute xml-data 'from))
@@ -191,6 +193,7 @@ and it hasn't been sent before."
 	  (flet ((send-notification 
 		  (type)
 		  (jabber-send-sexp 
+		   jc
 		   `(message 
 		     ((to . ,(jabber-xml-get-attribute xml-data 'from)))
 		     (x ((xmlns . "jabber:x:event"))

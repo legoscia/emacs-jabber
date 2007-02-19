@@ -95,7 +95,7 @@ Jabber history files."
       (rename-file history-file (concat history-file "-" suffix)))))
 
 (add-to-list 'jabber-message-chain 'jabber-message-history)
-(defun jabber-message-history (xml-data)
+(defun jabber-message-history (jc xml-data)
   "Log message to log file."
   (when (and (not jabber-use-global-history)
 	     (not (file-directory-p jabber-history-dir)))

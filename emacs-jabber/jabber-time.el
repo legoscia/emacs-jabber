@@ -27,18 +27,19 @@
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request time" 'jabber-get-time))
-(defun jabber-get-time (to)
+(defun jabber-get-time (jc to)
   "Request time"
-  (interactive (list (jabber-read-jid-completing "Request time of: "
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Request time of: "
 						 nil nil nil 'full)))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:time")))
 		  #'jabber-process-data #'jabber-process-time
 		  #'jabber-process-data "Time request failed"))
 
 ;; called by jabber-process-data
-(defun jabber-process-time (xml-data)
+(defun jabber-process-time (jc xml-data)
   "Handle results from jabber:iq:time requests."
   (let ((query (jabber-iq-query xml-data)))
     (let ((display 
@@ -65,27 +66,29 @@
 
 ;; the only difference between these two functions is the
 ;; jabber-read-jid-completing call.
-(defun jabber-get-last-online (to)
+(defun jabber-get-last-online (jc to)
   "Request time since a user was last online, or uptime of a component."
-  (interactive (list (jabber-read-jid-completing "Get last online for: "
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Get last online for: "
 						 nil nil nil 'bare-or-muc)))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:last")))
 		  #'jabber-process-data #'jabber-process-last
 		  #'jabber-process-data "Last online request failed"))
 
-(defun jabber-get-idle-time (to)
+(defun jabber-get-idle-time (jc to)
   "Request idle time of user."
-  (interactive (list (jabber-read-jid-completing "Get idle time for: " 
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Get idle time for: " 
 						 nil nil nil 'full)))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:last")))
 		  #'jabber-process-data #'jabber-process-last
 		  #'jabber-process-data "Idle time request failed"))
 
-(defun jabber-process-last (xml-data)
+(defun jabber-process-last (jc xml-data)
   "Handle resultts from jabber:iq:last requests."
   (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
@@ -113,12 +116,12 @@
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:time" 'jabber-return-time))
 (add-to-list 'jabber-advertised-features "jabber:iq:time")
-(defun jabber-return-time (xml-data)
+(defun jabber-return-time (jc xml-data)
   "Return client time as defined in JEP-0090.  Sender and ID are
 determined from the incoming packet passed in XML-DATA."
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id)))
-    (jabber-send-iq to "result"
+    (jabber-send-iq jc to "result"
 		    `(query ((xmlns . "jabber:iq:time"))
 			    ;; what is ``human-readable'' format?
 			    ;; the same way as formating using by tkabber

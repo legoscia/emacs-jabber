@@ -91,6 +91,27 @@ properties to add to the result."
  (t
   (error "No `cancel-timer' function found")))
 
+(defun jabber-concat-rosters ()
+  "Concatenate the rosters of all connected accounts."
+  (apply #'append
+	 (mapcar
+	  (lambda (jc)
+	    (plist-get (fsm-get-state-data jc) :roster))
+	  jabber-connections)))
+
+(defun jabber-connection-jid (jc)
+  "Return the full JID of the given connection."
+  (let ((sd (fsm-get-state-data jc)))
+    (concat (plist-get sd :username) "@"
+	    (plist-get sd :server) "/"
+	    (plist-get sd :resource))))
+
+(defun jabber-connection-bare-jid (jc)
+  "Return the bare JID of the given connection."
+  (let ((sd (fsm-get-state-data jc)))
+    (concat (plist-get sd :username) "@"
+	    (plist-get sd :server))))
+
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
   (when (string-match "\\(.*\\)@.*\\(/.*\\)?" string)
@@ -163,9 +184,9 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
-				      (or subset *jabber-roster*)))
+				      (or subset (jabber-concat-rosters))))
 	chosen)
-    (dolist (item (or subset *jabber-roster*))
+    (dolist (item (or subset (jabber-concat-rosters)))
       (if (get item 'name)
 	  (push (cons (get item 'name) item) jid-completion-table)))
     ;; if the default is not in the allowed subset, it's not a good default
@@ -221,6 +242,43 @@ See `jabber-password'."
       ;; alternative anyway.
       (copy-sequence jabber-password)
     (read-passwd (or prompt "Jabber password: "))))
+
+(defun jabber-read-account ()
+  "Ask for which connected account to use."
+  (cond
+   ((null jabber-connections)
+    (error "Not connected to Jabber"))
+   ((null (cdr jabber-connections))
+    ;; only one account
+    (car jabber-connections))
+   (t
+    (let* ((completions
+	    (mapcar (lambda (c)
+		      (cons
+		       (let ((d (fsm-get-state-data c)))
+			 (concat
+			  (plist-get d :username)
+			  "@"
+			  (plist-get d :server)))
+		       c))
+		    jabber-connections))
+	   (default 
+	     (let ((at-point (get-text-property (point) 'jabber-account)))
+	       (if (and at-point
+			(memq at-point jabber-connections))
+		   (let ((d (fsm-get-state-data at-point)))
+		     (concat
+		      (plist-get d :username)
+		      "@"
+		      (plist-get d :server)))
+		 (caar completions))))
+	   (input (completing-read 
+		   (concat "Select Jabber account (default "
+			   default
+			   "): ")
+		   completions nil t nil nil
+		   default)))
+      (cdr (assoc input completions))))))
 
 (defun jabber-iq-query (xml-data)
   "Return the query part of an IQ stanza.
@@ -306,7 +364,7 @@ TIME is in a format accepted by `format-time-string'."
 			 (string-to-number (substring timezone 4 6))))))))
       (encode-time second minute hour day month year timezone-seconds))))
 
-(defun jabber-report-success (xml-data context)
+(defun jabber-report-success (jc xml-data context)
   "IQ callback reporting success or failure of the operation.
 CONTEXT is a string describing the action."
   (let ((type (jabber-xml-get-attribute xml-data 'type)))

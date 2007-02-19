@@ -42,7 +42,7 @@
   "SHA1 hash of avatar currently published through presence.")
 
 (add-to-list 'jabber-presence-chain 'jabber-vcard-avatars-presence)
-(defun jabber-vcard-avatars-presence (xml-data)
+(defun jabber-vcard-avatars-presence (jc xml-data)
   "Look for vCard avatar mark in <presence/> stanza."
   ;; Only look at ordinary presence
   (when (and jabber-vcard-avatars-retrieve
@@ -76,7 +76,8 @@
 		  #'jabber-vcard-avatars-vcard who
 		  #'ignore nil))
 
-(add-hook 'jabber-post-connect-hook 'jabber-vcard-avatars-find-current)
+;; XXX: reactivate
+;;(add-hook 'jabber-post-connect-hooks 'jabber-vcard-avatars-find-current)
 (defun jabber-vcard-avatars-find-current ()
   "Request our own vCard, to find hash of avatar."
   (when jabber-vcard-avatars-publish

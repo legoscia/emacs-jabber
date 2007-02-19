@@ -41,11 +41,17 @@ window or at `fill-column', whichever is shorter."
 (defvar jabber-chat-ewoc nil
   "The ewoc showing the messages of this chat buffer.")
 
-(defun jabber-chat-mode (ewoc-pp)
+(defvar jabber-buffer-connection nil
+  "The connection used by this buffer.")
+
+(defun jabber-chat-mode (jc ewoc-pp)
   "\\{jabber-chat-mode-map}"
   (kill-all-local-variables)
   ;; Make sure to set this variable somewhere
   (make-local-variable 'jabber-send-function)
+
+  (make-local-variable 'jabber-buffer-connection)
+  (setq jabber-buffer-connection jc)
 
   (make-local-variable 'scroll-conservatively)
   (setq scroll-conservatively 5)
@@ -93,7 +99,7 @@ window or at `fill-column', whichever is shorter."
     ;; delete-and-extract-region returns "".  In that case,
     ;; no message should be sent.
     (unless (zerop (length body))
-      (funcall jabber-send-function body))))
+      (funcall jabber-send-function jabber-buffer-connection body))))
 
 (defun jabber-chat-buffer-fill-long-lines ()
   "Fill lines that are wider than the window width."

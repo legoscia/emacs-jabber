@@ -106,8 +106,7 @@ every time."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-hooks 
-  '(jabber-presence-update-roster
-    jabber-presence-echo)
+  '(jabber-presence-echo)
   "Hooks run when a user's presence changes.
 
 Arguments are WHO, OLDSTATUS, NEWSTATUS, STATUSTEXT and
@@ -120,7 +119,6 @@ one of \"subscribe\", \"unsubscribe\", \"subscribed\" and
   :type 'hook
   :options '(jabber-presence-beep
 	     jabber-presence-wave
-	     jabber-presence-update-roster
 	     jabber-presence-switch
 	     jabber-presence-display
 	     jabber-presence-echo)

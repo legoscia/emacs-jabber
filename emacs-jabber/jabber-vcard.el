@@ -253,19 +253,20 @@ The top node should be the `vCard' node."
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request vcard" 'jabber-vcard-get))
 
-(defun jabber-vcard-get (jid)
+(defun jabber-vcard-get (jc jid)
   "Request vcard from JID."
-  (interactive (list (jabber-read-jid-completing "Request vcard from: " nil nil nil 'bare-or-muc)))
-  (jabber-send-iq jid
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Request vcard from: " nil nil nil 'bare-or-muc)))
+  (jabber-send-iq jc jid
 		  "get"
 		  '(vCard ((xmlns . "vcard-temp")))
 		  #'jabber-process-data #'jabber-vcard-display
 		  #'jabber-process-data "Vcard request failed"))
 
-(defun jabber-vcard-edit ()
+(defun jabber-vcard-edit (jc)
   "Edit your own vcard."
-  (interactive)
-  (jabber-send-iq nil
+  (interactive (list (jabber-read-account)))
+  (jabber-send-iq jc nil
 		  "get"
 		  '(vCard ((xmlns . "vcard-temp")))
 		  #'jabber-vcard-do-edit nil
@@ -325,7 +326,7 @@ The top node should be the `vCard' node."
 					(PCODE . "Post code")
 					(CTRY . "Country")))
 
-(defun jabber-vcard-display (xml-data)
+(defun jabber-vcard-display (jc xml-data)
   "Display received vcard."
   (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data))))
     (dolist (simple-field jabber-vcard-fields)
@@ -400,11 +401,13 @@ The top node should be the `vCard' node."
 	      (insert "\n"))
 	  (error (insert "Couldn't display photo\n")))))))
 
-(defun jabber-vcard-do-edit (xml-data closure-data)
+(defun jabber-vcard-do-edit (jc xml-data closure-data)
   (let ((parsed (jabber-vcard-parse (jabber-iq-query xml-data)))
 	start-position)
     (with-current-buffer (get-buffer-create "Edit vcard")
       (jabber-init-widget-buffer nil)
+
+      (set (make-local-variable 'jabber-buffer-connection) jc)
 
       (setq start-position (point))
 
@@ -533,7 +536,7 @@ The top node should be the `vCard' node."
 		     (mapcar (lambda (entry)
 			       (cons (car entry) (widget-value (cdr entry))))
 			     jabber-widget-alist))))
-    (jabber-send-iq nil
+    (jabber-send-iq jabber-buffer-connection nil
 		    "set"
 		    to-publish
 		    #'jabber-report-success "Changing vCard"

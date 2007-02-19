@@ -27,17 +27,18 @@
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Send browse query" 'jabber-get-browse))
-(defun jabber-get-browse (to)
+(defun jabber-get-browse (jc to)
   "send a browse infoquery request to someone"
-  (interactive (list (jabber-read-jid-completing "browse: ")))
-  (jabber-send-iq to 
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "browse: ")))
+  (jabber-send-iq jc to 
                   "get"
                   '(query ((xmlns . "jabber:iq:browse")))
                   #'jabber-process-data #'jabber-process-browse
 		  #'jabber-process-data "Browse failed"))
 
 ;; called from jabber-process-data
-(defun jabber-process-browse (xml-data)
+(defun jabber-process-browse (jc xml-data)
   "Handle results from jabber:iq:browse requests."
   (dolist (item (jabber-xml-node-children xml-data))
     (when (and (listp item)
@@ -88,10 +89,11 @@
 
 	(insert "\n")
 	(put-text-property beginning (point) 'jabber-jid jid)
+	(put-text-property beginning (point) 'jabber-account jc)
 
 	;; XXX: Is this kind of recursion really needed?
 	(if (listp (car (jabber-xml-node-children item)))
-	    (jabber-process-browse item))))))
+	    (jabber-process-browse jc item))))))
 
 (provide 'jabber-browse)
 

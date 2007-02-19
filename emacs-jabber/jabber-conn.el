@@ -98,133 +98,139 @@ First item is the symbol naming the method.
 Second item is the connect function.
 Third item is the send function.")
 
-(defvar jabber-connect-function nil
-  "function that connects to the jabber server")
-
-(defvar jabber-conn-send-function nil
-  "function that sends a line to the server")
-
-(defun jabber-setup-connect-method ()
+(defun jabber-get-connect-function (type)
+  "Get the connect function associated with TYPE.
+TYPE is a symbol; see `jabber-connection-type'."
   (let ((entry (assq jabber-connection-type jabber-connect-methods)))
-    (setq jabber-connect-function (nth 1 entry))
-    (setq jabber-conn-send-function (nth 2 entry))))
+    (nth 1 entry)))
 
-(defun jabber-srv-targets ()
+(defun jabber-get-send-function (type)
+  "Get the send function associated with TYPE.
+TYPE is a symbol; see `jabber-connection-type'."
+  (let ((entry (assq jabber-connection-type jabber-connect-methods)))
+    (nth 2 entry)))
+
+(defun jabber-srv-targets (server)
   "Find host and port to connect to.
 If we can't find SRV records, use standard defaults."
+  ;; XXX: per account
   ;; If the user has specified a host or a port, obey that.
   (if (or jabber-network-server jabber-port)
-      (list (cons (or jabber-network-server jabber-server)
+      (list (cons (or jabber-network-server server)
 		  (or jabber-port 5222)))
     (or (condition-case nil
-	    (srv-lookup (concat "_xmpp-client._tcp." jabber-server))
+	    (srv-lookup (concat "_xmpp-client._tcp." server))
 	  (error nil))
-	(list (cons jabber-server 5222)))))
+	(list (cons server 5222)))))
 
 ;; Plain TCP/IP connection
-(defun jabber-network-connect ()
+(defun jabber-network-connect (fsm server)
+  "Connect to a Jabber server with a plain network connection.
+Send a message of the form (:connected CONNECTION) to FSM if
+connection succeeds.  Send a message :connection-failed if
+connection fails."
+  ;; XXX: asynchronous connection
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets)))
+	(targets (jabber-srv-targets server)))
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
-	    (when (setq *jabber-connection* 
-			(open-network-stream
-			 "jabber"
-			 jabber-process-buffer
-			 (car target)
-			 (cdr target)))
-	      (throw 'connected t))
+	    (let ((connection 
+		   (open-network-stream
+		    "jabber"
+		    (generate-new-buffer jabber-process-buffer)
+		    (car target)
+		    (cdr target))))
+	      (when connection
+		(fsm-send fsm (list :connected connection))
+		(throw 'connected connection)))
 	  (error
 	   (message "Couldn't connect to %s: %s" target
-		    (error-message-string e))))))))
+		    (error-message-string e)))))
+      (fsm-send fsm :connection-failed))))
 
-(defun jabber-network-send (string)
+(defun jabber-network-send (connection string)
   "Send a string via a plain TCP/IP connection to the Jabber Server."
-  (process-send-string *jabber-connection* string))
+  (process-send-string connection string))
 
 ;; SSL connection, we use openssl's s_client function for encryption
 ;; of the link
 ;; TODO: make this configurable
-(defun jabber-ssl-connect ()
-  "connect via OpenSSL or GnuTLS to a Jabber Server"
-    (let ((coding-system-for-read 'utf-8)
-	  (coding-system-for-write 'utf-8)
-	  (connect-function
-	   (cond
-	    ((and (memq jabber-connection-ssl-program '(nil gnutls))
-		  (fboundp 'open-tls-stream))
-	     'open-tls-stream)
-	    ((and (memq jabber-connection-ssl-program '(nil openssl))
-		  (fboundp 'open-ssl-stream))
-	     'open-ssl-stream)
-	    (t
-	     (error "Neither TLS nor SSL connect functions available")))))
-      (setq *jabber-encrypted* t)
-      (setq *jabber-connection*
-	    (funcall connect-function
-		     "jabber"
-		     jabber-process-buffer
-		     (or jabber-network-server jabber-server)
-		     (or jabber-port 5223)))))
-
-(defun jabber-ssl-send (string)
-  "Send a string via an SSL-encrypted connection to the Jabber Server,
-   it seems we need to send a linefeed afterwards"
-  (process-send-string *jabber-connection* string)
-  (process-send-string *jabber-connection* "\n"))
-
-(defun jabber-starttls-connect ()
-  "connect via GnuTLS to a Jabber Server"
+(defun jabber-ssl-connect (fsm server)
+  "connect via OpenSSL or GnuTLS to a Jabber Server
+Send a message of the form (:connected CONNECTION) to FSM if
+connection succeeds.  Send a message :connection-failed if
+connection fails."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets)))
+	(connect-function
+	 (cond
+	  ((and (memq jabber-connection-ssl-program '(nil gnutls))
+		(fboundp 'open-tls-stream))
+	   'open-tls-stream)
+	  ((and (memq jabber-connection-ssl-program '(nil openssl))
+		(fboundp 'open-ssl-stream))
+	   'open-ssl-stream)
+	  (t
+	   (error "Neither TLS nor SSL connect functions available")))))
+    (setq *jabber-encrypted* t)
+    (let ((connection
+	   (funcall connect-function
+		    "jabber"
+		    (generate-new-buffer jabber-process-buffer)
+		    (or jabber-network-server server)
+		    (or jabber-port 5223))))
+      (if connection
+	  (fsm-send fsm (list :connected connection))
+	(fsm-send fsm :connection-failed)))))
+
+(defun jabber-ssl-send (connection string)
+  "Send a string via an SSL-encrypted connection to the Jabber Server."
+  ;; It seems we need to send a linefeed afterwards.
+  (process-send-string connection string)
+  (process-send-string connection "\n"))
+
+(defun jabber-starttls-connect (fsm server)
+  "Connect via GnuTLS to a Jabber Server.
+Send a message of the form (:connected CONNECTION) to FSM if
+connection succeeds.  Send a message :connection-failed if
+connection fails."
+  (let ((coding-system-for-read 'utf-8)
+	(coding-system-for-write 'utf-8)
+	(targets (jabber-srv-targets server)))
     (unless (fboundp 'starttls-open-stream)
       (error "starttls.el not available"))
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
-	    (when (setq *jabber-connection*
-			(starttls-open-stream
-			 "jabber"
-			 (get-buffer-create jabber-process-buffer)
-			 (car target)
-			 (cdr target)))
-	      (throw 'connected t))
+	    (let ((connection
+		   (starttls-open-stream
+		    "jabber"
+		    (generate-new-buffer jabber-process-buffer)
+		    (car target)
+		    (cdr target))))
+	      (when connection
+		(fsm-send fsm (list :connected connection))
+		(throw 'connected connection)))
 	  (error
 	   (message "Couldn't connect to %s: %s" target
-		    (error-message-string e))))))))
+		    (error-message-string e))))
+	(fsm-send fsm :connection-failed)))))
 
-(defun jabber-starttls-initiate ()
+(defun jabber-starttls-initiate (fsm)
   "Initiate a starttls connection"
-  (setq jabber-short-circuit-input #'jabber-starttls-process-input)
-  (jabber-send-sexp
+  (jabber-send-sexp fsm
    '(starttls ((xmlns . "urn:ietf:params:xml:ns:xmpp-tls")))))
 
-(defun jabber-starttls-process-input (xml-data)
-  "Process result of starttls request"
+(defun jabber-starttls-process-input (fsm xml-data)
+  "Process result of starttls request.
+Return non-nil on success, nil on failure."
   (cond
    ((eq (car xml-data) 'proceed)
-    (message "STARTTLS result:\n%s\n" (starttls-negotiate *jabber-connection*)))
+    (starttls-negotiate (plist-get (fsm-get-state-data fsm) :connection)))
    ((eq (car xml-data) 'failure)
-    (ding)
-    (message "STARTTLS negotiation failure: %s"
-	     (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
-    (sit-for 3)
-    (jabber-disconnect)))
-   
-  (setq jabber-short-circuit-input nil)
-  (setq *jabber-encrypted* t)
-
-  ;; Now, we send another stream header.
-  (funcall jabber-conn-send-function
-	   (concat
-	    "<stream:stream to='"
-	    jabber-server
-	    "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"))
-  ;; now see what happens
-  )
+    nil)))
 
 (provide 'jabber-conn)
 ;; arch-tag: f95ec240-8cd3-11d9-9dbf-000a95c2fcd0

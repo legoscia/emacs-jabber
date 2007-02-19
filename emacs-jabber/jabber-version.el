@@ -22,23 +22,25 @@
 (require 'jabber-iq)
 (require 'jabber-util)
 
-(defconst jabber-version "0.7.1"
+(defconst jabber-version "0.7.1-dev1"
   "version returned to those who query us")
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request software version" 'jabber-get-version))
-(defun jabber-get-version (to)
+(defun jabber-get-version (jc to)
   "Request software version"
-  (interactive (list (jabber-read-jid-completing "Request version of: " nil nil nil 'full)))
+  (interactive (list
+		(jabber-read-account)
+		(jabber-read-jid-completing "Request version of: " nil nil nil 'full)))
   ;; XXX: you will not get any result unless you add the resource to the JID.
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:version")))
 		  #'jabber-process-data #'jabber-process-version
 		  #'jabber-process-data "Version request failed"))
 
 ;; called by jabber-process-data
-(defun jabber-process-version (xml-data)
+(defun jabber-process-version (jc xml-data)
   "Handle results from jabber:iq:version requests."
   
   (let ((query (jabber-iq-query xml-data)))
@@ -49,7 +51,7 @@
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:version" 'jabber-return-version))
 (add-to-list 'jabber-advertised-features "jabber:iq:version")
-(defun jabber-return-version (xml-data)
+(defun jabber-return-version (jc xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
 determined from the incoming packet passed in XML-DATA."
   ;; Things we might check: does this iq message really have type='get' and
@@ -57,7 +59,7 @@ determined from the incoming packet passed in XML-DATA."
   ;; Then again, jabber-process-iq should take care of that.
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id)))
-    (jabber-send-iq to "result"
+    (jabber-send-iq jc to "result"
 		    `(query ((xmlns . "jabber:iq:version"))
 			    (name () "jabber.el")
 			    (version () ,jabber-version)

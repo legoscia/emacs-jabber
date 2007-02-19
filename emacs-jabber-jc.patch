@@ -1,0 +1,69 @@
+--- emacs-jabber/jabber-export.el.orig	2007-02-19 23:46:22 +0700
++++ emacs-jabber/jabber-export.el	2007-02-19 23:56:28 +0700
+@@ -146,7 +146,7 @@
+ 		(have-from (member jid-subscription '("from" "both"))))
+ 	    (flet ((request-subscription 
+ 		    (type)
+-		    (jabber-send-sexp `(presence ((to . ,jid)
++		    (jabber-send-sexp (car jabber-connections) `(presence ((to . ,jid)
+ 						  (type . ,type))))))
+ 	      (cond
+ 	       ((and want-to (not have-to))
+--- emacs-jabber/jabber-muc.el.orig	2007-02-19 23:47:37 +0700
++++ emacs-jabber/jabber-muc.el	2007-02-19 23:56:11 +0700
+@@ -495,7 +495,7 @@
+   (interactive (list (jabber-muc-read-completing "Leave which group: ")))
+   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
+     ;; send unavailable presence to our own nick in room
+-    (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
++    (jabber-send-sexp (car jabber-connections) `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
+ 				  (type . "unavailable"))))))
+ 
+ (add-to-list 'jabber-jid-muc-menu
+@@ -608,7 +608,7 @@
+    (list (jabber-read-jid-completing "Invite whom: ")
+ 	 (jabber-muc-read-completing "To group: ")
+ 	 (jabber-read-with-input-method "Reason: ")))
+-  (jabber-send-sexp
++  (jabber-send-sexp (car jabber-connections)
+    `(message ((to . ,group))
+ 	     (x ((xmlns . "http://jabber.org/protocol/muc#user"))
+ 		(invite ((to . ,jid))
+@@ -657,7 +657,7 @@
+ 			  (let ((reason
+ 				 (jabber-read-with-input-method
+ 				  "Reason: ")))
+-			    (jabber-send-sexp
++			    (jabber-send-sexp (car jabber-connections)
+ 			     (list 'message
+ 				   (list (cons 'to ,group))
+ 				   (list 'x
+--- emacs-jabber/jabber-presence.el.orig	2007-02-19 23:47:48 +0700
++++ emacs-jabber/jabber-presence.el	2007-02-19 23:57:04 +0700
+@@ -278,7 +278,7 @@
+       ;; Then send to every joined MUC room
+       ;; XXX: implement reverse mapping
+       ;; (dolist (groupchat *jabber-active-groupchats*)
+-;; 	(jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements)))
++;; 	(jabber-send-sexp js `(presence ((to . ,(car groupchat))) ,@subelements)))
+       ))
+   (jabber-display-roster))
+ 
+@@ -306,7 +306,7 @@
+ 			  nil t nil nil "online")))
+   (cond
+    ((member type '("probe" "unavailable"))
+-    (jabber-send-sexp `(presence ((to . ,jid)
++    (jabber-send-sexp (car jabber-connections) `(presence ((to . ,jid)
+ 				  (type . ,type)))))
+ 
+    (t
+@@ -315,7 +315,7 @@
+ 	       ""
+ 	     type))
+ 	  (*jabber-current-status* nil))
+-      (jabber-send-sexp `(presence ((to . ,jid))
++      (jabber-send-sexp (car jabber-connections) `(presence ((to . ,jid))
+ 				   ,@(jabber-presence-children)))))))
+ 
+ (defun jabber-send-away-presence (&optional status)

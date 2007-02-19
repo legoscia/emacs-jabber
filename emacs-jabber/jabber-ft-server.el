@@ -35,7 +35,7 @@
 		   'jabber-ft-accept
 		   'jabber-ft-server-connected))
 
-(defun jabber-ft-accept (xml-data)
+(defun jabber-ft-accept (jc xml-data)
   "Receive IQ stanza containing file transfer request, ask user"
   (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
@@ -86,7 +86,7 @@
     ;; to support range, return something sensible here
     nil))
 
-(defun jabber-ft-server-connected (jid sid send-data-function)
+(defun jabber-ft-server-connected (jc jid sid send-data-function)
   ;; We don't really care about the send-data-function.  But if it's
   ;; a string, it means that we have no connection.
   (if (stringp send-data-function)
@@ -94,7 +94,7 @@
     ;; On success, we just return our data receiving function.
     'jabber-ft-data))
 
-(defun jabber-ft-data (jid sid data)
+(defun jabber-ft-data (jc jid sid data)
   "Receive chunk of transferred file."
   (let ((buffer (cdr (assoc (list sid jid) jabber-ft-sessions))))
     (with-current-buffer buffer

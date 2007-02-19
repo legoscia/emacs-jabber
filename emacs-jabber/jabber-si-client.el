@@ -23,7 +23,7 @@
 
 (require 'jabber-si-common)
 
-(defun jabber-si-initiate (jid profile-namespace profile-data profile-function &optional mime-type)
+(defun jabber-si-initiate (jc jid profile-namespace profile-data profile-function &optional mime-type)
   "Try to initiate a stream to JID.
 PROFILE-NAMESPACE is, well, the namespace of the profile to use.
 PROFILE-DATA is the XML data to send within the SI request.
@@ -33,7 +33,7 @@ MIME-TYPE is the MIME type to specify.
 Returns the SID."
 
   (let ((sid (apply 'format "emacs-sid-%d.%d.%d" (current-time))))
-    (jabber-send-iq jid "set"
+    (jabber-send-iq jc jid "set"
 		    `(si ((xmlns . "http://jabber.org/protocol/si")
 			  (id . ,sid)
 			  ,(if mime-type
@@ -50,7 +50,7 @@ Returns the SID."
 		    #'jabber-report-success "Stream initiation")
     sid))
 
-(defun jabber-si-initiate-process (xml-data closure-data)
+(defun jabber-si-initiate-process (jc xml-data closure-data)
   "Act on response to our SI query."
 
   (let* ((profile-function (car closure-data))
@@ -63,7 +63,7 @@ Returns the SID."
 	 (method-data (assoc chosen-method jabber-si-stream-methods)))
     ;; Our work is done.  Hand it over to the stream method.
     (let ((stream-negotiate (nth 1 method-data)))
-      (funcall stream-negotiate from sid profile-function))))
+      (funcall stream-negotiate jc from sid profile-function))))
 
 (provide 'jabber-si-client)
 
