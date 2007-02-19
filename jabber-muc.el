@@ -638,7 +638,7 @@ group, else it is a JID."
 
 	      (let ((action
 		     `(lambda (&rest ignore) (interactive)
-			(jabber-groupchat-join ,group
+			(jabber-groupchat-join jabber-buffer-connection ,group
 					       (jabber-muc-read-my-nickname ,group)))))
 		(if (fboundp 'insert-button)
 		    (insert-button "Accept"
@@ -658,6 +658,7 @@ group, else it is a JID."
 				 (jabber-read-with-input-method
 				  "Reason: ")))
 			    (jabber-send-sexp
+			     jabber-buffer-connection
 			     (list 'message
 				   (list (cons 'to ,group))
 				   (list 'x
