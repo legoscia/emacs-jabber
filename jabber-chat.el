@@ -510,8 +510,9 @@ If DELAYED is true, print long timestamp
     (when body
 
       (when (eql mode :insert)
-	(if (string-match "^/me \\(.*\\)$" body)
-	    (let ((action (match-string 1 body))
+	(if (and (> (length body) 4)
+		 (string= (substring body 0 4) "/me "))
+	    (let ((action (substring body 4))
 		  (nick (cond
 			 ((eq who :local)
 			  jabber-nickname)
