@@ -38,8 +38,10 @@
   :group 'jabber-avatar
   :type 'boolean)
 
-(defvar jabber-vcard-avatars-current-hash nil
-  "SHA1 hash of avatar currently published through presence.")
+(defvar jabber-vcard-avatars-current-hash
+  (make-hash-table :test 'equal)
+  "For each connection, SHA1 hash of current avatar.
+Keys are full JIDs.")
 
 (add-to-list 'jabber-presence-chain 'jabber-vcard-avatars-presence)
 (defun jabber-vcard-avatars-presence (jc xml-data)
@@ -57,9 +59,9 @@
 	    ;; Avatar is cached
 	    (jabber-avatar-set from sha1-hash)
 	  ;; Avatar is not cached; retrieve it
-	  (jabber-vcard-avatars-fetch from))))))
+	  (jabber-vcard-avatars-fetch jc from))))))
 
-(defun jabber-vcard-avatars-vcard (iq from)
+(defun jabber-vcard-avatars-vcard (jc iq from)
   "Get the photo from the vCard, and set the avatar."
   (let ((photo (assq 'PHOTO (jabber-vcard-parse (jabber-iq-query iq)))))
     (if photo
@@ -69,24 +71,26 @@
 	  (jabber-avatar-set from avatar))
       (jabber-avatar-set from nil))))
 
-(defun jabber-vcard-avatars-fetch (who)
+(defun jabber-vcard-avatars-fetch (jc who)
   "Fetch WHO's vCard, and extract avatar."
-  (interactive (list (jabber-read-jid-completing "Fetch whose vCard avatar: ")))
-  (jabber-send-iq who "get" '(vCard ((xmlns . "vcard-temp")))
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Fetch whose vCard avatar: ")))
+  (jabber-send-iq jc who "get" '(vCard ((xmlns . "vcard-temp")))
 		  #'jabber-vcard-avatars-vcard who
 		  #'ignore nil))
 
 ;; XXX: reactivate
 ;;(add-hook 'jabber-post-connect-hooks 'jabber-vcard-avatars-find-current)
-(defun jabber-vcard-avatars-find-current ()
+(defun jabber-vcard-avatars-find-current (jc)
   "Request our own vCard, to find hash of avatar."
   (when jabber-vcard-avatars-publish
-    (jabber-send-iq nil "get" '(vCard ((xmlns . "vcard-temp")))
+    (jabber-send-iq jc nil "get" '(vCard ((xmlns . "vcard-temp")))
 		    #'jabber-vcard-avatars-find-current-1 t
 		    #'jabber-vcard-avatars-find-current-1 nil)))
 
-(defun jabber-vcard-avatars-find-current-1 (xml-data success)
+(defun jabber-vcard-avatars-find-current-1 (jc xml-data success)
   (jabber-vcard-avatars-update-current
+   jc
    (and success
 	(let ((photo (assq 'PHOTO (jabber-vcard-parse (jabber-iq-query xml-data)))))
 	  (when photo
@@ -94,24 +98,30 @@
 							    (nth 1 photo))))
 	      (avatar-sha1-sum avatar)))))))
 
-(defun jabber-vcard-avatars-update-current (new-hash)
-  (let ((old-hash jabber-vcard-avatars-current-hash))
+(defun jabber-vcard-avatars-update-current (jc new-hash)
+  (let ((old-hash (gethash
+		   (jabber-connection-bare-jid jc)
+		   jabber-vcard-avatars-current-hash)))
     (when (not (string= old-hash new-hash))
-      (setq jabber-vcard-avatars-current-hash new-hash)
-      (jabber-vcard-avatars-send-presence))))
+      (puthash (jabber-connection-bare-jid jc)
+	       new-hash jabber-vcard-avatars-current-hash)
+      (jabber-vcard-avatars-send-presence jc))))
 
-(defun jabber-vcard-avatars-send-presence ()
+(defun jabber-vcard-avatars-send-presence (jc)
   (jabber-send-presence *jabber-current-show* *jabber-current-status* *jabber-current-priority*))
 
 (add-to-list 'jabber-presence-element-functions 'jabber-vcard-avatars-presence-element)
-(defun jabber-vcard-avatars-presence-element ()
+(defun jabber-vcard-avatars-presence-element (jc)
   (when jabber-vcard-avatars-publish
-    (list
-     `(x ((xmlns . "vcard-temp:x:update"))
-	 ;; if "not yet ready to advertise image", don't.
-	 ;; that is, we haven't yet checked what avatar we have.
-	 ,(when jabber-vcard-avatars-current-hash
-	    `(photo () ,jabber-vcard-avatars-current-hash))))))
+    (let ((hash (gethash
+		 (jabber-connection-bare-jid jc)
+		 jabber-vcard-avatars-current-hash)))
+      (list
+       `(x ((xmlns . "vcard-temp:x:update"))
+	   ;; if "not yet ready to advertise image", don't.
+	   ;; that is, we haven't yet checked what avatar we have.
+	   ,(when hash
+	      `(photo () ,hash)))))))
 	     
 (provide 'jabber-vcard-avatars)
 ;; arch-tag: 3e50d460-8eae-11da-826c-000a95c2fcd0

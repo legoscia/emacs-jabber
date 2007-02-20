@@ -28,8 +28,9 @@
 
 (defvar jabber-presence-element-functions nil
   "List of functions returning extra elements for <presence/> stanzas.
-Each function takes no arguments and returns a possibly empty list of
-extra child element of the <presence/> stanza.")
+Each function takes one argument, the connection, and returns a
+possibly empty list of extra child element of the <presence/>
+stanza.")
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (jc x) (jabber-process-roster jc x nil)))))
@@ -271,25 +272,27 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
   (setq *jabber-current-priority* (string-to-number priority))
-  (let ((subelements (jabber-presence-children)))
     (dolist (jc jabber-connections)
       ;; First send presence to everyone subscribed
-      (jabber-send-sexp jc `(presence () ,@subelements))
+      (let ((subelements (jabber-presence-children jc)))
+	(jabber-send-sexp jc `(presence () ,@subelements))
       ;; Then send to every joined MUC room
       ;; XXX: implement reverse mapping
       ;; (dolist (groupchat *jabber-active-groupchats*)
 ;; 	(jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements)))
-      ))
+	))
   (jabber-display-roster))
 
-(defun jabber-presence-children ()
+(defun jabber-presence-children (jc)
   "Return the children for a <presence/> stanza."
   `(,(when (> (length *jabber-current-status*) 0)
        `(status () ,*jabber-current-status*))
     ,(when (> (length *jabber-current-show*) 0)
 	 `(show () ,*jabber-current-show*))
     (priority () ,(number-to-string *jabber-current-priority*))
-    ,@(apply 'append (mapcar 'funcall jabber-presence-element-functions))))
+    ,@(apply 'append (mapcar (lambda (f)
+			       (funcall f jc))
+			     jabber-presence-element-functions))))
 
 (defun jabber-send-directed-presence (jid type)
   "Send a directed presence stanza to JID."
