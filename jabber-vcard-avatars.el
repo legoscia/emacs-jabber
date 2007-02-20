@@ -79,8 +79,7 @@ Keys are full JIDs.")
 		  #'jabber-vcard-avatars-vcard who
 		  #'ignore nil))
 
-;; XXX: reactivate
-;;(add-hook 'jabber-post-connect-hooks 'jabber-vcard-avatars-find-current)
+(add-hook 'jabber-post-connect-hooks 'jabber-vcard-avatars-find-current)
 (defun jabber-vcard-avatars-find-current (jc)
   "Request our own vCard, to find hash of avatar."
   (when jabber-vcard-avatars-publish
