@@ -460,7 +460,7 @@ groupchat buffer."
 			       (x ((xmlns . "http://jabber.org/protocol/muc"))
 				  ,@(when password
 				      `((password () ,password))))
-			       ,@(jabber-presence-children)))
+			       ,@(jabber-presence-children jc)))
 
   ;; There, stanza sent.  Now we just wait for the MUC service to
   ;; mirror the stanza.  This is handled in
