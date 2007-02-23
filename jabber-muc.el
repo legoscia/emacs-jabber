@@ -341,16 +341,17 @@ JID; only provide completion as a guide."
 
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
-(defun jabber-groupchat-get-config (group)
+(defun jabber-groupchat-get-config (jc group)
   "Ask for MUC configuration form"
-  (interactive (list (jabber-muc-read-completing "Configure group: " t)))
-  (jabber-send-iq group
+  (interactive (list (jabber-read-account)
+		     (jabber-muc-read-completing "Configure group: " t)))
+  (jabber-send-iq jc group
 		  "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
 		  #'jabber-process-data #'jabber-groupchat-render-config
 		  #'jabber-process-data "MUC configuration request failed"))
 
-(defun jabber-groupchat-render-config (xml-data)
+(defun jabber-groupchat-render-config (jc xml-data)
   "Render MUC configuration form"
 
   (let ((query (jabber-iq-query xml-data))
@@ -362,6 +363,7 @@ JID; only provide completion as a guide."
 	(insert "No configuration possible.\n")
       
     (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))
+    (set (make-local-variable 'jabber-buffer-connection) jc)
 
     (jabber-render-xdata-form xdata)
 
@@ -376,7 +378,7 @@ JID; only provide completion as a guide."
 (defun jabber-groupchat-submit-config (&rest ignore)
   "Submit MUC configuration form."
 
-  (jabber-send-iq jabber-submit-to
+  (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		  "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/muc#owner"))
 			  ,(jabber-parse-xdata-form))
@@ -386,7 +388,7 @@ JID; only provide completion as a guide."
 (defun jabber-groupchat-cancel-config (&rest ignore)
   "Cancel MUC configuration form."
 
-  (jabber-send-iq jabber-submit-to
+  (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		  "set"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner"))
 			  (x ((xmlns . "jabber:x:data") (type . "cancel"))))
@@ -525,13 +527,14 @@ groupchat buffer."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set topic" 'jabber-muc-set-topic))
 
-(defun jabber-muc-set-topic (group topic)
+(defun jabber-muc-set-topic (jc group topic)
   "Set topic of GROUP to TOPIC."
   (interactive
-   (let ((group (jabber-muc-read-completing "Group: ")))
-     (list group
+   (let ((jc (jabber-read-account))
+	 (group (jabber-muc-read-completing "Group: ")))
+     (list jc group
 	   (jabber-read-with-input-method "New topic: " jabber-muc-topic))))
-  (jabber-send-message group topic nil "groupchat"))
+  (jabber-send-message jc group topic nil "groupchat"))
 
 (defun jabber-muc-snarf-topic (xml-data)
   "Record subject (topic) of the given <message/>, if any."
