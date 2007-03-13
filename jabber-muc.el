@@ -319,6 +319,14 @@ in the user entering/staying in the room."
       (let ((participant (assoc nickname (cdr participants))))
 	(setf (cdr participants) (delq participant (cdr participants)))))))
 
+(defmacro jabber-muc-argument-list (&optional args)
+  "Prepend connection and group name to ARGS.
+If the current buffer is not an MUC buffer, signal an error.
+This macro is meant for use as an argument to `interactive'."
+  `(if (null jabber-group)
+       (error "Not in MUC buffer")
+     (nconc (list jabber-buffer-connection jabber-group) ,args)))
+
 (defun jabber-muc-read-completing (prompt &optional allow-not-joined)
   "Read the name of a joined chatroom, or use chatroom of current buffer, if any.
 If ALLOW-NOT-JOINED is provided and true, permit choosing any
@@ -343,8 +351,7 @@ JID; only provide completion as a guide."
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (jc group)
   "Ask for MUC configuration form"
-  (interactive (list (jabber-read-account)
-		     (jabber-muc-read-completing "Configure group: " t)))
+  (interactive (jabber-muc-argument-list))
   (jabber-send-iq jc group
 		  "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
@@ -478,6 +485,7 @@ groupchat buffer."
 (defun jabber-muc-read-my-nickname (group)
   "Read nickname for joining GROUP."
   (let ((default-nickname (or
+			   ;; XXX: use bookmarks
 			   (cdr (assoc group jabber-muc-default-nicknames))
 			   jabber-nickname)))
     (jabber-read-with-input-method (format "Nickname: (default %s) "
@@ -492,12 +500,13 @@ groupchat buffer."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Leave groupchat" 'jabber-groupchat-leave))
 
-(defun jabber-groupchat-leave (group)
+(defun jabber-groupchat-leave (jc group)
   "leave a groupchat"
-  (interactive (list (jabber-muc-read-completing "Leave which group: ")))
+  (interactive (jabber-muc-argument-list))
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
     ;; send unavailable presence to our own nick in room
-    (jabber-send-sexp `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
+    (jabber-send-sexp jc
+		      `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
 				  (type . "unavailable"))))))
 
 (add-to-list 'jabber-jid-muc-menu
@@ -530,10 +539,8 @@ groupchat buffer."
 (defun jabber-muc-set-topic (jc group topic)
   "Set topic of GROUP to TOPIC."
   (interactive
-   (let ((jc (jabber-read-account))
-	 (group (jabber-muc-read-completing "Group: ")))
-     (list jc group
-	   (jabber-read-with-input-method "New topic: " jabber-muc-topic))))
+   (jabber-muc-argument-list
+    (list (jabber-read-with-input-method "New topic: " jabber-muc-topic))))
   (jabber-send-message jc group topic nil "groupchat"))
 
 (defun jabber-muc-snarf-topic (xml-data)
@@ -545,16 +552,16 @@ groupchat buffer."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set role (kick, voice, op)" 'jabber-muc-set-role))
 
-(defun jabber-muc-set-role (group nickname role reason)
+(defun jabber-muc-set-role (jc group nickname role reason)
   "Set role of NICKNAME in GROUP to ROLE, specifying REASON."
   (interactive
-   (let* ((group (jabber-muc-read-completing "Group: "))
-	  (nickname (jabber-muc-read-nickname group "Nickname: ")))
-     (list group nickname
-	   (completing-read "New role: " '(("none") ("visitor") ("participant") ("moderator")) nil t)
-	   (read-string "Reason: "))))
+   (jabber-muc-argument-list
+    (let ((nickname (jabber-muc-read-nickname jabber-group "Nickname: ")))
+      (list nickname
+	    (completing-read "New role: " '(("none") ("visitor") ("participant") ("moderator")) nil t)
+	    (read-string "Reason: ")))))
   (unless (or (zerop (length nickname)) (zerop (length role)))
-    (jabber-send-iq group "set"
+    (jabber-send-iq jc group "set"
 		    `(query ((xmlns . "http://jabber.org/protocol/muc#admin"))
 			    (item ((nick . ,nickname)
 				   (role . ,role))
@@ -566,22 +573,21 @@ groupchat buffer."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set affiliation (ban, member, admin)" 'jabber-muc-set-affiliation))
 
-(defun jabber-muc-set-affiliation (group nickname-or-jid nickname-p affiliation reason)
+(defun jabber-muc-set-affiliation (jc group nickname-or-jid nickname-p affiliation reason)
   "Set affiliation of NICKNAME-OR-JID in GROUP to AFFILIATION.
 If NICKNAME-P is non-nil, NICKNAME-OR-JID is a nickname in the
 group, else it is a JID."
   (interactive
-   (let ((group (jabber-muc-read-completing "Group: "))
-	 (nickname-p (y-or-n-p "Specify user by room nickname? ")))
-     (list
-      group
-      (if nickname-p
-	  (jabber-muc-read-nickname group "Nickname: ")
-	(jabber-read-jid-completing "User: "))
-      nickname-p
-      (completing-read "New affiliation: "
-		       '(("none") ("outcast") ("member") ("admin") ("owner")) nil t)
-      (read-string "Reason: "))))
+   (jabber-muc-argument-list
+    (let ((nickname-p (y-or-n-p "Specify user by room nickname? ")))
+      (list
+       (if nickname-p
+	   (jabber-muc-read-nickname jabber-group "Nickname: ")
+	 (jabber-read-jid-completing "User: "))
+       nickname-p
+       (completing-read "New affiliation: "
+			'(("none") ("outcast") ("member") ("admin") ("owner")) nil t)
+       (read-string "Reason: ")))))
   (let ((jid
 	 (if nickname-p
 	     (let ((participants (cdr (assoc group jabber-muc-participants))))
@@ -593,7 +599,7 @@ group, else it is a JID."
 		 (or (plist-get participant 'jid)
 		     (error "JID of %s in group %s is unknown" nickname-or-jid group))))
 	   nickname-or-jid)))
-    (jabber-send-iq group "set"
+    (jabber-send-iq jc group "set"
 		    `(query ((xmlns . "http://jabber.org/protocol/muc#admin"))
 			    (item ((jid . ,jid)
 				   (affiliation . ,affiliation))
@@ -605,13 +611,15 @@ group, else it is a JID."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Invite someone to chatroom" 'jabber-muc-invite))
 
-(defun jabber-muc-invite (jid group reason)
+(defun jabber-muc-invite (jc jid group reason)
   "Invite JID to GROUP, stating REASON."
   (interactive
-   (list (jabber-read-jid-completing "Invite whom: ")
+   (list (jabber-read-account)
+	 (jabber-read-jid-completing "Invite whom: ")
 	 (jabber-muc-read-completing "To group: ")
 	 (jabber-read-with-input-method "Reason: ")))
   (jabber-send-sexp
+   jc
    `(message ((to . ,group))
 	     (x ((xmlns . "http://jabber.org/protocol/muc#user"))
 		(invite ((to . ,jid))
@@ -728,13 +736,12 @@ include groupchat invites."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Open private chat" 'jabber-muc-private))
 
-(defun jabber-muc-private (group nickname)
+(defun jabber-muc-private (jc group nickname)
   "Open private chat with NICKNAME in GROUP."
   (interactive
-   (let* ((group (jabber-muc-read-completing "Group: "))
-	  (nickname (jabber-muc-read-nickname group "Nickname: ")))
-     (list group nickname)))
-  (switch-to-buffer (jabber-muc-private-create-buffer group nickname)))
+   (jabber-muc-argument-list
+    (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
+  (switch-to-buffer (jabber-muc-private-create-buffer jabber-buffer-connection group nickname)))
 
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
