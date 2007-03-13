@@ -121,18 +121,20 @@ access allowed.  nil means open for everyone."
 ;;; CLIENT
 (add-to-list 'jabber-jid-service-menu
 	     (cons "Request command list" 'jabber-ahc-get-list))
-(defun jabber-ahc-get-list (to)
+(defun jabber-ahc-get-list (jc to)
   "Request list of ad-hoc commands.  (JEP-0050)"
-  (interactive (list (jabber-read-jid-completing "Request command list from: ")))
-  (jabber-get-disco-items to "http://jabber.org/protocol/commands"))
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Request command list from: ")))
+  (jabber-get-disco-items jc to "http://jabber.org/protocol/commands"))
 
 (add-to-list 'jabber-jid-service-menu
 	     (cons "Execute command" 'jabber-ahc-execute-command))
-(defun jabber-ahc-execute-command (to node)
+(defun jabber-ahc-execute-command (jc to node)
   "Execute ad-hoc command.  (JEP-0050)"
-  (interactive (list (jabber-read-jid-completing "Execute command of: ")
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Execute command of: ")
 		     (jabber-read-node "Node of command: ")))
-  (jabber-send-iq to
+  (jabber-send-iq jc to
 		  "set"
 		  `(command ((xmlns . "http://jabber.org/protocol/commands")
 			     (node . ,node)
@@ -140,7 +142,7 @@ access allowed.  nil means open for everyone."
 		  #'jabber-process-data #'jabber-ahc-display
 		  #'jabber-process-data "Command execution failed"))
 
-(defun jabber-ahc-display (xml-data)
+(defun jabber-ahc-display (jc xml-data)
   (let* ((from (jabber-xml-get-attribute xml-data 'from))
 	 (query (jabber-iq-query xml-data))
 	 (node (jabber-xml-get-attribute query 'node))
@@ -155,6 +157,8 @@ access allowed.  nil means open for everyone."
     (setq jabber-ahc-sessionid sessionid)
     (make-local-variable 'jabber-ahc-node)
     (setq jabber-ahc-node node)
+    (make-local-variable 'jabber-buffer-connection)
+    (setq jabber-buffer-connection jc)
 
     (dolist (x (jabber-xml-get-children query 'x))
       (when (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:data")
@@ -208,7 +212,7 @@ access allowed.  nil means open for everyone."
 (defun jabber-ahc-submit (action)
   "Submit Ad-Hoc Command."
 
-  (jabber-send-iq jabber-submit-to
+  (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		  "set"
 		  `(command ((xmlns . "http://jabber.org/protocol/commands")
 			     (sessionid . ,jabber-ahc-sessionid)
