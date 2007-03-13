@@ -255,23 +255,23 @@ See `jabber-password'."
     (let* ((completions
 	    (mapcar (lambda (c)
 		      (cons
-		       (let ((d (fsm-get-state-data c)))
-			 (concat
-			  (plist-get d :username)
-			  "@"
-			  (plist-get d :server)))
+		       (jabber-connection-bare-jid c)
 		       c))
 		    jabber-connections))
 	   (default 
-	     (let ((at-point (get-text-property (point) 'jabber-account)))
-	       (if (and at-point
-			(memq at-point jabber-connections))
-		   (let ((d (fsm-get-state-data at-point)))
-		     (concat
-		      (plist-get d :username)
-		      "@"
-		      (plist-get d :server)))
-		 (caar completions))))
+	     (or
+	      ;; if there is a jabber-account property at point,
+	      ;; present it as default value
+	      (let ((at-point (get-text-property (point) 'jabber-account)))
+		(when (and at-point
+			   (memq at-point jabber-connections))
+		  (jabber-connection-bare-jid at-point)))
+	      ;; if the buffer is associated with a connection, use it
+	      (when (and jabber-buffer-connection
+			 (memq jabber-buffer-connection jabber-connections))
+		(jabber-connection-bare-jid jabber-buffer-connection))
+	      ;; else, use the first connection in the list
+	      (caar completions)))
 	   (input (completing-read 
 		   (concat "Select Jabber account (default "
 			   default
