@@ -40,7 +40,7 @@
   (jabber-mode-line-presence-update))
 
 (defun jabber-mode-line-presence-update ()
-  (setq jabber-mode-line-presence (if (and *jabber-connected* (not *jabber-disconnecting*))
+  (setq jabber-mode-line-presence (if (and jabber-connections (not *jabber-disconnecting*))
 				      (cdr (assoc *jabber-current-show* jabber-presence-strings))
 				    "Offline")))
 
@@ -51,9 +51,10 @@
 		     (cons "xa" 0)
 		     (cons "dnd" 0)
 		     (cons nil 0))))
-    (dolist (buddy *jabber-roster*)
-      (when (assoc (get buddy 'show) count)
-	(incf (cdr (assoc (get buddy 'show) count)))))
+    (dolist (jc jabber-connections)
+      (dolist (buddy (plist-get (fsm-get-state-data jc) :roster))
+	(when (assoc (get buddy 'show) count)
+	  (incf (cdr (assoc (get buddy 'show) count))))))
     (setq jabber-mode-line-contacts
 	  (if jabber-mode-line-compact
 	      (format "(%d/%d/%d)"
