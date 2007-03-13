@@ -110,12 +110,12 @@ on success or failure, respectively."
 	 (lambda (e)
 	   (case (jabber-xml-node-name e)
 	     (url
-	      (list 'url (jabber-xml-get-attribute e 'url)
-		    (jabber-xml-get-attribute e 'name)))
+	      (list 'url (or (jabber-xml-get-attribute e 'url) "")
+		    (or (jabber-xml-get-attribute e 'name) "")))
 	     (conference
 	      (list 'conference
-		    (jabber-xml-get-attribute e 'jid)
-		    (jabber-xml-get-attribute e 'name)
+		    (or (jabber-xml-get-attribute e 'jid) "")
+		    (or (jabber-xml-get-attribute e 'name) "")
 		    (not (not (member (jabber-xml-get-attribute e 'autojoin)
 				      '("true" "1"))))
 		    (or (jabber-xml-path e '(nick "")) "")
@@ -149,7 +149,6 @@ on success or failure, respectively."
 			  (string :tag "JID") ;XXX: jid widget type?
 			  (string :tag "Name")
 			  (checkbox :tag "Autojoin" :format "%[%v%] Autojoin?\n")
-			  ;;(checkbox :tag "Autojoin" :format "Autojoin? %v\n")
 			  (string :tag "Nick")	      ;or nil?
 			  (string :tag "Password")    ;or nil?
 			  )
