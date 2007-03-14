@@ -219,6 +219,11 @@ files."
   :type 'file
   :group 'jabber-alerts)
 
+(defcustom jabber-play-sound-file 'play-sound-file
+  "a function to call to play alert sound files"
+  :type 'function
+  :group 'jabber-alerts)
+
 (defmacro define-jabber-alert (name docstring function)
   "Define a new family of external alert hooks.
 Use this macro when your hooks do nothing except displaying a string
@@ -307,7 +312,7 @@ Examples:
 			       (return (cdr entry))))
 			   jabber-alert-message-wave)))
       (unless (equal sound-file "")
-	(play-sound-file sound-file)))))
+	(funcall jabber-play-sound-file sound-file)))))
 
 (defun jabber-message-display (from buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
@@ -354,7 +359,7 @@ Examples:
 (defun jabber-muc-wave (nick group buffer text proposed-alert)
   "Play the wave file specified in `jabber-alert-muc-wave'"
   (when proposed-alert
-    (play-sound-file jabber-alert-muc-wave)))
+    (funcall jabber-play-sound-file jabber-alert-muc-wave)))
 
 (defun jabber-muc-display (nick group buffer text proposed-alert)
   "Display the buffer where a new message has arrived."
@@ -412,7 +417,7 @@ This function is not called directly, but is the default for
 			       (return (cdr entry))))
 			   jabber-alert-presence-wave)))
       (unless (equal sound-file "")
-	(play-sound-file sound-file)))))
+	(funcall jabber-play-sound-file sound-file)))))
 
 ;; This is now defined in jabber-roster.el.
 ;; (defun jabber-presence-update-roster (who oldstatus newstatus statustext proposed-alert)
@@ -442,7 +447,7 @@ This function uses `jabber-info-message-alist' to find a message."
 (defun jabber-info-wave (infotype buffer proposed-alert)
   "Play the wave file specified in `jabber-alert-info-wave'"
   (if proposed-alert
-      (play-sound-file jabber-alert-info-wave)))
+      (funcall jabber-play-sound-file jabber-alert-info-wave)))
 
 (defun jabber-info-display (infotype buffer proposed-alert)
   "Display buffer of completed request"
