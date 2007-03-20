@@ -23,10 +23,11 @@
 
 (add-to-list 'jabber-jid-service-menu
 	     (cons "Search directory" 'jabber-get-search))
-(defun jabber-get-search (to)
+(defun jabber-get-search (jc to)
   "Send IQ get request in namespace \"jabber:iq:search\"."
-  (interactive (list (jabber-read-jid-completing "Search what database: ")))
-  (jabber-send-iq to
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "Search what database: ")))
+  (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:search")))
 		  #'jabber-process-data #'jabber-process-register-or-search
@@ -41,9 +42,9 @@
 ;; search form is activated.
 (defun jabber-submit-search (&rest ignore)
   "Submit search.  See `jabber-process-register-or-search'."
-  
+
   (let ((text (concat "Search at " jabber-submit-to)))
-    (jabber-send-iq jabber-submit-to
+    (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		    "set"
 
 		    (cond
@@ -60,7 +61,7 @@
 
   (message "Search sent"))
 
-(defun jabber-process-search-result (xml-data)
+(defun jabber-process-search-result (jc xml-data)
   "Receive and display search results."
 
   ;; This function assumes that all search results come in one packet,
@@ -79,7 +80,7 @@
 	(jabber-render-xdata-search-results xdata)
 
       (insert (jabber-propertize "Search results" 'face 'jabber-title-medium) "\n")
-	
+
       (setq fields '((first . (label "First name" column 0))
 		     (last . (label "Last name" column 15))
 		     (nick . (label "Nickname" column 30))
@@ -99,12 +100,12 @@
 
 	    (dolist (field-cons fields)
 	      (let ((field-plist (cdr field-cons))
-		    (value (if (eq (car field-cons) 'jid) 
+		    (value (if (eq (car field-cons) 'jid)
 			       (setq jid (jabber-xml-get-attribute item 'jid))
 			     (car (jabber-xml-node-children (car (jabber-xml-get-children item (car field-cons))))))))
 		(indent-to (plist-get field-plist 'column) 1)
 		(if value (insert value))))
-	      
+
 	    (if jid
 		(put-text-property start-of-line (point)
 				   'jabber-jid jid))
