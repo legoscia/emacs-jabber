@@ -369,7 +369,7 @@ JID; only provide completion as a guide."
 	(insert "No configuration possible.\n")
       
     (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))
-    (setq 'jabber-buffer-connection jc)
+    (setq jabber-buffer-connection jc)
 
     (jabber-render-xdata-form xdata)
 
