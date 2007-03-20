@@ -294,10 +294,11 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			       (funcall f jc))
 			     jabber-presence-element-functions))))
 
-(defun jabber-send-directed-presence (jid type)
+(defun jabber-send-directed-presence (jc jid type)
   "Send a directed presence stanza to JID."
   (interactive
-   (list (jabber-read-jid-completing "Send directed presence to: ")
+   (list (jabber-read-account)
+	 (jabber-read-jid-completing "Send directed presence to: ")
 	 (completing-read "Type (default is online): "
 			  '(("online")
 			    ("away")
@@ -309,8 +310,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 			  nil t nil nil "online")))
   (cond
    ((member type '("probe" "unavailable"))
-    (jabber-send-sexp `(presence ((to . ,jid)
-				  (type . ,type)))))
+    (jabber-send-sexp jc `(presence ((to . ,jid)
+				     (type . ,type)))))
 
    (t
     (let ((*jabber-current-show*
@@ -318,8 +319,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	       ""
 	     type))
 	  (*jabber-current-status* nil))
-      (jabber-send-sexp `(presence ((to . ,jid))
-				   ,@(jabber-presence-children)))))))
+      (jabber-send-sexp jc `(presence ((to . ,jid))
+				      ,@(jabber-presence-children jc)))))))
 
 (defun jabber-send-away-presence (&optional status)
   "Set status to away.
