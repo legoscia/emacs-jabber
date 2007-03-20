@@ -165,6 +165,10 @@ Return nil if the attribute was not found."
       (let ((result (xml-get-attribute node attribute)))
 	(and (> (length result) 0) result)))))
 
+(defsubst jabber-xml-get-xmlns (node)
+  "Get \"xmlns\" attribute of NODE, or nil if not present."
+  (jabber-xml-get-attribute node 'xmlns))
+
 (defun jabber-xml-path (xml-data path)
   "Find sub-node of XML-DATA according to PATH.
 PATH is a vaguely XPath-inspired list.  Each element can be:
