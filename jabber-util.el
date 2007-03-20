@@ -1,7 +1,7 @@
 ;; jabber-util.el - various utility functions    -*- coding: utf-8; -*-
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -111,6 +111,14 @@ properties to add to the result."
   (let ((sd (fsm-get-state-data jc)))
     (concat (plist-get sd :username) "@"
 	    (plist-get sd :server))))
+
+(defun jabber-find-active-connection (dead-jc)
+  "Given a dead connection, find an active connection to the same account.
+Return nil if none found."
+  (let ((jid (jabber-connection-bare-jid dead-jc)))
+    (dolist (jc jabber-connections)
+      (when (string= jid (jabber-connection-bare-jid))
+	(return jc)))))
 
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
@@ -243,12 +251,14 @@ See `jabber-password'."
       (copy-sequence jabber-password)
     (read-passwd (or prompt "Jabber password: "))))
 
-(defun jabber-read-account ()
-  "Ask for which connected account to use."
+(defun jabber-read-account (&optional always-ask)
+  "Ask for which connected account to use.
+If ALWAYS-ASK is nil and there is only one account, return that
+account."
   (cond
    ((null jabber-connections)
     (error "Not connected to Jabber"))
-   ((null (cdr jabber-connections))
+   ((and (null (cdr jabber-connections)) (not always-ask))
     ;; only one account
     (car jabber-connections))
    (t

@@ -1,6 +1,6 @@
 ;; jabber-chat.el - one-to-one chats
 
-;; Copyright (C) 2005 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2005, 2007 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -215,6 +215,8 @@ This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (unless (eq major-mode 'jabber-chat-mode)
       (jabber-chat-mode jc #'jabber-chat-pp))
+    ;; Make sure the connection variable is up to date.
+    (setq jabber-buffer-connection jc)
 
     (make-local-variable 'jabber-chatting-with)
     (setq jabber-chatting-with chat-with)

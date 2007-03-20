@@ -94,11 +94,20 @@ window or at `fill-column', whichever is shorter."
 
 (defun jabber-chat-buffer-send ()
   (interactive)
-  (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
-    ;; If user accidentally hits RET without writing anything,
-    ;; delete-and-extract-region returns "".  In that case,
-    ;; no message should be sent.
-    (unless (zerop (length body))
+  ;; If user accidentally hits RET without writing anything, just
+  ;; ignore it.
+  (when (plusp (- (point-max) jabber-point-insert))
+    ;; If connection was lost...
+    (unless (memq jabber-buffer-connection jabber-connections)
+      ;; ...maybe there is a new connection to the same account.
+      (let ((new-jc (jabber-find-active-connection jabber-buffer-connection)))
+	(if new-jc
+	    ;; If so, just use it.
+	    (setq jabber-buffer-connection new-jc)
+	  ;; Otherwise, ask for a new account.
+	  (setq jabber-buffer-connection (jabber-read-account t)))))
+
+    (let ((body (delete-and-extract-region jabber-point-insert (point-max))))
       (funcall jabber-send-function jabber-buffer-connection body))))
 
 (defun jabber-chat-buffer-fill-long-lines ()
