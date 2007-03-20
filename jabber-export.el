@@ -25,8 +25,15 @@
 
 (defvar jabber-import-subscription-p-widget nil)
 
-(defun jabber-export-roster (&optional roster)
-  "Create buffer from which roster can be exported to a file."
+(defun jabber-export-roster (jc)
+  "Export roster for connection JC."
+  (interactive (list (jabber-read-account)))
+  (let ((state-data (fsm-get-state-data jc)))
+    (jabber-export-roster-do-it
+     (jabber-roster-to-sexp (plist-get state-data :roster)))))
+
+(defun jabber-export-roster-do-it (roster)
+  "Create buffer from which ROSTER can be exported to a file."
   (interactive)
   (with-current-buffer (get-buffer-create "Export roster")
     (jabber-init-widget-buffer nil)
@@ -45,22 +52,26 @@ not affect your actual roster.
     (widget-insert "\n\n")
     (make-local-variable 'jabber-export-roster-widget)
 
-    (jabber-export-display (or roster (jabber-roster-to-sexp *jabber-roster*)))
+    (jabber-export-display roster)
 
     (widget-setup)
     (widget-minor-mode 1)
     (goto-char (point-min))
     (switch-to-buffer (current-buffer))))
 
-(defun jabber-import-roster (file)
-  "Create buffer for roster import from FILE."
-  (interactive "fImport roster from file: ")
+(defun jabber-import-roster (jc file)
+  "Create buffer for roster import for connection JC from FILE."
+  (interactive (list (jabber-read-account)
+		     (read-file-name "Import roster from file: ")))
   (let ((roster
 	 (with-temp-buffer
 	   (let ((coding-system-for-read 'utf-8))
 	     (jabber-roster-xml-to-sexp
 	      (car (xml-parse-file file)))))))
     (with-current-buffer (get-buffer-create "Import roster")
+      (make-local-variable 'jabber-buffer-connection)
+      (setq jabber-buffer-connection jc)
+
       (jabber-init-widget-buffer nil)
       
       (widget-insert (jabber-propertize "Import roster\n"
@@ -72,7 +83,7 @@ not affect your actual roster.
       (make-local-variable 'jabber-import-subscription-p-widget)
       (setq jabber-import-subscription-p-widget
 	    (widget-create 'checkbox))
-      (widget-insert "Adjust subscriptions\n")
+      (widget-insert " Adjust subscriptions\n")
 
       (widget-create 'push-button :notify #'jabber-import-doit "Import to roster")
       (widget-insert " ")
@@ -112,7 +123,10 @@ not affect your actual roster.
 
 (defun jabber-import-doit (&rest ignore)
   "Import roster being edited in widget."
-  (let (roster-delta)
+  (let* ((state-data (fsm-get-state-data jabber-buffer-connection))
+	 (jabber-roster (plist-get state-data :roster))
+	 roster-delta)
+
     (dolist (n (widget-value jabber-export-roster-widget))
       (let* ((jid (nth 0 n))
 	     (name (and (not (zerop (length (nth 1 n))))
@@ -120,7 +134,7 @@ not affect your actual roster.
 	     (subscription (nth 2 n))
 	     (groups (nth 3 n))
 	     (jid-symbol (jabber-jid-symbol jid))
-	     (in-roster-p (memq jid-symbol *jabber-roster*))
+	     (in-roster-p (memq jid-symbol jabber-roster))
 	     (jid-name (and in-roster-p (get jid-symbol 'name)))
 	     (jid-subscription (and in-roster-p (get jid-symbol 'subscription)))
 	     (jid-groups (and in-roster-p (get jid-symbol 'groups))))
@@ -146,7 +160,8 @@ not affect your actual roster.
 		(have-from (member jid-subscription '("from" "both"))))
 	    (flet ((request-subscription 
 		    (type)
-		    (jabber-send-sexp `(presence ((to . ,jid)
+		    (jabber-send-sexp jabber-buffer-connection
+				      `(presence ((to . ,jid)
 						  (type . ,type))))))
 	      (cond
 	       ((and want-to (not have-to))
@@ -160,7 +175,8 @@ not affect your actual roster.
 	       ((and have-from (not want-from))
 		(request-subscription "unsubscribed"))))))))
     (when roster-delta
-      (jabber-send-iq nil "set"
+      (jabber-send-iq jabber-buffer-connection
+		      nil "set"
 		      `(query ((xmlns . "jabber:iq:roster")) ,@roster-delta)
 		      #'jabber-report-success "Roster import"
 		      #'jabber-report-success "Roster import"))))
