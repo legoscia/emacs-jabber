@@ -1,7 +1,7 @@
 ;; jabber-core.el - core functions
 
-;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; SSL-Connection Parts:
 ;; Copyright (C) 2005 - Georg Lehner - jorge@magma.com.ni
@@ -191,7 +191,7 @@ With prefix argument, register a new account."
 	(delq fsm jabber-connections))
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
-  (list nil nil))
+  (list state-data nil))
 
 ;; There is no `define-state' for `nil', since any message received
 ;; there is an error.  They will be silently ignored, and only logged
@@ -222,7 +222,7 @@ With prefix argument, register a new account."
 
     (:connection-failed
      (message "Jabber connection failed")
-     (list nil nil))))
+     (list nil state-data))))
 
 (define-enter-state jabber-connection :connected
   (fsm state-data)
@@ -251,7 +251,7 @@ With prefix argument, register a new account."
 
     (:sentinel
      (message "Jabber connection unexpectedly closed")
-     (list nil nil))
+     (list nil state-data))
 
     (:stream-start
      (let ((session-id (cadr event))
@@ -302,7 +302,7 @@ With prefix argument, register a new account."
 
     (:sentinel
      (message "Jabber connection unexpectedly closed")
-     (list nil nil))
+     (list nil state-data))
 
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
@@ -310,7 +310,7 @@ With prefix argument, register a new account."
 	 ;; XXX: note encryptedness of connection.
 	 (list :connected state-data)
        (message "STARTTLS negotiation failed")
-       (list nil nil)))))
+       (list nil state-data)))))
 
 (define-enter-state jabber-connection :legacy-auth
   (fsm state-data)
@@ -329,7 +329,7 @@ With prefix argument, register a new account."
 
     (:sentinel
      (message "Jabber connection unexpectedly closed")
-     (list nil nil))
+     (list nil state-data))
 
     (:stanza
      (jabber-process-input fsm (cadr event))
@@ -340,7 +340,7 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-logon has already displayed a message
-     (list nil nil))))
+     (list nil state-data))))
 
 (define-enter-state jabber-connection :sasl-auth
   (fsm state-data)
@@ -364,7 +364,7 @@ With prefix argument, register a new account."
 
     (:sentinel
      (message "Jabber connection unexpectedly closed")
-     (list nil nil))
+     (list nil state-data))
 
     (:stanza
      (let ((new-sasl-data
@@ -381,7 +381,7 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-sasl has already displayed a message
-     (list nil nil))))
+     (list nil state-data))))
 
 (define-enter-state jabber-connection :bind
   (fsm state-data)
@@ -399,7 +399,7 @@ With prefix argument, register a new account."
 
     (:sentinel
      (message "Jabber connection unexpectedly closed")
-     (list nil nil))
+     (list nil state-data))
 
     (:stream-start
      ;; we wait for stream features...
@@ -426,7 +426,7 @@ With prefix argument, register a new account."
 			     #'handle-bind nil)
 	     (list :bind state-data))
 	 (message "Server doesn't permit resource binding and session establishing")
-	 (list nil nil)))
+	 (list nil state-data)))
       (t
        (jabber-process-input fsm (cadr event))
        (list :bind state-data)))))
@@ -459,13 +459,13 @@ With prefix argument, register a new account."
      (message "Resource binding failed: %s" 
 	      (jabber-parse-error
 	       (jabber-iq-error (cadr event))))
-     (list nil nil))
+     (list nil state-data))
 
     (:session-failure
      (message "Session establishing failed: %s"
 	      (jabber-parse-error
 	       (jabber-iq-error (cadr event))))
-     (list nil nil))))
+     (list nil state-data))))
 
 (define-enter-state jabber-connection :session-established
   (fsm state-data)
@@ -494,7 +494,7 @@ With prefix argument, register a new account."
 		(plist-get state-data :server)
 		(plist-get state-data :resource)
 		string)
-       (list nil nil)))
+       (list nil state-data)))
 
     (:stanza
      (jabber-process-input fsm (cadr event))
