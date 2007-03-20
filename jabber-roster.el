@@ -1,7 +1,7 @@
 ;; jabber-roster.el - displaying the roster    -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -300,19 +300,21 @@ C-c C-i  Info menu               C-c C-r  Roster menu
 C-c C-s  Service menu
 "))
       (insert "__________________________________\n\n")
-      (let ((map (make-sparse-keymap)))
-	(define-key map [mouse-2] #'jabber-send-presence)
-	(insert (jabber-propertize (concat (format " - %s"
-						   (cdr (assoc *jabber-current-show* jabber-presence-strings)))
-					   (if (not (zerop (length *jabber-current-status*)))
-					       (format " (%s)"
-						       (jabber-fix-status *jabber-current-status*)))
-					   " -")
-				   'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
-					     'jabber-roster-user-online)
-				   ;;'mouse-face (cons 'background-color "light grey")
-				   'keymap map)
-		"\n"))
+      (if (null jabber-connections)
+	  (insert "Not connected\n")
+	(let ((map (make-sparse-keymap)))
+	  (define-key map [mouse-2] #'jabber-send-presence)
+	  (insert (jabber-propertize (concat (format " - %s"
+						     (cdr (assoc *jabber-current-show* jabber-presence-strings)))
+					     (if (not (zerop (length *jabber-current-status*)))
+						 (format " (%s)"
+							 (jabber-fix-status *jabber-current-status*)))
+					     " -")
+				     'face (or (cdr (assoc *jabber-current-show* jabber-presence-faces))
+					       'jabber-roster-user-online)
+				     ;;'mouse-face (cons 'background-color "light grey")
+				     'keymap map)
+		  "\n")))
 
       (dolist (jc jabber-connections)
 	;; We sort everything before putting it in the ewoc

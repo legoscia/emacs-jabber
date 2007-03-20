@@ -1,7 +1,7 @@
 ;; jabber-core.el - core functions
 
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 
 ;; SSL-Connection Parts:
 ;; Copyright (C) 2005 - Georg Lehner - jorge@magma.com.ni
@@ -184,6 +184,19 @@ With prefix argument, register a new account."
 			:server server
 			:resource resource)))))
 
+(define-enter-state jabber-connection nil
+  (fsm state-data)
+  ;; `nil' is the error state.  Remove the connection from the list.
+  (setq jabber-connections
+	(delq fsm jabber-connections))
+  ;; Remove lost connections from the roster buffer.
+  (jabber-display-roster)
+  (list nil nil))
+
+;; There is no `define-state' for `nil', since any message received
+;; there is an error.  They will be silently ignored, and only logged
+;; in *fsm-debug*.
+
 (define-state jabber-connection :connecting
   (fsm state-data event callback)
   (case (or (car-safe event) event)
@@ -236,6 +249,10 @@ With prefix argument, register a new account."
        (jabber-pre-filter process string fsm)
        (list :connected state-data)))
 
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil nil))
+
     (:stream-start
      (let ((session-id (cadr event))
 	   (stream-version (car (cddr event))))
@@ -283,12 +300,16 @@ With prefix argument, register a new account."
        (jabber-pre-filter process string fsm)
        (list :starttls state-data)))
 
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil nil))
+
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
 	 ;; Connection is encrypted.  Send a stream tag again.
 	 ;; XXX: note encryptedness of connection.
 	 (list :connected state-data)
-       ;; STARTTLS negotiation failed.
+       (message "STARTTLS negotiation failed")
        (list nil nil)))))
 
 (define-enter-state jabber-connection :legacy-auth
@@ -306,6 +327,10 @@ With prefix argument, register a new account."
        (jabber-pre-filter process string fsm)
        (list :legacy-auth state-data)))
 
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil nil))
+
     (:stanza
      (jabber-process-input fsm (cadr event))
      (list :legacy-auth state-data))
@@ -314,6 +339,7 @@ With prefix argument, register a new account."
      (list :session-established state-data))
 
     (:authentication-failure
+     ;; jabber-logon has already displayed a message
      (list nil nil))))
 
 (define-enter-state jabber-connection :sasl-auth
@@ -336,6 +362,10 @@ With prefix argument, register a new account."
        (jabber-pre-filter process string fsm)
        (list :sasl-auth state-data)))
 
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil nil))
+
     (:stanza
      (let ((new-sasl-data
 	    (jabber-sasl-process-input 
@@ -350,6 +380,7 @@ With prefix argument, register a new account."
      (list :bind (plist-put state-data :sasl-data nil)))
 
     (:authentication-failure
+     ;; jabber-sasl has already displayed a message
      (list nil nil))))
 
 (define-enter-state jabber-connection :bind
@@ -365,6 +396,10 @@ With prefix argument, register a new account."
 	   (string (car (cddr event))))
        (jabber-pre-filter process string fsm)
        (list :bind state-data)))
+
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil nil))
 
     (:stream-start
      ;; we wait for stream features...
@@ -459,8 +494,6 @@ With prefix argument, register a new account."
 		(plist-get state-data :server)
 		(plist-get state-data :resource)
 		string)
-       (setq jabber-connections
-	     (delq fsm jabber-connections))
        (list nil nil)))
 
     (:stanza
