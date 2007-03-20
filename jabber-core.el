@@ -56,12 +56,6 @@
 (defvar *jabber-disconnecting* nil
   "boolean - are we in the process of disconnecting by free will")
 
-(defvar jabber-register-p nil
-  "Register a new account in this session?")
-
-(defvar jabber-register-p nil
-  "Is account registration occurring in this session?")
-
 (defvar jabber-message-chain nil
   "Incoming messages are sent to these functions, in order.")
 
