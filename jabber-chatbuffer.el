@@ -1,6 +1,6 @@
 ;; jabber-chatbuffer.el - functions common to all chat buffers
 
-;; Copyright (C) 2005 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2005, 2007 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -43,6 +43,7 @@ window or at `fill-column', whichever is shorter."
 
 (defvar jabber-buffer-connection nil
   "The connection used by this buffer.")
+(make-variable-buffer-local 'jabber-buffer-connection)
 
 (defun jabber-chat-mode (jc ewoc-pp)
   "\\{jabber-chat-mode-map}"
@@ -50,7 +51,6 @@ window or at `fill-column', whichever is shorter."
   ;; Make sure to set this variable somewhere
   (make-local-variable 'jabber-send-function)
 
-  (make-local-variable 'jabber-buffer-connection)
   (setq jabber-buffer-connection jc)
 
   (make-local-variable 'scroll-conservatively)

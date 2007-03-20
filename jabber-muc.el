@@ -1,7 +1,7 @@
 ;; jabber-muc.el - advanced MUC functions
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -370,7 +370,7 @@ JID; only provide completion as a guide."
 	(insert "No configuration possible.\n")
       
     (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))
-    (set (make-local-variable 'jabber-buffer-connection) jc)
+    (setq 'jabber-buffer-connection jc)
 
     (jabber-render-xdata-form xdata)
 

@@ -1,6 +1,6 @@
 ;;; jabber-export.el --- export Jabber roster to file
 
-;; Copyright (C) 2005  Magnus Henoch
+;; Copyright (C) 2005, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -69,7 +69,6 @@ not affect your actual roster.
 	     (jabber-roster-xml-to-sexp
 	      (car (xml-parse-file file)))))))
     (with-current-buffer (get-buffer-create "Import roster")
-      (make-local-variable 'jabber-buffer-connection)
       (setq jabber-buffer-connection jc)
 
       (jabber-init-widget-buffer nil)

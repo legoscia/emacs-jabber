@@ -124,7 +124,7 @@ on success or failure, respectively."
   (setq bookmarks (delq nil bookmarks))
   (with-current-buffer (get-buffer-create "Edit bookmarks")
     (jabber-init-widget-buffer nil)
-    (set (make-local-variable 'jabber-buffer-connection) jc)
+    (setq jabber-buffer-connection jc)
     
     (widget-insert (jabber-propertize (concat "Edit bookmarks for "
 					      (jabber-connection-bare-jid jc))

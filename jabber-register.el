@@ -1,7 +1,7 @@
 ;; jabber-register.el - registration according to JEP-0077
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -56,7 +56,7 @@
       ;; no such thing here
       (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))))
 
-    (set (make-local-variable 'jabber-buffer-connection) jc)
+    (setq 'jabber-buffer-connection jc)
 
     (widget-insert (if (eq type 'register) "Register with " "Search ") jabber-submit-to "\n\n")
     (when (and (eq type 'register)

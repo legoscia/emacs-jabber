@@ -1,6 +1,6 @@
 ;;; jabber-vcard.el --- vcards according to JEP-0054
 
-;; Copyright (C) 2005  Magnus Henoch
+;; Copyright (C) 2005, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -407,7 +407,7 @@ The top node should be the `vCard' node."
     (with-current-buffer (get-buffer-create "Edit vcard")
       (jabber-init-widget-buffer nil)
 
-      (set (make-local-variable 'jabber-buffer-connection) jc)
+      (setq jabber-buffer-connection jc)
 
       (setq start-position (point))
 
