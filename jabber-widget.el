@@ -1,7 +1,7 @@
 ;; jabber-widget.el - display various kinds of forms
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -91,8 +91,9 @@
   ;; better way.
   (rename-uniquely))
 
-(defun jabber-render-register-form (query)
-  "Display widgets from <query/> element in jabber:iq:{register,search} namespace."
+(defun jabber-render-register-form (query &optional default-username)
+  "Display widgets from <query/> element in jabber:iq:{register,search} namespace.
+DEFAULT-USERNAME is the default value for the username field."
   (make-local-variable 'jabber-widget-alist)
   (setq jabber-widget-alist nil)
   (make-local-variable 'jabber-form-type)
@@ -127,10 +128,9 @@
 	  ;; Special case: when registering a new account, the default
 	  ;; username is the one specified in jabber-username.  Things
 	  ;; will break if the user changes that name, though...
-	  (let ((default-value (if (and jabber-register-p
-					(eq (jabber-xml-node-name field) 'username))
-				   jabber-username
-				 "")))
+	  (let ((default-value (or (when (eq (jabber-xml-node-name field) 'username)
+				     default-username)
+				   "")))
 	    (setq jabber-widget-alist 
 		  (cons
 		   (cons (car entry)

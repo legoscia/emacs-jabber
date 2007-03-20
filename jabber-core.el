@@ -166,11 +166,12 @@ With prefix argument, register a new account."
 
     (push (start-jabber-connection username 
 				   server
-				   resource)
+				   resource
+				   registerp)
 	  jabber-connections)))
 
 (define-state-machine jabber-connection
-  :start ((username server resource)
+  :start ((username server resource &optional registerp)
 	  "Start a Jabber connection."
 	  (let ((connect-function
 		 (jabber-get-connect-function jabber-connection-type))
@@ -182,7 +183,8 @@ With prefix argument, register a new account."
 		  (list :send-function send-function
 			:username username
 			:server server
-			:resource resource)))))
+			:resource resource
+			:registerp registerp)))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
@@ -202,7 +204,7 @@ With prefix argument, register a new account."
   (case (or (car-safe event) event)
     (:connected
      (let ((connection (cadr event))
-	   (registerp nil))	;XXX: fix registration
+	   (registerp (plist-get state-data :registerp)))
      
        ;; TLS connections leave data in the process buffer, which
        ;; the XML parser will choke on.
@@ -215,8 +217,6 @@ With prefix argument, register a new account."
 
        (set-process-filter connection (fsm-make-filter fsm))
        (set-process-sentinel connection (fsm-make-sentinel fsm))
-
-       (setq jabber-register-p registerp)
 
        (list :connected state-data)))
 
@@ -269,7 +269,9 @@ With prefix argument, register a new account."
 	 ;; Stay in same state...
 	 (list :connected state-data))
 	;; Register account?
-	;; XXX: implement later
+	((plist-get state-data :registerp)
+	 ;; XXX: require encryption for registration?
+	 (list :register-account state-data))
 	;; Legacy authentication?
 	(t
 	 (list :legacy-auth (plist-put state-data :session-id session-id))))))
@@ -283,6 +285,12 @@ With prefix argument, register a new account."
        (cond
 	((jabber-xml-get-children stanza 'starttls)
 	 (list :starttls state-data))
+	;; XXX: require encryption for registration?
+	((plist-get state-data :registerp)
+	 ;; We could check for the <register/> element in stream
+	 ;; features, but as a client we would only lose by doing
+	 ;; that.
+	 (list :register-account state-data))
 	(t
 	 (list :sasl-auth (plist-put state-data :stream-features stanza))))))))
 
@@ -311,6 +319,29 @@ With prefix argument, register a new account."
 	 (list :connected state-data)
        (message "STARTTLS negotiation failed")
        (list nil state-data)))))
+
+(define-enter-state jabber-connection :register-account
+  (fsm state-data)
+  (jabber-get-register fsm nil)
+  (list state-data nil))
+
+(define-state jabber-connection :register-account
+  (fsm state-data event callback)
+  ;; The connection will be closed in jabber-register
+  (case (or (car-safe event) event)
+    (:filter
+     (let ((process (cadr event))
+	   (string (car (cddr event))))
+       (jabber-pre-filter process string fsm)
+       (list :register-account state-data)))
+
+    (:sentinel
+     (message "Jabber connection unexpectedly closed")
+     (list nil state-data))
+
+    (:stanza
+     (jabber-process-input fsm (cadr event))
+     (list :register-account state-data))))
 
 (define-enter-state jabber-connection :legacy-auth
   (fsm state-data)
