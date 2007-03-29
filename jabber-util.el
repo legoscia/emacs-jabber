@@ -117,7 +117,7 @@ properties to add to the result."
 Return nil if none found."
   (let ((jid (jabber-connection-bare-jid dead-jc)))
     (dolist (jc jabber-connections)
-      (when (string= jid (jabber-connection-bare-jid))
+      (when (string= jid (jabber-connection-bare-jid jc))
 	(return jc)))))
 
 (defun jabber-jid-username (string)
