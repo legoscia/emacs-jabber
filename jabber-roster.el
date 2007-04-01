@@ -473,10 +473,10 @@ three being lists of JID symbols."
 	   (t
 	    (setq where (ewoc-next ewoc where)))))))))
 
-(define-obsolete-function-alias
-  'jabber-presence-update-roster 'ignore
-  nil "jabber-presence-update-roster is not needed anymore.
+(defalias 'jabber-presence-update-roster 'ignore
+  "jabber-presence-update-roster is not needed anymore.
 Its work is done in `jabber-process-presence'.")
+(make-obsolete 'jabber-presence-update-roster 'ignore)
 
 (defun jabber-go-to-next-jid ()
   "Move the cursor to the next jid in the buffer"
