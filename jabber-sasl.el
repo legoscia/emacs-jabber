@@ -1,6 +1,6 @@
 ;; jabber-sasl.el - SASL authentication
 
-;; Copyright (C) 2004 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2004, 2007 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -33,13 +33,16 @@
 
 (defun jabber-sasl-start-auth (jc stream-features)
   ;; Find a suitable common mechanism.
-  (let* ((mechanisms (car (jabber-xml-get-children stream-features 'mechanisms)))
+  (let* ((mechanism-elements (car (jabber-xml-get-children stream-features 'mechanisms)))
+	 (mechanisms (mapcar
+		      (lambda (tag)
+			(car (jabber-xml-node-children tag)))
+		      (jabber-xml-get-children mechanism-elements 'mechanism)))
 	 (mechanism
-	  (sasl-find-mechanism 
-	   (mapcar
-	    (lambda (tag)
-	      (car (jabber-xml-node-children tag)))
-	    (jabber-xml-get-children mechanisms 'mechanism)))))
+	  (if (and (member "ANONYMOUS" mechanisms)
+		   (yes-or-no-p "Use anonymous authentication? "))
+	      (sasl-find-mechanism '("ANONYMOUS"))
+	    (sasl-find-mechanism mechanisms))))
 
     ;; No suitable mechanism?
     (if (null mechanism)
