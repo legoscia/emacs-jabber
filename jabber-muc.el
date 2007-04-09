@@ -249,6 +249,12 @@ are the corresponding presence fields.
 This function is only concerned with presence stanzas resulting
 in the user entering/staying in the room."
   ;; The keys in the plist are affiliation, role and jid.
+  (when (plist-get new-plist 'jid)
+    ;; nickname is only used for displaying, so we can modify it if we
+    ;; want to.
+    (setq nickname (concat nickname " <" 
+			   (jabber-jid-user (plist-get new-plist 'jid))
+			   ">")))
   (cond
    ((null old-plist)
     ;; User enters the room
@@ -904,27 +910,34 @@ Return nil if X-MUC is nil."
 					    :time (current-time)))))
 		(message "%s: %s" (jabber-jid-displayname group) message))))
 	;; or someone else?
-	(jabber-muc-remove-participant group nickname)
-	(with-current-buffer (jabber-muc-create-buffer jc group)
-	  (jabber-maybe-print-rare-time
-	   (ewoc-enter-last
-	    jabber-chat-ewoc
-	    (list :muc-notice
-		  (cond
-		   ((equal status-code "301")
-		    (concat nickname " has been banned"
-			    (when actor (concat " by " actor))
-			    (when reason (concat " - '" reason "'"))))
-		   ((equal status-code "307")
-		    (concat nickname " has been kicked"
-			    (when actor (concat " by " actor))
-			    (when reason (concat " - '" reason "'"))))
-		   ((equal status-code "303")
-		    (concat nickname " changes nickname to "
-			    (jabber-xml-get-attribute item 'nick)))
-		   (t
-		    (concat nickname " has left the chatroom")))
-		  :time (current-time)))))))
+	(let* ((plist (jabber-muc-participant-plist group nickname))
+	       (jid (plist-get plist 'jid))
+	       (name (concat nickname
+			     (when jid
+			       (concat " <" 
+				       (jabber-jid-user jid)
+				       ">")))))
+	  (jabber-muc-remove-participant group nickname)
+	  (with-current-buffer (jabber-muc-create-buffer jc group)
+	    (jabber-maybe-print-rare-time
+	     (ewoc-enter-last
+	      jabber-chat-ewoc
+	      (list :muc-notice
+		    (cond
+		     ((equal status-code "301")
+		      (concat name " has been banned"
+			      (when actor (concat " by " actor))
+			      (when reason (concat " - '" reason "'"))))
+		     ((equal status-code "307")
+		      (concat name " has been kicked"
+			      (when actor (concat " by " actor))
+			      (when reason (concat " - '" reason "'"))))
+		     ((equal status-code "303")
+		      (concat name " changes nickname to "
+			      (jabber-xml-get-attribute item 'nick)))
+		     (t
+		      (concat name " has left the chatroom")))
+		    :time (current-time))))))))
      (t 
       ;; someone is entering
 
