@@ -1,7 +1,7 @@
 ;; jabber-ahc-presence.el - provide remote control of presence
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -27,7 +27,7 @@
 (jabber-ahc-add jabber-ahc-presence-node "Set presence" 'jabber-ahc-presence
 		'jabber-my-jid-p)
 
-(defun jabber-ahc-presence (xml-data)
+(defun jabber-ahc-presence (jc xml-data)
   "Process presence change command."
 
   (let* ((query (jabber-iq-query xml-data))
@@ -50,7 +50,7 @@
 		 (status . "executing"))
 		(x ((xmlns . "jabber:x:data")
 		    (type . "form"))
-		   (title nil ,(format "Set presence of %s@%s/%s" jabber-username jabber-server jabber-resource))
+		   (title nil ,(format "Set presence of %s" (jabber-connection-jid jc)))
 		   (instructions nil "Select new presence status.")
 		   (field ((var . "FORM_TYPE") (type . "hidden"))
 			  (value nil "http://jabber.org/protocol/rc"))

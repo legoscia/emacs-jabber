@@ -1,7 +1,7 @@
 ;; jabber-disco.el - service discovery functions
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -126,7 +126,7 @@ nil, access is always granted.")
 	     (cons "http://jabber.org/protocol/disco#info" 'jabber-return-disco-info))
 (add-to-list 'jabber-iq-get-xmlns-alist
 	     (cons "http://jabber.org/protocol/disco#items" 'jabber-return-disco-info))
-(defun jabber-return-disco-info (xml-data)
+(defun jabber-return-disco-info (jc xml-data)
   "Respond to a service discovery request.
 See JEP-0030."
   (let* ((to (jabber-xml-get-attribute xml-data 'from))
@@ -148,9 +148,9 @@ See JEP-0030."
 	    (jabber-signal-error "cancel" 'not-allowed)
 	  ;; Access control passed
 	  (let ((result (if (functionp func)
-			    (funcall func xml-data)
+			    (funcall func jc xml-data)
 			  func)))
-	    (jabber-send-iq to "result"
+	    (jabber-send-iq jc to "result"
 			    `(query ((xmlns . ,xmlns)
 				     ,@(when node
 					 (list (cons 'node node))))
@@ -160,7 +160,7 @@ See JEP-0030."
       ;; No such node
       (jabber-signal-error "cancel" 'item-not-found))))
 
-(defun jabber-disco-return-client-info (xml-data)
+(defun jabber-disco-return-client-info (jc xml-data)
   `(
     ;; If running under a window system, this is
     ;; a GUI client.  If not, it is a console client.

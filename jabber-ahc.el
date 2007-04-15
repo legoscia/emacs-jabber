@@ -35,11 +35,12 @@ This is an alist, where the keys are node names as strings (which
 means that they must not conflict).  The values are plists having
 following properties:
 
-acl	- function taking JID as single argument, return non-nil for
-	  access allowed.  No function means open for everyone.
+acl     - function taking connection object and JID of requester,
+	  returning non-nil for access allowed.  No function means
+          open for everyone.
 name	- name of command
-func	- function receiving entire IQ stanza as single argument
-	  and returning a <command/> node
+func	- function taking connection object and entire IQ stanza as 
+          arguments and returning a <command/> node
 
 Use the function `jabber-ahc-add' to add a command to this list.")
 
@@ -77,7 +78,7 @@ access allowed.  nil means open for everyone."
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/commands")
 (add-to-list 'jabber-disco-items-nodes
 	     (list "http://jabber.org/protocol/commands" #'jabber-ahc-disco-items nil))
-(defun jabber-ahc-disco-items (xml-data)
+(defun jabber-ahc-disco-items (jc xml-data)
   "Return commands in response to disco#items request"
   (let ((jid (jabber-xml-get-attribute xml-data 'from)))
     (mapcar (function
@@ -88,15 +89,15 @@ access allowed.  nil means open for everyone."
 		       (name (plist-get plist 'name))
 		       (func (plist-get plist 'func)))
 		   (when (or (not (functionp acl))
-			     (funcall acl jid))
+			     (funcall acl jc jid))
 		     `(item ((name . ,name)
-			     (jid . ,(format "%s@%s/%s" jabber-username jabber-server jabber-resource))
+			     (jid . ,(jabber-connection-jid jc))
 			     (node . ,node))))))))
 	    jabber-ahc-commands)))
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/commands" 'jabber-ahc-process))
-(defun jabber-ahc-process (xml-data)
+(defun jabber-ahc-process (jc xml-data)
 
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id))
@@ -108,10 +109,10 @@ access allowed.  nil means open for everyone."
       (if plist
 	  ;; found
 	  (if (or (not (functionp acl))
-		  (funcall acl to))
+		  (funcall acl jc to))
 	      ;; access control passed
-	      (jabber-send-iq to "result"
-			      (funcall func xml-data)
+	      (jabber-send-iq jc to "result"
+			      (funcall func jc xml-data)
 			      nil nil nil nil id)
 	    ;; ...or failed
 	    (jabber-signal-error "cancel" 'not-allowed))

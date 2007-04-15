@@ -163,10 +163,10 @@ Return nil if none found."
     ;; XXX: "downcase" is poor man's nodeprep.  See XMPP CORE.
     (intern (downcase (jabber-jid-user string)) jabber-jid-obarray)))
 
-(defun jabber-my-jid-p (jid)
+(defun jabber-my-jid-p (jc jid)
   "Return non-nil if the specified JID is equal to the user's JID, modulo resource."
   (equal (jabber-jid-user jid)
-	 (concat jabber-username "@" jabber-server)))
+	 (jabber-connection-bare-jid jc)))
 
 (defun jabber-read-jid-completing (prompt &optional subset require-match default resource)
   "read a jid out of the current roster from the minibuffer.
