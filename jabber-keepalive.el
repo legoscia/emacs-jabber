@@ -1,5 +1,6 @@
 ;; jabber-keepalive.el - try to detect lost connection
 
+;; Copyright (C) 2007 - Detlev Zundel - dzu@gnu.org
 ;; Copyright (C) 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
@@ -42,6 +43,12 @@
 (defvar jabber-keepalive-timeout-timer nil
   "Timer object for keepalive timeout function")
 
+(defvar jabber-keepalive-pending nil
+  "List of outstanding keepalive connections")
+
+(defvar jabber-keepalive-debug nil
+  "Log keepalive traffic when non-nil")
+
 (defun jabber-keepalive-start ()
   "Activate keepalive"
   (interactive)
@@ -64,31 +71,42 @@
     (setq jabber-keepalive-timer nil)))
 
 (defun jabber-keepalive-do ()
-  (message "%s: sending keepalive packet" (current-time-string))
+  (when jabber-keepalive-debug
+    (message "%s: sending keepalive packet(s)" (current-time-string)))
   (setq jabber-keepalive-timeout-timer
 	(run-with-timer jabber-keepalive-timeout
 			nil
 			'jabber-keepalive-timeout))
+  (setq jabber-keepalive-pending jabber-connections)
+  (dolist (c jabber-connections)
+    ;; Whether we get an error or not is not interesting.
+    ;; Getting a response at all is.
+    (jabber-send-iq c jabber-server "get"
+		    '(query ((xmlns . "jabber:iq:time")))
+		    'jabber-keepalive-got-response nil
+		    'jabber-keepalive-got-response nil)))
 
-  ;; Whether we get an error or not is not interesting.
-  ;; Getting a response at all is.
-  (jabber-send-iq jabber-server "get"
-		  '(query ((xmlns . "jabber:iq:time")))
-		  'jabber-keepalive-got-response nil
-		  'jabber-keepalive-got-response nil))
-
-(defun jabber-keepalive-got-response (&rest args)
-  (message "%s: got keepalive response" (current-time-string))
-  (jabber-cancel-timer jabber-keepalive-timeout-timer)
-  (setq jabber-keepalive-timeout-timer nil))
+(defun jabber-keepalive-got-response (jc &rest args)
+  (when jabber-keepalive-debug
+    (message "%s: got keepalive response from %s"
+	     (current-time-string)
+	     (plist-get (fsm-get-state-data jc) :server)))
+  (setq jabber-keepalive-pending (remq jc jabber-keepalive-pending))
+  (when (null jabber-keepalive-pending)
+    (jabber-cancel-timer jabber-keepalive-timeout-timer)
+    (setq jabber-keepalive-timeout-timer nil)))
 
 (defun jabber-keepalive-timeout ()
-  (message "%s: keepalive timeout, connection considered lost" (current-time-string))
   (jabber-cancel-timer jabber-keepalive-timer)
   (setq jabber-keepalive-timer nil)
 
-  (run-hooks jabber-lost-connection-hook)
-  (jabber-disconnect))
+  (dolist (c jabber-keepalive-pending)
+    (message "%s: keepalive timeout, connection to %s considered lost"
+	     (current-time-string)
+	     (plist-get (fsm-get-state-data c) :server))
+
+    (run-hooks jabber-lost-connection-hook)
+    (jabber-disconnect-one c nil)))
 
 (provide 'jabber-keepalive)
 
