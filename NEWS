@@ -1,5 +1,14 @@
 -*- mode: outline -*-
 
+* New features in jabber.el 0.8
+
+** Support for multiple accounts
+(not documented yet)
+
+** Option: hide offline contacts in roster
+See jabber-show-offline-contacts.
+(not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS

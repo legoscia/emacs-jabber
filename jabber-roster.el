@@ -113,6 +113,11 @@ Offline is represented as nil."
 		(const :tag "Always" always))
   :group 'jabber-roster)
 
+(defcustom jabber-show-offline-contacts t
+  "Show offline contacts in roster when non-nil"
+  :type 'boolean
+  :group 'jabber-roster)
+
 (defcustom jabber-remove-newlines t
   "Remove newlines in status messages?
 Newlines in status messages mess up the roster display.  However,
@@ -273,6 +278,12 @@ See `jabber-sort-order' for order used."
 There is only one; we don't rely on buffer-local variables or
 such.")
 
+(defun jabber-roster-filter-display (buddies)
+  "Filter BUDDIES for items to be displayed in the roster"
+  (remove-if-not (lambda (buddy) (or jabber-show-offline-contacts
+				     (get buddy 'connected)))
+		 buddies))
+
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
@@ -333,7 +344,8 @@ C-c C-s  Service menu
 		      "\n__________________________________\n")
 		     "__________________________________")))
 	  (plist-put (fsm-get-state-data jc) :roster-ewoc ewoc)
-	  (dolist (buddy (plist-get (fsm-get-state-data jc) :roster))
+	  (dolist (buddy (jabber-roster-filter-display
+			  (plist-get (fsm-get-state-data jc) :roster)))
 	    (ewoc-enter-last ewoc buddy))
 	  (goto-char (point-max))
 	  (insert "\n")
@@ -452,10 +464,11 @@ three being lists of JID symbols."
 					(member a deleted-items)))))
   
       ;; Now, insert items into ewoc.
-      (let ((to-be-inserted
-	     (sort (append new-items changed-items)
-		   #'jabber-roster-sort-items))
-	    (where (ewoc-nth ewoc 0)))
+      (let* ((to-be-inserted
+	      (sort (jabber-roster-filter-display
+		     (append new-items changed-items))
+		    #'jabber-roster-sort-items))
+	     (where (ewoc-nth ewoc 0)))
 	(while to-be-inserted
 	  (cond
 	   ;; If we are at the end of the ewoc, put all elements there.
