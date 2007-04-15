@@ -1,7 +1,7 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -75,7 +75,7 @@ access allowed.  nil means open for everyone."
 			    (feature ((var . "jabber:x:data")))))))
 
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/commands")
-(add-to-list 'jabber-disco-items-nodes 
+(add-to-list 'jabber-disco-items-nodes
 	     (list "http://jabber.org/protocol/commands" #'jabber-ahc-disco-items nil))
 (defun jabber-ahc-disco-items (xml-data)
   "Return commands in response to disco#items request"
@@ -191,7 +191,7 @@ access allowed.  nil means open for everyone."
 	  (jabber-render-xdata-form xdata)
 
 	  (when (string= status "executing")
-	    (let ((button-titles 
+	    (let ((button-titles
 		   (cond
 		    ((null actions)
 		     '(complete cancel))
