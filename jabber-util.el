@@ -575,17 +575,19 @@ See Info node `(jabber)XMPP URIs'."
     (cond
      ;; Join an MUC.
      ((string= method "join")
-      (jabber-groupchat-join jid (jabber-muc-read-my-nickname jid) t))
+      (jabber-groupchat-join
+       (jabber-read-account) jid (jabber-muc-read-my-nickname jid) t))
      ;; Register with a service.
      ((string= method "register")
-      (jabber-get-register jid))
+      (jabber-get-register (jabber-read-account) jid))
      ;; Run an ad-hoc command
      ((string= method "command")
       ;; XXX: does the 'action' attribute make sense?
-      (jabber-ahc-execute-command jid (cdr (assoc "node" args))))
+      (jabber-ahc-execute-command
+       (jabber-read-account) jid (cdr (assoc "node" args))))
      ;; Everything else: open a chat buffer.
      (t
-      (jabber-chat-with jid)))))
+      (jabber-chat-with (jabber-read-account) jid)))))
 
 (defun url-xmpp (url)
   "Handle XMPP URLs from internal Emacs functions."
