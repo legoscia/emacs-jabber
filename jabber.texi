@@ -180,6 +180,10 @@ Now, try opening a chat with someone.  A buffer named
 Type your message at the end of the buffer, and hit @kbd{RET} to send
 it.  To include a newline in your message, use @kbd{C-j}.
 
+When you receive a message from someone, you will see a red indicator in
+the mode line.  You can click this indicator or type @kbd{C-x C-j C-l}
+to switch to the relevant buffer.
+
 @node Presence, Presence subscription, Chatting, Basic operation
 @section Presence
 
