@@ -1,0 +1,21 @@
+#! /bin/bash -e
+# /usr/lib/emacsen-common/packages/install/emacs-jabber
+
+# Written by Jim Van Zandt <jrv@vanzandt.mv.com>, borrowing heavily
+# from the install scripts for gettext by Santiago Vila
+# <sanvila@ctv.es> and octave by Dirk Eddelbuettel <edd@debian.org>.
+#
+# Patched by Roland Mas <lolando@debian.org> to add support for lists
+# of flavor-dependently included/excluded files
+
+FLAVOR=$1
+STAMPFILE=jabber.elc
+PACKAGE=emacs-jabber
+
+# INCLUDED_emacs20=""
+# INCLUDED_emacs21=""
+# INCLUDED_xemacs21=""
+
+# EXCLUDED_emacs20=""
+# EXCLUDED_emacs21=""
+# EXCLUDED_xemacs21=""
