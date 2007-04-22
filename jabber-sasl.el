@@ -20,9 +20,12 @@
 
 (require 'cl)
 
-;;; This file uses sasl.el from FLIM, and expects to find it.  If it
-;;; can't be found, jabber-core.el catches the error.
-(require 'sasl)
+;;; This file uses sasl.el from FLIM or Gnus.  If it can't be found,
+;;; jabber-core.el won't use the SASL functions.
+(eval-and-compile
+  (condition-case nil
+      (require 'sasl)
+    (error nil)))
 
 ;;; Alternatives to FLIM would be the command line utility of GNU SASL,
 ;;; or anything the Gnus people decide to use.
