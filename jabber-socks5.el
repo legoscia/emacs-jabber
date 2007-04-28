@@ -1,7 +1,7 @@
 ;; jabber-socks5.el - SOCKS5 bytestreams by JEP-0065
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -268,7 +268,7 @@ set; the target waits for one."
      #'jabber-report-success "SOCKS5 negotiation"))
 
   ;; If we're the target, we just wait for an incoming stanza.
-  (list state-data 30))
+  (list state-data nil))
 
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "http://jabber.org/protocol/bytestreams" 'jabber-socks5-process))
