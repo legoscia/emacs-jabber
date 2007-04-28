@@ -1,6 +1,6 @@
 ;;; jabber-compose.el --- compose a Jabber message in a buffer
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 ;; Keywords: 
@@ -23,9 +23,10 @@
 ;;; Code:
 
 ;;;###autoload
-(defun jabber-compose (&optional recipient)
+(defun jabber-compose (jc &optional recipient)
   "Create a buffer for composing a Jabber message."
-  (interactive (list (jabber-read-jid-completing "To whom? ")))
+  (interactive (list (jabber-read-account)
+		     (jabber-read-jid-completing "To whom? ")))
 
   (with-current-buffer (get-buffer-create 
 			(generate-new-buffer-name
@@ -34,6 +35,7 @@
 			  (when recipient
 			    (format "-%s" (jabber-jid-displayname recipient))))))
     (set (make-local-variable 'jabber-widget-alist) nil)
+    (setq jabber-buffer-connection jc)
     (use-local-map widget-keymap)
 
     (insert (jabber-propertize "Compose Jabber message\n" 'face 'jabber-title-large))
@@ -71,7 +73,7 @@
       (error "No recipients specified"))
 
     (dolist (to recipients)
-      (jabber-send-message to subject text nil))
+      (jabber-send-message jabber-buffer-connection to subject text nil))
 
     (bury-buffer)
     (message "Message sent")))

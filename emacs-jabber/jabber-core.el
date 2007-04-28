@@ -29,11 +29,7 @@
 (require 'jabber-conn)
 (require 'fsm)
 
-;; SASL depends on FLIM.
-(eval-and-compile
-  (condition-case nil
-      (require 'jabber-sasl)
-    (error nil)))
+(require 'jabber-sasl)
 
 (defvar jabber-connections nil
   "List of jabber-connection FSMs.")
@@ -119,7 +115,7 @@ problems."
 
 (defsubst jabber-have-sasl-p ()
   "Return non-nil if SASL functions are available."
-  (fboundp 'jabber-sasl-start-auth))
+  (featurep 'sasl))
 
 (defun jabber-connect (username server resource &optional registerp)
   "connect to the jabber server and start a jabber xml stream

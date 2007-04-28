@@ -1,0 +1,44 @@
+Index: jabber-roster.el
+===================================================================
+RCS file: /cvsroot/emacs-jabber/emacs-jabber/jabber-roster.el,v
+retrieving revision 1.45
+diff -p -u -r1.45 jabber-roster.el
+--- jabber-roster.el	15 Apr 2007 23:53:24 -0000	1.45
++++ jabber-roster.el	27 Apr 2007 18:02:24 -0000
+@@ -196,6 +196,7 @@ Trailing newlines are always removed, re
+     (define-key map "a" 'jabber-send-presence)
+     (define-key map "g" 'jabber-display-roster)
+     (define-key map "S" 'jabber-ft-send)
++    (define-key map "o" 'jabber-roster-toggle-offline-display)
+     ;;(define-key map "D" 'jabber-disconnect)
+     map))
+ 
+@@ -273,6 +274,19 @@ See `jabber-sort-order' for order used."
+ 	(setq status (replace-match " " t t status))))
+     status))
+ 
++(defun jabber-roster-filter-display (buddies)
++  "Filter BUDDIES for items to be displayed in the roster"
++  (remove-if-not (lambda (buddy) (or jabber-show-offline-contacts
++				     (get buddy 'connected)))
++		 buddies))
++
++(defun jabber-roster-toggle-offline-display ()
++  "Toggle display of offline contacts."
++  (interactive)
++  (setq jabber-show-offline-contacts
++	(not jabber-show-offline-contacts))
++  (jabber-display-roster))
++
+ (defvar jabber-roster-ewoc nil
+   "Ewoc displaying the roster.
+ There is only one; we don't rely on buffer-local variables or
+@@ -305,7 +319,7 @@ e        Edit item               s      
+ q        Bury buffer             i        Get disco items
+ I        Get disco info          b        Browse
+ j        Join groupchat (MUC)    v        Get client version
+-a        Send presence
++a        Send presence           o        Show offline contacts on/off
+ C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
+ C-c C-i  Info menu               C-c C-r  Roster menu
+ C-c C-s  Service menu
