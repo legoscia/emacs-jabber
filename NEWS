@@ -9,6 +9,10 @@
 See jabber-show-offline-contacts.
 (not documented yet)
 
+** Clean history from chat buffers
+See jabber-clean-top and new option for jabber-alert-muc-hooks.
+(not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS
