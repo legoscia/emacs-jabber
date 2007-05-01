@@ -1,6 +1,6 @@
 ;;; srv.el --- perform SRV DNS requests
 
-;; Copyright (C) 2005  Magnus Henoch
+;; Copyright (C) 2005, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 ;; Keywords: comm
@@ -29,7 +29,9 @@
 
 ;;; Code:
 
-(require 'dns)
+(condition-case nil
+    (require 'dns)
+  (error nil))
 (eval-when-compile (require 'cl))
 
 (defun srv-lookup (target)
@@ -40,6 +42,8 @@ Returns a list with elements of the form (HOST . PORT), where HOST is
 a hostname and PORT is a numeric port.  The caller is supposed to
 make connection attempts in the order given, starting from the beginning
 of the list.  The list is empty if no SRV records were found."
+  (unless (boundp 'dns-query-types)
+    (error "No dns.el available"))
   (unless (assq 'SRV dns-query-types)
     (error "dns.el doesn't support SRV lookups"))
   (let* ((result (query-dns target 'SRV t))
