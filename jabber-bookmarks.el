@@ -134,8 +134,9 @@ on success or failure, respectively."
     (when (or (bound-and-true-p jabber-muc-autojoin)
 	      (bound-and-true-p jabber-muc-default-nicknames))
       (widget-insert "The variables `jabber-muc-autojoin' and/or `jabber-muc-default-nicknames'\n"
-		     "contain values, but they have no effect in this version of jabber.el.\n"
-		     "You may want to import them into your bookmarks.\n")
+		     "contain values.  They are only available to jabber.el on this machine.\n"
+		     "You may want to import them into your bookmarks, to make them available\n"
+		     "to any client on any machine.\n")
       (widget-create 'push-button :notify 'jabber-bookmarks-import "Import values from variables")
       (widget-insert "\n\n"))
 

@@ -48,29 +48,20 @@ Values are lists of nickname strings.")
   "The topic of the current MUC room.")
 
 (defcustom jabber-muc-default-nicknames nil
-  "Obsolete variable.
-Call `jabber-edit-bookmarks' to migrate settings.
-Use `jabber-get-conference-data' in programs."
+  "Default nickname for specific MUC rooms."
   :group 'jabber-chat
   :type '(repeat
 	  (cons :format "%v"
 		(string :tag "JID of room")
 		(string :tag "Nickname"))))
-(make-obsolete-variable 
- 'jabber-muc-default-nicknames
- "Call `jabber-edit-bookmarks' to migrate settings.
-Use `jabber-get-conference-data' in programs.")
 
 (defcustom jabber-muc-autojoin nil
-  "Obsolete variable.
-Call `jabber-edit-bookmarks' to migrate settings.
-Use `jabber-get-conference-data' in programs."
+  "List of MUC rooms to automatically join on connection.
+This list is saved in your Emacs customizations.  You can also store
+such a list on the Jabber server, where it is available to every
+client; see `jabber-edit-bookmarks'."
   :group 'jabber-chat
   :type '(repeat (string :tag "JID of room")))
-(make-obsolete-variable 
- 'jabber-muc-autojoin
- "Call `jabber-edit-bookmarks' to migrate settings.
-Use `jabber-get-conference-data' in programs.")
 
 (defcustom jabber-muc-disable-disco-check nil
   "If non-nil, disable checking disco#info of rooms before joining them.
@@ -695,11 +686,13 @@ group, else it is a JID."
 	  (return t))))))
 
 (defun jabber-muc-autojoin (jc)
-  "Join rooms specified in account bookmarks."
+  "Join rooms specified in account bookmarks and global `jabber-muc-autojoin'."
   (interactive (list (jabber-read-account)))
-  (when (or (bound-and-true-p jabber-muc-autojoin)
-	    (bound-and-true-p jabber-muc-default-nicknames))
-    (warn "`jabber-muc-autojoin' and `jabber-muc-default-nicknames' will not be heeded."))
+  (when (bound-and-true-p jabber-muc-autojoin)
+    (dolist (group jabber-muc-autojoin)
+      (jabber-groupchat-join jc group (or
+				       (cdr (assoc group jabber-muc-default-nicknames))
+				       jabber-nickname))))
   (jabber-get-bookmarks
    jc
    (lambda (jc bookmarks)

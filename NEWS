@@ -13,6 +13,9 @@ See jabber-show-offline-contacts.
 See jabber-clean-top and new option for jabber-alert-muc-hooks.
 (not documented yet)
 
+** MUC bookmarks
+(not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS
