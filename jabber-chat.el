@@ -530,8 +530,8 @@ If DELAYED is true, print long timestamp
 	  (insert (jabber-propertize 
 		   body
 		   'face (case who
-			   (:foreign 'jabber-chat-text-foreign)
-			   (:local 'jabber-chat-text-local))))))
+			   ((:foreign :muc-foreign) 'jabber-chat-text-foreign)
+			   ((:local :muc-local) 'jabber-chat-text-local))))))
       t)))
 
 (defun jabber-chat-print-url (xml-data who mode)
