@@ -196,6 +196,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map "a" 'jabber-send-presence)
     (define-key map "g" 'jabber-display-roster)
     (define-key map "S" 'jabber-ft-send)
+    (define-key map "o" 'jabber-roster-toggle-offline-display)
     ;;(define-key map "D" 'jabber-disconnect)
     map))
 
@@ -284,6 +285,13 @@ such.")
 				     (get buddy 'connected)))
 		 buddies))
 
+(defun jabber-roster-toggle-offline-display ()
+  "Toggle display of offline contacts."
+  (interactive)
+  (setq jabber-show-offline-contacts
+	(not jabber-show-offline-contacts))
+  (jabber-display-roster))
+
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
@@ -305,7 +313,7 @@ e        Edit item               s        Send subscription request
 q        Bury buffer             i        Get disco items
 I        Get disco info          b        Browse
 j        Join groupchat (MUC)    v        Get client version
-a        Send presence
+a        Send presence           o        Show offline contacts on/off
 C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
 C-c C-i  Info menu               C-c C-r  Roster menu
 C-c C-s  Service menu
