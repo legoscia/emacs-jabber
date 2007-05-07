@@ -29,9 +29,11 @@ Sawfish window manager."
   (let ((process-connection-type nil))
     (start-process-shell-command 
      "jabber-sawfish" nil "echo" 
-     (concat "'(progn (display-message \"" 
+     (concat "'(progn (require (quote timers)) (display-message \""
 	     message
-	     "\")(make-timer (lambda () (display-message nil)) 3))' | sawfish-client - &> /dev/null"))))
+	     "\")(make-timer (lambda () (display-message nil)) "
+	     (number-to-string jabber-sawfish-display-time)
+	     "))' | sawfish-client - &> /dev/null"))))
 
 (define-jabber-alert sawfish "Display a message through the Sawfish window manager"
   'jabber-sawfish-display-message)
