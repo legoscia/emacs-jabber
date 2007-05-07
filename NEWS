@@ -10,7 +10,7 @@ See jabber-show-offline-contacts.
 (not documented yet)
 
 ** Clean history from chat buffers
-See jabber-clean-top and new option for jabber-alert-muc-hooks.
+See jabber-truncate-top and new option for jabber-alert-muc-hooks.
 (not documented yet)
 
 ** MUC bookmarks

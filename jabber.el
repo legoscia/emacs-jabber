@@ -104,7 +104,7 @@
 (require 'jabber-vcard-avatars)
 (require 'jabber-autoaway)
 (require 'jabber-time)
-(require 'jabber-clean)
+(require 'jabber-truncate)
 
 (require 'jabber-ft-client)
 (require 'jabber-ft-server)

@@ -24,7 +24,7 @@
 (defvar jabber-log-lines-to-keep 1000
   "Maximum number of lines in chat buffer")
 
-(defun jabber-clean-top ()
+(defun jabber-truncate-top ()
   "Clean old history from a chat buffer.
 `jabber-log-lines-to-keep' specifies the number of lines to
 keep."
@@ -45,14 +45,25 @@ keep."
 		(ewoc-prev jabber-chat-ewoc delete-before)
 	      (ewoc-delete jabber-chat-ewoc delete-before))))))
 
-(defun jabber-clean-muc (nick group buffer text proposed-alert)
+(defun jabber-truncate-muc (nick group buffer text proposed-alert)
   "Clean old history from MUC buffers.
 `jabber-log-lines-to-keep' specifies the number of lines to
 keep."
-  (jabber-clean-top))
+  (jabber-truncate-top))
 
-(pushnew 'jabber-clean-muc (get 'jabber-alert-muc-hooks 'custom-options))
+(defun jabber-truncate-chat (from buffer text proposed-alert)
+  "Clean old history from chat buffers.
+`jabber-log-lines-to-keep' specifies the number of lines to
+keep.
 
-(provide 'jabber-clean)
+Note that this might interfer with
+`jabber-chat-display-more-backlog': you ask for more history, you
+get it, and then it just gets deleted."
+  (jabber-truncate-top))
+
+(pushnew 'jabber-truncate-muc (get 'jabber-alert-muc-hooks 'custom-options))
+(pushnew 'jabber-truncate-chat (get 'jabber-alert-message-hooks 'custom-options))
+
+(provide 'jabber-truncate)
 
 ;; arch-tag: 3d1e3428-f598-11db-a314-000a95c2fcd0
