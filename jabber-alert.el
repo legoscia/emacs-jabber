@@ -1,7 +1,7 @@
 ;; jabber-alert.el - alert hooks
 
+;; Copyright (C) 2003, 2004, 2005, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004, 2005 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -281,6 +281,7 @@ Examples:
 (require 'jabber-sawfish)
 (require 'jabber-festival)
 (require 'jabber-xmessage)
+(require 'jabber-wmii)
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)
