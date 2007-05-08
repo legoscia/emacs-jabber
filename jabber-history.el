@@ -1,7 +1,7 @@
 ;; jabber-history.el - recording message history
 
+;; Copyright (C) 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2004 - Mathias Dahl
-;; Copyright (C) 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -241,6 +241,48 @@ applies, though."
    (concat "^" (regexp-quote (jabber-jid-user jid)) "\\(/.*\\)?$")
    (jabber-history-filename jid)))
 
+(defun jabber-history-move-to-per-user ()
+  "Migrate global history to per-user files."
+  (interactive)
+  (when (file-directory-p jabber-history-dir)
+    (error "Per-user history directory already exists"))
+  (make-directory jabber-history-dir)
+  (let ((jabber-use-global-history nil))
+    (with-temp-buffer
+      (let ((coding-system-for-read 'utf-8))
+	(insert-file-contents jabber-global-history-filename))
+      (let ((progress-reporter
+	     (when (fboundp 'make-progress-reporter)
+	       (make-progress-reporter "Migrating history..."
+				       (point-min) (point-max))))
+	    ;;(file-table (make-hash-table :test 'equal))
+	    ;; Keep track of blocks of entries pertaining to the same JID.
+	    current-jid jid-start)
+	(while (not (eobp))
+	  (let* ((start (point))
+		 (end (progn (forward-line) (point)))
+		 (line (buffer-substring start end))
+		 (parsed (car (read-from-string line)))
+		 (jid (if (string= (aref parsed 2) "me")
+			  (aref parsed 3)
+			(aref parsed 2))))
+	    ;; Whenever there is a change in JID...
+	    (when (not (equal jid current-jid))
+	      (when current-jid
+		;; ...save data for previous JID...
+		(let ((history-file (jabber-history-filename current-jid)))
+		  (write-region jid-start start history-file t 'quiet)))
+	      ;; ...and switch to new JID.
+	      (setq current-jid jid)
+	      (setq jid-start start))
+	    (when (fboundp 'progress-reporter-update)
+	      (progress-reporter-update progress-reporter (point)))))
+	;; Finally, save the last block, if any.
+	(when current-jid
+	  (let ((history-file (jabber-history-filename current-jid)))
+	    (write-region jid-start (point-max) history-file t 'quiet))))))
+  (message "Done.  Please change `jabber-use-global-history' now."))
+	
 (provide 'jabber-history)
 
 ;; arch-tag: 0AA0C235-3FC0-11D9-9FE7-000A95C2FCD0
