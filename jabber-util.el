@@ -24,13 +24,25 @@
 (defvar jabber-jid-history nil
   "History of entered JIDs")
 
+;; Define `jabber-replace-in-string' somehow.
 (cond
- ((fboundp 'replace-in-string)
-  (defsubst jabber-replace-in-string (str regexp newtext)
-    (replace-in-string str regexp newtext t)))
+ ;; Emacs 21 has replace-regexp-in-string.
  ((fboundp 'replace-regexp-in-string)
   (defsubst jabber-replace-in-string (str regexp newtext)
-    (replace-regexp-in-string regexp newtext str t t))))
+    (replace-regexp-in-string regexp newtext str t t)))
+ ;; XEmacs has replace-in-string.  However, color-theme defines it as
+ ;; well on Emacs 2x, so this check must be last.
+ ((fboundp 'replace-in-string)
+  ;; And the version in color-theme takes only three arguments.  Check
+  ;; just to be sure.
+  (condition-case nil
+      (replace-in-string "foobar" "foo" "bar" t)
+    (wrong-number-of-arguments
+     (error "`replace-in-string' doesn't accept fourth argument")))
+  (defsubst jabber-replace-in-string (str regexp newtext)
+    (replace-in-string str regexp newtext t)))
+ (t
+  (error "No implementation of `jabber-replace-in-string' available")))
 
 ;;; XEmacs compatibility.  Stolen from ibuffer.el
 (if (fboundp 'propertize)
