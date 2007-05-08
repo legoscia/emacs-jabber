@@ -543,6 +543,7 @@ The top node should be the `vCard' node."
 		    #'jabber-report-success "Changing vCard")
     (when (bound-and-true-p jabber-vcard-avatars-publish)
       (jabber-vcard-avatars-update-current
+       jabber-buffer-connection
        (and jabber-vcard-photo (avatar-sha1-sum jabber-vcard-photo))))))
 
 (provide 'jabber-vcard)
