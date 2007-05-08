@@ -445,7 +445,9 @@ BUDDY is a JID symbol."
 				  (or (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-faces))
 				      'jabber-roster-user-online)
 				  'jabber-jid
-				  (format "%s/%s" (symbol-name buddy) (car resource)))
+				  (format "%s/%s" (symbol-name buddy) (car resource))
+				  'jabber-account
+				  jc)
 				 resource-str)
 	    (insert "\n" resource-str)))))))
 
