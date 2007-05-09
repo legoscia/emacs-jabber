@@ -1,7 +1,7 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070428
+%define cvsdate 20070509
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -15,15 +15,14 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
 Source: %name-%cvsdate.tar.gz
 Source1: %pkg_name-emacs.el
-Patch1: %pkg_name-roster.el-toggle-offline.patch
 
 BuildArch: noarch
-Requires: emacs-common emacs-gnus
+Requires: emacs-common emacs-gnus >= 5.10
 
 BuildPreReq: emacs-devel >= 0.0.1-alt2
 
 BuildPreReq: emacs-common
-BuildPreReq: emacs-gnus
+BuildPreReq: emacs-gnus >= 5.10
 
 %description
 jabber.el is a minimal Jabber client running under Emacs.
@@ -45,7 +44,6 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name
-%patch1 -p0
 
 %build
 makeinfo jabber.texi
@@ -86,7 +84,11 @@ makeinfo jabber.texi
 
 
 %changelog
-* Sat Apr 28 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-20070428
+* Wed May  9 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070509
+- git-20070509 (git://git.catap.ru/emacs-jabber)
+- Patch1 removed (merged in upstream)
+
+* Sat Apr 28 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070428
 - Patch1 added
 
 * Sat Apr 28 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070428
