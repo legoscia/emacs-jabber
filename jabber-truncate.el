@@ -1,4 +1,4 @@
-;; jabber-clean.el - cleanup top lines in chatbuffers
+;; jabber-truncate.el - cleanup top lines in chatbuffers
 
 ;; Copyright (C) 2007 - Kirill A. Korinskiy - catap@catap.ru
 
