@@ -1,7 +1,7 @@
 ;; jabber-ft-server.el - handle incoming file transfers, by JEP-0096
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -27,6 +27,9 @@
 
 (defvar jabber-ft-size nil
   "Size of the file that is being downloaded")
+
+(defvar jabber-ft-md5-hash nil
+  "MD5 hash of the file that is being downloaded")
 
 (add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si/profile/file-transfer")
 
@@ -78,8 +81,10 @@
 	(if (fboundp 'set-buffer-multibyte)
 	    (set-buffer-multibyte nil))
 	(set-visited-file-name file-name t)
-	(make-local-variable 'jabber-ft-size)
-	(setq jabber-ft-size (string-to-number size)))
+	(set (make-local-variable 'jabber-ft-size) 
+	     (string-to-number size))
+	(set (make-local-variable 'jabber-ft-md5-hash)
+	     md5-hash))
       (add-to-list 'jabber-ft-sessions
 		   (cons (list si-id from) buffer)))
       
@@ -107,7 +112,17 @@
       (if (and data (< (buffer-size) jabber-ft-size))
 	  t
 	(basic-save-buffer)
-	(message "%s downloaded" (file-name-nondirectory buffer-file-name))
+	(if (and jabber-ft-md5-hash
+		 (let ((file-hash (jabber-ft-get-md5 buffer-file-name)))
+		   (and file-hash
+			(not (string= file-hash jabber-ft-md5-hash)))))
+	    ;; hash mismatch!
+	    (progn
+	      (message "%s downloaded - CHECKSUM MISMATCH!"
+		       (file-name-nondirectory buffer-file-name))
+	      (sleep-for 5))
+	  ;; all is fine
+	  (message "%s downloaded" (file-name-nondirectory buffer-file-name)))
 	(kill-buffer buffer)
 	nil))))
 
