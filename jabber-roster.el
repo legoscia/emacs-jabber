@@ -1,7 +1,7 @@
 ;; jabber-roster.el - displaying the roster    -*- coding: utf-8; -*-
 
-;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
 
@@ -496,9 +496,9 @@ three being lists of JID symbols."
 	   (t
 	    (setq where (ewoc-next ewoc where)))))))))
 
-(defalias 'jabber-presence-update-roster 'ignore
-  "jabber-presence-update-roster is not needed anymore.
-Its work is done in `jabber-process-presence'.")
+(defalias 'jabber-presence-update-roster 'ignore)
+;;jabber-presence-update-roster is not needed anymore.
+;;Its work is done in `jabber-process-presence'."
 (make-obsolete 'jabber-presence-update-roster 'ignore)
 
 (defun jabber-go-to-next-jid ()
