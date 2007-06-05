@@ -125,7 +125,9 @@ Jabber history files."
   loggin strategy is used or the global history filename."
   (if jabber-use-global-history
       jabber-global-history-filename
-    (concat jabber-history-dir "/" (jabber-jid-user contact))))
+    ;; jabber-jid-symbol is the best canonicalization we have.
+    (concat jabber-history-dir 
+	    "/" (symbol-name (jabber-jid-symbol contact)))))
 
 (defun jabber-history-log-message (direction from to body timestamp)
   "Log a message"
