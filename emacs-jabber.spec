@@ -1,10 +1,10 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070509
+%define cvsdate 20070606
 
 Version: 0.8
-Release: alt0.%cvsdate
+Release: alt0.%cvsdate.1
 Name: emacs-%pkg_name
 Copyright: GPL
 Group: Editors
@@ -15,6 +15,7 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
 Source: %name-%cvsdate.tar.gz
 Source1: %pkg_name-emacs.el
+Patch1: jabber-iq.el-browse-buffer-format.patch
 
 BuildArch: noarch
 Requires: emacs-common emacs-gnus >= 5.10
@@ -44,6 +45,7 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name
+%patch1 -p1 -b .orig
 
 %build
 makeinfo jabber.texi
@@ -84,6 +86,12 @@ makeinfo jabber.texi
 
 
 %changelog
+* Thu Jul 12 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070606.1
+- Patch1 added
+
+* Wed Jun  6 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070606
+- cvs-20070606
+
 * Wed May  9 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070509
 - git-20070509 (git://git.catap.ru/emacs-jabber)
 - Patch1 removed (merged in upstream)
