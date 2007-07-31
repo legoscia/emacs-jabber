@@ -216,8 +216,10 @@ bring up menus of actions.
 
 (put 'jabber-roster-mode 'mode-class 'special)
 
-(defun jabber-switch-to-roster-buffer ()
-  "Switch to roster buffer."
+(defun jabber-switch-to-roster-buffer (&optional jc)
+  "Switch to roster buffer.
+Optional JC argument is ignored; it's there so this function can
+be used in `jabber-post-connection-hooks'."
   (interactive)
   (switch-to-buffer jabber-roster-buffer))
 
