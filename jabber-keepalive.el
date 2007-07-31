@@ -49,8 +49,11 @@
 (defvar jabber-keepalive-debug nil
   "Log keepalive traffic when non-nil")
 
-(defun jabber-keepalive-start ()
-  "Activate keepalive"
+(defun jabber-keepalive-start (&optional jc)
+  "Activate keepalive.
+The JC argument makes it possible to add this function to
+`jabber-post-connect-hooks'; it is ignored.  Keepalive is activated
+for all accounts regardless of the argument."
   (interactive)
 
   (when jabber-keepalive-timer
@@ -62,7 +65,7 @@
 			'jabber-keepalive-do))
   (add-hook 'jabber-post-disconnect-hook 'jabber-keepalive-stop))
 
-(defun jabber-keepalive-stop()
+(defun jabber-keepalive-stop ()
   "Deactivate keepalive"
   (interactive)
 
