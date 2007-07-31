@@ -16,6 +16,10 @@ See jabber-truncate-top and new option for jabber-alert-muc-hooks.
 ** MUC bookmarks
 (not documented yet)
 
+** Name of browse buffers customizable
+See jabber-browse-buffer-format.
+(not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS

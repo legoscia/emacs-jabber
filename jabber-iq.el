@@ -1,7 +1,7 @@
 ;; jabber-iq.el - infoquery functions
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -42,6 +42,18 @@
   "Hook run when entering Browse mode."
   :group 'jabber
   :type 'hook)
+
+(defgroup jabber-browse nil "browse display options"
+  :group 'jabber)
+
+(defcustom jabber-browse-buffer-format "*-jabber-browse:-%n-*"
+  "The format specification for the name of browse buffers.
+
+These fields are available at this moment:
+
+%n   JID to browse"
+  :type 'string
+  :group 'jabber-browse)
 
 (defun jabber-browse-mode ()
 "\\{jabber-browse-mode-map}"
@@ -152,7 +164,8 @@ See section 9.3 of XMPP Core."
   (let ((from (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
 	(xmlns (jabber-iq-xmlns xml-data))
 	(type (jabber-xml-get-attribute xml-data 'type)))
-    (with-current-buffer (get-buffer-create (concat "*-jabber-browse-:-" from "-*"))
+    (with-current-buffer (get-buffer-create (format-spec jabber-browse-buffer-format
+                                                         (list (cons ?n from))))
       (if (not (eq major-mode 'jabber-browse-mode))
 	  (jabber-browse-mode))
 
