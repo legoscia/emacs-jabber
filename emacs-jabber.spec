@@ -1,7 +1,7 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070606
+%define cvsdate 20070804
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -13,7 +13,7 @@ Summary: A minimal jabber client for Emacs
 
 Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
-Source: %name-%cvsdate.tar.gz
+Source: %name-%version.tar.bz2
 Source1: %pkg_name-emacs.el
 
 BuildArch: noarch
@@ -43,7 +43,7 @@ You need to install %name-el only if you intend to modify any of the
 
 
 %prep
-%setup -qn %name
+%setup -qn %name-%version
 
 %build
 makeinfo jabber.texi
@@ -84,6 +84,12 @@ makeinfo jabber.texi
 
 
 %changelog
+* Sat Aug  4 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070804
+- Patch1 removed (merged in upstream)
+
+* Thu Jul 12 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070606.1
+- Patch1 added
+
 * Wed Jun  6 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070606
 - cvs-20070606
 

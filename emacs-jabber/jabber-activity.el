@@ -293,17 +293,23 @@ when there are unread messages which otherwise would be lost, if
 
 ;;; Interactive functions
 
+(defvar jabber-activity-last-buffer nil
+  "Last non-Jabber buffer used.")
+
 (defun jabber-activity-switch-to (&optional jid-param)
   "If JID-PARAM is provided, switch to that buffer.  If JID-PARAM is nil and
 there has been activity in another buffer, switch to that buffer.  If no such
-buffer exists, switch back to most recently used buffer."
-  (interactive)
-  (if (or jid-param jabber-activity-jids)
-      (let ((jid (or jid-param (car jabber-activity-jids))))
-	(switch-to-buffer (jabber-activity-find-buffer-name jid))
-	(jabber-activity-clean))
-    ;; Switch back to the buffer used last
-    (switch-to-buffer nil)))
+buffer exists, switch back to the last non Jabber chat buffer used."
+    (interactive)
+    (if (or jid-param jabber-activity-jids)
+        (let ((jid (or jid-param (car jabber-activity-jids))))
+          (unless (eq major-mode 'jabber-chat-mode)
+            (setq jabber-activity-last-buffer (current-buffer)))
+          (switch-to-buffer (jabber-activity-find-buffer-name jid))
+          (jabber-activity-clean))
+      ;; Switch back to the buffer used last
+      (when (buffer-live-p jabber-activity-last-buffer)
+	(switch-to-buffer jabber-activity-last-buffer))))
 
 ;;;###autoload
 (define-minor-mode jabber-activity-mode
