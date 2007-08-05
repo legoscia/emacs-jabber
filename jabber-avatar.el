@@ -71,8 +71,8 @@ Retrieves the image to find info about it."
   (let ((data (with-temp-buffer
 		(insert-file-contents-literally filename)
 		(buffer-string)))
-	(mime-type (progn (string-match "\\.[^.]+$" filename)
-			  (mailcap-extension-to-mime (match-string 0 filename)))))
+	(mime-type (when (string-match "\\.[^.]+$" filename)
+		     (mailcap-extension-to-mime (match-string 0 filename)))))
     (jabber-avatar-from-data data nil mime-type)))
 
 (defun jabber-avatar-from-base64-string (base64-string &optional mime-type)
