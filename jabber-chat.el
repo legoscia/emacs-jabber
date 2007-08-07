@@ -207,7 +207,7 @@ Either a string or a buffer is returned, so use `get-buffer' or
 	       (list
 		(cons ?n (jabber-jid-displayname chat-with))
 		(cons ?j (jabber-jid-user chat-with))
-		(cons ?r (jabber-jid-resource chat-with)))))
+		(cons ?r (or (jabber-jid-resource chat-with) "")))))
 
 (defun jabber-chat-create-buffer (jc chat-with)
   "Prepare a buffer for chatting with CHAT-WITH.
