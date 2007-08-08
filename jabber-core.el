@@ -273,7 +273,8 @@ With prefix argument, register a new account."
 	 (error "Unexpected stanza %s" stanza))
 
        (cond
-	((jabber-xml-get-children stanza 'starttls)
+	((and (jabber-xml-get-children stanza 'starttls)
+	      (eq jabber-connection-type 'starttls))
 	 (list :starttls state-data))
 	;; XXX: require encryption for registration?
 	((plist-get state-data :registerp)
