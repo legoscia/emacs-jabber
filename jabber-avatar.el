@@ -1,6 +1,6 @@
 ;;; jabber-avatar.el --- generic functions for avatars
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -161,15 +161,17 @@ If there is no cached image, return nil."
     (unless (file-directory-p jabber-avatar-cache-directory)
       (make-directory jabber-avatar-cache-directory))
 
-    (with-current-buffer buffer
-      (let ((require-final-newline nil))
-	(setq buffer-file-coding-system 'binary)
-	(if (fboundp 'set-buffer-multibyte)
-	    (set-buffer-multibyte nil))
-	(set-visited-file-name filename t)
-	(insert base64-data)
-	(base64-decode-region (point-min) (point-max))
-	(basic-save-buffer)))
+    (if (file-exists-p filename)
+	(message "Caching avatar, but %s already exists" filename)
+      (with-current-buffer buffer
+	(let ((require-final-newline nil))
+	  (setq buffer-file-coding-system 'binary)
+	  (if (fboundp 'set-buffer-multibyte)
+	      (set-buffer-multibyte nil))
+	  (set-visited-file-name filename t)
+	  (insert base64-data)
+	  (base64-decode-region (point-min) (point-max))
+	  (basic-save-buffer))))
     (kill-buffer buffer)))
 
 ;;;; Set avatar for contact
