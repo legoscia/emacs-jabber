@@ -1,6 +1,6 @@
 ;;; jabber-vcard-avatars.el --- Avatars by JEP-0153
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -59,25 +59,32 @@ Keys are full JIDs.")
 	    ;; Avatar is cached
 	    (jabber-avatar-set from sha1-hash)
 	  ;; Avatar is not cached; retrieve it
-	  (jabber-vcard-avatars-fetch jc from))))))
+	  (jabber-vcard-avatars-fetch jc from sha1-hash))))))
 
-(defun jabber-vcard-avatars-vcard (jc iq from)
-  "Get the photo from the vCard, and set the avatar."
-  (let ((photo (assq 'PHOTO (jabber-vcard-parse (jabber-iq-query iq)))))
-    (if photo
-	(let ((avatar (jabber-avatar-from-base64-string (nth 2 photo)
-							(nth 1 photo))))
-	  (jabber-avatar-cache avatar)
-	  (jabber-avatar-set from avatar))
-      (jabber-avatar-set from nil))))
-
-(defun jabber-vcard-avatars-fetch (jc who)
+(defun jabber-vcard-avatars-fetch (jc who sha1-hash)
   "Fetch WHO's vCard, and extract avatar."
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "Fetch whose vCard avatar: ")))
   (jabber-send-iq jc who "get" '(vCard ((xmlns . "vcard-temp")))
-		  #'jabber-vcard-avatars-vcard who
+		  #'jabber-vcard-avatars-vcard (cons who sha1-hash)
 		  #'ignore nil))
+
+(defun jabber-vcard-avatars-vcard (jc iq closure)
+  "Get the photo from the vCard, and set the avatar."
+  (let ((from (car closure))
+	(sha1-hash (cdr closure))
+	(photo (assq 'PHOTO (jabber-vcard-parse (jabber-iq-query iq)))))
+    (if photo
+	(let ((avatar (jabber-avatar-from-base64-string (nth 2 photo)
+							(nth 1 photo))))
+	  (unless (string= sha1-hash (avatar-sha1-sum avatar))
+	    (message "%s's avatar should have SHA1 sum %s, but has %s"
+		     (jabber-jid-displayname from)
+		     sha1-hash
+		     (avatar-sha1-sum avatar)))
+	  (jabber-avatar-cache avatar)
+	  (jabber-avatar-set from avatar))
+      (jabber-avatar-set from nil))))
 
 (add-hook 'jabber-post-connect-hooks 'jabber-vcard-avatars-find-current)
 (defun jabber-vcard-avatars-find-current (jc)
