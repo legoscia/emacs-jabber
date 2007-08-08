@@ -78,10 +78,11 @@ Keys are full JIDs.")
 	(let ((avatar (jabber-avatar-from-base64-string (nth 2 photo)
 							(nth 1 photo))))
 	  (unless (string= sha1-hash (avatar-sha1-sum avatar))
-	    (message "%s's avatar should have SHA1 sum %s, but has %s"
-		     (jabber-jid-displayname from)
-		     sha1-hash
-		     (avatar-sha1-sum avatar)))
+	    (when jabber-avatar-verbose
+	      (message "%s's avatar should have SHA1 sum %s, but has %s"
+		       (jabber-jid-displayname from)
+		       sha1-hash
+		       (avatar-sha1-sum avatar))))
 	  (jabber-avatar-cache avatar)
 	  (jabber-avatar-set from avatar))
       (jabber-avatar-set from nil))))

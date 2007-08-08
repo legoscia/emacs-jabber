@@ -45,6 +45,11 @@
   :group 'jabber-avatar
   :type 'directory)
 
+(defcustom jabber-avatar-verbose nil
+  "Display messages about irregularities with other people's avatars."
+  :group 'jabber-avatar
+  :type 'boolean)
+
 ;;;; Avatar data handling
 
 (defstruct avatar sha1-sum mime-type url base64-data height width bytes)
@@ -162,7 +167,8 @@ If there is no cached image, return nil."
       (make-directory jabber-avatar-cache-directory))
 
     (if (file-exists-p filename)
-	(message "Caching avatar, but %s already exists" filename)
+	(when jabber-avatar-verbose
+	  (message "Caching avatar, but %s already exists" filename))
       (with-current-buffer buffer
 	(let ((require-final-newline nil))
 	  (setq buffer-file-coding-system 'binary)
