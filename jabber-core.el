@@ -181,8 +181,22 @@ With prefix argument, register a new account."
   ;; `nil' is the error state.  Remove the connection from the list.
   (setq jabber-connections
 	(delq fsm jabber-connections))
+  ;; Close the network connection.
+  (let ((connection (plist-get state-data :connection)))
+    (when (processp connection)
+      (delete-process connection)))
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
+  (let ((expected (plist-get state-data :disconnection-expected))
+	(reason (plist-get state-data :disconnection-reason)))
+    (unless expected
+      (run-hooks 'jabber-lost-connection-hook)
+      (message "%s@%s/%s: connection lost: `%s'"
+	       (plist-get state-data :username)
+	       (plist-get state-data :server)
+	       (plist-get state-data :resource)
+	       reason)))
+
   (list state-data nil))
 
 ;; There is no `define-state' for `nil', since any message received
@@ -212,7 +226,18 @@ With prefix argument, register a new account."
 
     (:connection-failed
      (message "Jabber connection failed")
-     (list nil state-data))))
+     (list nil state-data))
+
+    (:do-disconnect
+     ;; We don't have the connection object, so defer the disconnection.
+     :defer)))
+
+(defsubst jabber-fsm-handle-sentinel (state-data event)
+  "Handle sentinel event for jabber fsm."
+  ;; We do the same thing for every state, so avoid code duplication.
+  (let ((string (car (cddr event))))
+    (list nil (plist-put state-data
+			 :disconnection-reason string))))  
 
 (define-enter-state jabber-connection :connected
   (fsm state-data)
@@ -240,8 +265,7 @@ With prefix argument, register a new account."
        (list :connected state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stream-start
      (let ((session-id (cadr event))
@@ -283,7 +307,12 @@ With prefix argument, register a new account."
 	 ;; that.
 	 (list :register-account state-data))
 	(t
-	 (list :sasl-auth (plist-put state-data :stream-features stanza))))))))
+	 (list :sasl-auth (plist-put state-data :stream-features stanza))))))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :starttls
   (fsm state-data)
@@ -300,8 +329,7 @@ With prefix argument, register a new account."
        (list :starttls state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
@@ -327,8 +355,7 @@ With prefix argument, register a new account."
        (list :register-account state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (jabber-process-input fsm (cadr event))
@@ -350,8 +377,7 @@ With prefix argument, register a new account."
        (list :legacy-auth state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (jabber-process-input fsm (cadr event))
@@ -385,8 +411,7 @@ With prefix argument, register a new account."
        (list :sasl-auth state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (let ((new-sasl-data
@@ -420,8 +445,7 @@ With prefix argument, register a new account."
        (list :bind state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stream-start
      ;; we wait for stream features...
@@ -508,25 +532,20 @@ With prefix argument, register a new account."
        (list :session-established state-data)))
 
     (:sentinel
-     (let ((process (cadr event))
-	   (string (car (cddr event))))
-       (run-hooks 'jabber-lost-connection-hook)
-       (message "%s@%s/%s: connection lost: `%s'"
-		(plist-get state-data :username)
-		(plist-get state-data :server)
-		(plist-get state-data :resource)
-		string)
-       (list nil state-data)))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (jabber-process-input fsm (cadr event))
-     (list :session-established state-data))))
+     (list :session-established state-data))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (defun jabber-disconnect ()
   "Disconnect from all Jabber servers."
   (interactive)
-  ;; XXX: this function is slightly out of sync with the rest of the
-  ;; FSM remake.
   (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
       (dolist (c jabber-connections)
@@ -535,24 +554,17 @@ With prefix argument, register a new account."
 
       (jabber-disconnected)
       (when (interactive-p)
-	(message "Disconnected from Jabber server")))))
+	(message "Disconnected from Jabber server(s)")))))
 
 (defun jabber-disconnect-one (jc &optional dont-redisplay)
   "Disconnect from one Jabber server.
 If DONT-REDISPLAY is non-nil, don't update roster buffer."
   (interactive (list (jabber-read-account)))
   ;;(run-hooks 'jabber-pre-disconnect-hook)
-  (let ((process (plist-get
-		  (fsm-get-state-data jc)
-		  :connection)))
-    (when (and process
-	       (memq (process-status process) '(open run)))
-      (jabber-send-string jc "</stream:stream>")
-      ;; let the server close the stream
-      (accept-process-output process 3)
-      ;; and do it ourselves as well, just to be sure
-      (delete-process process)))
-  (setq jabber-connections (remq jc jabber-connections))
+  (fsm-send-sync jc :do-disconnect)
+  (when (interactive-p)
+    (message "Disconnected from %s"
+	     (jabber-connection-jid jc)))
   (unless dont-redisplay
     (jabber-display-roster)))
 
