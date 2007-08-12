@@ -1,6 +1,6 @@
 ;;; fsm.el --- state machine library
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 ;; Version: 0.1ttn4
@@ -368,9 +368,11 @@ CALLBACK with the response as only argument."
 	    (plist-put (cddr fsm) :deferred
                        (cons (list event callback) deferred))))
 	 ((null result)
-	  (fsm-debug-output "Warning: event %S ignored in state %s" event state))
+	  (fsm-debug-output "Warning: event %S ignored in state %s/%s" event fsm-name state))
 	 ((eq (car-safe result) :error-signaled)
-	  (fsm-debug-output "Error: %s" (error-message-string (cdr result))))
+	  (fsm-debug-output "Error in %s/%s: %s"
+			    fsm-name state
+			    (error-message-string (cdr result))))
 	 (t
 	  (destructuring-bind (new-state new-state-data &optional timeout) result
 	    (fsm-update fsm new-state new-state-data timeout))))))))
