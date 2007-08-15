@@ -738,7 +738,10 @@ submit a bug report, including the information below.
 					   (stream:error . jabber-stream-error-chain)))))))
 
     (dolist (f functions)
-      (funcall f jc xml-data))))
+      (condition-case e
+	  (funcall f jc xml-data)
+	((debug error)
+	 (fsm-debug-output "Error %s while processing %s" e xml-data))))))
 
 (defun jabber-process-stream-error (jc xml-data)
   "Process an incoming stream error."
