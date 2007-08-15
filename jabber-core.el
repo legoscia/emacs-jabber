@@ -92,6 +92,16 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'hook
   :group 'jabber-core)
 
+(defcustom jabber-auto-reconnect nil
+  "Reconnect automatically after losing connection?"
+  :type 'boolean
+  :group 'jabber-core)
+
+(defcustom jabber-reconnect-delay 5
+  "Seconds to wait before reconnecting"
+  :type 'integer
+  :group 'jabber-core)
+
 (defcustom jabber-roster-buffer "*-jabber-*"
   "The name of the roster buffer"
   :type 'string
@@ -192,7 +202,13 @@ With prefix argument, register a new account."
 	       (plist-get state-data :username)
 	       (plist-get state-data :server)
 	       (plist-get state-data :resource)
-	       reason)))
+	       reason)
+
+      (when jabber-auto-reconnect
+	(run-with-timer jabber-reconnect-delay nil
+			(plist-get state-data :username)
+			(plist-get state-data :server)
+			(plist-get state-data :resource)))))
 
   (list state-data nil))
 
