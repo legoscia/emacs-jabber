@@ -507,19 +507,21 @@ See secton 9.3, Stanza Errors, of XMPP Core, and JEP-0086, Legacy Errors."
    (cons 'xml-not-well-formed "XML not well formed"))
   "String descriptions of XMPP stream errors")
 
+(defun jabber-stream-error-condition (error-xml)
+  "Return the condition of a <stream:error/> tag."
+  ;; as we don't know the node name of the condition, we have to
+  ;; search for it.
+  (dolist (node (jabber-xml-node-children error-xml))
+    (when (and (string= (jabber-xml-get-attribute node 'xmlns) 
+			"urn:ietf:params:xml:ns:xmpp-streams")
+	       (assq (jabber-xml-node-name node)
+		     jabber-stream-error-messages))
+      (return (jabber-xml-node-name node)))))
+
 (defun jabber-parse-stream-error (error-xml)
   "Parse the given <stream:error/> tag and return a sting fit for human consumption."
   (let ((text-node (car (jabber-xml-get-children error-xml 'text)))
-	condition)
-    ;; as we don't know the node name of the condition, we have to
-    ;; search for it.
-    (dolist (node (jabber-xml-node-children error-xml))
-      (when (and (string= (jabber-xml-get-attribute node 'xmlns) 
-			  "urn:ietf:params:xml:ns:xmpp-streams")
-		 (assq (jabber-xml-node-name node)
-		       jabber-stream-error-messages))
-	(setq condition (jabber-xml-node-name node))
-	(return)))
+	(condition (jabber-stream-error-condition error-xml)))
     (concat (if condition (cdr (assq condition jabber-stream-error-messages))
 	      "Unknown stream error")
 	    (if (and text-node (stringp (car (jabber-xml-node-children text-node))))

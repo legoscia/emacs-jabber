@@ -61,9 +61,6 @@
 (defvar jabber-presence-chain nil
   "Incoming presence notifications are sent to these functions, in order.")
 
-(defvar jabber-stream-error-chain '(jabber-process-stream-error)
-  "Stream errors are sent to these functions, in order")
-
 (defvar jabber-choked-count 0
   "Number of successive times that the process buffer has been nonempty.")
 
@@ -235,9 +232,14 @@ With prefix argument, register a new account."
 (defsubst jabber-fsm-handle-sentinel (state-data event)
   "Handle sentinel event for jabber fsm."
   ;; We do the same thing for every state, so avoid code duplication.
-  (let ((string (car (cddr event))))
-    (list nil (plist-put state-data
-			 :disconnection-reason string))))  
+  (let* ((string (car (cddr event)))
+	 (new-state-data
+	  ;; If we already know the reason (e.g. a stream error), don't
+	  ;; overwrite it.
+	  (if (plist-get state-data :disconnection-reason)
+	      state-data
+	    (plist-put state-data :disconnection-reason string))))
+    (list nil new-state-data)))  
 
 (define-enter-state jabber-connection :connected
   (fsm state-data)
@@ -292,11 +294,12 @@ With prefix argument, register a new account."
 
     (:stanza
      (let ((stanza (cadr event)))
-       ;; At this stage, we only expect a stream:features stanza.
-       (unless (eq (jabber-xml-node-name stanza) 'stream:features)
-	 (error "Unexpected stanza %s" stanza))
-
        (cond
+	;; At this stage, we only expect a stream:features stanza.
+	((not (eq (jabber-xml-node-name stanza) 'stream:features))
+	 (list nil (plist-put state-data
+			      :disconnection-reason
+			      (format "Unexpected stanza %s" stanza))))
 	((and (jabber-xml-get-children stanza 'starttls)
 	      (eq jabber-connection-type 'starttls))
 	 (list :starttls state-data))
@@ -358,8 +361,11 @@ With prefix argument, register a new account."
      (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :register-account state-data))))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :register-account state-data))))))
 
 (define-enter-state jabber-connection :legacy-auth
   (fsm state-data)
@@ -380,8 +386,11 @@ With prefix argument, register a new account."
      (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :legacy-auth state-data))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :legacy-auth state-data))))
 
     (:authentication-success
      (list :session-established state-data))
@@ -453,29 +462,32 @@ With prefix argument, register a new account."
 
     (:stanza
      (let ((stanza (cadr event)))
-     (cond
-      ((eq (jabber-xml-node-name stanza) 'stream:features)
-       (if (and (jabber-xml-get-children stanza 'bind)
-		(jabber-xml-get-children stanza 'session))
-	   (labels
-	       ((handle-bind 
-		 (jc xml-data success)
-		 (fsm-send jc (list
-			       (if success :bind-success :bind-failure)
-			       xml-data))))
-	     ;; So let's bind a resource.  We can either pick a resource ourselves,
-	     ;; or have the server pick one for us.
-	     (jabber-send-iq fsm nil "set"
-			     `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
-				    (resource () ,jabber-resource))
-			     #'handle-bind t
-			     #'handle-bind nil)
-	     (list :bind state-data))
-	 (message "Server doesn't permit resource binding and session establishing")
-	 (list nil state-data)))
-      (t
-       (jabber-process-input fsm (cadr event))
-       (list :bind state-data)))))
+       (cond
+	((eq (jabber-xml-node-name stanza) 'stream:features)
+	 (if (and (jabber-xml-get-children stanza 'bind)
+		  (jabber-xml-get-children stanza 'session))
+	     (labels
+		 ((handle-bind 
+		   (jc xml-data success)
+		   (fsm-send jc (list
+				 (if success :bind-success :bind-failure)
+				 xml-data))))
+	       ;; So let's bind a resource.  We can either pick a resource ourselves,
+	       ;; or have the server pick one for us.
+	       (jabber-send-iq fsm nil "set"
+			       `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+				      (resource () ,jabber-resource))
+			       #'handle-bind t
+			       #'handle-bind nil)
+	       (list :bind state-data))
+	   (message "Server doesn't permit resource binding and session establishing")
+	   (list nil state-data)))
+	(t
+	 (or
+	  (jabber-process-stream-error (cadr event) state-data)
+	  (progn
+	    (jabber-process-input fsm (cadr event))
+	    (list :bind state-data)))))))
 
     (:bind-success
      (let ((jid (jabber-xml-path (cadr event) '(bind jid ""))))
@@ -535,8 +547,11 @@ With prefix argument, register a new account."
      (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :session-established state-data))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :session-established state-data))))
 
     (:do-disconnect
      (jabber-send-string fsm "</stream:stream>")
@@ -734,21 +749,28 @@ submit a bug report, including the information below.
   (let* ((tag (jabber-xml-node-name xml-data))
 	 (functions (eval (cdr (assq tag '((iq . jabber-iq-chain)
 					   (presence . jabber-presence-chain)
-					   (message . jabber-message-chain)
-					   (stream:error . jabber-stream-error-chain)))))))
-
+					   (message . jabber-message-chain)))))))
     (dolist (f functions)
       (condition-case e
 	  (funcall f jc xml-data)
 	((debug error)
 	 (fsm-debug-output "Error %s while processing %s" e xml-data))))))
 
-(defun jabber-process-stream-error (jc xml-data)
-  "Process an incoming stream error."
-  (beep)
-  (run-hooks 'jabber-lost-connection-hook)
-  (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
-  (jabber-disconnect-one jc))
+(defun jabber-process-stream-error (xml-data state-data)
+  "Process an incoming stream error.
+Return nil if XML-DATA is not a stream:error stanza.
+Return an fsm result list if it is."
+  (when (eq (jabber-xml-node-name xml-data) 'stream:error)
+    (let ((condition (jabber-stream-error-condition xml-data))
+	  (text (jabber-parse-stream-error xml-data)))
+      (setq state-data (plist-put state-data :disconnection-reason 
+				  (format "Stream error: %s" text)))
+      ;; Special case: when the error is `conflict', we have been
+      ;; forcibly disconnected by the same user.  Don't reconnect
+      ;; automatically.
+      (when (eq condition 'conflict)
+	(setq state-data (plist-put state-data :disconnection-expected t)))
+      (list nil state-data))))
 
 ;; XXX: This function should probably die.  The roster is stored
 ;; inside the connection plists, and the obarray shouldn't be so big
