@@ -61,9 +61,6 @@
 (defvar jabber-presence-chain nil
   "Incoming presence notifications are sent to these functions, in order.")
 
-(defvar jabber-stream-error-chain '(jabber-process-stream-error)
-  "Stream errors are sent to these functions, in order")
-
 (defvar jabber-choked-count 0
   "Number of successive times that the process buffer has been nonempty.")
 
@@ -93,6 +90,16 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
 (defcustom jabber-post-disconnect-hook nil
   "*Hooks run after disconnection"
   :type 'hook
+  :group 'jabber-core)
+
+(defcustom jabber-auto-reconnect nil
+  "Reconnect automatically after losing connection?"
+  :type 'boolean
+  :group 'jabber-core)
+
+(defcustom jabber-reconnect-delay 5
+  "Seconds to wait before reconnecting"
+  :type 'integer
   :group 'jabber-core)
 
 (defcustom jabber-roster-buffer "*-jabber-*"
@@ -181,8 +188,28 @@ With prefix argument, register a new account."
   ;; `nil' is the error state.  Remove the connection from the list.
   (setq jabber-connections
 	(delq fsm jabber-connections))
+  ;; Close the network connection.
+  (let ((connection (plist-get state-data :connection)))
+    (when (processp connection)
+      (delete-process connection)))
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
+  (let ((expected (plist-get state-data :disconnection-expected))
+	(reason (plist-get state-data :disconnection-reason)))
+    (unless expected
+      (run-hooks 'jabber-lost-connection-hook)
+      (message "%s@%s/%s: connection lost: `%s'"
+	       (plist-get state-data :username)
+	       (plist-get state-data :server)
+	       (plist-get state-data :resource)
+	       reason)
+
+      (when jabber-auto-reconnect
+	(run-with-timer jabber-reconnect-delay nil
+			(plist-get state-data :username)
+			(plist-get state-data :server)
+			(plist-get state-data :resource)))))
+
   (list state-data nil))
 
 ;; There is no `define-state' for `nil', since any message received
@@ -212,7 +239,23 @@ With prefix argument, register a new account."
 
     (:connection-failed
      (message "Jabber connection failed")
-     (list nil state-data))))
+     (list nil state-data))
+
+    (:do-disconnect
+     ;; We don't have the connection object, so defer the disconnection.
+     :defer)))
+
+(defsubst jabber-fsm-handle-sentinel (state-data event)
+  "Handle sentinel event for jabber fsm."
+  ;; We do the same thing for every state, so avoid code duplication.
+  (let* ((string (car (cddr event)))
+	 (new-state-data
+	  ;; If we already know the reason (e.g. a stream error), don't
+	  ;; overwrite it.
+	  (if (plist-get state-data :disconnection-reason)
+	      state-data
+	    (plist-put state-data :disconnection-reason string))))
+    (list nil new-state-data)))  
 
 (define-enter-state jabber-connection :connected
   (fsm state-data)
@@ -240,8 +283,7 @@ With prefix argument, register a new account."
        (list :connected state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stream-start
      (let ((session-id (cadr event))
@@ -268,12 +310,14 @@ With prefix argument, register a new account."
 
     (:stanza
      (let ((stanza (cadr event)))
-       ;; At this stage, we only expect a stream:features stanza.
-       (unless (eq (jabber-xml-node-name stanza) 'stream:features)
-	 (error "Unexpected stanza %s" stanza))
-
        (cond
-	((jabber-xml-get-children stanza 'starttls)
+	;; At this stage, we only expect a stream:features stanza.
+	((not (eq (jabber-xml-node-name stanza) 'stream:features))
+	 (list nil (plist-put state-data
+			      :disconnection-reason
+			      (format "Unexpected stanza %s" stanza))))
+	((and (jabber-xml-get-children stanza 'starttls)
+	      (eq jabber-connection-type 'starttls))
 	 (list :starttls state-data))
 	;; XXX: require encryption for registration?
 	((plist-get state-data :registerp)
@@ -282,7 +326,12 @@ With prefix argument, register a new account."
 	 ;; that.
 	 (list :register-account state-data))
 	(t
-	 (list :sasl-auth (plist-put state-data :stream-features stanza))))))))
+	 (list :sasl-auth (plist-put state-data :stream-features stanza))))))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :starttls
   (fsm state-data)
@@ -299,8 +348,7 @@ With prefix argument, register a new account."
        (list :starttls state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
@@ -326,12 +374,14 @@ With prefix argument, register a new account."
        (list :register-account state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :register-account state-data))))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :register-account state-data))))))
 
 (define-enter-state jabber-connection :legacy-auth
   (fsm state-data)
@@ -349,12 +399,14 @@ With prefix argument, register a new account."
        (list :legacy-auth state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :legacy-auth state-data))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :legacy-auth state-data))))
 
     (:authentication-success
      (list :session-established state-data))
@@ -384,8 +436,7 @@ With prefix argument, register a new account."
        (list :sasl-auth state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
      (let ((new-sasl-data
@@ -419,8 +470,7 @@ With prefix argument, register a new account."
        (list :bind state-data)))
 
     (:sentinel
-     (message "Jabber connection unexpectedly closed")
-     (list nil state-data))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stream-start
      ;; we wait for stream features...
@@ -428,29 +478,32 @@ With prefix argument, register a new account."
 
     (:stanza
      (let ((stanza (cadr event)))
-     (cond
-      ((eq (jabber-xml-node-name stanza) 'stream:features)
-       (if (and (jabber-xml-get-children stanza 'bind)
-		(jabber-xml-get-children stanza 'session))
-	   (labels
-	       ((handle-bind 
-		 (jc xml-data success)
-		 (fsm-send jc (list
-			       (if success :bind-success :bind-failure)
-			       xml-data))))
-	     ;; So let's bind a resource.  We can either pick a resource ourselves,
-	     ;; or have the server pick one for us.
-	     (jabber-send-iq fsm nil "set"
-			     `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
-				    (resource () ,jabber-resource))
-			     #'handle-bind t
-			     #'handle-bind nil)
-	     (list :bind state-data))
-	 (message "Server doesn't permit resource binding and session establishing")
-	 (list nil state-data)))
-      (t
-       (jabber-process-input fsm (cadr event))
-       (list :bind state-data)))))
+       (cond
+	((eq (jabber-xml-node-name stanza) 'stream:features)
+	 (if (and (jabber-xml-get-children stanza 'bind)
+		  (jabber-xml-get-children stanza 'session))
+	     (labels
+		 ((handle-bind 
+		   (jc xml-data success)
+		   (fsm-send jc (list
+				 (if success :bind-success :bind-failure)
+				 xml-data))))
+	       ;; So let's bind a resource.  We can either pick a resource ourselves,
+	       ;; or have the server pick one for us.
+	       (jabber-send-iq fsm nil "set"
+			       `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+				      (resource () ,jabber-resource))
+			       #'handle-bind t
+			       #'handle-bind nil)
+	       (list :bind state-data))
+	   (message "Server doesn't permit resource binding and session establishing")
+	   (list nil state-data)))
+	(t
+	 (or
+	  (jabber-process-stream-error (cadr event) state-data)
+	  (progn
+	    (jabber-process-input fsm (cadr event))
+	    (list :bind state-data)))))))
 
     (:bind-success
      (let ((jid (jabber-xml-path (cadr event) '(bind jid ""))))
@@ -507,25 +560,23 @@ With prefix argument, register a new account."
        (list :session-established state-data)))
 
     (:sentinel
-     (let ((process (cadr event))
-	   (string (car (cddr event))))
-       (run-hooks 'jabber-lost-connection-hook)
-       (message "%s@%s/%s: connection lost: `%s'"
-		(plist-get state-data :username)
-		(plist-get state-data :server)
-		(plist-get state-data :resource)
-		string)
-       (list nil state-data)))
+     (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (jabber-process-input fsm (cadr event))
-     (list :session-established state-data))))
+     (or
+      (jabber-process-stream-error (cadr event) state-data)
+      (progn
+	(jabber-process-input fsm (cadr event))
+	(list :session-established state-data))))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (defun jabber-disconnect ()
   "Disconnect from all Jabber servers."
   (interactive)
-  ;; XXX: this function is slightly out of sync with the rest of the
-  ;; FSM remake.
   (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
       (dolist (c jabber-connections)
@@ -534,24 +585,17 @@ With prefix argument, register a new account."
 
       (jabber-disconnected)
       (when (interactive-p)
-	(message "Disconnected from Jabber server")))))
+	(message "Disconnected from Jabber server(s)")))))
 
 (defun jabber-disconnect-one (jc &optional dont-redisplay)
   "Disconnect from one Jabber server.
 If DONT-REDISPLAY is non-nil, don't update roster buffer."
   (interactive (list (jabber-read-account)))
   ;;(run-hooks 'jabber-pre-disconnect-hook)
-  (let ((process (plist-get
-		  (fsm-get-state-data jc)
-		  :connection)))
-    (when (and process
-	       (memq (process-status process) '(open run)))
-      (jabber-send-string jc "</stream:stream>")
-      ;; let the server close the stream
-      (accept-process-output process 3)
-      ;; and do it ourselves as well, just to be sure
-      (delete-process process)))
-  (setq jabber-connections (remq jc jabber-connections))
+  (fsm-send-sync jc :do-disconnect)
+  (when (interactive-p)
+    (message "Disconnected from %s"
+	     (jabber-connection-jid jc)))
   (unless dont-redisplay
     (jabber-display-roster)))
 
@@ -721,18 +765,28 @@ submit a bug report, including the information below.
   (let* ((tag (jabber-xml-node-name xml-data))
 	 (functions (eval (cdr (assq tag '((iq . jabber-iq-chain)
 					   (presence . jabber-presence-chain)
-					   (message . jabber-message-chain)
-					   (stream:error . jabber-stream-error-chain)))))))
-
+					   (message . jabber-message-chain)))))))
     (dolist (f functions)
-      (funcall f jc xml-data))))
+      (condition-case e
+	  (funcall f jc xml-data)
+	((debug error)
+	 (fsm-debug-output "Error %s while processing %s" e xml-data))))))
 
-(defun jabber-process-stream-error (jc xml-data)
-  "Process an incoming stream error."
-  (beep)
-  (run-hooks 'jabber-lost-connection-hook)
-  (message "Stream error, connection lost: %s" (jabber-parse-stream-error xml-data))
-  (jabber-disconnect-one jc))
+(defun jabber-process-stream-error (xml-data state-data)
+  "Process an incoming stream error.
+Return nil if XML-DATA is not a stream:error stanza.
+Return an fsm result list if it is."
+  (when (eq (jabber-xml-node-name xml-data) 'stream:error)
+    (let ((condition (jabber-stream-error-condition xml-data))
+	  (text (jabber-parse-stream-error xml-data)))
+      (setq state-data (plist-put state-data :disconnection-reason 
+				  (format "Stream error: %s" text)))
+      ;; Special case: when the error is `conflict', we have been
+      ;; forcibly disconnected by the same user.  Don't reconnect
+      ;; automatically.
+      (when (eq condition 'conflict)
+	(setq state-data (plist-put state-data :disconnection-expected t)))
+      (list nil state-data))))
 
 ;; XXX: This function should probably die.  The roster is stored
 ;; inside the connection plists, and the obarray shouldn't be so big

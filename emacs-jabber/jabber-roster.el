@@ -319,6 +319,7 @@ a        Send presence           o        Show offline contacts on/off
 C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
 C-c C-i  Info menu               C-c C-r  Roster menu
 C-c C-s  Service menu
+To disable this text, set `jabber-roster-show-bindings' to nil.
 "))
       (insert "__________________________________\n\n")
       (if (null jabber-connections)

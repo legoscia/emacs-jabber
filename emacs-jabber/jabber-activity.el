@@ -267,13 +267,9 @@ on JIDs where `jabber-activity-show-p'"
 
 (defun jabber-activity-add (from buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
-  ;; In case of private MUC message, we want to keep the full JID.
-  (let ((jid (if (jabber-muc-sender-p from)
-		 from
-	       (jabber-jid-user from))))
-    (when (funcall jabber-activity-show-p jid)
-      (add-to-list 'jabber-activity-jids jid)
-      (jabber-activity-mode-line-update))))
+  (when (funcall jabber-activity-show-p from)
+    (add-to-list 'jabber-activity-jids from)
+    (jabber-activity-mode-line-update)))
 
 (defun jabber-activity-add-muc (nick group buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"

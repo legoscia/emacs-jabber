@@ -1,6 +1,6 @@
 ;;; jabber-avatar.el --- generic functions for avatars
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2007  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -45,6 +45,11 @@
   :group 'jabber-avatar
   :type 'directory)
 
+(defcustom jabber-avatar-verbose nil
+  "Display messages about irregularities with other people's avatars."
+  :group 'jabber-avatar
+  :type 'boolean)
+
 ;;;; Avatar data handling
 
 (defstruct avatar sha1-sum mime-type url base64-data height width bytes)
@@ -71,8 +76,8 @@ Retrieves the image to find info about it."
   (let ((data (with-temp-buffer
 		(insert-file-contents-literally filename)
 		(buffer-string)))
-	(mime-type (progn (string-match "\\.[^.]+$" filename)
-			  (mailcap-extension-to-mime (match-string 0 filename)))))
+	(mime-type (when (string-match "\\.[^.]+$" filename)
+		     (mailcap-extension-to-mime (match-string 0 filename)))))
     (jabber-avatar-from-data data nil mime-type)))
 
 (defun jabber-avatar-from-base64-string (base64-string &optional mime-type)
@@ -161,15 +166,18 @@ If there is no cached image, return nil."
     (unless (file-directory-p jabber-avatar-cache-directory)
       (make-directory jabber-avatar-cache-directory))
 
-    (with-current-buffer buffer
-      (let ((require-final-newline nil))
-	(setq buffer-file-coding-system 'binary)
-	(if (fboundp 'set-buffer-multibyte)
-	    (set-buffer-multibyte nil))
-	(set-visited-file-name filename t)
-	(insert base64-data)
-	(base64-decode-region (point-min) (point-max))
-	(basic-save-buffer)))
+    (if (file-exists-p filename)
+	(when jabber-avatar-verbose
+	  (message "Caching avatar, but %s already exists" filename))
+      (with-current-buffer buffer
+	(let ((require-final-newline nil))
+	  (setq buffer-file-coding-system 'binary)
+	  (if (fboundp 'set-buffer-multibyte)
+	      (set-buffer-multibyte nil))
+	  (set-visited-file-name filename t)
+	  (insert base64-data)
+	  (base64-decode-region (point-min) (point-max))
+	  (basic-save-buffer))))
     (kill-buffer buffer)))
 
 ;;;; Set avatar for contact
