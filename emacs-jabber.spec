@@ -1,12 +1,12 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070804
+%define cvsdate 20070819
 
 Version: 0.8
 Release: alt0.%cvsdate
-Name: emacs-%pkg_name
-Copyright: GPL
+Name: emacs-jabber
+License: %gpl2plus
 Group: Editors
 Url: http://emacs-jabber.sourceforge.net
 Summary: A minimal jabber client for Emacs
@@ -22,6 +22,7 @@ Requires: emacs-common emacs-gnus >= 5.10
 BuildPreReq: emacs-devel >= 0.0.1-alt2
 
 BuildPreReq: emacs-common
+BuildPreReq: rpm-build-licenses
 BuildPreReq: emacs-gnus >= 5.10
 
 %description
@@ -41,7 +42,6 @@ included in the %name package, that extends the Emacs editor.
 You need to install %name-el only if you intend to modify any of the
 %name code or see some Lisp examples.
 
-
 %prep
 %setup -qn %name-%version
 
@@ -49,27 +49,26 @@ You need to install %name-el only if you intend to modify any of the
 makeinfo jabber.texi
 
 %install
-%__mkdir_p %buildroot%_emacslispdir/%pkg_name
-%__install -m 644 *.el %buildroot%_emacslispdir/%pkg_name/
+mkdir -p %buildroot%_emacslispdir/%pkg_name
+install -m 644 *.el %buildroot%_emacslispdir/%pkg_name/
 
-%__mkdir_p %buildroot%_emacs_sitestart_dir
-%__install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
+mkdir -p %buildroot%_emacs_sitestart_dir
+install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 
-%__mkdir_p %buildroot%_infodir
-%__install -m 644 %pkg_name.info %buildroot%_infodir/
+mkdir -p %buildroot%_infodir
+install -m 644 %pkg_name.info %buildroot%_infodir/
 
 %add_lisp_loadpath %buildroot%_emacslispdir/%pkg_name
 %byte_recompile_lispdir
 
-%__mkdir_p %buildroot%_bindir
-%__install -m 755 xmppuri.sh %buildroot%_bindir
+mkdir -p %buildroot%_bindir
+install -m 755 xmppuri.sh %buildroot%_bindir
 
 %post
 %install_info %pkg_name.info
 
 %preun
 %uninstall_info %pkg_name.info
-
 
 %files
 %_bindir/*
@@ -82,8 +81,12 @@ makeinfo jabber.texi
 %files el
 %_emacslispdir/%pkg_name/*.el
 
-
 %changelog
+* Sun Aug 19 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070819
+- cvs-20070819
+- License tag now macro (buildreq to rpm-build-licenses)
+- Spec cleanup
+
 * Sat Aug  4 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070804
 - Patch1 removed (merged in upstream)
 
