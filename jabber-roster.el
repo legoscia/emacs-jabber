@@ -221,7 +221,9 @@ bring up menus of actions.
 Optional JC argument is ignored; it's there so this function can
 be used in `jabber-post-connection-hooks'."
   (interactive)
-  (switch-to-buffer jabber-roster-buffer))
+  (if (not (get-buffer jabber-roster-buffer))
+      (jabber-display-roster)
+    (switch-to-buffer jabber-roster-buffer)))
 
 (defun jabber-sort-roster (jc)
   "sort roster according to online status"
