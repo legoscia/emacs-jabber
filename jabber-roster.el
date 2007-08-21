@@ -197,6 +197,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map "g" 'jabber-display-roster)
     (define-key map "S" 'jabber-ft-send)
     (define-key map "o" 'jabber-roster-toggle-offline-display)
+    (define-key map "H" 'jabber-roster-toggle-binding-display)
     ;;(define-key map "D" 'jabber-disconnect)
     map))
 
@@ -296,6 +297,13 @@ such.")
 	(not jabber-show-offline-contacts))
   (jabber-display-roster))
 
+(defun jabber-roster-toggle-binding-display ()
+  "Toggle display of the roster binding text."
+  (interactive)
+  (setq jabber-roster-show-bindings
+	(not jabber-roster-show-bindings))
+  (jabber-display-roster))
+
 (defun jabber-display-roster ()
   "switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
@@ -321,7 +329,8 @@ a        Send presence           o        Show offline contacts on/off
 C-c C-c  Chat menu               C-c C-m  Multi-User Chat menu
 C-c C-i  Info menu               C-c C-r  Roster menu
 C-c C-s  Service menu
-To disable this text, set `jabber-roster-show-bindings' to nil.
+
+H        Toggle displaying this text
 "))
       (insert "__________________________________\n\n")
       (if (null jabber-connections)
