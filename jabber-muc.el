@@ -847,7 +847,7 @@ Return nil if X-MUC is nil."
 
 	  ;; ...except if the message is part of history, in which
 	  ;; case we don't want an alert.
-	  (let ((children-namespaces (mapcar (lambda (x) (jabber-xml-get-attribute x 'xmlns))
+	  (let ((children-namespaces (mapcar (lambda (x) (when (listp x) (jabber-xml-get-attribute x 'xmlns)))
 					     (jabber-xml-node-children xml-data))))
 	    (unless (or (member "urn:xmpp:delay" children-namespaces)
 			(member "jabber:x:delay" children-namespaces))
