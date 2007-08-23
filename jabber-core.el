@@ -770,7 +770,7 @@ submit a bug report, including the information below.
       (condition-case e
 	  (funcall f jc xml-data)
 	((debug error)
-	 (fsm-debug-output "Error %S while processing %S" e xml-data))))))
+	 (fsm-debug-output "Error %S while processing %S with function %s" e xml-data f))))))
 
 (defun jabber-process-stream-error (xml-data state-data)
   "Process an incoming stream error.
