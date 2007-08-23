@@ -263,8 +263,9 @@ With prefix argument, register a new account."
 
   (jabber-send-stream-header fsm)
   
-  (setq jabber-choked-timer
-	(run-with-timer 5 5 #'jabber-check-choked))
+  ;; XXX: Update to multiaccount?  Remove?
+  ;; (setq jabber-choked-timer
+  ;;    (run-with-timer 5 5 #'jabber-check-choked))
 
   ;;XXX: why is this here?  I'll try commenting it out...
   ;;(accept-process-output *jabber-connection*)
