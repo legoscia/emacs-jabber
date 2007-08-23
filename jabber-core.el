@@ -206,6 +206,7 @@ With prefix argument, register a new account."
 
       (when jabber-auto-reconnect
 	(run-with-timer jabber-reconnect-delay nil
+			'jabber-connect
 			(plist-get state-data :username)
 			(plist-get state-data :server)
 			(plist-get state-data :resource)))))
