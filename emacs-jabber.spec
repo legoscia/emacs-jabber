@@ -1,7 +1,7 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070819
+%define cvsdate 20070824
 
 Version: 0.8
 Release: alt0.%cvsdate
@@ -82,6 +82,9 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %_emacslispdir/%pkg_name/*.el
 
 %changelog
+* Fri Aug 24 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070824
+- cvs-20070824
+
 * Sun Aug 19 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070819
 - cvs-20070819
 - License tag now macro (buildreq to rpm-build-licenses)

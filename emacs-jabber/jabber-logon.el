@@ -1,7 +1,7 @@
 ;; jabber-logon.el - logon functions
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -40,13 +40,13 @@
   (let (auth)
     (if (jabber-xml-get-children (jabber-iq-query xml-data) 'digest)
 	;; SHA1 digest passwords allowed
-	(let ((passwd (jabber-read-passwd)))
+	(let ((passwd (jabber-read-password (jabber-connection-bare-jid jc))))
 	  (if passwd
 	      (setq auth `(digest () ,(sha1 (concat session-id passwd))))))
       ;; Plaintext passwords - allow on encrypted connections
       (if (or *jabber-encrypted*
 	      (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
-	  (let ((passwd (jabber-read-passwd)))
+	  (let ((passwd (jabber-read-password (jabber-connection-bare-jid jc))))
 	    (when passwd
 	      (setq auth `(password () ,passwd))))))
       
@@ -60,7 +60,7 @@
 				(resource () ,(plist-get (fsm-get-state-data jc) :resource)))
 			#'jabber-process-logon t
 			#'jabber-process-logon nil)
-      (jabber-disconnect-one jc))))
+      (fsm-send jc :authentication-failure))))
 
 (defun jabber-process-logon (jc xml-data closure-data)
   "receive login success or failure, and request roster.
@@ -71,6 +71,7 @@ CLOSURE-DATA should be t on success and nil on failure."
 
     ;; Logon failure
     (jabber-report-success jc xml-data "Logon")
+    (jabber-uncache-password (jabber-connection-bare-jid jc))
     (fsm-send jc :authentication-failure)))
 
 (provide 'jabber-logon)

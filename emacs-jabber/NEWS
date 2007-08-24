@@ -5,6 +5,15 @@
 ** Support for multiple accounts
 (not documented yet)
 
+** Automatic reconnection
+Not enabled by default; see jabber-auto-reconnect.
+(not documented yet)
+
+** Support for XEP-0085
+This means "contact is typing" notifications when chatting with Gajim
+or Google Talk users, among others.
+(not documented yet)
+
 ** Option: hide offline contacts in roster
 See jabber-show-offline-contacts.
 (not documented yet)

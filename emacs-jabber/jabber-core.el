@@ -93,7 +93,10 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :group 'jabber-core)
 
 (defcustom jabber-auto-reconnect nil
-  "Reconnect automatically after losing connection?"
+  "Reconnect automatically after losing connection?
+This will be of limited use unless you have the password library
+installed, and have configured it to cache your password
+indefinitely.  See `password-cache' and `password-cache-expiry'."
   :type 'boolean
   :group 'jabber-core)
 
@@ -206,6 +209,7 @@ With prefix argument, register a new account."
 
       (when jabber-auto-reconnect
 	(run-with-timer jabber-reconnect-delay nil
+			'jabber-connect
 			(plist-get state-data :username)
 			(plist-get state-data :server)
 			(plist-get state-data :resource)))))
@@ -262,8 +266,9 @@ With prefix argument, register a new account."
 
   (jabber-send-stream-header fsm)
   
-  (setq jabber-choked-timer
-	(run-with-timer 5 5 #'jabber-check-choked))
+  ;; XXX: Update to multiaccount?  Remove?
+  ;; (setq jabber-choked-timer
+  ;;    (run-with-timer 5 5 #'jabber-check-choked))
 
   ;;XXX: why is this here?  I'll try commenting it out...
   ;;(accept-process-output *jabber-connection*)
@@ -413,7 +418,8 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-logon has already displayed a message
-     (list nil state-data))))
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :sasl-auth
   (fsm state-data)
@@ -453,7 +459,8 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-sasl has already displayed a message
-     (list nil state-data))))
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :bind
   (fsm state-data)
@@ -770,7 +777,7 @@ submit a bug report, including the information below.
       (condition-case e
 	  (funcall f jc xml-data)
 	((debug error)
-	 (fsm-debug-output "Error %s while processing %s" e xml-data))))))
+	 (fsm-debug-output "Error %S while processing %S with function %s" e xml-data f))))))
 
 (defun jabber-process-stream-error (xml-data state-data)
   "Process an incoming stream error.

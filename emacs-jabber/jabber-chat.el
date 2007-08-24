@@ -54,7 +54,8 @@ with):
 		   (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
 		       'jabber-roster-user-online))))
     "\t" (:eval (jabber-fix-status (get (jabber-jid-symbol jabber-chatting-with) 'status)))
-    "\t" jabber-events-message)		;see jabber-events.el
+    "\t" jabber-events-message		;see jabber-events.el
+    "\t" jabber-chatstates-message)		;see jabber-chatstates.el
   "The specification for the header line of chat buffers.
 
 The format is that of `mode-line-format' and `header-line-format'."
