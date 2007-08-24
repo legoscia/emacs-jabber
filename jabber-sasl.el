@@ -57,31 +57,31 @@
 	  (if node
 	      (fsm-send jc :use-legacy-auth-instead)
 	    (message "No suitable SASL mechanism found")
-	    (fsm-send jc :authentication-failed)))
+	    (fsm-send jc :authentication-failure)))
 
       ;; Watch for plaintext logins over unencrypted connections
-      (when (and (not *jabber-encrypted*)
-		 (member (sasl-mechanism-name mechanism)
-			 '("PLAIN" "LOGIN"))
-		 (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
-	(error "Login cancelled"))
+      (if (and (not *jabber-encrypted*)
+	       (member (sasl-mechanism-name mechanism)
+		       '("PLAIN" "LOGIN"))
+	       (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))
+	  (fsm-send jc :authentication-failure)
 
-      ;; Start authentication.
-      (let* ((client (sasl-make-client mechanism 
-				       (plist-get (fsm-get-state-data jc) :username)
-				       "xmpp"
-				       (plist-get (fsm-get-state-data jc) :server)))
-	     (step (sasl-next-step client nil)))
-	(jabber-send-sexp
-	 jc
-	 `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
-		 (mechanism . ,(sasl-mechanism-name mechanism)))
-		,(when (sasl-step-data step)
-		   (base64-encode-string (sasl-step-data step) t))))
-	(cons client step)))))
+	;; Start authentication.
+	(let* ((client (sasl-make-client mechanism 
+					 (plist-get (fsm-get-state-data jc) :username)
+					 "xmpp"
+					 (plist-get (fsm-get-state-data jc) :server)))
+	       (step (sasl-next-step client nil)))
+	  (jabber-send-sexp
+	   jc
+	   `(auth ((xmlns . "urn:ietf:params:xml:ns:xmpp-sasl")
+		   (mechanism . ,(sasl-mechanism-name mechanism)))
+		  ,(when (sasl-step-data step)
+		     (base64-encode-string (sasl-step-data step) t))))
+	  (cons client step))))))
 
 (defun jabber-sasl-process-input (jc xml-data sasl-data)
-  (let ((sasl-read-passphrase #'jabber-read-passwd)
+  (let ((sasl-read-passphrase #'jabber-read-password)
 	(client (car sasl-data))
 	(step (cdr sasl-data)))
     (cond
@@ -97,6 +97,7 @@
      ((eq (car xml-data) 'failure)
       (message "SASL authentication failure: %s"
 	       (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
+      (jabber-uncache-password (jabber-connection-bare-jid jc))
       (fsm-send jc :authentication-failure))
 
      ((eq (car xml-data) 'success)

@@ -20,6 +20,9 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (eval-when-compile (require 'cl))
+(condition-case nil
+    (require 'password)
+  (error nil))
 
 (defvar jabber-jid-history nil
   "History of entered JIDs")
@@ -253,7 +256,11 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
 			     (format "(default %s) " node-at-point)))
 		 node-at-point)))
 
-(defun jabber-read-passwd (&optional prompt)
+(defun jabber-password-key (bare-jid)
+  "Construct key for `password' library from BARE-JID."
+  (concat "xmpp:" bare-jid))
+
+(defun jabber-read-password (bare-jid &optional prompt)
   "Read Jabber password, either from customized variable or from minibuffer.
 See `jabber-password'."
   (if jabber-password
@@ -261,7 +268,16 @@ See `jabber-password'."
       ;; variable jabber-password is a high-convenience low-security
       ;; alternative anyway.
       (copy-sequence jabber-password)
-    (read-passwd (or prompt "Jabber password: "))))
+    (let ((prompt (or prompt (format "Jabber password for %s: " bare-jid))))
+      (if (fboundp 'password-read-and-add)
+	  (password-read-and-add prompt (jabber-password-key bare-jid))
+	(read-passwd prompt)))))
+
+(defun jabber-uncache-password (bare-jid)
+  "Uncache cached password for BARE-JID.
+Useful if the password proved to be wrong."
+  (when (fboundp 'password-cache-remove)
+    (password-cache-remove (jabber-password-key bare-jid))))
 
 (defun jabber-read-account (&optional always-ask)
   "Ask for which connected account to use.

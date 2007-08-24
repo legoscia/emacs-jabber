@@ -93,7 +93,10 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :group 'jabber-core)
 
 (defcustom jabber-auto-reconnect nil
-  "Reconnect automatically after losing connection?"
+  "Reconnect automatically after losing connection?
+This will be of limited use unless you have the password library
+installed, and have configured it to cache your password
+indefinitely.  See `password-cache' and `password-cache-expiry'."
   :type 'boolean
   :group 'jabber-core)
 
@@ -415,7 +418,8 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-logon has already displayed a message
-     (list nil state-data))))
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :sasl-auth
   (fsm state-data)
@@ -455,7 +459,8 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-sasl has already displayed a message
-     (list nil state-data))))
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :bind
   (fsm state-data)
