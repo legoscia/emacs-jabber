@@ -127,7 +127,8 @@ These fields are available:
 (defcustom jabber-muc-private-header-line-format
   '(" " (:eval (jabber-jid-resource jabber-chatting-with))
     " in " (:eval (jabber-jid-displayname (jabber-jid-user jabber-chatting-with)))
-    "\t" jabber-events-message)
+    "\t" jabber-events-message
+    "\t" jabber-chatstates-message)
   "The specification for the header line of private MUC chat buffers.
 
 The format is that of `mode-line-format' and `header-line-format'."

@@ -2,6 +2,11 @@
 
 * New features in jabber.el 0.8
 
+** Support for XEP-0085
+This means "contact is typing" notifications when chatting with Gajim
+or Google Talk users, among others.
+(not documented yet)
+
 ** Support for multiple accounts
 (not documented yet)
 
