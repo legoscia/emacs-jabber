@@ -361,7 +361,12 @@ With prefix argument, register a new account."
 	 ;; XXX: note encryptedness of connection.
 	 (list :connected state-data)
        (message "STARTTLS negotiation failed")
-       (list nil state-data)))))
+       (list nil state-data)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :register-account
   (fsm state-data)
@@ -419,6 +424,11 @@ With prefix argument, register a new account."
     (:authentication-failure
      ;; jabber-logon has already displayed a message
      (list nil (plist-put state-data
+			  :disconnection-expected t)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
 			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :sasl-auth
@@ -459,6 +469,11 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-sasl has already displayed a message
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
      (list nil (plist-put state-data
 			  :disconnection-expected t)))))
 
@@ -546,7 +561,12 @@ With prefix argument, register a new account."
      (message "Session establishing failed: %s"
 	      (jabber-parse-error
 	       (jabber-iq-error (cadr event))))
-     (list nil state-data))))
+     (list nil state-data))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :session-established
   (fsm state-data)
