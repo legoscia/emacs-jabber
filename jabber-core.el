@@ -234,7 +234,8 @@ With double prefix argument, specify more connection details."
 			:server server
 			:resource resource
 			:password password
-			:registerp registerp)))))
+			:registerp registerp
+			:connection-type connection-type)))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
@@ -372,7 +373,7 @@ With double prefix argument, specify more connection details."
 			      :disconnection-reason
 			      (format "Unexpected stanza %s" stanza))))
 	((and (jabber-xml-get-children stanza 'starttls)
-	      (eq jabber-connection-type 'starttls))
+	      (eq (plist-get state-data :connection-type) 'starttls))
 	 (list :starttls state-data))
 	;; XXX: require encryption for registration?
 	((plist-get state-data :registerp)
