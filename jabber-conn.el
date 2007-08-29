@@ -102,13 +102,13 @@ Third item is the send function.")
 (defun jabber-get-connect-function (type)
   "Get the connect function associated with TYPE.
 TYPE is a symbol; see `jabber-connection-type'."
-  (let ((entry (assq jabber-connection-type jabber-connect-methods)))
+  (let ((entry (assq type jabber-connect-methods)))
     (nth 1 entry)))
 
 (defun jabber-get-send-function (type)
   "Get the send function associated with TYPE.
 TYPE is a symbol; see `jabber-connection-type'."
-  (let ((entry (assq jabber-connection-type jabber-connect-methods)))
+  (let ((entry (assq type jabber-connect-methods)))
     (nth 2 entry)))
 
 (defun jabber-srv-targets (server network-server port)
