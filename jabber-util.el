@@ -260,7 +260,7 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
   "Construct key for `password' library from BARE-JID."
   (concat "xmpp:" bare-jid))
 
-(defun jabber-read-password (bare-jid &optional prompt)
+(defun jabber-read-password (bare-jid)
   "Read Jabber password, either from customized variable or from minibuffer.
 See `jabber-password'."
   (if jabber-password
@@ -268,7 +268,7 @@ See `jabber-password'."
       ;; variable jabber-password is a high-convenience low-security
       ;; alternative anyway.
       (copy-sequence jabber-password)
-    (let ((prompt (or prompt (format "Jabber password for %s: " bare-jid))))
+    (let ((prompt (format "Jabber password for %s: " bare-jid)))
       (if (fboundp 'password-read-and-add)
 	  (password-read-and-add prompt (jabber-password-key bare-jid))
 	(read-passwd prompt)))))

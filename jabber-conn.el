@@ -61,23 +61,24 @@ and 5223 for SSL connections."
 		 (integer :tag "Port number"))
   :group 'jabber-conn)
 
-(defcustom jabber-connection-type 
+(defun jabber-have-starttls ()
+  "Return true if we can use STARTTLS."
+  (and (featurep 'starttls)
+       (or (and (bound-and-true-p starttls-gnutls-program)
+		(executable-find starttls-gnutls-program))
+	   (and (bound-and-true-p starttls-program)
+		(executable-find starttls-program)))))
+
+(defconst jabber-default-connection-type 
   (cond
    ;; Use STARTTLS if we can...
-   ((and (featurep 'starttls)
-	 (or (and (bound-and-true-p starttls-gnutls-program)
-		  (executable-find starttls-gnutls-program))
-	     (and (bound-and-true-p starttls-program)
-		  (executable-find starttls-program))))
+   ((jabber-have-starttls)
     'starttls)
    ;; ...else default to unencrypted connection.
    (t
     'network))
-  "Type of connection to the jabber server, ssl or network most likely."
-  :type '(radio (const :tag "Encrypted connection, SSL" ssl)
-		(const :tag "Negotiate encrypted connection when available (STARTTLS)" starttls)
-		(const :tag "Standard TCP/IP connection" network))
-  :group 'jabber-conn)
+  "Default connection type.
+See `jabber-connect-methods'.")
 
 (defcustom jabber-connection-ssl-program nil
   "Program used for SSL/TLS connections.
@@ -110,21 +111,21 @@ TYPE is a symbol; see `jabber-connection-type'."
   (let ((entry (assq jabber-connection-type jabber-connect-methods)))
     (nth 2 entry)))
 
-(defun jabber-srv-targets (server)
+(defun jabber-srv-targets (server network-server port)
   "Find host and port to connect to.
+If NETWORK-SERVER and/or PORT are specified, use them.
 If we can't find SRV records, use standard defaults."
-  ;; XXX: per account
   ;; If the user has specified a host or a port, obey that.
-  (if (or jabber-network-server jabber-port)
-      (list (cons (or jabber-network-server server)
-		  (or jabber-port 5222)))
+  (if (or network-server port)
+      (list (cons (or network-server server)
+		  (or port 5222)))
     (or (condition-case nil
 	    (srv-lookup (concat "_xmpp-client._tcp." server))
 	  (error nil))
 	(list (cons server 5222)))))
 
 ;; Plain TCP/IP connection
-(defun jabber-network-connect (fsm server)
+(defun jabber-network-connect (fsm server network-server port)
   "Connect to a Jabber server with a plain network connection.
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
@@ -132,7 +133,7 @@ connection fails."
   ;; XXX: asynchronous connection
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets server)))
+	(targets (jabber-srv-targets server network-server port)))
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
@@ -157,7 +158,7 @@ connection fails."
 ;; SSL connection, we use openssl's s_client function for encryption
 ;; of the link
 ;; TODO: make this configurable
-(defun jabber-ssl-connect (fsm server)
+(defun jabber-ssl-connect (fsm server network-server port)
   "connect via OpenSSL or GnuTLS to a Jabber Server
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
@@ -179,8 +180,8 @@ connection fails."
 	   (funcall connect-function
 		    "jabber"
 		    (generate-new-buffer jabber-process-buffer)
-		    (or jabber-network-server server)
-		    (or jabber-port 5223))))
+		    (or network-server server)
+		    (or port 5223))))
       (if connection
 	  (fsm-send fsm (list :connected connection))
 	(fsm-send fsm :connection-failed)))))
@@ -191,14 +192,14 @@ connection fails."
   (process-send-string connection string)
   (process-send-string connection "\n"))
 
-(defun jabber-starttls-connect (fsm server)
+(defun jabber-starttls-connect (fsm server network-server port)
   "Connect via GnuTLS to a Jabber Server.
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
 connection fails."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets server)))
+	(targets (jabber-srv-targets server network-server port)))
     (unless (fboundp 'starttls-open-stream)
       (error "starttls.el not available"))
     (catch 'connected
