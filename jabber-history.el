@@ -233,7 +233,6 @@ Return a list of history entries (vectors), limited by
 If BEFORE is non-nil, it should be a float-time after which
 no entries will be fetched.  `jabber-backlog-days' still
 applies, though."
-  (interactive)
   (jabber-history-query 
    (and jabber-backlog-days
 	(- (jabber-float-time) (* jabber-backlog-days 86400.0)))
