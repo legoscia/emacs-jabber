@@ -40,7 +40,8 @@
   (let (auth)
     (if (jabber-xml-get-children (jabber-iq-query xml-data) 'digest)
 	;; SHA1 digest passwords allowed
-	(let ((passwd (jabber-read-password (jabber-connection-bare-jid jc))))
+	(let ((passwd (or (plist-get (fsm-get-state-data jc) :password)
+			  (jabber-read-password (jabber-connection-bare-jid jc)))))
 	  (if passwd
 	      (setq auth `(digest () ,(sha1 (concat session-id passwd))))))
       ;; Plaintext passwords - allow on encrypted connections

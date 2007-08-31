@@ -127,29 +127,77 @@ problems."
   "Return non-nil if SASL functions are available."
   (featurep 'sasl))
 
-(defun jabber-connect (username server resource &optional registerp)
-  "connect to the jabber server and start a jabber xml stream
-With prefix argument, register a new account."
+(defun jabber-connect-all ()
+  "Connect to all configured Jabber accounts.
+See `jabber-account-list'.
+If no accounts are configured, call `jabber-connect' interactively."
+  (interactive)
+  (if (null jabber-account-list)
+      (call-interactively 'jabber-connect)
+    ;; Only connect those accounts that are not yet connected.
+    (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
+	  (connected-one nil))
+      (flet ((nonempty
+	      (s)
+	      (unless (zerop (length s)) s)))
+	(dolist (account jabber-account-list)
+	  (unless (member (jabber-jid-user (car account)) already-connected)
+	    (destructuring-bind (jid password network-server port connection-type)
+		account
+	      (jabber-connect
+	       (jabber-jid-username jid)
+	       (jabber-jid-server jid)
+	       (jabber-jid-resource jid)
+	       nil (nonempty password) (nonempty network-server)
+	       port connection-type))))))))
+
+(defun jabber-connect (username server resource &optional
+				registerp password network-server
+				port connection-type)
+  "Connect to the Jabber server and start a Jabber XML stream.
+With prefix argument, register a new account.
+With double prefix argument, specify more connection details."
   (interactive
-   (let* ((default (when (and jabber-username jabber-server)
-			  (if jabber-resource
-			      (format "%s@%s/%s"
-				      jabber-username 
-				      jabber-server
-				      jabber-resource)
-			    (format "%s@%s"
-				    jabber-username
-				    jabber-server))))
-	  (jid (read-string 
-		(if default
-		    (format "Enter your JID: (default %s) " default)
-		  "Enter your JID: ")
-		nil nil default)))
-     (list (jabber-jid-username jid)
-	   (jabber-jid-server jid)
-	   (or (jabber-jid-resource jid) jabber-resource)
-	   current-prefix-arg)))
-  ;; XXX: better way of specifying which account(s) to connect to.
+   (let* ((jid (completing-read "Enter your JID: " jabber-account-list))
+	  (entry (assoc jid jabber-account-list))
+	  password network-server port connection-type registerp)
+     (flet ((nonempty
+	     (s)
+	     (unless (zerop (length s)) s)))
+       (when entry
+	 ;; If the user entered the JID of one of the preconfigured
+	 ;; accounts, use that data.
+	 (setq password (nonempty (nth 1 entry)))
+	 (setq network-server (nonempty (nth 2 entry)))
+	 (setq port (nth 3 entry))
+	 (setq connection-type (nth 4 entry)))
+       (when (equal current-prefix-arg '(16))
+	 ;; Double prefix arg: ask about everything.
+	 ;; (except password, which is asked about later anyway)
+	 (setq password nil)
+	 (setq network-server
+	       (read-string (format "Network server: (default `%s') " network-server)
+			    nil nil network-server))
+	 (setq port
+	       (car
+		(read-from-string
+		 (read-string (format "Port: (default `%s') " port)
+			      nil nil (if port (number-to-string port) "nil")))))
+	 (setq connection-type
+	       (car
+		(read-from-string
+		 (or (nonempty (completing-read
+				(format "Connection type: (default `%s') " connection-type)
+				'(("starttls" "network" "ssl")) t))
+		     (symbol-name connection-type)))))
+	 (setq registerp (yes-or-no-p "Register new account? ")))
+       (when (equal current-prefix-arg '(4))
+	 (setq registerp t))
+
+       (list (jabber-jid-username jid)
+	     (jabber-jid-server jid)
+	     (jabber-jid-resource jid)
+	     registerp password network-server port connection-type))))
   (if (member (list username
 		    server)
 	      (mapcar
@@ -164,27 +212,30 @@ With prefix argument, register a new account."
     ;;(jabber-clear-roster)
     (jabber-reset-choked)
 
-    (push (start-jabber-connection username 
-				   server
-				   resource
-				   registerp)
+    (push (start-jabber-connection username server resource
+				   registerp password 
+				   network-server port connection-type)
 	  jabber-connections)))
 
 (define-state-machine jabber-connection
-  :start ((username server resource &optional registerp)
+  :start ((username server resource registerp password network-server port connection-type)
 	  "Start a Jabber connection."
-	  (let ((connect-function
-		 (jabber-get-connect-function jabber-connection-type))
+	  (let* ((connection-type
+		  (or connection-type jabber-default-connection-type))
+		 (connect-function
+		 (jabber-get-connect-function connection-type))
 		(send-function
-		 (jabber-get-send-function jabber-connection-type)))
-	    (funcall connect-function fsm server)
+		 (jabber-get-send-function connection-type)))
+	    (funcall connect-function fsm server network-server port)
 
 	    (list :connecting 
 		  (list :send-function send-function
 			:username username
 			:server server
 			:resource resource
-			:registerp registerp)))))
+			:password password
+			:registerp registerp
+			:connection-type connection-type)))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
@@ -322,7 +373,7 @@ With prefix argument, register a new account."
 			      :disconnection-reason
 			      (format "Unexpected stanza %s" stanza))))
 	((and (jabber-xml-get-children stanza 'starttls)
-	      (eq jabber-connection-type 'starttls))
+	      (eq (plist-get state-data :connection-type) 'starttls))
 	 (list :starttls state-data))
 	;; XXX: require encryption for registration?
 	((plist-get state-data :registerp)
@@ -361,7 +412,12 @@ With prefix argument, register a new account."
 	 ;; XXX: note encryptedness of connection.
 	 (list :connected state-data)
        (message "STARTTLS negotiation failed")
-       (list nil state-data)))))
+       (list nil state-data)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :register-account
   (fsm state-data)
@@ -419,6 +475,11 @@ With prefix argument, register a new account."
     (:authentication-failure
      ;; jabber-logon has already displayed a message
      (list nil (plist-put state-data
+			  :disconnection-expected t)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
 			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :sasl-auth
@@ -459,6 +520,11 @@ With prefix argument, register a new account."
 
     (:authentication-failure
      ;; jabber-sasl has already displayed a message
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
      (list nil (plist-put state-data
 			  :disconnection-expected t)))))
 
@@ -546,7 +612,12 @@ With prefix argument, register a new account."
      (message "Session establishing failed: %s"
 	      (jabber-parse-error
 	       (jabber-iq-error (cadr event))))
-     (list nil state-data))))
+     (list nil state-data))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :session-established
   (fsm state-data)

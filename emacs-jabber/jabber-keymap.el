@@ -41,7 +41,7 @@
 
 (defvar jabber-global-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c" 'jabber-connect)
+    (define-key map "\C-c" 'jabber-connect-all)
     (define-key map "\C-d" 'jabber-disconnect)
     (define-key map "\C-r" 'jabber-switch-to-roster-buffer)
     (define-key map "\C-j" 'jabber-chat-with)

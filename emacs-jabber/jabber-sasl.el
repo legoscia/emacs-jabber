@@ -81,9 +81,11 @@
 	  (cons client step))))))
 
 (defun jabber-sasl-process-input (jc xml-data sasl-data)
-  (let ((sasl-read-passphrase (lexical-let ((bare-jid (jabber-connection-bare-jid jc)))
-				(lambda (prompt)
-				  (jabber-read-password bare-jid prompt))))
+  (let ((sasl-read-passphrase (lexical-let ((password (plist-get (fsm-get-state-data jc) :password))
+					    (bare-jid (jabber-connection-bare-jid jc)))
+				(if password
+				    (lambda (prompt) password)
+				  (lambda (prompt) (jabber-read-password bare-jid)))))
 	(client (car sasl-data))
 	(step (cdr sasl-data)))
     (cond

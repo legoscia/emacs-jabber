@@ -1,10 +1,9 @@
 # -*- coding: latin-1; mode: rpm-spec -*-
 
 %define pkg_name jabber
-%define cvsdate 20070824
 
 Version: 0.8
-Release: alt0.%cvsdate
+Release: alt0.20070831
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -82,6 +81,10 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %_emacslispdir/%pkg_name/*.el
 
 %changelog
+* Fri Aug 31 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070831
+- CVS-20070831
+- Init script cleanup (obsoleted and frustrating code removed)
+
 * Fri Aug 24 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070824
 - cvs-20070824
 
