@@ -556,7 +556,8 @@ If DELAYED is true, print long timestamp
 
 (defun jabber-chat-goto-address (&rest ignore)
   "Call `goto-address' on the newly written text."
-  (goto-address))
+  (ignore-errors 
+    (goto-address)))
 
 ;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu
