@@ -270,7 +270,8 @@ See `jabber-password'."
       (copy-sequence jabber-password)
     (let ((prompt (format "Jabber password for %s: " bare-jid)))
       (if (fboundp 'password-read-and-add)
-	  (password-read-and-add prompt (jabber-password-key bare-jid))
+	  (copy-sequence
+	   (password-read-and-add prompt (jabber-password-key bare-jid)))
 	(read-passwd prompt)))))
 
 (defun jabber-uncache-password (bare-jid)
