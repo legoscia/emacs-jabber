@@ -137,19 +137,20 @@ If no accounts are configured, call `jabber-connect' interactively."
     ;; Only connect those accounts that are not yet connected.
     (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
 	  (connected-one nil))
-      (flet ((nonempty
-	      (s)
-	      (unless (zerop (length s)) s)))
-	(dolist (account jabber-account-list)
-	  (unless (member (jabber-jid-user (car account)) already-connected)
-	    (destructuring-bind (jid password network-server port connection-type)
-		account
-	      (jabber-connect
-	       (jabber-jid-username jid)
-	       (jabber-jid-server jid)
-	       (jabber-jid-resource jid)
-	       nil (nonempty password) (nonempty network-server)
-	       port connection-type))))))))
+      (dolist (account jabber-account-list)
+	(unless (member (jabber-jid-user (car account)) already-connected)
+	  (let* ((jid (car account))
+		 (alist (cdr account))
+		 (password (cdr (assq :password alist)))
+		 (network-server (cdr (assq :network-server alist)))
+		 (port (cdr (assq :port alist)))
+		 (connection-type (cdr (assq :connection-type alist))))
+	    (jabber-connect
+	     (jabber-jid-username jid)
+	     (jabber-jid-server jid)
+	     (jabber-jid-resource jid)
+	     nil password network-server
+	     port connection-type)))))))
 
 (defun jabber-connect (username server resource &optional
 				registerp password network-server

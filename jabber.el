@@ -32,38 +32,42 @@
 
 (defcustom jabber-account-list nil
   "List of Jabber accounts.
-Each element of the list is a list describing a Jabber account
-of the form (JID PASSWORD NETWORK-SERVER PORT CONNECTION-TYPE).
+Each element of the list is a cons cell describing a Jabber account,
+where the car is a JID and the CDR is an alist.
 
 JID is a full Jabber ID string (e.g. foo@bar.tld). You can also
 specify the resource (e.g. foo@bar.tld/emacs).
-PASSWORD is a string to authenticate ourself against the server.
+The following keys can be present in the alist:
+:password is a string to authenticate ourself against the server.
 It can be empty.
-NETWORK-SERVER is a string identifying the address to connect to,
+:network-server is a string identifying the address to connect to,
 if it's different from the server part of the JID.
-PORT is the port to use (default depends on connection type).
-CONNECTION-TYPE is a symbol. Valid symbols are `starttls',
+:port is the port to use (default depends on connection type).
+:connection-type is a symbol. Valid symbols are `starttls',
 `network' and `ssl'.
 
-Only JID is mandatory.  The rest can be guessed at run-time.
-
-Example:
- ((\"xma01@jabber.fr/emacs\" \"\" \"\" nil network)
-  (\"xma01@gmail.com\" \"\" \"talk.google.com\" 5223 ssl))"
+Only JID is mandatory.  The rest can be guessed at run-time."
   :type '(repeat
-	  (list :tag "Account information"
+	  (cons :tag "Account information"
 		(string :tag "JID")
-		(string :tag "Password")
-		(string :tag "Network server")
-		(choice :tag "Port"
-			(const :tag "Default" nil)
-			(integer :tag "Override" 5222))
-		(choice :tag "Connection type"
-			;; XXX: detect whether we have STARTTLS?  option
-			;; for enforcing encryption?
-			(const :tag "STARTTLS" starttls)
-			(const :tag "Unencrypted" network)
-			(const :tag "Legacy SSL/TLS" ssl))))
+		(set :format "%v"
+		     (cons :format "%v"
+			   (const :format "" :password)
+			   (string :tag "Password"))
+		     (cons :format "%v"
+			   (const :format "" :network-server)
+			   (string :tag "Network server"))
+		     (cons :format "%v"
+			   (const :format "" :port)
+			   (integer :tag "Port" 5222))
+		     (cons :format "%v"
+			   (const :format "" :connection-type)
+			   (choice :tag "Connection type"
+				   ;; XXX: detect whether we have STARTTLS?  option
+				   ;; for enforcing encryption?
+				   (const :tag "STARTTLS" starttls)
+				   (const :tag "Unencrypted" network)
+				   (const :tag "Legacy SSL/TLS" ssl))))))
   :group 'jabber-core)
 
 ;; XXX: kill these four variables
