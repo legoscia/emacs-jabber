@@ -1,2 +1,4 @@
-copy: *.el
+copy?: *.el
+copy?: *.diff
+copy?: *.patch
 tar.bz2: emacs-jabber

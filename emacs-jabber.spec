@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20070831
+Release: alt0.20070831.1
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -14,6 +14,7 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
 Source: %name-%version.tar.bz2
 Source1: %pkg_name-emacs.el
+Patch1: %name-active-accounts.patch
 
 BuildArch: noarch
 Requires: emacs-common emacs-gnus >= 5.10
@@ -43,6 +44,7 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name-%version
+%patch1 -p1 -b .orig
 
 %build
 makeinfo jabber.texi
@@ -81,6 +83,9 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %_emacslispdir/%pkg_name/*.el
 
 %changelog
+* Sat Sep  1 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070831.1
+- Patch1 added
+
 * Fri Aug 31 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070831
 - CVS-20070831
 - Init script cleanup (obsoleted and frustrating code removed)

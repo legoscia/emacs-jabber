@@ -1,0 +1,35 @@
+--- emacs-jabber/jabber-core.el.orig	2007-09-01 20:00:34 +0800
++++ emacs-jabber/jabber-core.el	2007-09-01 20:07:49 +0800
+@@ -142,14 +142,15 @@ If no accounts are configured, call `jab
+ 	      (unless (zerop (length s)) s)))
+ 	(dolist (account jabber-account-list)
+ 	  (unless (member (jabber-jid-user (car account)) already-connected)
+-	    (destructuring-bind (jid password network-server port connection-type)
++	    (destructuring-bind (jid password network-server port connection-type active)
+ 		account
++              (if active
+ 	      (jabber-connect
+ 	       (jabber-jid-username jid)
+ 	       (jabber-jid-server jid)
+ 	       (jabber-jid-resource jid)
+ 	       nil (nonempty password) (nonempty network-server)
+-	       port connection-type))))))))
++	       port connection-type)))))))))
+ 
+ (defun jabber-connect (username server resource &optional
+ 				registerp password network-server
+--- emacs-jabber/jabber.el.orig	2007-09-01 19:41:30 +0800
++++ emacs-jabber/jabber.el	2007-09-01 19:51:23 +0800
+@@ -63,7 +63,11 @@ Example:
+ 			;; for enforcing encryption?
+ 			(const :tag "STARTTLS" starttls)
+ 			(const :tag "Unencrypted" network)
+-			(const :tag "Legacy SSL/TLS" ssl))))
++			(const :tag "Legacy SSL/TLS" ssl))
++                (choice :tag "Active?"
++                        (const :tag "True" t)
++                        (const :tag "False" nil))
++                ))
+   :group 'jabber-core)
+ 
+ ;; XXX: kill these four variables
