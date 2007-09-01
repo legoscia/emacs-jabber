@@ -52,6 +52,9 @@ Only JID is mandatory.  The rest can be guessed at run-time."
 		(string :tag "JID")
 		(set :format "%v"
 		     (cons :format "%v"
+			   (const :format "" :disabled)
+			   (const :tag "Disabled" t))
+		     (cons :format "%v"
 			   (const :format "" :password)
 			   (string :tag "Password"))
 		     (cons :format "%v"

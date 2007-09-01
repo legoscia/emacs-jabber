@@ -22,7 +22,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 
 (require 'jabber-util)
 (require 'jabber-logon)
@@ -132,25 +132,29 @@ problems."
 See `jabber-account-list'.
 If no accounts are configured, call `jabber-connect' interactively."
   (interactive)
-  (if (null jabber-account-list)
-      (call-interactively 'jabber-connect)
-    ;; Only connect those accounts that are not yet connected.
-    (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
-	  (connected-one nil))
-      (dolist (account jabber-account-list)
-	(unless (member (jabber-jid-user (car account)) already-connected)
-	  (let* ((jid (car account))
-		 (alist (cdr account))
-		 (password (cdr (assq :password alist)))
-		 (network-server (cdr (assq :network-server alist)))
-		 (port (cdr (assq :port alist)))
-		 (connection-type (cdr (assq :connection-type alist))))
-	    (jabber-connect
-	     (jabber-jid-username jid)
-	     (jabber-jid-server jid)
-	     (jabber-jid-resource jid)
-	     nil password network-server
-	     port connection-type)))))))
+  (let ((accounts
+	 (remove-if (lambda (account)
+		      (cdr (assq :disabled (cdr account))))
+		    jabber-account-list)))
+    (if (null accounts)
+	(call-interactively 'jabber-connect)
+      ;; Only connect those accounts that are not yet connected.
+      (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
+	    (connected-one nil))
+	(dolist (account accounts)
+	  (unless (member (jabber-jid-user (car account)) already-connected)
+	    (let* ((jid (car account))
+		   (alist (cdr account))
+		   (password (cdr (assq :password alist)))
+		   (network-server (cdr (assq :network-server alist)))
+		   (port (cdr (assq :port alist)))
+		   (connection-type (cdr (assq :connection-type alist))))
+	      (jabber-connect
+	       (jabber-jid-username jid)
+	       (jabber-jid-server jid)
+	       (jabber-jid-resource jid)
+	       nil password network-server
+	       port connection-type))))))))
 
 (defun jabber-connect (username server resource &optional
 				registerp password network-server
