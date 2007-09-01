@@ -46,7 +46,21 @@ if it's different from the server part of the JID.
 :connection-type is a symbol. Valid symbols are `starttls',
 `network' and `ssl'.
 
-Only JID is mandatory.  The rest can be guessed at run-time."
+Only JID is mandatory.  The rest can be guessed at run-time.
+
+Examples:
+
+Two accounts without any special configuration:
+\((\"foo@example.com\") (\"bar@example.net\"))
+
+One disabled account with a non-standard port:
+\((\"romeo@montague.net\" (:port . 5242) (:disabled . t)))
+
+If you don't have SRV and STARTTLS capabilities in your Emacs,
+configure a Google Talk account like this:
+\((\"username@gmail.com\" 
+  (:network-server . \"talk.google.com\")
+  (:connection-type . ssl)))"
   :type '(repeat
 	  (cons :tag "Account information"
 		(string :tag "JID")
