@@ -165,6 +165,7 @@ With double prefix argument, specify more connection details."
   (interactive
    (let* ((jid (completing-read "Enter your JID: " jabber-account-list))
 	  (entry (assoc jid jabber-account-list))
+	  (alist (cdr entry))
 	  password network-server port connection-type registerp)
      (flet ((nonempty
 	     (s)
@@ -172,10 +173,10 @@ With double prefix argument, specify more connection details."
        (when entry
 	 ;; If the user entered the JID of one of the preconfigured
 	 ;; accounts, use that data.
-	 (setq password (nonempty (nth 1 entry)))
-	 (setq network-server (nonempty (nth 2 entry)))
-	 (setq port (nth 3 entry))
-	 (setq connection-type (nth 4 entry)))
+	 (setq password (cdr (assq :password alist)))
+	 (setq network-server (cdr (assq :network-server alist)))
+	 (setq port (cdr (assq :port alist)))
+	 (setq connection-type (cdr (assq :connection-type alist))))
        (when (equal current-prefix-arg '(16))
 	 ;; Double prefix arg: ask about everything.
 	 ;; (except password, which is asked about later anyway)
