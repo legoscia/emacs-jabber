@@ -164,7 +164,8 @@ With prefix argument, register a new account.
 With double prefix argument, specify more connection details."
   (interactive
    (let* ((jid (completing-read "Enter your JID: " jabber-account-list))
-	  (entry (assoc jid jabber-account-list)))
+	  (entry (assoc jid jabber-account-list))
+	  password network-server port connection-type registerp)
      (flet ((nonempty
 	     (s)
 	     (unless (zerop (length s)) s)))
