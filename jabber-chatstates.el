@@ -54,7 +54,8 @@
 (defun jabber-chatstates-when-sending (text id)
   (jabber-chatstates-update-message)
   (jabber-chatstates-stop-timer)
-  `((active ((xmlns . ,jabber-chatstates-xmlns)))))
+  (when jabber-chatstates-requested
+    `((active ((xmlns . ,jabber-chatstates-xmlns))))))
 
 ;;; OUTGOING
 ;;; Code for handling requests for chat state notifications and providing
@@ -91,7 +92,7 @@ It can be sent and cancelled several times.")
 
 (defun jabber-chatstates-send-paused ()
   "Send an 'paused state notification."
-  (when jabber-chatting-with
+  (when (and jabber-chatstates-requested jabber-chatting-with)
     (setq jabber-chatstates-composing-sent nil)
     (jabber-send-sexp
      jabber-buffer-connection
@@ -104,6 +105,7 @@ It can be sent and cancelled several times.")
          (state (if composing-now 'composing 'active)))
     (when (and jabber-chatstates-confirm
                jabber-chatting-with
+	       jabber-chatstates-requested
                (not (eq composing-now jabber-chatstates-composing-sent)))
       (jabber-send-sexp
        jabber-buffer-connection
