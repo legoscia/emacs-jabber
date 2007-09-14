@@ -277,6 +277,12 @@ on JIDs where `jabber-activity-show-p'"
     (add-to-list 'jabber-activity-jids group)
     (jabber-activity-mode-line-update)))
 
+(defun jabber-activity-presence (who oldstatus newstatus statustext proposed-alert)
+  "Add a JID to mode line on subscription requests."
+  (when (string= newstatus "subscribe")
+    (add-to-list 'jabber-activity-jids (symbol-name who))
+    (jabber-activity-mode-line-update)))
+
 (defun jabber-activity-kill-hook ()
   "Query the user as to whether killing Emacs should be cancelled
 when there are unread messages which otherwise would be lost, if
@@ -327,6 +333,8 @@ With a numeric arg, enable this display if arg is positive."
 		  'jabber-activity-add)
 	(add-hook 'jabber-muc-hooks
 		  'jabber-activity-add-muc)
+	(add-hook 'jabber-presence-hooks
+		  'jabber-activity-presence)
 	;; XXX: reactivate
 	;; (add-hook 'jabber-post-connect-hooks
 ;; 		  'jabber-activity-make-name-alist)
@@ -360,6 +368,8 @@ With a numeric arg, enable this display if arg is positive."
 		   'jabber-activity-add)
       (remove-hook 'jabber-muc-hooks
 		   'jabber-activity-add-muc)
+      (remove-hook 'jabber-presence-hooks
+		   'jabber-activity-presence)
       ;; XXX: reactivate
 ;;       (remove-hook 'jabber-post-connect-hooks
 ;; 		   'jabber-activity-make-name-alist)

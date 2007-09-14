@@ -349,7 +349,7 @@ This function is used as an ewoc prettyprinter."
 	 (jabber-chat-self-prompt (or (jabber-x-delay original-timestamp)
 				      internal-time)
 				  delayed))
-	(:foreign
+	((:foreign :subscription-request)
 	 ;; For :error and :notice, this might be a string... beware
 	 (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data)) 
 				   (or (jabber-x-delay original-timestamp)
@@ -380,7 +380,24 @@ This function is used as an ewoc prettyprinter."
        (insert (cadr data)))
       (:rare-time
        (insert (jabber-propertize (format-time-string jabber-rare-time-format (cadr data))
-				  'face 'jabber-rare-time-face))))
+				  'face 'jabber-rare-time-face)))
+      (:subscription-request
+       (insert "This user requests subscription to your presence.\n")
+       (when (and (stringp (cadr data)) (not (zerop (length (cadr data)))))
+	 (insert "Message: " (cadr data) "\n"))
+       (insert "Accept?\n\n")
+       (flet ((button
+	       (text action)
+	       (if (fboundp 'insert-button)
+		   (insert-button text 'action action)
+		 ;; simple button replacement
+		 (let ((keymap (make-keymap)))
+		   (define-key keymap "\r" action)
+		   (insert (jabber-propertize text 'keymap keymap 'face 'highlight))))
+	       (insert "\t")))
+	 (button "Mutual" 'jabber-subscription-accept-mutual)
+	 (button "One-way" 'jabber-subscription-accept-one-way)
+	 (button "Decline" 'jabber-subscription-decline))))
 
     (when jabber-chat-fill-long-lines
       (save-restriction

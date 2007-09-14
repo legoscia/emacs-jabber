@@ -1,7 +1,7 @@
 ;; jabber-presence.el - roster and presence bookkeeping
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -193,23 +193,25 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
 (defun jabber-process-subscription-request (jc from presence-status)
   "process an incoming subscription request"
-  (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
-    (run-hook-with-args hook (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status)))
-  (jabber-send-sexp 
-   jc
-   (list 'presence
-	 (list (cons 'to from)
-	       (cons 'type
-		     (if (yes-or-no-p (format "the user  - %s -  has requested to subscribe to your presence (%s). allow? "
-					      (jabber-jid-displayname from)
-					      presence-status))
-			 "subscribed"
-		       "unsubscribed")))))
-  (when (yes-or-no-p (format "Do you want to subscribe to %s's presence? " from))
-    (jabber-send-sexp
-     jc
-     (list 'presence (list (cons 'to from)
-			   (cons 'type "subscribe"))))))
+  (with-current-buffer (jabber-chat-create-buffer jc from)
+    (ewoc-enter-last jabber-chat-ewoc (list :subscription-request presence-status :time (current-time)))
+
+    (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
+      (run-hook-with-args hook (jabber-jid-symbol from) nil "subscribe" presence-status (funcall jabber-alert-presence-message-function (jabber-jid-symbol from) nil "subscribe" presence-status)))))
+
+(defun jabber-subscription-accept-mutual (&rest ignored)
+  (jabber-subscription-reply "subscribed" "subscribe"))
+
+(defun jabber-subscription-accept-one-way (&rest ignored)
+  (jabber-subscription-reply "subscribed"))
+
+(defun jabber-subscription-decline (&rest ignored)
+  (jabber-subscription-reply "unsubscribed"))
+
+(defun jabber-subscription-reply (&rest types)
+  (let ((to (jabber-jid-user jabber-chatting-with)))
+    (dolist (type types)
+      (jabber-send-sexp jabber-buffer-connection `(presence ((to . ,to) (type . ,type)))))))
 
 (defun jabber-prioritize-resources (buddy)
   "Set connected, show and status properties for BUDDY from highest-priority resource."

@@ -29,6 +29,9 @@ See jabber-truncate-top and new option for jabber-alert-muc-hooks.
 See jabber-browse-buffer-format.
 (not documented yet)
 
+** Subscription requests are sent to chat buffers
+(not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS
