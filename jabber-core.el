@@ -46,9 +46,6 @@
 (defvar *jabber-authenticated* nil
   "boolean - are we authenticated")
 
-(defvar *jabber-encrypted* nil
-  "boolean - is the connection encrypted")
-
 (defvar *jabber-disconnecting* nil
   "boolean - are we in the process of disconnecting by free will")
 
@@ -241,7 +238,8 @@ With double prefix argument, specify more connection details."
 			:resource resource
 			:password password
 			:registerp registerp
-			:connection-type connection-type)))))
+			:connection-type connection-type
+			:encrypted (eq connection-type 'ssl))))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
@@ -415,8 +413,7 @@ With double prefix argument, specify more connection details."
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
 	 ;; Connection is encrypted.  Send a stream tag again.
-	 ;; XXX: note encryptedness of connection.
-	 (list :connected state-data)
+	 (list :connected (plist-put state-data :encrypted t))
        (message "STARTTLS negotiation failed")
        (list nil state-data)))
 
@@ -698,7 +695,6 @@ Call this function after disconnection."
   (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *jabber-authenticated* nil)
-  (setq *jabber-encrypted* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (run-hooks 'jabber-post-disconnect-hook))

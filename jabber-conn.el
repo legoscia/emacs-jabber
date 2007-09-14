@@ -175,7 +175,6 @@ connection fails."
 	   'open-ssl-stream)
 	  (t
 	   (error "Neither TLS nor SSL connect functions available")))))
-    (setq *jabber-encrypted* t)
     (let ((connection
 	   (funcall connect-function
 		    "jabber"
