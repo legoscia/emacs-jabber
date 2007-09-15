@@ -349,13 +349,13 @@ This function is used as an ewoc prettyprinter."
 	 (jabber-chat-self-prompt (or (jabber-x-delay original-timestamp)
 				      internal-time)
 				  delayed))
-	((:foreign :subscription-request)
+	(:foreign
 	 ;; For :error and :notice, this might be a string... beware
 	 (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data)) 
 				   (or (jabber-x-delay original-timestamp)
 				       internal-time)
 				   delayed))
-	((:error :notice)
+	((:error :notice :subscription-request)
 	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
 					internal-time)))
 	(:muc-local
