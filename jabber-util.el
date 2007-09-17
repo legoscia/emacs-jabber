@@ -261,18 +261,13 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
   (concat "xmpp:" bare-jid))
 
 (defun jabber-read-password (bare-jid)
-  "Read Jabber password, either from customized variable or from minibuffer.
-See `jabber-password'."
-  (if jabber-password
-      ;; Need to copy the password, as sasl.el wants to erase it.  The
-      ;; variable jabber-password is a high-convenience low-security
-      ;; alternative anyway.
-      (copy-sequence jabber-password)
-    (let ((prompt (format "Jabber password for %s: " bare-jid)))
-      (if (fboundp 'password-read-and-add)
-	  (copy-sequence
-	   (password-read-and-add prompt (jabber-password-key bare-jid)))
-	(read-passwd prompt)))))
+  "Read Jabber password from minibuffer."
+  (let ((prompt (format "Jabber password for %s: " bare-jid)))
+    (if (fboundp 'password-read-and-add)
+	;; Need to copy the password, as sasl.el wants to erase it.
+	(copy-sequence
+	 (password-read-and-add prompt (jabber-password-key bare-jid)))
+      (read-passwd prompt))))
 
 (defun jabber-uncache-password (bare-jid)
   "Uncache cached password for BARE-JID.

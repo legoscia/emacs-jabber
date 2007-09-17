@@ -47,7 +47,8 @@
       ;; Plaintext passwords - allow on encrypted connections
       (if (or (plist-get (fsm-get-state-data jc) :encrypted)
 	      (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
-	  (let ((passwd (jabber-read-password (jabber-connection-bare-jid jc))))
+	  (let ((passwd (or (plist-get (fsm-get-state-data jc) :password)
+			    (jabber-read-password (jabber-connection-bare-jid jc)))))
 	    (when passwd
 	      (setq auth `(password () ,passwd))))))
       
