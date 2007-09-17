@@ -104,8 +104,8 @@ These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
      or `jabber-chat-delayed-time-format'
-%n   Nickname (`jabber-nickname')
 %u   Username
+%n   Nickname (obsolete, same as username)
 %r   Resource
 %j   Bare JID (without resource)"
   :type 'string
@@ -476,21 +476,26 @@ TIMESTAMP is the timestamp to print, or nil for now.
 If DELAYED is true, print long timestamp
 \(`jabber-chat-delayed-time-format' as opposed to
 `jabber-chat-time-format')."
-  (insert (jabber-propertize 
-	   (format-spec jabber-chat-local-prompt-format
-			(list
-			 (cons ?t (format-time-string 
-				   (if delayed
-				       jabber-chat-delayed-time-format
-				     jabber-chat-time-format)
-				   timestamp))
-			 (cons ?n jabber-nickname)
-			 (cons ?u jabber-username)
-			 (cons ?r jabber-resource)
-			 (cons ?j (concat jabber-username "@" jabber-server))))
-	   'face 'jabber-chat-prompt-local
-	   'help-echo
-	   (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you"))))
+  (let* ((state-data (fsm-get-state-data jabber-buffer-connection))
+	 (username (plist-get state-data :username))
+	 (server (plist-get state-data :server))
+	 (resource (plist-get state-data :resource))
+	 (nickname username))
+    (insert (jabber-propertize 
+	     (format-spec jabber-chat-local-prompt-format
+			  (list
+			   (cons ?t (format-time-string 
+				     (if delayed
+					 jabber-chat-delayed-time-format
+				       jabber-chat-time-format)
+				     timestamp))
+			   (cons ?n nickname)
+			   (cons ?u username)
+			   (cons ?r resource)
+			   (cons ?j (concat username "@" server))))
+	     'face 'jabber-chat-prompt-local
+	     'help-echo
+	     (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you")))))
 
 (defun jabber-chat-print-error (xml-data)
   "Print error in given <message/> in a readable way."
