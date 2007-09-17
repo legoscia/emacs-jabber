@@ -53,7 +53,7 @@
       
     ;; If auth is still nil, user cancelled process somewhere
     (if auth
-	(jabber-send-iq jc jabber-server
+	(jabber-send-iq jc (plist-get (fsm-get-state-data jc) :server)
 			"set"
 			`(query ((xmlns . "jabber:iq:auth"))
 				(username () ,(plist-get (fsm-get-state-data jc) :username))
