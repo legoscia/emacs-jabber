@@ -91,7 +91,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (jabber-roster-update jc new-items changed-items deleted-items)
       
     (if (and id (string= type "set"))
-	(jabber-send-iq jc jabber-server "result" nil
+	(jabber-send-iq jc nil "result" nil
 			nil nil nil nil id)))
 
   ;; After initial roster push, run jabber-post-connect-hooks.  We do

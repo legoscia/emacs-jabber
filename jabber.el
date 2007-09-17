@@ -87,28 +87,6 @@ configure a Google Talk account like this:
 				   (const :tag "Legacy SSL/TLS" ssl))))))
   :group 'jabber-core)
 
-;; XXX: kill these four variables
-(defcustom jabber-username "emacs"
-  "jabber username (user part of JID)" 
-  :type 'string
-  :group 'jabber)
-
-(defcustom jabber-server "magaf.org" 
-  "jabber server (domain part of JID)" 
-  :type 'string
-  :group 'jabber)
-
-(defcustom jabber-password nil
-  "jabber password" 
-  :type '(radio (const :tag "Prompt for password" nil)
-		 (string :tag "Save password in .emacs"))
-  :group 'jabber)
-
-(defcustom jabber-resource "emacs"
-  "jabber resource" 
-  :type 'string
-  :group 'jabber)
-
 (defcustom jabber-default-show ""
   "default show state"
   :type '(choice (const :tag "Online" "")
@@ -126,12 +104,6 @@ configure a Google Talk account like this:
 (defcustom jabber-default-priority 10
   "default priority"
   :type 'integer
-  :group 'jabber)
-
-;; XXX: kill this one too
-(defcustom jabber-nickname jabber-username
-  "jabber nickname, used in chat buffer prompts and as default groupchat nickname." 
-  :type 'string
   :group 'jabber)
 
 ;;; guess internal dependencies!

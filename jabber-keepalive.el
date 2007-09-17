@@ -84,7 +84,7 @@ for all accounts regardless of the argument."
   (dolist (c jabber-connections)
     ;; Whether we get an error or not is not interesting.
     ;; Getting a response at all is.
-    (jabber-send-iq c jabber-server "get"
+    (jabber-send-iq c nil "get"
 		    '(query ((xmlns . "jabber:iq:time")))
 		    'jabber-keepalive-got-response nil
 		    'jabber-keepalive-got-response nil)))
