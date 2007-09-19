@@ -540,7 +540,7 @@ If DELAYED is true, print long timestamp
 	    (let ((action (substring body 4))
 		  (nick (cond
 			 ((eq who :local)
-			  jabber-nickname)
+			  (plist-get (fsm-get-state-data jabber-buffer-connection) :username))
 			 ((jabber-muc-message-p xml-data)
 			  (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 			 (t
