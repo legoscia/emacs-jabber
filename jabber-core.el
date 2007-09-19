@@ -566,11 +566,13 @@ With double prefix argument, specify more connection details."
 				 xml-data))))
 	       ;; So let's bind a resource.  We can either pick a resource ourselves,
 	       ;; or have the server pick one for us.
-	       (jabber-send-iq fsm nil "set"
-			       `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
-				      (resource () ,jabber-resource))
-			       #'handle-bind t
-			       #'handle-bind nil)
+	       (let ((resource (plist-get state-data :resource)))
+		 (jabber-send-iq fsm nil "set"
+				 `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+					,@(when resource
+					    `((resource () ,resource))))
+				 #'handle-bind t
+				 #'handle-bind nil))
 	       (list :bind state-data))
 	   (message "Server doesn't permit resource binding and session establishing")
 	   (list nil state-data)))
