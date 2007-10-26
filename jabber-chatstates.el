@@ -54,7 +54,11 @@
 (defun jabber-chatstates-when-sending (text id)
   (jabber-chatstates-update-message)
   (jabber-chatstates-stop-timer)
-  (when jabber-chatstates-requested
+  (when (and jabber-chatstates-confirm jabber-chatstates-requested)
+    (when (eq jabber-chatstates-requested 'first-time)
+      ;; don't send more notifications until we know that the other
+      ;; side wants them.
+      (setq jabber-chatstates-requested nil))
     `((active ((xmlns . ,jabber-chatstates-xmlns))))))
 
 ;;; OUTGOING
@@ -66,8 +70,12 @@
   :group 'jabber-chatstates
   :type 'boolean)
 
-(defvar jabber-chatstates-requested t
-  "Whether or not chat states notification was requested")
+(defvar jabber-chatstates-requested 'first-time
+  "Whether or not chat states notification was requested.
+This is one of the following:
+first-time - send state in first stanza, then switch to nil
+t - send states
+nil - don't send states")
 (make-variable-buffer-local 'jabber-chatstates-requested)
 
 (defvar jabber-chatstates-composing-sent nil
@@ -128,29 +136,34 @@ It can be sent and cancelled several times.")
         (setq jabber-chatstates-requested nil))
 
        (t
-        ;; Set up hooks for composition notification
-        (when (and jabber-chatstates-confirm jabber-chatstates-requested)
-          (add-hook 'post-command-hook 'jabber-chatstates-after-change nil t))
+	(let ((state
+	       (or
+		(let ((node
+		       (find jabber-chatstates-xmlns
+			     (jabber-xml-node-children xml-data)
+			     :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns))
+			     :test #'string=)))
+		  (jabber-xml-node-name node))
+		(let ((node
+		       ;; XXX: this is how we interoperate with
+		       ;; Google Talk.  We should really use a
+		       ;; namespace-aware XML parser.
+		       (find jabber-chatstates-xmlns
+			     (jabber-xml-node-children xml-data)
+			     :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns:cha))
+			     :test #'string=)))
+		  (when node
+		    ;; Strip the "cha:" prefix
+		    (let ((name (symbol-name (jabber-xml-node-name node))))
+		      (when (> (length name) 4)
+			(intern (substring name 4)))))))))
+	  ;; Set up hooks for composition notification
+	  (when (and jabber-chatstates-confirm state)
+	    (setq jabber-chatstates-requested t)
+	    (add-hook 'post-command-hook 'jabber-chatstates-after-change nil t))
 
-        (setq jabber-chatstates-last-state
-              (dolist (possible-node '(active composing paused inactive gone))
-                (let ((state
-		       (or
-			(find jabber-chatstates-xmlns
-			      (jabber-xml-get-children xml-data possible-node)
-			      :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns))
-			      :test #'string=)
-			;; XXX: this is how we interoperate with
-			;; Google Talk.  We should really use a
-			;; namespace-aware XML parser.
-			(find jabber-chatstates-xmlns
-			      (jabber-xml-get-children xml-data (intern (concat "cha:" (symbol-name possible-node))))
-			      :key #'(lambda (x) (jabber-xml-get-attribute x 'xmlns:cha))
-			      :test #'string=))))
-                  (when state
-                    (setq jabber-chatstates-requested t)
-                    (return possible-node)))))
-        (jabber-chatstates-update-message))))))
+	  (setq jabber-chatstates-last-state state)
+	  (jabber-chatstates-update-message)))))))
 
 ;; Add function last in chain, so a chat buffer is already created.
 (add-to-list 'jabber-message-chain 'jabber-handle-incoming-message-chatstates t)
