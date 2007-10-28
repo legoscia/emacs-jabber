@@ -408,7 +408,7 @@ groupchat buffer."
   (interactive 
    (let ((account (jabber-read-account))
 	 (group (jabber-read-jid-completing "group: ")))
-     (list account group (jabber-muc-read-my-nickname group) t)))
+     (list account group (jabber-muc-read-my-nickname group (plist-get (fsm-get-state-data account) :username)) t)))
 
   ;; If the user is already in the room, we don't need as many checks.
   (if (or (assoc group *jabber-active-groupchats*)
@@ -479,12 +479,12 @@ groupchat buffer."
     (let ((buffer (jabber-muc-create-buffer jc group)))
       (switch-to-buffer buffer))))
 
-(defun jabber-muc-read-my-nickname (group)
+(defun jabber-muc-read-my-nickname (group default)
   "Read nickname for joining GROUP."
   (let ((default-nickname (or
 			   ;; XXX: use bookmarks
 			   (cdr (assoc group jabber-muc-default-nicknames))
-			   jabber-nickname)))
+			   default)))
     (jabber-read-with-input-method (format "Nickname: (default %s) "
 					   default-nickname) 
 				   nil nil default-nickname)))
@@ -647,7 +647,7 @@ group, else it is a JID."
 	      (let ((action
 		     `(lambda (&rest ignore) (interactive)
 			(jabber-groupchat-join jabber-buffer-connection ,group
-					       (jabber-muc-read-my-nickname ,group)))))
+					       (jabber-muc-read-my-nickname ,group ,(plist-get (fsm-get-state-data jabber-buffer-connection) :username))))))
 		(if (fboundp 'insert-button)
 		    (insert-button "Accept"
 				   'action action)
@@ -689,20 +689,21 @@ group, else it is a JID."
 (defun jabber-muc-autojoin (jc)
   "Join rooms specified in account bookmarks and global `jabber-muc-autojoin'."
   (interactive (list (jabber-read-account)))
-  (when (bound-and-true-p jabber-muc-autojoin)
-    (dolist (group jabber-muc-autojoin)
-      (jabber-groupchat-join jc group (or
-				       (cdr (assoc group jabber-muc-default-nicknames))
-				       jabber-nickname))))
-  (jabber-get-bookmarks
-   jc
-   (lambda (jc bookmarks)
-     (dolist (bookmark bookmarks)
-       (setq bookmark (jabber-parse-conference-bookmark bookmark))
-       (when (and bookmark (plist-get bookmark :autojoin))
-	 (jabber-groupchat-join jc (plist-get bookmark :jid)
-				(or (plist-get bookmark :nick)
-				    jabber-nickname)))))))
+  (let ((nickname (plist-get (fsm-get-state-data jc) :username)))
+    (when (bound-and-true-p jabber-muc-autojoin)
+      (dolist (group jabber-muc-autojoin)
+	(jabber-groupchat-join jc group (or
+					 (cdr (assoc group jabber-muc-default-nicknames))
+					 (plist-get (fsm-get-state-data jc) :username)))))
+    (jabber-get-bookmarks
+     jc
+     (lambda (jc bookmarks)
+       (dolist (bookmark bookmarks)
+	 (setq bookmark (jabber-parse-conference-bookmark bookmark))
+	 (when (and bookmark (plist-get bookmark :autojoin))
+	   (jabber-groupchat-join jc (plist-get bookmark :jid)
+				  (or (plist-get bookmark :nick)
+				      (plist-get (fsm-get-state-data jc) :username)))))))))
 
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.

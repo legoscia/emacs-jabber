@@ -60,7 +60,7 @@
 	    (fsm-send jc :authentication-failure)))
 
       ;; Watch for plaintext logins over unencrypted connections
-      (if (and (not *jabber-encrypted*)
+      (if (and (not (plist-get (fsm-get-state-data jc) :encrypted))
 	       (member (sasl-mechanism-name mechanism)
 		       '("PLAIN" "LOGIN"))
 	       (not (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? ")))

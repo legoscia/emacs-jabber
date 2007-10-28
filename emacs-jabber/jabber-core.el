@@ -22,7 +22,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 
 (require 'jabber-util)
 (require 'jabber-logon)
@@ -45,9 +45,6 @@
 
 (defvar *jabber-authenticated* nil
   "boolean - are we authenticated")
-
-(defvar *jabber-encrypted* nil
-  "boolean - is the connection encrypted")
 
 (defvar *jabber-disconnecting* nil
   "boolean - are we in the process of disconnecting by free will")
@@ -132,23 +129,28 @@ problems."
 See `jabber-account-list'.
 If no accounts are configured, call `jabber-connect' interactively."
   (interactive)
-  (if (null jabber-account-list)
-      (call-interactively 'jabber-connect)
-    ;; Only connect those accounts that are not yet connected.
-    (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
-	  (connected-one nil))
-      (flet ((nonempty
-	      (s)
-	      (unless (zerop (length s)) s)))
-	(dolist (account jabber-account-list)
+  (let ((accounts
+	 (remove-if (lambda (account)
+		      (cdr (assq :disabled (cdr account))))
+		    jabber-account-list)))
+    (if (null accounts)
+	(call-interactively 'jabber-connect)
+      ;; Only connect those accounts that are not yet connected.
+      (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
+	    (connected-one nil))
+	(dolist (account accounts)
 	  (unless (member (jabber-jid-user (car account)) already-connected)
-	    (destructuring-bind (jid password network-server port connection-type)
-		account
+	    (let* ((jid (car account))
+		   (alist (cdr account))
+		   (password (cdr (assq :password alist)))
+		   (network-server (cdr (assq :network-server alist)))
+		   (port (cdr (assq :port alist)))
+		   (connection-type (cdr (assq :connection-type alist))))
 	      (jabber-connect
 	       (jabber-jid-username jid)
 	       (jabber-jid-server jid)
 	       (jabber-jid-resource jid)
-	       nil (nonempty password) (nonempty network-server)
+	       nil password network-server
 	       port connection-type))))))))
 
 (defun jabber-connect (username server resource &optional
@@ -160,6 +162,7 @@ With double prefix argument, specify more connection details."
   (interactive
    (let* ((jid (completing-read "Enter your JID: " jabber-account-list))
 	  (entry (assoc jid jabber-account-list))
+	  (alist (cdr entry))
 	  password network-server port connection-type registerp)
      (flet ((nonempty
 	     (s)
@@ -167,10 +170,10 @@ With double prefix argument, specify more connection details."
        (when entry
 	 ;; If the user entered the JID of one of the preconfigured
 	 ;; accounts, use that data.
-	 (setq password (nonempty (nth 1 entry)))
-	 (setq network-server (nonempty (nth 2 entry)))
-	 (setq port (nth 3 entry))
-	 (setq connection-type (nth 4 entry)))
+	 (setq password (cdr (assq :password alist)))
+	 (setq network-server (cdr (assq :network-server alist)))
+	 (setq port (cdr (assq :port alist)))
+	 (setq connection-type (cdr (assq :connection-type alist))))
        (when (equal current-prefix-arg '(16))
 	 ;; Double prefix arg: ask about everything.
 	 ;; (except password, which is asked about later anyway)
@@ -235,7 +238,8 @@ With double prefix argument, specify more connection details."
 			:resource resource
 			:password password
 			:registerp registerp
-			:connection-type connection-type)))))
+			:connection-type connection-type
+			:encrypted (eq connection-type 'ssl))))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
@@ -409,8 +413,7 @@ With double prefix argument, specify more connection details."
     (:stanza
      (if (jabber-starttls-process-input fsm (cadr event))
 	 ;; Connection is encrypted.  Send a stream tag again.
-	 ;; XXX: note encryptedness of connection.
-	 (list :connected state-data)
+	 (list :connected (plist-put state-data :encrypted t))
        (message "STARTTLS negotiation failed")
        (list nil state-data)))
 
@@ -563,11 +566,13 @@ With double prefix argument, specify more connection details."
 				 xml-data))))
 	       ;; So let's bind a resource.  We can either pick a resource ourselves,
 	       ;; or have the server pick one for us.
-	       (jabber-send-iq fsm nil "set"
-			       `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
-				      (resource () ,jabber-resource))
-			       #'handle-bind t
-			       #'handle-bind nil)
+	       (let ((resource (plist-get state-data :resource)))
+		 (jabber-send-iq fsm nil "set"
+				 `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+					,@(when resource
+					    `((resource () ,resource))))
+				 #'handle-bind t
+				 #'handle-bind nil))
 	       (list :bind state-data))
 	   (message "Server doesn't permit resource binding and session establishing")
 	   (list nil state-data)))
@@ -692,7 +697,6 @@ Call this function after disconnection."
   (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *jabber-authenticated* nil)
-  (setq *jabber-encrypted* nil)
   (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (run-hooks 'jabber-post-disconnect-hook))

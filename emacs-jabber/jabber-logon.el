@@ -45,15 +45,16 @@
 	  (if passwd
 	      (setq auth `(digest () ,(sha1 (concat session-id passwd))))))
       ;; Plaintext passwords - allow on encrypted connections
-      (if (or *jabber-encrypted*
+      (if (or (plist-get (fsm-get-state-data jc) :encrypted)
 	      (yes-or-no-p "Jabber server only allows cleartext password transmission!  Continue? "))
-	  (let ((passwd (jabber-read-password (jabber-connection-bare-jid jc))))
+	  (let ((passwd (or (plist-get (fsm-get-state-data jc) :password)
+			    (jabber-read-password (jabber-connection-bare-jid jc)))))
 	    (when passwd
 	      (setq auth `(password () ,passwd))))))
       
     ;; If auth is still nil, user cancelled process somewhere
     (if auth
-	(jabber-send-iq jc jabber-server
+	(jabber-send-iq jc (plist-get (fsm-get-state-data jc) :server)
 			"set"
 			`(query ((xmlns . "jabber:iq:auth"))
 				(username () ,(plist-get (fsm-get-state-data jc) :username))

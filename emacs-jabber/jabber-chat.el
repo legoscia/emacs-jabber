@@ -104,8 +104,8 @@ These fields are available:
 
 %t   Time, formatted according to `jabber-chat-time-format'
      or `jabber-chat-delayed-time-format'
-%n   Nickname (`jabber-nickname')
 %u   Username
+%n   Nickname (obsolete, same as username)
 %r   Resource
 %j   Bare JID (without resource)"
   :type 'string
@@ -355,7 +355,7 @@ This function is used as an ewoc prettyprinter."
 				   (or (jabber-x-delay original-timestamp)
 				       internal-time)
 				   delayed))
-	((:error :notice)
+	((:error :notice :subscription-request)
 	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
 					internal-time)))
 	(:muc-local
@@ -380,7 +380,24 @@ This function is used as an ewoc prettyprinter."
        (insert (cadr data)))
       (:rare-time
        (insert (jabber-propertize (format-time-string jabber-rare-time-format (cadr data))
-				  'face 'jabber-rare-time-face))))
+				  'face 'jabber-rare-time-face)))
+      (:subscription-request
+       (insert "This user requests subscription to your presence.\n")
+       (when (and (stringp (cadr data)) (not (zerop (length (cadr data)))))
+	 (insert "Message: " (cadr data) "\n"))
+       (insert "Accept?\n\n")
+       (flet ((button
+	       (text action)
+	       (if (fboundp 'insert-button)
+		   (insert-button text 'action action)
+		 ;; simple button replacement
+		 (let ((keymap (make-keymap)))
+		   (define-key keymap "\r" action)
+		   (insert (jabber-propertize text 'keymap keymap 'face 'highlight))))
+	       (insert "\t")))
+	 (button "Mutual" 'jabber-subscription-accept-mutual)
+	 (button "One-way" 'jabber-subscription-accept-one-way)
+	 (button "Decline" 'jabber-subscription-decline))))
 
     (when jabber-chat-fill-long-lines
       (save-restriction
@@ -459,21 +476,26 @@ TIMESTAMP is the timestamp to print, or nil for now.
 If DELAYED is true, print long timestamp
 \(`jabber-chat-delayed-time-format' as opposed to
 `jabber-chat-time-format')."
-  (insert (jabber-propertize 
-	   (format-spec jabber-chat-local-prompt-format
-			(list
-			 (cons ?t (format-time-string 
-				   (if delayed
-				       jabber-chat-delayed-time-format
-				     jabber-chat-time-format)
-				   timestamp))
-			 (cons ?n jabber-nickname)
-			 (cons ?u jabber-username)
-			 (cons ?r jabber-resource)
-			 (cons ?j (concat jabber-username "@" jabber-server))))
-	   'face 'jabber-chat-prompt-local
-	   'help-echo
-	   (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you"))))
+  (let* ((state-data (fsm-get-state-data jabber-buffer-connection))
+	 (username (plist-get state-data :username))
+	 (server (plist-get state-data :server))
+	 (resource (plist-get state-data :resource))
+	 (nickname username))
+    (insert (jabber-propertize 
+	     (format-spec jabber-chat-local-prompt-format
+			  (list
+			   (cons ?t (format-time-string 
+				     (if delayed
+					 jabber-chat-delayed-time-format
+				       jabber-chat-time-format)
+				     timestamp))
+			   (cons ?n nickname)
+			   (cons ?u username)
+			   (cons ?r resource)
+			   (cons ?j (concat username "@" server))))
+	     'face 'jabber-chat-prompt-local
+	     'help-echo
+	     (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from you")))))
 
 (defun jabber-chat-print-error (xml-data)
   "Print error in given <message/> in a readable way."
@@ -518,7 +540,7 @@ If DELAYED is true, print long timestamp
 	    (let ((action (substring body 4))
 		  (nick (cond
 			 ((eq who :local)
-			  jabber-nickname)
+			  (plist-get (fsm-get-state-data jabber-buffer-connection) :username))
 			 ((jabber-muc-message-p xml-data)
 			  (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 			 (t
@@ -556,7 +578,8 @@ If DELAYED is true, print long timestamp
 
 (defun jabber-chat-goto-address (&rest ignore)
   "Call `goto-address' on the newly written text."
-  (goto-address))
+  (ignore-errors 
+    (goto-address)))
 
 ;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu

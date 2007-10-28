@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20070831.1
+Release: alt0.20071028
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -83,6 +83,10 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %_emacslispdir/%pkg_name/*.el
 
 %changelog
+* Sun Oct 28 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20071028
+- cvs-20071028
+- Init script cleanup
+
 * Sat Sep  1 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070831.1
 - Patch1 added
 

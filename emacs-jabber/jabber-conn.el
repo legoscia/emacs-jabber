@@ -47,20 +47,6 @@
 (defgroup jabber-conn nil "Jabber Connection Settings"
   :group 'jabber)
 
-(defcustom jabber-network-server nil
-  "hostname or IP address of server to connect to, if different from `jabber-server'."
-  :type '(radio (const :tag "Same as `jabber-server'" nil)
-		(string :tag "Hostname or IP address"))
-  :group 'jabber-conn)
-
-(defcustom jabber-port nil
-  "jabber port
-The default depends on the connection type: 5222 for ordinary connections
-and 5223 for SSL connections."
-  :type '(choice (const :tag "Default" nil)
-		 (integer :tag "Port number"))
-  :group 'jabber-conn)
-
 (defun jabber-have-starttls ()
   "Return true if we can use STARTTLS."
   (and (featurep 'starttls)
@@ -175,7 +161,6 @@ connection fails."
 	   'open-ssl-stream)
 	  (t
 	   (error "Neither TLS nor SSL connect functions available")))))
-    (setq *jabber-encrypted* t)
     (let ((connection
 	   (funcall connect-function
 		    "jabber"

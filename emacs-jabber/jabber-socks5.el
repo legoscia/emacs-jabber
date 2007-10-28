@@ -146,7 +146,7 @@ set; the target waits for one."
 (define-enter-state jabber-socks5 seek-proxies (fsm state-data)
   ;; Look for items at the server.
   (jabber-disco-get-items (plist-get state-data :jc) 
-			  jabber-server nil
+			  nil nil
 			  (lambda (jc fsm result) 
 			    (fsm-send-sync fsm (cons :items result)))
 			  fsm)

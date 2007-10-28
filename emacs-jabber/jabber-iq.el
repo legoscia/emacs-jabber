@@ -161,7 +161,7 @@ See section 9.3 of XMPP Core."
 
 (defun jabber-process-data (jc xml-data closure-data)
   "Process random results from various requests."
-  (let ((from (or (jabber-xml-get-attribute xml-data 'from) jabber-server))
+  (let ((from (or (jabber-xml-get-attribute xml-data 'from) (plist-get (fsm-get-state-data jc) :server)))
 	(xmlns (jabber-iq-xmlns xml-data))
 	(type (jabber-xml-get-attribute xml-data 'type)))
     (with-current-buffer (get-buffer-create (format-spec jabber-browse-buffer-format
