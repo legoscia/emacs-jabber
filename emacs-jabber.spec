@@ -14,7 +14,6 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
 Source: %name-%version.tar.bz2
 Source1: %pkg_name-emacs.el
-Patch1: %name-active-accounts.patch
 
 BuildArch: noarch
 Requires: emacs-common emacs-gnus >= 5.10
@@ -44,7 +43,6 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -qn %name-%version
-%patch1 -p1 -b .orig
 
 %build
 makeinfo jabber.texi
@@ -85,6 +83,7 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %changelog
 * Sun Oct 28 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20071028
 - cvs-20071028
+- Patch1 removed (replaced in upstream)
 - Init script cleanup
 
 * Sat Sep  1 2007 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20070831.1
