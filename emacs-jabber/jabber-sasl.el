@@ -71,6 +71,7 @@
 					 (plist-get (fsm-get-state-data jc) :username)
 					 "xmpp"
 					 (plist-get (fsm-get-state-data jc) :server)))
+	       (sasl-read-passphrase (jabber-sasl-read-passphrase-closure jc))
 	       (step (sasl-next-step client nil)))
 	  (jabber-send-sexp
 	   jc
@@ -80,12 +81,16 @@
 		     (base64-encode-string (sasl-step-data step) t))))
 	  (cons client step))))))
 
+(defun jabber-sasl-read-passphrase-closure (jc)
+  "Return a lambda function suitable for `sasl-read-passphrase' for JC."
+  (lexical-let ((password (plist-get (fsm-get-state-data jc) :password))
+		(bare-jid (jabber-connection-bare-jid jc)))
+    (if password
+	(lambda (prompt) password)
+      (lambda (prompt) (jabber-read-password bare-jid)))))
+
 (defun jabber-sasl-process-input (jc xml-data sasl-data)
-  (let ((sasl-read-passphrase (lexical-let ((password (plist-get (fsm-get-state-data jc) :password))
-					    (bare-jid (jabber-connection-bare-jid jc)))
-				(if password
-				    (lambda (prompt) password)
-				  (lambda (prompt) (jabber-read-password bare-jid)))))
+  (let ((sasl-read-passphrase (jabber-sasl-read-passphrase-closure jc))
 	(client (car sasl-data))
 	(step (cdr sasl-data)))
     (cond
