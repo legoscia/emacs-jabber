@@ -267,7 +267,12 @@ With double prefix argument, specify more connection details."
 			'jabber-connect
 			(plist-get state-data :username)
 			(plist-get state-data :server)
-			(plist-get state-data :resource)))))
+			(plist-get state-data :resource)
+			nil
+			(plist-get state-data :password)
+			(plist-get state-data :network-server)
+			(plist-get state-data :port)
+			(plist-get state-data :connection-type)))))
 
   (list state-data nil))
 
