@@ -1,7 +1,7 @@
 \input texinfo          @c -*-texinfo-*-
 @c %**start of header
 @setfilename jabber.info
-@settitle jabber.el manual 0.7.1
+@settitle jabber.el manual 0.8
 @c %**end of header
 
 @dircategory Emacs
@@ -10,7 +10,7 @@
 @end direntry
 
 @copying
-This manual is for jabber.el, version 0.7.1.
+This manual is for jabber.el, version 0.8.
 
 Copyright @copyright{} 2004, 2005, 2006, 2007 Magnus Henoch, Tom Berger.
 
@@ -120,7 +120,9 @@ start with @kbd{C-x C-j}, and you can get a list of them by typing
 @node Connecting, Chatting, Basic operation, Basic operation
 @section Connecting
 
+@findex jabber-connect-all
 @findex jabber-connect
+@findex jabber-disconnect-all
 @findex jabber-disconnect
 
 @cindex Connecting
@@ -130,17 +132,17 @@ I'll assume that you have already successfully installed jabber.el; if
 not, consult the @file{README} file.  Also, make sure you have
 @code{(require 'jabber)} in your @file{.emacs}.
 
-Now, type @kbd{M-x jabber-customize}.  This brings up a customize
-buffer for jabber.el.  The most important variables to customize are
-@code{jabber-username} and
-@code{jabber-server}.@footnote{@xref{Connection settings}, for other
-things you might have to change.}  Save your changes, and type
-@kbd{M-x jabber-connect} to connect.
+Now, type @kbd{M-x jabber-customize}. This brings up a customize
+buffer for jabber.el. One variable to customize are
+@code{jabber-account-list}. It sets accounts, that jabber.el knows about. See
+comments for this variable to learn how to set it up. Save your
+changes, and type @kbd{M-x jabber-connect-all} or @kbd{C-x C-j C-c} to
+connect. Use @kbd{M-x jabber-connect} to connect just one account.
 
 If you do not yet have a Jabber account, you can register one.  Enter
-your desired username for @code{jabber-username} and the server you wish
-to use for @code{jabber-server}, save, and type @kbd{C-u M-x
-jabber-connect} or @kbd{C-u C-x C-j C-c}.  If the server supports
+your desired username and the server you wish
+to use in @code{jabber-account-list}, save, and type @kbd{C-u M-x
+jabber-connect}.  If the server supports
 in-band registration, you will be presented with a registration form to
 fill out and send.  There the username you chose will be prefilled.
 Don't change it, otherwise jabber.el will be confused.
@@ -153,6 +155,7 @@ this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
 C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
+Use @kbd{M-x jabber-disconnect-one} to disconnect just one account.
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
@@ -254,9 +257,9 @@ Having permission to view the presence status of a person is called
 @dfn{subscribing to his presence}.  Presence subscription between two
 persons can be asymmetric.
 
-When jabber.el receives a presence subscription request, it will
-present it to you in an alert requiring immediate response, and offer
-you to send a subscription request back to that person.
+When jabber.el receives a presence subscription request, it will present
+it to you in an chat buffer, and offer you to choose subscription mode
+and send a subscription request back to that person.
 
 To request subscription to someone, type @kbd{M-x
 jabber-send-subscription-request}.  You will be prompted for the JID
@@ -302,6 +305,11 @@ to clients automatically.
 You can choose not to have the roster updated automatically on
 presence changes (@pxref{Presence alerts}).  In that case, you need to
 call @code{jabber-display-roster} manually.
+
+Please note, that by default offline contacts showed in roster as any
+others. To hide them, you can use @kbd{o} in roster buffer. To
+permanently hide them, customize @code{jabber-show-offline-contacts}
+variable.
 
 @node Groupchat, Composing messages, Basic operation, Top
 @chapter Groupchat
@@ -363,12 +371,13 @@ the meaning of roles and affiliations.
 
 @menu
 * Automation::                  
+* Bookmarks::                
 * Invitations::                 
 * Private messages::            
 * MUC Administration::          
 @end menu
 
-@node Automation, Invitations, Groupchat, Groupchat
+@node Automation, Bookmarks, Groupchat, Groupchat
 @section Automation
 
 @vindex jabber-muc-default-nicknames
@@ -377,7 +386,8 @@ the meaning of roles and affiliations.
 @cindex Default MUC nickname
 @cindex Autojoin chat rooms
 
-You can select a default nickname by setting @code{jabber-nickname}.
+You can select a default nickname by setting
+@code{jabber-account-list} (part of JID before @code{@@}).
 Additionally, you can set different nicknames for different groups, by
 customizing @code{jabber-muc-default-nicknames}.  There you specify
 the JID of the group, and your preferred nickname.
@@ -387,7 +397,22 @@ can set @code{jabber-muc-autojoin} to a list containing the JIDs of
 the rooms you want to enter.  To disable this feature, remove
 @code{jabber-muc-autojoin} from @code{jabber-post-connect-hook}.
 
-@node Invitations, Private messages, Automation, Groupchat
+Please note, that @code{jabber-muc-default-nicknames} and
+@code{jabber-muc-autojoin} are machine-local. To make them available
+to any client on any machine, import them in your bookmarks. See
+@xref{Bookmarks}.
+
+@node Bookmarks, Invitations, Automation, Groupchat
+@section Bookmarks
+
+@cindex Bookmarks
+@findex jabber-edit-bookmarks
+
+You can store your conference settings on server-side to make them
+available from any machine and client. Use @code{M-x
+jabber-edit-bookmarks} to edit server-side bookmarks.
+
+@node Invitations, Private messages, Bookmarks, Groupchat
 @section Invitations
 
 @cindex Invitations
@@ -615,6 +640,9 @@ keybindings as in the roster buffer, and if you call a function
 operating on a JID while point is over a JID, that JID will be the
 default value, so you don't have to type it or copy it yourself.
 
+You can change browse buffer name creation template by customizing
+@code{jabber-browse-buffer-format} variable.
+
 @menu
 * Service discovery and browsing::  
 * Registering::                 
@@ -678,8 +706,8 @@ the password of your Jabber account, ask to register with your Jabber
 server.
 
 Please note that any passwords sent in this way will be sent in
-cleartext to your Jabber server, unless you have enabled SSL encryption
-(@pxref{Connection settings}), and possibly sent in cleartext from your
+cleartext to your Jabber server, unless you have enabled SSL encryption,
+ and possibly sent in cleartext from your
 server to the server hosting the service.
 
 jabber.el will then request a registration form from that service.  If
@@ -827,6 +855,7 @@ interface and do other useful things.
 * Autoaway::                    
 * Modeline status::             
 * Keepalive::                   
+* Reconnecting::
 * Tracking activity::           
 * Watch buddies::               
 * Spell checking::              
@@ -889,7 +918,7 @@ breakdown of presence status.  That gives you six numbers indicating
 the number of chatty, online, away, extended away, dnd, and offline
 contacts, respectively.
 
-@node Keepalive, Tracking activity, Modeline status, Useful features
+@node Keepalive, Reconnecting, Modeline status, Useful features
 @section Keepalive
 
 @cindex Keepalive
@@ -917,7 +946,23 @@ You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.
 
-@node Tracking activity, Watch buddies, Keepalive, Useful features
+@node Reconnecting, Tracking activity, Keepalive, Useful features
+@section Reconnecting
+
+@cindex Reconnect
+@cindex Reconnecting
+@vindex jabber-auto-reconnect
+
+Jabber.el support automatic reconnection to Jabber server(s) upon lost
+connection. By default it is off. To turn on, customize
+@code{jabber-auto-reconnect} variable. You will need
+@file{password.el} to fully use this feature. It may be found in
+recent Gnus (No Gnus) or downloaded and installed separately.
+
+See also comments about
+password(s) in Custom's buffer help.
+
+@node Tracking activity, Watch buddies, Reconnecting, Useful features
 @section Tracking activity
 
 @cindex Activity
@@ -997,6 +1042,11 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @cindex History
 @cindex Backlog
 @cindex Rotation
+@cindex Truncate
+@cindex Truncation
+@findex jabber-truncate-top
+@findex jabber-truncate-muc
+@findex jabber-truncate-chat
 @vindex jabber-history-enabled
 @vindex jabber-global-history-filename
 @vindex jabber-use-global-history
@@ -1005,6 +1055,7 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @vindex jabber-history-size-limit
 @vindex jabber-backlog-number
 @vindex jabber-backlog-days
+@vindex jabber-log-lines-to-keep
 
 If you want a record of messages sent and received, set
 @code{jabber-history-enabled} to t.  By default all messages to will
@@ -1044,6 +1095,11 @@ and @file{foo@@jabber-server} will be set empty. Next time
 presented with the per-contact history file strategy, history rotation
 works for both per-contact and global history logging strategies.
 
+If you want also to truncate chat and muc buffer from growing too
+much, you can customize jabber-alert-message-hooks and
+jabber-alert-muc-hooks by adding truncation upon receiving message.
+Truncation limit may be set by customizing
+@code{jabber-log-lines-to-keep} variable.
 
 @node Message events, Roster import and export, Message history, Top
 @chapter Message events
@@ -1182,7 +1238,6 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 
 @menu
 * Account settings::            
-* Connection settings::         
 * Miscellaneous settings::      
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
@@ -1191,86 +1246,22 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Debug options::               
 @end menu
 
-@node Account settings, Connection settings, Customization, Customization
+@node Account settings, Miscellaneous settings, Customization, Customization
 @section Account settings
 
-@vindex jabber-username
-@vindex jabber-server
-@vindex jabber-password
-@vindex jabber-resource
-@vindex jabber-default-priority
-@vindex jabber-nickname
 @cindex Username
 @cindex Resource
+@cindex Password
+@cindex JID
+@cindex Resource
 
-@code{jabber-username} is the username part of your JID.
+All account settings reside in @code{jabber-account-list} variable.
+By customizing it, you cat set JID, password, resource, and turn
+account on/off. Optionally, you can set alternative network server,
+port and connection type. See comments for this variable to learn how
+to set it up.
 
-@code{jabber-server} is the JID of your server, i.e. the hostname part
-of your JID.  This is usually, but not necessarily, the same as the
-hostname of the server.
-
-@code{jabber-password} is your password.  You have the option to set
-it here, in which case it will be stored in cleartext in your
-@file{.emacs} file.  If this is set to @code{nil}, you will be prompted for
-your password every time you connect.
-
-@code{jabber-resource} is the resource you want to log in under.  This
-only matters if you are connected to the same account from different
-clients or different computers, since each connection must have a
-unique resource.  You might want to set this to your hostname.
-
-@code{jabber-default-priority} is the default priority sent with your
-presence.  Regardless of what you have here, you can change your
-priority during a session with @code{jabber-send-presence}.
-@xref{Presence}, for more information on priority.
-
-@code{jabber-nickname} is your default nickname for groupchats.
-
-@node Connection settings, Miscellaneous settings, Account settings, Customization
-@section Connection settings
-
-@vindex jabber-network-server
-@vindex jabber-port
-@vindex jabber-connection-type
-@vindex jabber-connection-ssl-program
-@cindex Connection settings
-@cindex Network settings
-@cindex SSL
-@cindex TLS
-@cindex STARTTLS
-@cindex SRV records
-
-@code{jabber-network-server} is the hostname or IP address of your
-server.  If it is set to @code{nil}, jabber.el will use the name in
-@code{jabber-server}.
-
-@code{jabber-port} is the TCP port of the server to connect to.  If
-@code{nil}, the default port is selected based on the chosen
-connection method.
-
-If both @code{jabber-network-server} and @code{jabber-port} are nil, and
-a sufficiently modern @code{dns.el} is available, jabber.el will use SRV
-records to find the right hostname and port.
-
-@code{jabber-connection-type} specifies what kind of connection to
-use.  @code{network} means normal unencrypted network connection
-(usually on port 5222), and @code{ssl} means encrypted connection
-through GnuTLS or OpenSSL (port 5223), while @code{starttls} will
-initiate an unencrypted connection and switch to encrypted if offered
-by the server.  You can change the settings of the encryption program
-through @kbd{M-x customize-group RET tls}, @kbd{M-x customize-group RET starttls}
-or @kbd{M-x customize-group RET ssl}, respectively.
-
-@cindex GnuTLS
-@cindex OpenSSL
-By default, GnuTLS will be used if the @code{tls} library is available,
-and if that fails, OpenSSL will be used if the @code{ssl} library is
-available.  You can force the use of either program by setting
-@code{jabber-connection-ssl-program} to @code{gnutls} or @code{openssl},
-respectively.  If you use @code{starttls} the library with the same name is
-required, and it depends on the GnuTLS command line client.
-
-@node Miscellaneous settings, Customizing the roster buffer, Connection settings, Customization
+@node Miscellaneous settings, Customizing the roster buffer, Account settings, Customization
 @section Miscellaneous settings
 
 @findex jabber-menu
@@ -1997,6 +1988,7 @@ jabber.el.
 * XEP-0077::                    In-Band Registration
 * XEP-0078::                    Non-SASL Authentication
 * XEP-0082::                    Jabber Date and Time Profiles
+* XEP-0085::                    Chat State Notifications
 * XEP-0086::                    Error Condition Mappings
 * XEP-0090::                    Entity Time
 * XEP-0091::                    Delayed Delivery
@@ -2168,13 +2160,23 @@ Non-SASL authentication is supported, both plaintext and digest.
 Digest is preferred, and a warning is displayed to the user if only
 plaintext is available.
 
-@node XEP-0082, XEP-0086, XEP-0078, Protocol support
+@node XEP-0082, XEP-0085, XEP-0078, Protocol support
 @section XEP-0082 (Jabber Date and Time Profiles)
 
 The DateTime profile of XEP-0082 is supported.  Currently this is only
 used for file transfer.
 
-@node XEP-0086, XEP-0090, XEP-0082, Protocol support
+@node XEP-0085, XEP-0086, XEP-0082, Protocol support
+@section XEP-0085 (Chat State Notifications)
+
+XEP-0085 is partially supported. Currently only active/composing
+notifications are @emph{sent} though all five notifications are handled on
+receipt.
+
+To customize sending of chat states, customize
+@code{jabber-chatstates-confirm} variable.
+
+@node XEP-0086, XEP-0090, XEP-0085, Protocol support
 @section XEP-0086 (Error Condition Mappings)
 
 Legacy errors are interpreted, but never generated.  XMPP style error
