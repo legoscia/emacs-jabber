@@ -3,34 +3,33 @@
 * New features in jabber.el 0.8
 
 ** Support for multiple accounts
-(not documented yet)
+See section "Account settings" in manual.
 
 ** Automatic reconnection
-Not enabled by default; see jabber-auto-reconnect.
-(not documented yet)
+Not enabled by default; See "Reconnecting" section in manual.
 
-** Support for XEP-0085
+** support for XEP-0085
 This means "contact is typing" notifications when chatting with Gajim
 or Google Talk users, among others.
-(not documented yet)
+See "XEP-0085" section in manual
 
 ** Option: hide offline contacts in roster
-See jabber-show-offline-contacts.
-(not documented yet)
+See "The roster buffer" in manual.
 
 ** Clean history from chat buffers
-See jabber-truncate-top and new option for jabber-alert-muc-hooks.
-(not documented yet)
+See jabber-truncate-* functions and new options for
+jabber-alert-muc-hooks and jabber-alert-message-hooks. See section
+"Message history" in manual too.
 
 ** MUC bookmarks
-(not documented yet)
+See jabber-edit-bookmarks function and "Bookmarks" section in manual.
 
 ** Name of browse buffers customizable
-See jabber-browse-buffer-format.
-(not documented yet)
+See "Services" section in manual.
 
 ** Subscription requests are sent to chat buffers
-(not documented yet)
+Subscription requests now displayed in chat buffers. See "Presence
+subscription" section in manual.
 
 * New features in jabber.el 0.7.1
 

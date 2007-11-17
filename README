@@ -1,4 +1,4 @@
-This is jabber.el 0.7.1, a Jabber client for Emacs.  If you don't know
+This is jabber.el 0.8, a Jabber client for Emacs.  If you don't know
 what Jabber is, see http://www.jabber.org .
 
 Home page:    http://emacs-jabber.sourceforge.net
@@ -63,6 +63,9 @@ need to remove some redundant hook functions.  Make sure that
 jabber-alert-message-hooks doesn't contain jabber-message-history, and
 that jabber-alert-presence-hooks doesn't contain
 jabber-presence-watch.
+
+Also, users upgrading from 0.7-0.7.x may meet some configuration
+issues. Please, report them as bugs in tracker, to help update docs.
 
 Usage
 =====
