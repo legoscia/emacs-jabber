@@ -86,7 +86,7 @@
   (lexical-let ((password (plist-get (fsm-get-state-data jc) :password))
 		(bare-jid (jabber-connection-bare-jid jc)))
     (if password
-	(lambda (prompt) password)
+	(lambda (prompt) (copy-sequence password))
       (lambda (prompt) (jabber-read-password bare-jid)))))
 
 (defun jabber-sasl-process-input (jc xml-data sasl-data)
