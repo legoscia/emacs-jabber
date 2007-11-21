@@ -1,7 +1,7 @@
 ;; jabber-xml.el - XML functions
 
+;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -158,12 +158,14 @@ CHILD-NAME should be a lower case symbol."
       (defsubst jabber-xml-get-attribute (node attribute)
 	"Get from NODE the value of ATTRIBUTE.
 Return nil if the attribute was not found."
-	(xml-get-attribute-or-nil node attribute))
+	(when (consp node)
+	  (xml-get-attribute-or-nil node attribute)))
     (defsubst jabber-xml-get-attribute (node attribute)
       "Get from NODE the value of ATTRIBUTE.
 Return nil if the attribute was not found."
-      (let ((result (xml-get-attribute node attribute)))
-	(and (> (length result) 0) result)))))
+      (when (consp node)
+	(let ((result (xml-get-attribute node attribute)))
+	  (and (> (length result) 0) result))))))
 
 (defsubst jabber-xml-get-xmlns (node)
   "Get \"xmlns\" attribute of NODE, or nil if not present."
