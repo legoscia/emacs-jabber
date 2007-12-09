@@ -294,15 +294,23 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
   (setq *jabber-current-priority* (string-to-number priority))
+  (let (subelements-map)
+    ;; For each connection, we use a different set of subelements.  We
+    ;; cache them, to only generate them once.
+
+    ;; Ordinary presence, with no specified recipient
     (dolist (jc jabber-connections)
-      ;; First send presence to everyone subscribed
       (let ((subelements (jabber-presence-children jc)))
-	(jabber-send-sexp jc `(presence () ,@subelements))
-      ;; Then send to every joined MUC room
-      ;; XXX: implement reverse mapping
-      ;; (dolist (groupchat *jabber-active-groupchats*)
-;; 	(jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements)))
-	))
+	(aput 'subelements-map jc subelements)
+	(jabber-send-sexp jc `(presence () ,@subelements))))
+    ;; Then send presence to groupchats
+    (dolist (groupchat *jabber-active-groupchats*)
+      (let* ((buffer (get-buffer (jabber-muc-get-buffer (car groupchat))))
+	     (jc (when buffer
+		   (buffer-local-value 'jabber-buffer-connection buffer)))
+	     (subelements (cdr (assq jc subelements-map))))
+	(when jc
+	  (jabber-send-sexp jc `(presence ((to . ,(car groupchat))) ,@subelements))))))
   (jabber-display-roster))
 
 (defun jabber-presence-children (jc)
