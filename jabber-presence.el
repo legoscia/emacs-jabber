@@ -134,6 +134,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					       (get buddy 'resources))))
 		   newstatus)
 	      (cond
+	       ((and (string= resource "") (member type '("unavailable" "error")))
+		;; 'unavailable' or 'error' from bare JID means that all resources
+		;; are offline.
+		(setq resource-plist nil)
+		(setq newstatus (if (string= type "error") "error" nil))
+		(let ((new-message (if error
+				       (jabber-parse-error error)
+				     presence-status)))
+		  ;; erase any previous information
+		  (put buddy 'resources nil)
+		  (put buddy 'connected nil)
+		  (put buddy 'show newstatus)
+		  (put buddy 'status new-message)))
+
 	       ((string= type "unavailable")
 		(setq resource-plist
 		      (plist-put resource-plist 'connected nil))
@@ -173,11 +187,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (plist-put resource-plist 'priority priority))
 		(setq newstatus (or presence-show ""))))
 
-	      ;; this is for `assoc-set!' in guile
-	      (if (assoc resource (get buddy 'resources))
-		  (setcdr (assoc resource (get buddy 'resources)) resource-plist)
-		(put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
-	      (jabber-prioritize-resources buddy)
+	      (when resource-plist
+		;; this is for `assoc-set!' in guile
+		(if (assoc resource (get buddy 'resources))
+		    (setcdr (assoc resource (get buddy 'resources)) resource-plist)
+		  (put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
+		(jabber-prioritize-resources buddy))
 
 	      (jabber-roster-update jc nil (list buddy) nil)
 
