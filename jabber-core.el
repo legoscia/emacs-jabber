@@ -450,7 +450,12 @@ With double prefix argument, specify more connection details."
       (jabber-process-stream-error (cadr event) state-data)
       (progn
 	(jabber-process-input fsm (cadr event))
-	(list :register-account state-data))))))
+	(list :register-account state-data))))
+
+    (:do-disconnect
+     (jabber-send-string fsm "</stream:stream>")
+     (list nil (plist-put state-data
+			  :disconnection-expected t)))))
 
 (define-enter-state jabber-connection :legacy-auth
   (fsm state-data)
