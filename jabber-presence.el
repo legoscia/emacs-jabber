@@ -26,6 +26,8 @@
 (require 'jabber-menu)
 (require 'jabber-muc)
 
+(require 'assoc)
+
 (defvar jabber-presence-element-functions nil
   "List of functions returning extra elements for <presence/> stanzas.
 Each function takes one argument, the connection, and returns a
