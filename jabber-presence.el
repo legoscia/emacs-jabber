@@ -1,6 +1,6 @@
 ;; jabber-presence.el - roster and presence bookkeeping
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -304,7 +304,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     (dolist (jc jabber-connections)
       (let ((subelements (jabber-presence-children jc)))
 	(aput 'subelements-map jc subelements)
-	(jabber-send-sexp jc `(presence () ,@subelements))))
+	(jabber-send-sexp-if-connected jc `(presence () ,@subelements))))
     ;; Then send presence to groupchats
     (dolist (groupchat *jabber-active-groupchats*)
       (let* ((buffer (get-buffer (jabber-muc-get-buffer (car groupchat))))
@@ -312,7 +312,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		   (buffer-local-value 'jabber-buffer-connection buffer)))
 	     (subelements (cdr (assq jc subelements-map))))
 	(when jc
-	  (jabber-send-sexp jc `(presence ((to . ,(car groupchat))) ,@subelements))))))
+	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car groupchat))) ,@subelements))))))
   (jabber-display-roster))
 
 (defun jabber-presence-children (jc)

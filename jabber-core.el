@@ -1,6 +1,6 @@
 ;; jabber-core.el - core functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; SSL-Connection Parts:
@@ -674,6 +674,13 @@ With double prefix argument, specify more connection details."
 	(jabber-process-input fsm (cadr event))
 	(list :session-established state-data))))
 
+    (:send-if-connected
+     ;; This is the only state in which we respond to such messages.
+     ;; This is to make sure we don't send anything inappropriate
+     ;; during authentication etc.
+     (jabber-send-sexp fsm (cdr event))
+     (list :session-established state-data))
+
     (:do-disconnect
      (jabber-send-string fsm "</stream:stream>")
      (list nil (plist-put state-data
@@ -916,6 +923,10 @@ Return an fsm result list if it is."
      (message "Couldn't write XML log: %s" (error-message-string e))
      (sit-for 2)))
   (jabber-send-string jc (jabber-sexp2xml sexp)))
+
+(defun jabber-send-sexp-if-connected (jc sexp)
+  "Send the stanza SEXP only if JC has established a session."
+  (fsm-send-sync jc (cons :send-if-connected sexp)))
 
 (defun jabber-send-stream-header (jc)
   "Send stream header to connection JC."
