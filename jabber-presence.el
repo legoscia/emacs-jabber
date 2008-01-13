@@ -76,6 +76,15 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	      (setq roster-item jid)
 	      (push roster-item new-items))
 
+	    ;; If this is an initial push, we want to forget
+	    ;; everything we knew about this contact before - e.g. if
+	    ;; the contact was online when we disconnected and offline
+	    ;; when we reconnect, we don't want to see stale presence
+	    ;; information.  This assumes that no contacts are shared
+	    ;; between accounts.
+	    (when (eq closure-data 'initial)
+	      (setplist roster-item nil))
+
 	    ;; Now, get all data associated with the contact.
 	    (put roster-item 'name (jabber-xml-get-attribute item 'name))
 	    (put roster-item 'subscription (jabber-xml-get-attribute item 'subscription))
