@@ -1,5 +1,6 @@
 ;; jabber-xmessage.el - emacs-jabber interface to xmessage
 
+;; Copyright (C) 2008 - Magnus Henoch
 ;; Copyright (C) 2005 - Mario Domenech Goulart
 
 ;; This file is a part of jabber.el.
@@ -18,10 +19,20 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(defcustom jabber-xmessage-timeout 15
+  "Timeout in seconds for xmessage alerts.
+Set this to nil to have no timeout."
+  :type '(choice (integer :tag "Seconds")
+		 (const :tag "No timeout" nil))
+  :group 'jabber-alerts)
+
 (defun jabber-xmessage-display-message (message)
   "Displays MESSAGE using the xmessage program."
-  (let ((process-connection-type nil))
-    (start-process "xmessage" nil "xmessage" message)))
+  (let* ((process-connection-type nil)
+	 (timeout-args (when jabber-xmessage-timeout
+			 (list "-timeout" (number-to-string jabber-xmessage-timeout))))
+	 (args (append timeout-args (list message))))
+    (apply 'start-process "xmessage" nil "xmessage" args)))
 
 (define-jabber-alert xmessage "Display a message using the xmessage program."
   'jabber-xmessage-display-message)
