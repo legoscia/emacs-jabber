@@ -1,6 +1,6 @@
 ;; jabber-util.el - various utility functions    -*- coding: utf-8; -*-
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -272,6 +272,8 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
 (defun jabber-uncache-password (bare-jid)
   "Uncache cached password for BARE-JID.
 Useful if the password proved to be wrong."
+  (interactive (list (jabber-jid-user
+		      (completing-read "Forget password of account: " jabber-account-list))))
   (when (fboundp 'password-cache-remove)
     (password-cache-remove (jabber-password-key bare-jid))))
 
