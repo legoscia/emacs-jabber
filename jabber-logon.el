@@ -1,6 +1,6 @@
 ;; jabber-logon.el - logon functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -54,14 +54,20 @@
       
     ;; If auth is still nil, user cancelled process somewhere
     (if auth
-	(jabber-send-iq jc (plist-get (fsm-get-state-data jc) :server)
-			"set"
-			`(query ((xmlns . "jabber:iq:auth"))
-				(username () ,(plist-get (fsm-get-state-data jc) :username))
-				,auth
-				(resource () ,(plist-get (fsm-get-state-data jc) :resource)))
-			#'jabber-process-logon t
-			#'jabber-process-logon nil)
+	(progn
+	  ;; For legacy authentication we must specify a resource.
+	  (unless (plist-get (fsm-get-state-data jc) :resource)
+	    ;; Yes, this is ugly.  Where is my encapsulation?
+	    (plist-put (fsm-get-state-data jc) :resource "emacs-jabber"))
+
+	  (jabber-send-iq jc (plist-get (fsm-get-state-data jc) :server)
+			  "set"
+			  `(query ((xmlns . "jabber:iq:auth"))
+				  (username () ,(plist-get (fsm-get-state-data jc) :username))
+				  ,auth
+				  (resource () ,(plist-get (fsm-get-state-data jc) :resource)))
+			  #'jabber-process-logon t
+			  #'jabber-process-logon nil))
       (fsm-send jc :authentication-failure))))
 
 (defun jabber-process-logon (jc xml-data closure-data)
