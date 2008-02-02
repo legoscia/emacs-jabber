@@ -510,12 +510,12 @@ With double prefix argument, specify more connection details."
 (define-enter-state jabber-connection :sasl-auth
   (fsm state-data)
   (let ((new-state-data
-	 (append state-data
-		 (list :sasl-data 
-		       (jabber-sasl-start-auth 
-			fsm
-			(plist-get state-data
-				   :stream-features))))))
+	 (plist-put state-data
+		    :sasl-data
+		    (jabber-sasl-start-auth 
+		     fsm
+		     (plist-get state-data
+				:stream-features)))))
     (list new-state-data nil)))
 
 (define-state jabber-connection :sasl-auth
