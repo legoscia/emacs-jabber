@@ -169,4 +169,5 @@ OLD is last tried nickname."
 
 (provide 'jabber-muc-nick-completion)
 
+;; arch-tag: 2a81ac72-d261-11dc-be91-000a95c2fcd0
 ;;; jabber-muc-completion.el ends here
