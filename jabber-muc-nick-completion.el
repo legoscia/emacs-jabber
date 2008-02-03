@@ -21,10 +21,6 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ;;; User customizations here:
-(defvar jabber-muc-looks-personaling-symbols
-  '("," ":" ">")
-  "Symbols for personaling messages")
-
 (defcustom jabber-muc-completion-delimiter ": "
   "String to add to end of completion line."
   :type 'string
@@ -46,7 +42,6 @@
 ;;; Code:
 
 (require 'cl)
-(require 'jabber)
 (require 'jabber-muc)
 (require 'hippie-exp)
 
