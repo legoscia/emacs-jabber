@@ -1,6 +1,6 @@
 ;; jabber-chat.el - one-to-one chats
 
-;; Copyright (C) 2005, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2005, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -41,9 +41,10 @@ with):
   :group 'jabber-chat)
 
 (defcustom jabber-chat-header-line-format
-  '("" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
-		(jabber-propertize " "
-				   'display (get buddy 'avatar))))
+  '("" (jabber-chat-buffer-show-avatar
+	(let ((buddy (jabber-jid-symbol jabber-chatting-with)))
+	  (jabber-propertize " "
+			     'display (get buddy 'avatar))))
     (:eval (jabber-jid-displayname jabber-chatting-with))
     "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
 		  (propertize 
@@ -60,6 +61,13 @@ with):
 
 The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
+  :group 'jabber-chat)
+
+(defcustom jabber-chat-buffer-show-avatar t
+  "Show avatars in header line of chat buffer?
+This variable might not take effect if you have changed
+`jabber-chat-header-line-format'."
+  :type 'boolean
   :group 'jabber-chat)
 
 (defcustom jabber-chat-time-format "%H:%M"
