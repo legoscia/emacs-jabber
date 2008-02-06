@@ -42,9 +42,10 @@ with):
 
 (defcustom jabber-chat-header-line-format
   '("" (jabber-chat-buffer-show-avatar
-	(let ((buddy (jabber-jid-symbol jabber-chatting-with)))
-	  (jabber-propertize " "
-			     'display (get buddy 'avatar))))
+	(:eval 
+	 (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
+	   (jabber-propertize " "
+			      'display (get buddy 'avatar)))))
     (:eval (jabber-jid-displayname jabber-chatting-with))
     "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
 		  (propertize 
