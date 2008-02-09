@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: emacs-jabber
 Architecture: all
-Depends: emacsen-common, emacs21 | xemacs21-basesupport (>= 2004.02.02), gnus (>= 5.10.6-1.NO.20050713-1) | flim
+Depends: gnus (>= 5.10.6-1.NO.20050713-1) | flim | emacs-snapshot | emacs22
 Description: Jabber client for Emacs/XEmacs
  jabber.el (emacs-jabber) is a Jabber client for Emacs and XEmacs.
  .
