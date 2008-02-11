@@ -124,16 +124,16 @@ problems."
   "Return non-nil if SASL functions are available."
   (featurep 'sasl))
 
-(defun jabber-connect-all ()
+(defun jabber-connect-all (&optional arg)
   "Connect to all configured Jabber accounts.
 See `jabber-account-list'.
 If no accounts are configured, call `jabber-connect' interactively."
-  (interactive)
+  (interactive "P")
   (let ((accounts
 	 (remove-if (lambda (account)
 		      (cdr (assq :disabled (cdr account))))
 		    jabber-account-list)))
-    (if (null accounts)
+    (if (or (null accounts) arg)
 	(call-interactively 'jabber-connect)
       ;; Only connect those accounts that are not yet connected.
       (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))

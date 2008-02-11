@@ -12,7 +12,7 @@
 @copying
 This manual is for jabber.el, version 0.8.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007 Magnus Henoch, Tom Berger.
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Magnus Henoch, Tom Berger.
 
 @quotation
 Permission is granted to make and distribute verbatim copies or
@@ -137,7 +137,7 @@ buffer for jabber.el. One variable to customize are
 @code{jabber-account-list}. It sets accounts, that jabber.el knows about. See
 comments for this variable to learn how to set it up. Save your
 changes, and type @kbd{M-x jabber-connect-all} or @kbd{C-x C-j C-c} to
-connect. Use @kbd{M-x jabber-connect} to connect just one account.
+connect. Use @kbd{M-x jabber-connect} to connect just one account (or just type @kbd{C-u C-x C-j C-c}).
 
 If you do not yet have a Jabber account, you can register one.  Enter
 your desired username and the server you wish
