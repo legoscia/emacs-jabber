@@ -365,6 +365,8 @@ With double prefix argument, specify more connection details."
     (:stream-start
      (let ((session-id (cadr event))
 	   (stream-version (car (cddr event))))
+       (setq state-data
+	     (plist-put state-data :session-id session-id))
        ;; the stream feature is only sent if the initiating entity has
        ;; sent 1.0 in the stream header. if sasl is not supported then
        ;; we don't send 1.0 in the header and therefore we shouldn't wait
@@ -383,7 +385,7 @@ With double prefix argument, specify more connection details."
 	 (list :register-account state-data))
 	;; Legacy authentication?
 	(t
-	 (list :legacy-auth (plist-put state-data :session-id session-id))))))
+	 (list :legacy-auth state-data)))))
 
     (:stanza
      (let ((stanza (cadr event)))
