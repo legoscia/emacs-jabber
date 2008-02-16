@@ -1,6 +1,6 @@
 ;; jabber-presence.el - roster and presence bookkeeping
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -25,6 +25,8 @@
 (require 'jabber-util)
 (require 'jabber-menu)
 (require 'jabber-muc)
+
+(require 'assoc)
 
 (defvar jabber-presence-element-functions nil
   "List of functions returning extra elements for <presence/> stanzas.
@@ -73,6 +75,15 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	      (message "%s added to roster" jid)
 	      (setq roster-item jid)
 	      (push roster-item new-items))
+
+	    ;; If this is an initial push, we want to forget
+	    ;; everything we knew about this contact before - e.g. if
+	    ;; the contact was online when we disconnected and offline
+	    ;; when we reconnect, we don't want to see stale presence
+	    ;; information.  This assumes that no contacts are shared
+	    ;; between accounts.
+	    (when (eq closure-data 'initial)
+	      (setplist roster-item nil))
 
 	    ;; Now, get all data associated with the contact.
 	    (put roster-item 'name (jabber-xml-get-attribute item 'name))
@@ -134,6 +145,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					       (get buddy 'resources))))
 		   newstatus)
 	      (cond
+	       ((and (string= resource "") (member type '("unavailable" "error")))
+		;; 'unavailable' or 'error' from bare JID means that all resources
+		;; are offline.
+		(setq resource-plist nil)
+		(setq newstatus (if (string= type "error") "error" nil))
+		(let ((new-message (if error
+				       (jabber-parse-error error)
+				     presence-status)))
+		  ;; erase any previous information
+		  (put buddy 'resources nil)
+		  (put buddy 'connected nil)
+		  (put buddy 'show newstatus)
+		  (put buddy 'status new-message)))
+
 	       ((string= type "unavailable")
 		(setq resource-plist
 		      (plist-put resource-plist 'connected nil))
@@ -173,11 +198,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		      (plist-put resource-plist 'priority priority))
 		(setq newstatus (or presence-show ""))))
 
-	      ;; this is for `assoc-set!' in guile
-	      (if (assoc resource (get buddy 'resources))
-		  (setcdr (assoc resource (get buddy 'resources)) resource-plist)
-		(put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
-	      (jabber-prioritize-resources buddy)
+	      (when resource-plist
+		;; this is for `assoc-set!' in guile
+		(if (assoc resource (get buddy 'resources))
+		    (setcdr (assoc resource (get buddy 'resources)) resource-plist)
+		  (put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
+		(jabber-prioritize-resources buddy))
 
 	      (jabber-roster-update jc nil (list buddy) nil)
 
@@ -279,15 +305,23 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (setq *jabber-current-status* status)
   (setq *jabber-current-show* show)
   (setq *jabber-current-priority* (string-to-number priority))
+  (let (subelements-map)
+    ;; For each connection, we use a different set of subelements.  We
+    ;; cache them, to only generate them once.
+
+    ;; Ordinary presence, with no specified recipient
     (dolist (jc jabber-connections)
-      ;; First send presence to everyone subscribed
       (let ((subelements (jabber-presence-children jc)))
-	(jabber-send-sexp jc `(presence () ,@subelements))
-      ;; Then send to every joined MUC room
-      ;; XXX: implement reverse mapping
-      ;; (dolist (groupchat *jabber-active-groupchats*)
-;; 	(jabber-send-sexp `(presence ((to . ,(car groupchat))) ,@subelements)))
-	))
+	(aput 'subelements-map jc subelements)
+	(jabber-send-sexp-if-connected jc `(presence () ,@subelements))))
+    ;; Then send presence to groupchats
+    (dolist (groupchat *jabber-active-groupchats*)
+      (let* ((buffer (get-buffer (jabber-muc-get-buffer (car groupchat))))
+	     (jc (when buffer
+		   (buffer-local-value 'jabber-buffer-connection buffer)))
+	     (subelements (cdr (assq jc subelements-map))))
+	(when jc
+	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car groupchat))) ,@subelements))))))
   (jabber-display-roster))
 
 (defun jabber-presence-children (jc)

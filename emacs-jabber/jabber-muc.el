@@ -1,6 +1,6 @@
 ;; jabber-muc.el - advanced MUC functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -879,8 +879,9 @@ Return nil if X-MUC is nil."
     ;; handle leaving a room
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
-      ;; are we leaving?
-      (if (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats))
+      ;; error from room itself? or are we leaving?
+      (if (or (null nickname)
+	      (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats)))
 	  (let ((message (cond
 			  ((string= type "error")
 			   (concat "Error entering room"

@@ -1,6 +1,6 @@
 ;;; jabber-events.el --- Message events (JEP-0022) implementation
 
-;; Copyright (C) 2005  Magnus Henoch
+;; Copyright (C) 2005, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -124,6 +124,10 @@ and it hasn't been sent before."
     (when (and jabber-events-confirm-displayed
 	       (not jabber-events-display-confirmed)
 	       (memq 'displayed jabber-events-requested)
+	       ;; XXX: if jabber-events-requested is non-nil, how can
+	       ;; jabber-chatting-with be nil?  See
+	       ;; http://sourceforge.net/tracker/index.php?func=detail&aid=1872560&group_id=88346&atid=586350
+	       jabber-chatting-with
 	       ;; don't send to bare jids
 	       (jabber-jid-resource jabber-chatting-with))
       (jabber-send-sexp 

@@ -31,6 +31,9 @@ See "Services" section in manual.
 Subscription requests now displayed in chat buffers. See "Presence
 subscription" section in manual.
 
+** Option: hide avatar in chat buffer
+`jabber-chat-buffer-show-avatar'.  (not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS

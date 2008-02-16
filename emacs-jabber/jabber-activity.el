@@ -309,9 +309,11 @@ buffer exists, switch back to the last non Jabber chat buffer used."
             (setq jabber-activity-last-buffer (current-buffer)))
           (switch-to-buffer (jabber-activity-find-buffer-name jid))
           (jabber-activity-clean))
-      ;; Switch back to the buffer used last
-      (when (buffer-live-p jabber-activity-last-buffer)
-	(switch-to-buffer jabber-activity-last-buffer))))
+      (if (eq major-mode 'jabber-chat-mode)
+	  ;; Switch back to the buffer used last
+	  (when (buffer-live-p jabber-activity-last-buffer)
+	    (switch-to-buffer jabber-activity-last-buffer))
+	(message "No new activity"))))
 
 ;;;###autoload
 (define-minor-mode jabber-activity-mode
