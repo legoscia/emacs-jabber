@@ -1541,6 +1541,12 @@ buffers that are visible but not active.  Sometimes you want point to
 scroll down, and sometimes not.  These functions should do what you
 mean; if they don't, it's a bug.
 
+Also, in MUC you can use family of so-called ``personal'' alerts.
+Their like other MUC alerts, but fires only if incoming message
+addresed directly to you. One example of such alert is
+@code{jabber-muc-echo-personal}, which show MUC message only if it
+addresed to you.
+
 Some of these functions are in the @file{jabber-alert.el} file, and the
 others are in their own files.  You can use them as templates or
 inspiration for your own alerts.

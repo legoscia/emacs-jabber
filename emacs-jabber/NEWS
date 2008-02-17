@@ -2,6 +2,9 @@
 
 * New features in jabber.el 0.8
 
+** Family of personal MUC alerts added
+See section "Standard alerts" in manual.
+
 ** MUC nicks completion
 See sectin "Groupchat" in manual.
 
