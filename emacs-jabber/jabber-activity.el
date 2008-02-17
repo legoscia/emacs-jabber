@@ -315,6 +315,8 @@ buffer exists, switch back to the last non Jabber chat buffer used."
 	    (switch-to-buffer jabber-activity-last-buffer))
 	(message "No new activity"))))
 
+(defvar jabber-activity-idle-timer nil "Idle timer used for activity cleaning")
+
 ;;;###autoload
 (define-minor-mode jabber-activity-mode
   "Toggle display of activity in hidden jabber buffers in the mode line.
@@ -337,6 +339,7 @@ With a numeric arg, enable this display if arg is positive."
 		  'jabber-activity-add-muc)
 	(add-hook 'jabber-presence-hooks
 		  'jabber-activity-presence)
+        (setq jabber-activity-idle-timer (run-with-idle-timer 2 t 'jabber-activity-clean))
 	;; XXX: reactivate
 	;; (add-hook 'jabber-post-connect-hooks
 ;; 		  'jabber-activity-make-name-alist)
@@ -372,6 +375,7 @@ With a numeric arg, enable this display if arg is positive."
 		   'jabber-activity-add-muc)
       (remove-hook 'jabber-presence-hooks
 		   'jabber-activity-presence)
+      (ignore-errors (cancel-timer jabber-activity-idle-timer))
       ;; XXX: reactivate
 ;;       (remove-hook 'jabber-post-connect-hooks
 ;; 		   'jabber-activity-make-name-alist)
