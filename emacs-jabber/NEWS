@@ -4,6 +4,12 @@
 
 ** OSD alerts (message, MUC, MUC-personal)
 
+** Family of personal MUC alerts added
+See section "Standard alerts" in manual.
+
+** MUC nicks completion
+See sectin "Groupchat" in manual.
+
 ** Support for multiple accounts
 See section "Account settings" in manual.
 

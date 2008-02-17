@@ -21,6 +21,7 @@
 
 (require 'jabber-util)
 
+(require 'jabber-muc-nick-completion) ;jabber-muc-looks-like-personal-p needs for define-personal-jabber-alert
 (require 'cl)
 
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
@@ -460,6 +461,24 @@ This function uses `jabber-info-message-alist' to find a message."
   "Switch to buffer of completed request"
   (when proposed-alert
     (switch-to-buffer buffer)))
+
+;;; Personal alert hooks
+(defmacro define-personal-jabber-alert (name)
+  "From ALERT function, make ALERT-personal function. Makes sence only for MUC."  
+  (let ((sn (symbol-name name)))
+    (let ((func (intern (format "%s-personal" sn))))
+    `(progn
+       (defun ,func (nick group buffer text proposed-alert)
+         (if (jabber-muc-looks-like-personal-p text group)
+             (,name nick group buffer text proposed-alert)))
+       (pushnew (quote ,func) (get 'jabber-alert-muc-hooks 'custom-options)))))
+  )
+
+(define-personal-jabber-alert jabber-muc-beep)
+(define-personal-jabber-alert jabber-muc-wave)
+(define-personal-jabber-alert jabber-muc-echo)
+(define-personal-jabber-alert jabber-muc-switch)
+(define-personal-jabber-alert jabber-muc-display)
 
 (provide 'jabber-alert)
 
