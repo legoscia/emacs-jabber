@@ -2,6 +2,8 @@
 
 * New features in jabber.el 0.8
 
+** OSD alerts (message, MUC, MUC-personal)
+
 ** Support for multiple accounts
 See section "Account settings" in manual.
 
