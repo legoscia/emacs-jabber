@@ -2,6 +2,9 @@
 
 * New features in jabber.el 0.8
 
+** MUC nicks completion
+See sectin "Groupchat" in manual.
+
 ** Support for multiple accounts
 See section "Account settings" in manual.
 

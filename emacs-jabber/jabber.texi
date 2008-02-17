@@ -322,6 +322,14 @@ The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
 shown here.
 
+Also, to save from repeating unnesesary typing you can press @kbd{Tab}
+key to complete nick of groupchat member, you a talking with. You can
+customize your form of personal talking in MUC
+(@code{jabber-muc-completion-delimiter}) and form of personal talking
+to you (@code{jabber-muc-looks-personaling-symbols}) - see
+``jabber-chat'' customization group. Defaults are sane, so unlikely
+you could change this, but... it is Emacs!
+
 @findex jabber-groupchat-join
 @cindex Joining a groupchat
 @cindex Changing nickname
