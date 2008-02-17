@@ -1,0 +1,6 @@
+tar.bz2: v@version@-@release@:@name@ name=@name@-@version@
+diff: v@version@-@release@:emacs-jabber patch/personal-alerts:emacs-jabber name=@name@-@version@-@release@-alt-personal-alerts.patch
+diff: patch/personal-alerts:emacs-jabber patch/activity:emacs-jabber name=@name@-@version@-@release@-alt-activity.patch
+diff: patch/activity:emacs-jabber patch/docs:emacs-jabber name=@name@-@version@-@release@-alt-docs.patch
+diff: patch/docs:emacs-jabber patch/osd:emacs-jabber name=@name@-@version@-@release@-alt-osd.patch
+copy: *.el
