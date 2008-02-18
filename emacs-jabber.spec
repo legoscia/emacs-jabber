@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080217
+Release: alt0.20080218
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -15,10 +15,8 @@ Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 Source: %name-%version.tar.bz2
 Source1: %pkg_name-emacs.el
 
-Patch0: %name-%version-%release-alt-personal-alerts.patch
-Patch1: %name-%version-%release-alt-activity.patch
 Patch2: %name-%version-%release-alt-docs.patch
-Patch3: %name-%version-%release-alt-osd.patch
+Patch4: %name-%version-%release-alt-muc-nick-completion.patch
 
 BuildArch: noarch
 Requires: emacs-common emacs-gnus >= 5.10
@@ -48,10 +46,8 @@ You need to install %name-el only if you intend to modify any of the
 
 %prep
 %setup -n %name-%version
-%patch0 -p1 -b .orig
-%patch1 -p1 -b .orig
 %patch2 -p1 -b .orig
-%patch3 -p1 -b .orig
+%patch4 -p1 -b .orig
 
 %build
 makeinfo jabber.texi
@@ -91,6 +87,10 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %doc %pkg_name.texi
 
 %changelog
+* Mon Feb 18 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080218
+- cvs-20080218
+- Unneeded patches removed (merged in upstream)
+
 * Sun Feb 17 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080217
 - cvs-20080217
 - Texinfo documentation source code included in -el package
