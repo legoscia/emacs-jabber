@@ -283,6 +283,7 @@ Examples:
 (require 'jabber-festival)
 (require 'jabber-xmessage)
 (require 'jabber-wmii)
+(require 'jabber-osd)
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)
