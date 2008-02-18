@@ -322,6 +322,14 @@ The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
 shown here.
 
+Also, to save from repeating unnesesary typing you can press @kbd{Tab}
+key to complete nick of groupchat member, you a talking with. You can
+customize your form of personal talking in MUC
+(@code{jabber-muc-completion-delimiter}) and form of personal talking
+to you (@code{jabber-muc-looks-personaling-symbols}) - see
+``jabber-chat'' customization group. Defaults are sane, so unlikely
+you could change this, but... it is Emacs!
+
 @findex jabber-groupchat-join
 @cindex Joining a groupchat
 @cindex Changing nickname
@@ -1532,6 +1540,12 @@ alerts (enabled by default), that aim to do the right thing with chat
 buffers that are visible but not active.  Sometimes you want point to
 scroll down, and sometimes not.  These functions should do what you
 mean; if they don't, it's a bug.
+
+Also, in MUC you can use family of so-called ``personal'' alerts.
+Their like other MUC alerts, but fires only if incoming message
+addresed directly to you. One example of such alert is
+@code{jabber-muc-echo-personal}, which show MUC message only if it
+addresed to you.
 
 Some of these functions are in the @file{jabber-alert.el} file, and the
 others are in their own files.  You can use them as templates or
