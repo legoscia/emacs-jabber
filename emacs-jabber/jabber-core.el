@@ -127,7 +127,7 @@ problems."
 (defun jabber-connect-all (&optional arg)
   "Connect to all configured Jabber accounts.
 See `jabber-account-list'.
-If no accounts are configured, call `jabber-connect' interactively."
+If no accounts are configured (or ARG supplied), call `jabber-connect' interactively."
   (interactive "P")
   (let ((accounts
 	 (remove-if (lambda (account)

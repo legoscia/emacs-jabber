@@ -36,6 +36,11 @@
   :type 'integer
   :group 'jabber-chat)
 
+(defcustom jabber-muc-all-string "all"
+  "String meaning all conference members (to insert in completion). Note that \":\: or alike not needed (it appended in other string)"
+  :type 'string
+  :group 'jabber-chat)
+
 ;;; History:
 ;; 
 
@@ -76,7 +81,7 @@ Optional argument GROUP to look."
   "List of conference participants, excluding self, or nil if we not in conference."
   (delete-if '(lambda (nick)
 		 (string= nick (jabber-my-nick)))
-	     (mapcar 'car (cdr (assoc jabber-group jabber-muc-participants)))))
+	     (append (mapcar 'car (cdr (assoc jabber-group jabber-muc-participants))) (list jabber-muc-all-string))))
 
 ;; TODO: optimize this function
 (defun jabber-muc-participant-update-activity (group nick time)
@@ -165,7 +170,7 @@ OLD is last tried nickname."
 
 (add-hook 'jabber-muc-hooks 'jabber-muc-track-message-time)
 (fset 'jabber-muc-completion (make-hippie-expand-function '(try-expand-jabber-muc)))
-(define-key jabber-chat-mode-map (kbd "<tab>") 'jabber-muc-completion)
+(define-key jabber-chat-mode-map [?\t] 'jabber-muc-completion)
 
 (provide 'jabber-muc-nick-completion)
 
