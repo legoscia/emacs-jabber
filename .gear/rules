@@ -1,4 +1,2 @@
 tar.bz2: v@version@-@release@:@name@ name=@name@-@version@
-diff: v@version@-@release@:emacs-jabber patch/docs:emacs-jabber name=@name@-@version@-@release@-alt-docs.patch
-diff: patch/docs:emacs-jabber patch/muc-nick-completion:emacs-jabber name=@name@-@version@-@release@-alt-muc-nick-completion.patch
 copy: *.el
