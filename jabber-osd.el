@@ -29,3 +29,5 @@
   (error nil))
 
 (provide 'jabber-osd)
+
+;; arch-tag: 3eb8d55a-dd86-11dc-b2c6-000a95c2fcd0
