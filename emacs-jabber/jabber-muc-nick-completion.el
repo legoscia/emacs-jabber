@@ -37,7 +37,7 @@
   :group 'jabber-chat)
 
 (defcustom jabber-muc-all-string "all"
-  "String meaning all conference members (to insert in completion). Note that \":\: or alike not needed (it appended in other string)"
+  "String meaning all conference members (to insert in completion). Note that \":\" or alike not needed (it appended in other string)"
   :type 'string
   :group 'jabber-chat)
 
