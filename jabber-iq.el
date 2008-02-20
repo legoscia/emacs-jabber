@@ -1,6 +1,6 @@
 ;; jabber-iq.el - infoquery functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -112,11 +112,15 @@ TYPE is one of \"get\", \"set\", \"result\" or \"error\".
 QUERY is a list containing the child of the iq node in the format `jabber-sexp2xml'
 accepts.
 SUCCESS-CALLBACK is the function to be called when a successful result arrives.
-SUCCESS-CLOSURE-DATA is the second argument to SUCCESS-CALLBACK.
+SUCCESS-CLOSURE-DATA is an extra argument to SUCCESS-CALLBACK.
 ERROR-CALLBACK is the function to be called when an error arrives.
-ERROR-CLOSURE-DATA is the second argument to ERROR-CALLBACK.
+ERROR-CLOSURE-DATA is an extra argument to ERROR-CALLBACK.
 RESULT-ID is the id to be used for a response to a received iq message.
-`jabber-report-success' and `jabber-process-data' are common callbacks."
+`jabber-report-success' and `jabber-process-data' are common callbacks.
+
+The callback functions are called like this:
+\(funcall CALLBACK JC XML-DATA CLOSURE-DATA)
+with XML-DATA being the IQ stanza received in response. "
   (let ((id (or result-id (apply 'format "emacs-iq-%d.%d.%d" (current-time)))))
     (if (or success-callback error-callback)
 	(setq *jabber-open-info-queries* (cons (list id
