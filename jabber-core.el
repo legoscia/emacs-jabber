@@ -497,9 +497,11 @@ With double prefix argument, specify more connection details."
 	(list :legacy-auth state-data))))
 
     (:authentication-success
+     (jabber-cache-password (jabber-connection-bare-jid fsm) (cdr event))
      (list :session-established state-data))
 
     (:authentication-failure
+     (jabber-uncache-password (jabber-connection-bare-jid fsm))
      ;; jabber-logon has already displayed a message
      (list nil (plist-put state-data
 			  :disconnection-expected t)))
@@ -543,9 +545,11 @@ With double prefix argument, specify more connection details."
      (list :legacy-auth (plist-put state-data :sasl-data nil)))
 
     (:authentication-success
+     (jabber-cache-password (jabber-connection-bare-jid fsm) (cdr event))
      (list :bind (plist-put state-data :sasl-data nil)))
 
     (:authentication-failure
+     (jabber-uncache-password (jabber-connection-bare-jid fsm))
      ;; jabber-sasl has already displayed a message
      (list nil (plist-put state-data
 			  :disconnection-expected t)))
