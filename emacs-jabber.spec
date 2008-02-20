@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080219
+Release: alt0.20080220
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -82,6 +82,9 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %doc %pkg_name.texi
 
 %changelog
+* Wed Feb 20 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080220
+- cvs-20080220
+
 * Tue Feb 19 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080219
 - cvs-20080219
 - All patches dropped (me gain write access to jabber.el CVS)
