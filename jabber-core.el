@@ -189,10 +189,13 @@ With double prefix argument, specify more connection details."
 	 (setq connection-type
 	       (car
 		(read-from-string
-		 (or (nonempty (completing-read
-				(format "Connection type: (default `%s') " connection-type)
-				'(("starttls" "network" "ssl")) t))
-		     (symbol-name connection-type)))))
+		 (let ((default (or connection-type jabber-default-connection-type)))
+		   (completing-read
+		    (format "Connection type: (default `%s') " default)
+		    (mapcar (lambda (type)
+			      (cons (symbol-name (car type)) nil))
+			    jabber-connect-methods)
+		    nil t nil nil default)))))
 	 (setq registerp (yes-or-no-p "Register new account? ")))
        (when (equal current-prefix-arg '(4))
 	 (setq registerp t))
