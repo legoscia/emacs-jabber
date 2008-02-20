@@ -189,10 +189,13 @@ With double prefix argument, specify more connection details."
 	 (setq connection-type
 	       (car
 		(read-from-string
-		 (or (nonempty (completing-read
-				(format "Connection type: (default `%s') " connection-type)
-				'(("starttls" "network" "ssl")) t))
-		     (symbol-name connection-type)))))
+		 (let ((default (or connection-type jabber-default-connection-type)))
+		   (completing-read
+		    (format "Connection type: (default `%s') " default)
+		    (mapcar (lambda (type)
+			      (cons (symbol-name (car type)) nil))
+			    jabber-connect-methods)
+		    nil t nil nil default)))))
 	 (setq registerp (yes-or-no-p "Register new account? ")))
        (when (equal current-prefix-arg '(4))
 	 (setq registerp t))
@@ -252,7 +255,8 @@ With double prefix argument, specify more connection details."
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
   (let ((expected (plist-get state-data :disconnection-expected))
-	(reason (plist-get state-data :disconnection-reason)))
+	(reason (plist-get state-data :disconnection-reason))
+	(ever-session-established (plist-get state-data :ever-session-established)))
     (unless expected
       (run-hooks 'jabber-lost-connection-hook)
       (message "%s@%s/%s: connection lost: `%s'"
@@ -261,7 +265,7 @@ With double prefix argument, specify more connection details."
 	       (plist-get state-data :resource)
 	       reason))
 
-    (if (and jabber-auto-reconnect (not expected))
+    (if (and jabber-auto-reconnect (not expected) ever-session-established)
 	;; Reconnect after a short delay?
 	(list state-data jabber-reconnect-delay)
       ;; Else the connection is really dead.  Remove it from the list
@@ -497,9 +501,11 @@ With double prefix argument, specify more connection details."
 	(list :legacy-auth state-data))))
 
     (:authentication-success
+     (jabber-cache-password (jabber-connection-bare-jid fsm) (cdr event))
      (list :session-established state-data))
 
     (:authentication-failure
+     (jabber-uncache-password (jabber-connection-bare-jid fsm))
      ;; jabber-logon has already displayed a message
      (list nil (plist-put state-data
 			  :disconnection-expected t)))
@@ -543,9 +549,11 @@ With double prefix argument, specify more connection details."
      (list :legacy-auth (plist-put state-data :sasl-data nil)))
 
     (:authentication-success
+     (jabber-cache-password (jabber-connection-bare-jid fsm) (cdr event))
      (list :bind (plist-put state-data :sasl-data nil)))
 
     (:authentication-failure
+     (jabber-uncache-password (jabber-connection-bare-jid fsm))
      ;; jabber-sasl has already displayed a message
      (list nil (plist-put state-data
 			  :disconnection-expected t)))
@@ -655,7 +663,7 @@ With double prefix argument, specify more connection details."
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
 		  #'jabber-report-success "Roster retrieval")
-  (list state-data nil))
+  (list (plist-put state-data :ever-session-established t) nil))
 
 (define-state jabber-connection :session-established
   (fsm state-data event callback)

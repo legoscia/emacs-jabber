@@ -140,7 +140,8 @@ Optional argument GROUP to look."
 (defun try-expand-jabber-muc (old)
   "Try to expand target nick in MUC according to last speaking time.
 OLD is last tried nickname."
-  (unless old
+  (unless jabber-chatting-with
+    (unless old
     (let ((nicknames (jabber-muc-nicknames)))
       (he-init-string (jabber-muc-beginning-of-line) (point))
       (setq he-expand-list (jabber-sort-nicks (all-completions he-search-string (mapcar 'list nicknames)) jabber-group))))
@@ -166,7 +167,7 @@ OLD is last tried nickname."
 	(insert subst)))
     (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
     (setq he-expand-list (cdr he-expand-list))
-    t))
+    t)))
 
 (add-hook 'jabber-muc-hooks 'jabber-muc-track-message-time)
 (fset 'jabber-muc-completion (make-hippie-expand-function '(try-expand-jabber-muc)))
