@@ -255,7 +255,8 @@ With double prefix argument, specify more connection details."
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
   (let ((expected (plist-get state-data :disconnection-expected))
-	(reason (plist-get state-data :disconnection-reason)))
+	(reason (plist-get state-data :disconnection-reason))
+	(ever-session-established (plist-get state-data :ever-session-established)))
     (unless expected
       (run-hooks 'jabber-lost-connection-hook)
       (message "%s@%s/%s: connection lost: `%s'"
@@ -264,7 +265,7 @@ With double prefix argument, specify more connection details."
 	       (plist-get state-data :resource)
 	       reason))
 
-    (if (and jabber-auto-reconnect (not expected))
+    (if (and jabber-auto-reconnect (not expected) ever-session-established)
 	;; Reconnect after a short delay?
 	(list state-data jabber-reconnect-delay)
       ;; Else the connection is really dead.  Remove it from the list
@@ -662,7 +663,7 @@ With double prefix argument, specify more connection details."
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
 		  #'jabber-report-success "Roster retrieval")
-  (list state-data nil))
+  (list (plist-put state-data :ever-session-established t) nil))
 
 (define-state jabber-connection :session-established
   (fsm state-data event callback)
