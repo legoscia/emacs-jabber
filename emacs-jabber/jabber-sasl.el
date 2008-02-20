@@ -1,6 +1,6 @@
 ;; jabber-sasl.el - SASL authentication
 
-;; Copyright (C) 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -67,11 +67,14 @@
 	  (fsm-send jc :authentication-failure)
 
 	;; Start authentication.
-	(let* ((client (sasl-make-client mechanism 
+	(let* (passphrase
+	       (client (sasl-make-client mechanism 
 					 (plist-get (fsm-get-state-data jc) :username)
 					 "xmpp"
 					 (plist-get (fsm-get-state-data jc) :server)))
-	       (sasl-read-passphrase (jabber-sasl-read-passphrase-closure jc))
+	       (sasl-read-passphrase (jabber-sasl-read-passphrase-closure
+				      jc
+				      (lambda (p) (setq passphrase (copy-sequence p)) p)))
 	       (step (sasl-next-step client nil)))
 	  (jabber-send-sexp
 	   jc
@@ -79,20 +82,25 @@
 		   (mechanism . ,(sasl-mechanism-name mechanism)))
 		  ,(when (sasl-step-data step)
 		     (base64-encode-string (sasl-step-data step) t))))
-	  (cons client step))))))
+	  (list client step passphrase))))))
 
-(defun jabber-sasl-read-passphrase-closure (jc)
-  "Return a lambda function suitable for `sasl-read-passphrase' for JC."
+(defun jabber-sasl-read-passphrase-closure (jc remember)
+  "Return a lambda function suitable for `sasl-read-passphrase' for JC.
+Call REMEMBER with the password.  REMEMBER is expected to return it as well."
   (lexical-let ((password (plist-get (fsm-get-state-data jc) :password))
-		(bare-jid (jabber-connection-bare-jid jc)))
+		(bare-jid (jabber-connection-bare-jid jc))
+		(remember remember))
     (if password
-	(lambda (prompt) (copy-sequence password))
-      (lambda (prompt) (jabber-read-password bare-jid)))))
+	(lambda (prompt) (funcall remember (copy-sequence password)))
+      (lambda (prompt) (funcall remember (jabber-read-password bare-jid))))))
 
 (defun jabber-sasl-process-input (jc xml-data sasl-data)
-  (let ((sasl-read-passphrase (jabber-sasl-read-passphrase-closure jc))
-	(client (car sasl-data))
-	(step (cdr sasl-data)))
+  (let* ((client (first sasl-data))
+	 (step (second sasl-data))
+	 (passphrase (third sasl-data))
+	 (sasl-read-passphrase (jabber-sasl-read-passphrase-closure 
+				jc
+				(lambda (p) (setq passphrase (copy-sequence p)) p))))
     (cond
      ((eq (car xml-data) 'challenge)
       (sasl-step-set-data step (base64-decode-string (car (jabber-xml-node-children xml-data))))
@@ -106,13 +114,12 @@
      ((eq (car xml-data) 'failure)
       (message "SASL authentication failure: %s"
 	       (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
-      (jabber-uncache-password (jabber-connection-bare-jid jc))
       (fsm-send jc :authentication-failure))
 
      ((eq (car xml-data) 'success)
       (message "Authentication succeeded")
-      (fsm-send jc :authentication-success)))
-    (cons client step)))
+      (fsm-send jc (cons :authentication-success passphrase))))
+    (list client step passphrase)))
 
 (provide 'jabber-sasl)
 ;;; arch-tag: 2a4a234d-34d3-49dd-950d-518c899c0fd0
