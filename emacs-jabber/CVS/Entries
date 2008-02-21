@@ -1,6 +1,4 @@
 D/debian////
-/AUTHORS/1.13/Sat Feb 16 18:55:00 2008//
-/README/1.18/Sat Feb 16 18:55:00 2008//
 /fsm.el/2.4/Sat Feb 16 18:55:00 2008//
 /jabber-activity.el/1.32/Mon Feb 18 15:05:39 2008//
 /jabber-ahc-presence.el/1.6/Sat Feb 16 18:55:00 2008//
@@ -57,10 +55,12 @@ D/debian////
 /xmppuri.sh/2.1/Sat Feb 16 18:55:00 2008//
 /NEWS/1.65/Mon Feb 18 16:14:19 2008//
 /jabber-alert.el/1.33/Mon Feb 18 16:12:07 2008//
-/jabber-muc-nick-completion.el/1.5/Wed Feb 20 14:49:33 2008//
-/jabber-core.el/1.82/Wed Feb 20 14:53:59 2008//
-/jabber-iq.el/1.23/Wed Feb 20 14:53:59 2008//
-/jabber-logon.el/1.20/Wed Feb 20 14:53:59 2008//
-/jabber-osd.el/1.2/Wed Feb 20 14:53:59 2008//
-/jabber-sasl.el/2.16/Wed Feb 20 14:53:59 2008//
-/jabber-util.el/2.54/Wed Feb 20 14:53:59 2008//
+/jabber-core.el/1.82/Wed Feb 20 14:56:22 2008//
+/jabber-iq.el/1.23/Wed Feb 20 14:56:22 2008//
+/jabber-logon.el/1.20/Wed Feb 20 14:56:22 2008//
+/jabber-osd.el/1.2/Wed Feb 20 14:56:22 2008//
+/jabber-sasl.el/2.16/Wed Feb 20 14:56:22 2008//
+/jabber-util.el/2.54/Wed Feb 20 14:56:22 2008//
+/jabber-muc-nick-completion.el/1.6/Thu Feb 21 13:00:57 2008//
+/AUTHORS/1.14/Thu Feb 21 13:22:24 2008//
+/README/1.19/Thu Feb 21 14:29:22 2008//

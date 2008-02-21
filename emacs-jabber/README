@@ -6,15 +6,16 @@ Project page: http://sourceforge.net/projects/emacs-jabber
 Wiki page:    http://www.emacswiki.org/cgi-bin/wiki/JabberEl
 Mailing list: http://lists.sourceforge.net/lists/listinfo/emacs-jabber-general
 and:          http://dir.gmane.org/gmane.emacs.jabber.general
-MUC room:     jabber.el@conference.jabber.se   
+MUC room:     jabber.el@conference.jabber.se and emacs@conference.jabber.ru (Russian, English)
 
 GNU Emacs
 =========
 
-jabber.el depends on GNU Emacs 21, in particular xml.el, and some
-files from Gnus 5.10.  If you don't have Gnus 5.10 (M-x gnus-version
-will tell), you can download sha1.el and hex-util.el from Gnus CVS
-at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/ .
+jabber.el depends on GNU Emacs (21, 22, 23 works fine), in particular
+xml.el, and some files from Gnus 5.10. If you don't have Gnus 5.10
+(M-x gnus-version will tell), you can download sha1.el and hex-util.el
+from Gnus CVS at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/
+
 
 XEmacs
 ======
