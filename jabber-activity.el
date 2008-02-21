@@ -48,12 +48,17 @@
   "activity tracking options"
   :group 'jabber)
 
+;; All the (featurep 'jabber-activity) is so we don't call a function
+;; with an autoloaded cookie while the file is loading, since that
+;; would lead to endless load recursion.
+
 (defcustom jabber-activity-make-string 'jabber-activity-make-string-default
   "Function to call, for making the string to put in the mode
 line.  The default function returns the nick of the user."
   :set #'(lambda (var val)
 	   (custom-set-default var val)
-	   (when (fboundp 'jabber-activity-make-name-alist)
+	   (when (and (featurep 'jabber-activity)
+		      (fboundp 'jabber-activity-make-name-alist))
 	     (jabber-activity-make-name-alist)
 	     (jabber-activity-mode-line-update)))
   :type 'function
@@ -70,7 +75,8 @@ at least this long, when possible."
 JIDs."
   :set #'(lambda (var val)
 	   (custom-set-default var val)
-	   (when (fboundp 'jabber-activity-make-name-alist)
+	   (when (and (featurep 'jabber-activity)
+		      (fboundp 'jabber-activity-make-name-alist))
 	     (jabber-activity-make-name-alist)
 	     (jabber-activity-mode-line-update)))
   :type '(choice (function-item :tag "Keep strings"
@@ -86,7 +92,8 @@ JIDs."
   :group 'jabber-activity
   :set #'(lambda (var val)
 	   (custom-set-default var val)
-	   (when (bound-and-true-p jabber-activity-mode)
+	   (when (and (featurep 'jabber-activity)
+		      (bound-and-true-p jabber-activity-mode))
 	     (jabber-activity-mode -1)
 	     (jabber-activity-mode 1))))
 
@@ -97,7 +104,7 @@ Same syntax as `mode-line-format'."
   :type 'sexp
   :group 'jabber-activity
   :set #'(lambda (var val)
-	   (if (not (bound-and-true-p jabber-activity-mode))
+	   (if (not (and (featurep 'jabber-activity) (bound-and-true-p jabber-activity-mode)))
 	       (custom-set-default var val)
 	     (jabber-activity-mode -1)
 	     (custom-set-default var val)
