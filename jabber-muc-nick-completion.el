@@ -171,7 +171,7 @@ OLD is last tried nickname."
 
 (add-hook 'jabber-muc-hooks 'jabber-muc-track-message-time)
 (fset 'jabber-muc-completion (make-hippie-expand-function '(try-expand-jabber-muc)))
-(define-key jabber-chat-mode-map (kbd "<tab>") 'jabber-muc-completion)
+(define-key jabber-chat-mode-map [?\t] 'jabber-muc-completion)
 
 (provide 'jabber-muc-nick-completion)
 
