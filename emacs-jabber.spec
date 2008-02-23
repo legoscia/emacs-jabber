@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080221
+Release: alt0.20080223
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -82,6 +82,9 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %doc %pkg_name.texi
 
 %changelog
+* Sun Feb 24 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080223
+- cvs-20080223
+
 * Thu Feb 21 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080221
 - cvs-20080221
 
