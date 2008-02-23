@@ -134,7 +134,7 @@ If no accounts are configured (or ARG supplied), call `jabber-connect' interacti
 		      (cdr (assq :disabled (cdr account))))
 		    jabber-account-list)))
     (if (or (null accounts) arg)
-	(call-interactively 'jabber-connect)
+	(progn (setq current-prefix-arg nil) (call-interactively 'jabber-connect))
       ;; Only connect those accounts that are not yet connected.
       (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
 	    (connected-one nil))
@@ -696,10 +696,12 @@ With double prefix argument, specify more connection details."
      (list nil (plist-put state-data
 			  :disconnection-expected t)))))
 
-(defun jabber-disconnect ()
-  "Disconnect from all Jabber servers."
-  (interactive)
-  (unless *jabber-disconnecting*	; avoid reentry
+(defun jabber-disconnect (&optional arg)
+  "Disconnect from all Jabber servers. If ARG supplied, disconnect one account."
+  (interactive "P")
+  (if arg
+      (jabber-disconnect-one (jabber-read-account))
+      (unless *jabber-disconnecting*	; avoid reentry
     (let ((*jabber-disconnecting* t))
       (dolist (c jabber-connections)
 	(jabber-disconnect-one c t))
@@ -707,7 +709,7 @@ With double prefix argument, specify more connection details."
 
       (jabber-disconnected)
       (when (interactive-p)
-	(message "Disconnected from Jabber server(s)")))))
+	(message "Disconnected from Jabber server(s)"))))))
 
 (defun jabber-disconnect-one (jc &optional dont-redisplay)
   "Disconnect from one Jabber server.

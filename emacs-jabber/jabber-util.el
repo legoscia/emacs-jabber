@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
+;; Copyright (C) 2008 - Terechkov Evgenii - evg@altlinux.org
 
 ;; This file is a part of jabber.el.
 
@@ -286,40 +287,41 @@ Useful if the password proved to be wrong."
   "Ask for which connected account to use.
 If ALWAYS-ASK is nil and there is only one account, return that
 account."
-  (cond
-   ((null jabber-connections)
-    (error "Not connected to Jabber"))
-   ((and (null (cdr jabber-connections)) (not always-ask))
-    ;; only one account
-    (car jabber-connections))
-   (t
-    (let* ((completions
-	    (mapcar (lambda (c)
-		      (cons
-		       (jabber-connection-bare-jid c)
-		       c))
-		    jabber-connections))
-	   (default 
-	     (or
-	      ;; if there is a jabber-account property at point,
-	      ;; present it as default value
-	      (let ((at-point (get-text-property (point) 'jabber-account)))
-		(when (and at-point
-			   (memq at-point jabber-connections))
-		  (jabber-connection-bare-jid at-point)))
-	      ;; if the buffer is associated with a connection, use it
-	      (when (and jabber-buffer-connection
-			 (memq jabber-buffer-connection jabber-connections))
-		(jabber-connection-bare-jid jabber-buffer-connection))
-	      ;; else, use the first connection in the list
-	      (caar completions)))
-	   (input (completing-read 
-		   (concat "Select Jabber account (default "
-			   default
-			   "): ")
-		   completions nil t nil nil
-		   default)))
-      (cdr (assoc input completions))))))
+  (let ((completions
+         (mapcar (lambda (c)
+                   (cons
+                    (jabber-connection-bare-jid c)
+                    c))
+                 jabber-connections)))
+    (cond
+     ((null jabber-connections)
+      (error "Not connected to Jabber"))
+     ((and (null (cdr jabber-connections)) (not always-ask))
+      ;; only one account
+      (car jabber-connections))
+     (t
+      (or
+       ;; if there is a jabber-account property at point,
+       ;; present it as default value
+       (cdr (assoc (let ((at-point (get-text-property (point) 'jabber-account)))
+                     (when (and at-point
+                                (memq at-point jabber-connections))
+                       (jabber-connection-bare-jid at-point))) completions))
+       (let* ((default 
+                (or
+                 ;; if the buffer is associated with a connection, use it
+                 (when (and jabber-buffer-connection
+                            (memq jabber-buffer-connection jabber-connections))
+                   (jabber-connection-bare-jid jabber-buffer-connection))
+                 ;; else, use the first connection in the list
+                 (caar completions)))
+              (input (completing-read 
+                      (concat "Select Jabber account (default "
+                              default
+                              "): ")
+                      completions nil t nil nil
+                      default)))
+         (cdr (assoc input completions))))))))
 
 (defun jabber-iq-query (xml-data)
   "Return the query part of an IQ stanza.

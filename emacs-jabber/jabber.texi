@@ -155,7 +155,7 @@ this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
 C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
-Use @kbd{M-x jabber-disconnect-one} to disconnect just one account.
+Use @kbd{M-x jabber-disconnect-one} to disconnect just one account (or just type @kbd{C-u C-x C-j C-d}).
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
