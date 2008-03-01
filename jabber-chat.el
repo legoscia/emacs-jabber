@@ -349,7 +349,11 @@ This function is used as an ewoc prettyprinter."
 	 (original-timestamp (when (listp (cadr data))
 			       (jabber-xml-path (cadr data) '(("jabber:x:delay" . "x")))))
 	 (internal-time
-	  (plist-get (cddr data) :time)))
+	  (plist-get (cddr data) :time))
+	 (body (jabber-xml-path (cadr data) '(body "")))
+	 (/me-p
+	  (and (> (length body) 4)
+	       (string= (substring body 0 4) "/me "))))
 
     ;; Print prompt...
     (let ((delayed (or original-timestamp (plist-get (cddr data) :delayed))))
@@ -357,20 +361,22 @@ This function is used as an ewoc prettyprinter."
 	(:local
 	 (jabber-chat-self-prompt (or (jabber-x-delay original-timestamp)
 				      internal-time)
-				  delayed))
+				  delayed
+				  /me-p))
 	(:foreign
 	 ;; For :error and :notice, this might be a string... beware
 	 (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data)) 
 				   (or (jabber-x-delay original-timestamp)
 				       internal-time)
-				   delayed))
+				   delayed
+				   /me-p))
 	((:error :notice :subscription-request)
 	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
 					internal-time)))
 	(:muc-local
-	 (jabber-muc-print-prompt (cadr data) t))
+	 (jabber-muc-print-prompt (cadr data) t /me-p))
         (:muc-foreign
-         (jabber-muc-print-prompt (cadr data)))
+         (jabber-muc-print-prompt (cadr data) nil /me-p))
 	((:muc-notice :muc-error)
 	 (jabber-muc-system-prompt))))
     
@@ -439,13 +445,14 @@ This function is used as an ewoc prettyprinter."
 					    (jabber-message-time data))))
       (ewoc-enter-before jabber-chat-ewoc node (list :rare-time (jabber-message-time data))))))
 
-(defun jabber-chat-print-prompt (xml-data timestamp delayed)
+(defun jabber-chat-print-prompt (xml-data timestamp delayed dont-print-nick-p)
   "Print prompt for received message in XML-DATA.
 TIMESTAMP is the timestamp to print, or nil to get it
 from a jabber:x:delay element.
 If DELAYED is true, print long timestamp
 \(`jabber-chat-delayed-time-format' as opposed to
-`jabber-chat-time-format')."
+`jabber-chat-time-format').
+If DONT-PRINT-NICK-P is true, don't include nickname."
   (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(timestamp (or timestamp
 		       (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x)))))))
@@ -457,7 +464,7 @@ If DELAYED is true, print long timestamp
 					 jabber-chat-delayed-time-format
 				       jabber-chat-time-format)
 				     timestamp))
-			   (cons ?n (jabber-jid-displayname from))
+			   (cons ?n (if dont-print-nick-p "" (jabber-jid-displayname from)))
 			   (cons ?u (or (jabber-jid-username from) from))
 			   (cons ?r (jabber-jid-resource from))
 			   (cons ?j (jabber-jid-user from))))
@@ -479,12 +486,13 @@ If DELAYED is true, print long timestamp
 	   'help-echo
 	   (concat (format-time-string "System message on %Y-%m-%d %H:%M:%S" timestamp)))))
 
-(defun jabber-chat-self-prompt (timestamp delayed)
+(defun jabber-chat-self-prompt (timestamp delayed dont-print-nick-p)
   "Print prompt for sent message.
 TIMESTAMP is the timestamp to print, or nil for now.
 If DELAYED is true, print long timestamp
 \(`jabber-chat-delayed-time-format' as opposed to
-`jabber-chat-time-format')."
+`jabber-chat-time-format').
+If DONT-PRINT-NICK-P is true, don't include nickname."
   (let* ((state-data (fsm-get-state-data jabber-buffer-connection))
 	 (username (plist-get state-data :username))
 	 (server (plist-get state-data :server))
@@ -498,7 +506,7 @@ If DELAYED is true, print long timestamp
 					 jabber-chat-delayed-time-format
 				       jabber-chat-time-format)
 				     timestamp))
-			   (cons ?n nickname)
+			   (cons ?n (if dont-print-nick-p "" nickname))
 			   (cons ?u username)
 			   (cons ?r resource)
 			   (cons ?j (concat username "@" server))))
