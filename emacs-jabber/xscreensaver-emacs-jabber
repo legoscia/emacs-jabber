@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+
+my $pid = fork;
+die "Cannot fork: $!" unless defined $pid;
+unless ($pid) {
+
+  close STDIN; close STDOUT; close STDERR;
+  setpgrp(0,$$);
+  if (open(DEVTTY, "/dev/tty")) {
+    ioctl(DEVTTY,0x20007471,0); # XXX s/b &TIOCNOTTY
+    close DEVTTY;
+  }
+  open(STDIN,"<&TTY");
+  open(STDOUT,">&TTY");
+  open(STDERR,">&STDOUT");
+
+  my $blanked = 0;
+  open (IN, "xscreensaver-command -watch |") or die "Cannot run xscreensaver-command: $!";
+  while (<IN>) {
+    if (/^(BLANK|LOCK)/) {
+      if (!$blanked) {
+        system "emacsclient -e '(jabber-send-xa-presence)'";
+        $blanked = 1;
+      }
+    } elsif (/^UNBLANK/) {
+      system "emacsclient -e '(jabber-send-default-presence)'";
+      $blanked = 0;
+    }
+  }
+}
