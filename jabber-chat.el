@@ -350,10 +350,10 @@ This function is used as an ewoc prettyprinter."
 			       (jabber-xml-path (cadr data) '(("jabber:x:delay" . "x")))))
 	 (internal-time
 	  (plist-get (cddr data) :time))
-	 (body (car
+	 (body (ignore-errors (car
 	       (jabber-xml-node-children
 		(car
-		 (jabber-xml-get-children (cadr data) 'body)))))
+		 (jabber-xml-get-children (cadr data) 'body))))))
 	 (/me-p
 	  (and (> (length body) 4)
 	       (string= (substring body 0 4) "/me "))))
