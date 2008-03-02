@@ -180,9 +180,8 @@ Return nil if none found."
     (intern (downcase (jabber-jid-user string)) jabber-jid-obarray)))
 
 (defun jabber-my-jid-p (jc jid)
-  "Return non-nil if the specified JID is equal to the user's JID, modulo resource."
-  (equal (jabber-jid-user jid)
-	 (jabber-connection-bare-jid jc)))
+  "Return non-nil if the specified JID is in jabber-account-list (modulo resource). JC arg placed for compatibility and may be removed in future."
+  (member (jabber-jid-user jid) (mapcar (lambda (x) (jabber-jid-user (car x))) jabber-account-list)))
 
 (defun jabber-read-jid-completing (prompt &optional subset require-match default resource)
   "read a jid out of the current roster from the minibuffer.

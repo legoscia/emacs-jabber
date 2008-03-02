@@ -189,7 +189,7 @@ With double prefix argument, specify more connection details."
 	 (setq connection-type
 	       (car
 		(read-from-string
-		 (let ((default (or connection-type jabber-default-connection-type)))
+		 (let ((default (symbol-name (or connection-type jabber-default-connection-type))))
 		   (completing-read
 		    (format "Connection type: (default `%s') " default)
 		    (mapcar (lambda (type)
