@@ -113,6 +113,16 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (when (eq closure-data 'initial)
     (run-hook-with-args 'jabber-post-connect-hooks jc)))
 
+(defvar jabber-pending-presence-updates nil
+  "List of presence updates waiting to be displayed in roster.
+Each element is (JC . JID-SYMBOL).")
+
+(defvar jabber-pending-presence-timer nil
+  "Timer for running `jabber-handle-pending-presence-updates'.")
+
+(defvar jabber-pending-presence-timeout 0.5
+  "Wait this long before doing presence packet batch processing.")
+
 (add-to-list 'jabber-presence-chain 'jabber-process-presence)
 (defun jabber-process-presence (jc xml-data)
   "process incoming presence tags"
@@ -205,7 +215,12 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		  (put buddy 'resources (cons (cons resource resource-plist) (get buddy 'resources))))
 		(jabber-prioritize-resources buddy))
 
-	      (jabber-roster-update jc nil (list buddy) nil)
+	      (push (cons jc buddy) jabber-pending-presence-updates)
+	      (unless jabber-pending-presence-timer
+		(run-with-idle-timer 
+		 jabber-pending-presence-timeout
+		 nil
+		 'jabber-handle-pending-presence-updates))
 
 	      (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
 		(run-hook-with-args hook
@@ -218,6 +233,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					     oldstatus
 					     newstatus
 					     (plist-get resource-plist 'status)))))))))))
+
+(defun jabber-handle-pending-presence-updates ()
+  (let (updates-by-account x)
+    (while (setq x (pop jabber-pending-presence-updates))
+      (let* ((jc (car x))
+	     (jid (cdr x))
+	     (entry (assq (car x) updates-by-account)))
+	(if entry
+	    (push jid (cdr entry))
+	  (push (list jc jid) updates-by-account))))
+
+    (dolist (account-jids updates-by-account)
+      (jabber-roster-update (car account-jids) nil (cdr account-jids) nil)))
+  (setf jabber-pending-presence-timer nil))
 
 (defun jabber-process-subscription-request (jc from presence-status)
   "process an incoming subscription request"
