@@ -217,10 +217,11 @@ Each element is (JC . JID-SYMBOL).")
 
 	      (push (cons jc buddy) jabber-pending-presence-updates)
 	      (unless jabber-pending-presence-timer
-		(run-with-idle-timer 
-		 jabber-pending-presence-timeout
-		 nil
-		 'jabber-handle-pending-presence-updates))
+		(setq jabber-pending-presence-timer
+		      (run-with-idle-timer 
+		       jabber-pending-presence-timeout
+		       nil
+		       'jabber-handle-pending-presence-updates)))
 
 	      (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
 		(run-hook-with-args hook
