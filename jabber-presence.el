@@ -366,7 +366,24 @@ Each element is (JC . JID-SYMBOL).")
 			     jabber-presence-element-functions))))
 
 (defun jabber-send-directed-presence (jc jid type)
-  "Send a directed presence stanza to JID."
+  "Send a directed presence stanza to JID.
+TYPE is one of:
+\"online\", \"away\", \"xa\", \"dnd\", \"chatty\":
+  Appear as present with the given status.
+\"unavailable\":
+  Appear as offline.
+\"probe\":
+  Ask the contact's server for updated presence.
+\"subscribe\":
+  Ask for subscription to contact's presence.
+  (see also `jabber-send-subscription-request')
+\"unsubscribe\":
+  Cancel your subscription to contact's presence.
+\"subscribed\":
+  Accept contact's request for presence subscription.
+  (this is usually done within a chat buffer)
+\"unsubscribed\":
+  Cancel contact's subscription to your presence."
   (interactive
    (list (jabber-read-account)
 	 (jabber-read-jid-completing "Send directed presence to: ")
@@ -377,10 +394,16 @@ Each element is (JC . JID-SYMBOL).")
 			    ("dnd")
 			    ("chatty")
 			    ("probe")
-			    ("unavailable"))
+			    ("unavailable")
+			    ("subscribe")
+			    ("unsubscribe")
+			    ("subscribed")
+			    ("unsubscribed"))
 			  nil t nil nil "online")))
   (cond
-   ((member type '("probe" "unavailable"))
+   ((member type '("probe" "unavailable" 
+		   "subscribe" "unsubscribe"
+		   "subscribed" "unsubscribed"))
     (jabber-send-sexp jc `(presence ((to . ,jid)
 				     (type . ,type)))))
 
