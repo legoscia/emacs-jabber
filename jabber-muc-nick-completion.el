@@ -28,7 +28,7 @@
 
 (defcustom jabber-muc-looks-personaling-symbols '("," ":" ">")
   "Symbols for personaling messages"
-  :type 'string
+  :type '(repeat string)
   :group 'jabber-chat)
 
 (defcustom jabber-muc-personal-message-bonus (* 60 20)
