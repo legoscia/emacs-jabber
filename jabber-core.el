@@ -696,8 +696,8 @@ With double prefix argument, specify more connection details."
        (if pending-updates
 	   (progn
 	     (unless (memq jid-symbol-to-update pending-updates)
-	       (nconc pending-updates (list jid-symbol-to-update))
-	       (list :session-established state-data :keep)))
+	       (nconc pending-updates (list jid-symbol-to-update)))
+	     (list :session-established state-data :keep))
 	 ;; Otherwise, we need to create the list and start the timer.
 	 (setq state-data 
 	       (plist-put state-data
