@@ -1,6 +1,6 @@
 ;;; fsm.el --- state machine library
 
-;; Copyright (C) 2006, 2007  Magnus Henoch
+;; Copyright (C) 2006, 2007, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 ;; Version: 0.1ttn4
@@ -335,7 +335,7 @@ CALLBACK with the response as only argument."
 		(fsm-debug-output "Using data from enter function")
 		(plist-put (cddr fsm) :state-data newer-state-data)
 		(fsm-maybe-change-timer fsm newer-timeout))
-	    (error
+	    ((debug error)
 	     (fsm-debug-output "Didn't work: %S" e)))))
 
       (let ((deferred (nreverse (plist-get (cddr fsm) :deferred))))
@@ -360,7 +360,7 @@ CALLBACK with the response as only argument."
       (let ((result (condition-case e
 			(funcall state-fn fsm state-data event 
 				 (or callback 'ignore))
-		      (error (cons :error-signaled e)))))
+		      ((debug error) (cons :error-signaled e)))))
 	;; Special case for deferring an event until next state change.
 	(cond
 	 ((eq result :defer)
