@@ -665,6 +665,9 @@ With double prefix argument, specify more connection details."
 		  #'jabber-report-success "Roster retrieval")
   (list (plist-put state-data :ever-session-established t) nil))
 
+(defvar jabber-pending-presence-timeout 0.5
+  "Wait this long before doing presence packet batch processing.")
+
 (define-state jabber-connection :session-established
   (fsm state-data event callback)
   (case (or (car-safe event) event)
@@ -672,7 +675,7 @@ With double prefix argument, specify more connection details."
      (let ((process (cadr event))
 	   (string (car (cddr event))))
        (jabber-pre-filter process string fsm)
-       (list :session-established state-data)))
+       (list :session-established state-data :keep)))
 
     (:sentinel
      (jabber-fsm-handle-sentinel state-data event))
@@ -682,14 +685,39 @@ With double prefix argument, specify more connection details."
       (jabber-process-stream-error (cadr event) state-data)
       (progn
 	(jabber-process-input fsm (cadr event))
-	(list :session-established state-data))))
+	(list :session-established state-data :keep))))
+
+    (:roster-update
+     ;; Batch up roster updates
+     (let* ((jid-symbol-to-update (cdr event))
+	    (pending-updates (plist-get state-data :roster-pending-updates)))
+       ;; If there are pending updates, there is a timer running
+       ;; already; just add the new symbol and wait.
+       (if pending-updates
+	   (progn
+	     (unless (memq jid-symbol-to-update pending-updates)
+	       (nconc pending-updates (list jid-symbol-to-update)))
+	     (list :session-established state-data :keep))
+	 ;; Otherwise, we need to create the list and start the timer.
+	 (setq state-data 
+	       (plist-put state-data
+			  :roster-pending-updates 
+			  (list jid-symbol-to-update)))
+	 (list :session-established state-data jabber-pending-presence-timeout))))
+
+    (:timeout
+     ;; Update roster
+     (let ((pending-updates (plist-get state-data :roster-pending-updates)))
+       (setq state-data (plist-put state-data :roster-pending-updates nil))
+       (jabber-roster-update fsm nil pending-updates nil)
+       (list :session-established state-data)))
 
     (:send-if-connected
      ;; This is the only state in which we respond to such messages.
      ;; This is to make sure we don't send anything inappropriate
      ;; during authentication etc.
      (jabber-send-sexp fsm (cdr event))
-     (list :session-established state-data))
+     (list :session-established state-data :keep))
 
     (:do-disconnect
      (jabber-send-string fsm "</stream:stream>")

@@ -629,6 +629,15 @@ See Info node `(jabber)XMPP URIs'."
   ;; url package might lose information.
   (jabber-handle-uri (url-recreate-url url)))  
 
+(defun string>-numerical (s1 s2)
+  "Return t if first arg string is more than second in numerical order."
+  (cond ((string= s1 s2) nil)
+	((> (length s1) (length s2)) t)
+	((< (length s1) (length s2)) nil)
+	((< (string-to-number (substring s1 0 1)) (string-to-number (substring s2 0 1))) nil)
+	((> (string-to-number (substring s1 0 1)) (string-to-number (substring s2 0 1))) t)
+	(t (string>-numerical (substring s1 1) (substring s2 1)))))
+
 (provide 'jabber-util)
 
 ;;; arch-tag: cfbb73ac-e2d7-4652-a08d-dc789bcded8a

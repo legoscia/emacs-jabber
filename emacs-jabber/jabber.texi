@@ -766,7 +766,7 @@ and administering services (e.g. PyMSNt).
 
 Currently, jabber.el uses ad-hoc commands for setting presence remotely.
 If you realize that you forgot to set your client to ``away'' with a low
-priority, you can do it remotely.@footnote{Most Jabber servers also
+priority, you can do it remotely from any JID from @code{jabber-account-list}. So, you can add disabled JIDs in @code{jabber-account-list} to allow them control your presence.@footnote{Most Jabber servers also
 support kicking a client off the net by logging in with another client
 with exactly the same resource.}
 
