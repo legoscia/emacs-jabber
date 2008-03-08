@@ -32,6 +32,7 @@
 ;; enough backlog entries.
 
 (require 'jabber-core)
+(require 'jabber-util)
 
 (defgroup jabber-history nil "Customization options for Emacs
 Jabber history files."
@@ -181,7 +182,19 @@ of the log file."
   (when (file-readable-p history-file)
     (with-temp-buffer
       (let ((coding-system-for-read 'utf-8))
-	(insert-file-contents history-file))
+	(if jabber-use-global-history
+            (insert-file-contents history-file)
+          (let* ((lines-collected nil)
+                (matched-files (directory-files jabber-history-dir t (file-name-nondirectory history-file)))
+                (matched-files (cons (car matched-files) (sort (cdr matched-files) 'string>-numerical))))
+            (while (not lines-collected)
+              (if (null matched-files)
+                  (setq lines-collected t)
+                (let ((file (pop matched-files)))
+                  (progn
+                    (insert-file-contents file)
+                    (if (>= (count-lines (point-min) (point-max)) number)
+                        (setq lines-collected t)))))))))
       (let (collected current-line)
 	(goto-char (point-max))
 	(catch 'beginning-of-file
