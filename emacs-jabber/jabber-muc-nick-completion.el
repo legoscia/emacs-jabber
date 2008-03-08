@@ -28,7 +28,7 @@
 
 (defcustom jabber-muc-looks-personaling-symbols '("," ":" ">")
   "Symbols for personaling messages"
-  :type 'string
+  :type '(repeat string)
   :group 'jabber-chat)
 
 (defcustom jabber-muc-personal-message-bonus (* 60 20)
@@ -123,8 +123,9 @@ Optional argument GROUP to look."
 (defun jabber-muc-beginning-of-line ()
   "Return position of line begining."
   (save-excursion
+    (if (looking-back jabber-muc-completion-delimiter)
+        (backward-char (+ (length jabber-muc-completion-delimiter) 1)))
     (skip-syntax-backward "^-")
-    (unless (looking-at "^") (error "Can't find beginning of line!"))
     (point)))
 
 ;;; One big hack:
@@ -133,9 +134,9 @@ Optional argument GROUP to look."
   (let ((last-tried (car he-tried-table)))
     (when last-tried
       (goto-char he-string-beg)
-      (delete-char
-       (+ (length last-tried)
-	  (length jabber-muc-completion-delimiter))))))
+      (delete-char (length last-tried))
+      (ignore-errors (delete-char (length jabber-muc-completion-delimiter)))
+      )))
 
 (defun try-expand-jabber-muc (old)
   "Try to expand target nick in MUC according to last speaking time.
@@ -160,11 +161,19 @@ OLD is last tried nickname."
 	      (jabber-muc-completion-delete-last-tried)
 	    (he-reset-string)))
 	())
-    (let ((subst (concat (car he-expand-list) jabber-muc-completion-delimiter)))
+    (let ((subst (if (eq (line-beginning-position) (jabber-muc-beginning-of-line))
+                     (concat (car he-expand-list) jabber-muc-completion-delimiter)
+                   (car he-expand-list))))
       (if (not (string= he-search-string ""))
 	  (he-substitute-string subst)
 	(jabber-muc-completion-delete-last-tried)
-	(insert subst)))
+	(progn
+          (insert subst)
+          (if (looking-back (concat "^" (car he-expand-list)))
+              (unless (looking-back (concat "^" (car he-expand-list) jabber-muc-completion-delimiter))
+                (insert jabber-muc-completion-delimiter)))
+          )
+        ))
     (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
     (setq he-expand-list (cdr he-expand-list))
     t)))
