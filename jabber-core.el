@@ -66,7 +66,7 @@
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
-(defcustom jabber-post-connect-hooks '(jabber-send-default-presence
+(defcustom jabber-post-connect-hooks '(jabber-send-current-presence
 				       jabber-muc-autojoin)
   "*Hooks run after successful connection and authentication.
 The functions should accept one argument, the connection object."
