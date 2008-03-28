@@ -989,6 +989,8 @@ Return an fsm result list if it is."
   (let* ((state-data (fsm-get-state-data jc))
 	 (connection (plist-get state-data :connection))
 	 (send-function (plist-get state-data :send-function)))
+    (unless connection
+      (error "%s has no connection" (jabber-connection-jid jc)))
     (funcall send-function connection string)))
 
 (provide 'jabber-core)
