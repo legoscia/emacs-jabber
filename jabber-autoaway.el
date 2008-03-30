@@ -149,6 +149,7 @@ Return nil on error."
       (if (string= *jabber-current-status* jabber-autoaway-status)
 	  (jabber-send-default-presence)
 	(jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status))
+      (jabber-autoaway-stop)
       (jabber-autoaway-start))))
 
 (defun jabber-xprintidle-get-idle-time ()
