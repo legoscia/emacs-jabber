@@ -66,7 +66,7 @@
 (defgroup jabber-core nil "customize core functionality"
   :group 'jabber)
 
-(defcustom jabber-post-connect-hooks '(jabber-send-default-presence
+(defcustom jabber-post-connect-hooks '(jabber-send-current-presence
 				       jabber-muc-autojoin)
   "*Hooks run after successful connection and authentication.
 The functions should accept one argument, the connection object."
@@ -989,6 +989,8 @@ Return an fsm result list if it is."
   (let* ((state-data (fsm-get-state-data jc))
 	 (connection (plist-get state-data :connection))
 	 (send-function (plist-get state-data :send-function)))
+    (unless connection
+      (error "%s has no connection" (jabber-connection-jid jc)))
     (funcall send-function connection string)))
 
 (provide 'jabber-core)

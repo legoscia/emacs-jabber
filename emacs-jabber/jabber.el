@@ -1,6 +1,6 @@
 ;; jabber.el - a minimal jabber client
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; SSL - Support, mostly inspired by Gnus
@@ -182,13 +182,13 @@ CONT is called when the result is available, with JC and the
 result as arguments."
   nil)
 
-(defvar *jabber-current-status* ""
+(defvar *jabber-current-status* nil
   "the users current presence staus")
 
-(defvar *jabber-current-show* ""
+(defvar *jabber-current-show* nil
   "the users current presence show")
 
-(defvar *jabber-current-priority* 10
+(defvar *jabber-current-priority* nil
   "the user's current priority")
 
 (defvar *jabber-status-history* nil
