@@ -1,2 +1,2 @@
-tar.bz2: v@version@-@release@:@name@ name=@name@-@version@
+tar.bz2: @name@
 copy: *.el
