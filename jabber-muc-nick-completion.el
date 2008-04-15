@@ -71,11 +71,12 @@
 (defun jabber-muc-looks-like-personal-p (message &optional group)
   "Return non-nil if jabber MESSAGE is addresed to me.
 Optional argument GROUP to look."
-  (string-match (concat
+  (if message (string-match (concat
 		 "^"
 		 (jabber-my-nick group)
 		 (regexp-opt jabber-muc-looks-personaling-symbols))
-		message))
+		message)
+    nil))
 
 (defun jabber-muc-nicknames ()
   "List of conference participants, excluding self, or nil if we not in conference."
