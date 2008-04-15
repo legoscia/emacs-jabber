@@ -1,6 +1,6 @@
 ;;; jabber-autoaway.el --- change status to away after idleness
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -90,11 +90,10 @@ This is used to detect whether the user has become unidle.")
 The IGNORED argument is there so you can put this function in
 `jabber-post-connect-hooks'."
   (interactive)
-  (when jabber-autoaway-timer
-    (jabber-cancel-timer jabber-autoaway-timer))
-  (setq jabber-autoaway-timer
-	(run-with-timer (* jabber-autoaway-timeout 60) nil #'jabber-autoaway-timer))
-  (jabber-autoaway-message "Autoaway timer started"))
+  (unless jabber-autoaway-timer
+    (setq jabber-autoaway-timer
+	  (run-with-timer (* jabber-autoaway-timeout 60) nil #'jabber-autoaway-timer))
+    (jabber-autoaway-message "Autoaway timer started")))
 
 (defun jabber-autoaway-stop ()
   "Stop autoaway timer."
@@ -145,9 +144,12 @@ Return nil on error."
 	(progn
 	  (setq jabber-autoaway-last-idle-time idle-time))
       ;; But if it doesn't, go back to unidle state.
+      (jabber-autoaway-message "Back to unidle")
       ;; But don't mess with the user's custom presence.
-      (when (string= *jabber-current-status* jabber-autoaway-status)
-	(jabber-send-default-presence))
+      (if (string= *jabber-current-status* jabber-autoaway-status)
+	  (jabber-send-default-presence)
+	(jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status))
+      (jabber-autoaway-stop)
       (jabber-autoaway-start))))
 
 (defun jabber-xprintidle-get-idle-time ()

@@ -1,6 +1,5 @@
 D/debian////
 /jabber-ahc-presence.el/1.6/Sat Feb 16 18:55:00 2008//
-/jabber-autoaway.el/1.5/Sat Feb 16 18:55:00 2008//
 /jabber-avatar.el/1.9/Sat Feb 16 18:55:00 2008//
 /jabber-chatbuffer.el/2.14/Sat Feb 16 18:55:00 2008//
 /jabber-chatstates.el/1.3/Sat Feb 16 18:55:00 2008//
@@ -66,3 +65,4 @@ D/debian////
 /jabber-util.el/2.57/Sat Mar  8 12:45:41 2008//
 /jabber.el/1.82/Sun Mar 30 17:50:04 2008//
 /jabber.texi/1.85/Sat Mar  8 12:45:42 2008//
+/jabber-autoaway.el/1.7/Tue Apr 15 13:40:56 2008//
