@@ -56,7 +56,6 @@ D/debian////
 /xscreensaver-emacs-jabber/0/dummy timestamp//
 /jabber-chat.el/1.90/Sun Mar  2 16:44:45 2008//
 /jabber-muc.el/1.74/Sun Mar  2 16:44:45 2008//
-/jabber-muc-nick-completion.el/1.9/Wed Mar 26 16:47:19 2008//
 /fsm.el/2.5/Sat Mar  8 12:45:41 2008//
 /jabber-alert.el/1.33/Tue Mar 11 14:57:04 2008//
 /jabber-core.el/1.88/Sun Mar 30 17:50:03 2008//
@@ -66,3 +65,4 @@ D/debian////
 /jabber.el/1.82/Sun Mar 30 17:50:04 2008//
 /jabber.texi/1.85/Sat Mar  8 12:45:42 2008//
 /jabber-autoaway.el/1.7/Tue Apr 15 13:40:56 2008//
+/jabber-muc-nick-completion.el/1.10/Tue Apr 15 13:44:22 2008//
