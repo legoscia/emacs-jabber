@@ -411,6 +411,17 @@ and `jabber-default-status'."
   ;; jabber-post-connect-hooks.
   (jabber-send-presence jabber-default-show jabber-default-status jabber-default-priority))
 
+(defun jabber-send-current-presence (&optional jc)
+  "(Re-)send current presence.
+That is, if presence has already been sent, use current settings,
+else send defaults (see `jabber-send-default-presence')."
+  (interactive)
+  ;; jc is ignored.  It's only there so this function can be in
+  ;; jabber-post-connect-hooks.
+  (if *jabber-current-show*
+      (jabber-send-presence *jabber-current-show* *jabber-current-status* *jabber-current-priority*)
+    (jabber-send-default-presence)))
+
 (add-to-list 'jabber-jid-roster-menu
 	     (cons "Send subscription request" 'jabber-send-subscription-request))
 (defun jabber-send-subscription-request (jc to &optional request)
