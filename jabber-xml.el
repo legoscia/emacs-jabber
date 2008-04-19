@@ -1,6 +1,6 @@
 ;; jabber-xml.el - XML functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -102,8 +102,12 @@ tag with value nil.
 The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
 enough for us."
   (skip-chars-forward "^<")
-  (if (not (looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\|[ \t\n]+[^=]+=\"[^\"]*\"\\)*"))
-      (throw 'unfinished nil)
+  (cond
+   ((looking-at "<!\\[CDATA\\[")
+    (if (search-forward "]]>" nil t)
+	(goto-char (match-end 0))
+      (throw 'unfinished nil)))
+   ((looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\|[ \t\n]+[^=]+=\"[^\"]*\"\\)*")
     (let ((node-name (match-string 1)))
       (goto-char (match-end 0))
       (cond
@@ -119,7 +123,9 @@ enough for us."
 	(goto-char (match-end 0))
 	t)
        (t
-	(throw 'unfinished nil))))))
+	(throw 'unfinished nil)))))
+   (t
+    (throw 'unfinished nil))))
 
 (defsubst jabber-xml-node-name (node)
   "Return the tag associated with NODE.
