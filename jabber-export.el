@@ -25,6 +25,7 @@
 
 (defvar jabber-import-subscription-p-widget nil)
 
+;;;###autoload
 (defun jabber-export-roster (jc)
   "Export roster for connection JC."
   (interactive (list (jabber-read-account)))
@@ -59,6 +60,7 @@ not affect your actual roster.
     (goto-char (point-min))
     (switch-to-buffer (current-buffer))))
 
+;;;###autoload
 (defun jabber-import-roster (jc file)
   "Create buffer for roster import for connection JC from FILE."
   (interactive (list (jabber-read-account)

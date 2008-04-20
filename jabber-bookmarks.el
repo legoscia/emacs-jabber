@@ -29,6 +29,7 @@ Bookmarks are what has been retrieved from the server, as list of
 XML elements.  This is nil if bookmarks have not been retrieved,
 and t if no bookmarks where found.")
 
+;;;###autoload
 (defun jabber-get-conference-data (jc conference-jid cont &optional key)
   "Get bookmark data for CONFERENCE-JID.
 KEY may be nil or one of :name, :autojoin, :nick and :password.
@@ -65,6 +66,7 @@ The plist may contain the keys :jid, :name, :autojoin,
 	  :password (car (jabber-xml-node-children
 			  (car (jabber-xml-get-children node 'password)))))))
 
+;;;###autoload
 (defun jabber-get-bookmarks (jc cont &optional refresh)
   "Retrieve bookmarks (if needed) and call CONT.
 Arguments to CONT are JC and the bookmark list.  CONT will be
@@ -99,6 +101,7 @@ on success or failure, respectively."
    callback t
    callback nil))
 
+;;;###autoload
 (defun jabber-edit-bookmarks (jc)
   "Create a buffer for editing bookmarks interactively."
   (interactive (list (jabber-read-account)))

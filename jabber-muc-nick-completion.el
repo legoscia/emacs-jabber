@@ -68,6 +68,7 @@
              (assoc room jabber-muc-default-nicknames)))
     ))
 
+;;;###autoload
 (defun jabber-muc-looks-like-personal-p (message &optional group)
   "Return non-nil if jabber MESSAGE is addresed to me.
 Optional argument GROUP to look."

@@ -19,6 +19,7 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;;###autoload
 (defun jabber-private-get (jc node-name namespace success-callback error-callback)
   "Retrieve an item from private XML storage.
 The item to retrieve is identified by NODE-NAME (a symbol) and
@@ -42,6 +43,7 @@ result."
 	   (car (jabber-xml-node-children
 		 (jabber-iq-query xml-data)))))
 
+;;;###autoload
 (defun jabber-private-set (jc fragment &optional 
 			      success-callback success-closure-data
 			      error-callback error-closure-data)
