@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 my_lisp_sources=fsm.el jabber-activity.el jabber-ahc-presence.el	\
 jabber-ahc.el jabber-alert.el jabber-autoaway.el jabber-avatar.el	\
 jabber-bookmarks.el jabber-browse.el jabber-chat.el			\
@@ -17,7 +19,15 @@ jabber-vcard-avatars.el jabber-vcard.el jabber-version.el		\
 jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
 jabber-xml.el jabber.el srv.el
 
-dist_lisp_LISP=$(my_lisp_sources) jabber-autoload.el
+compat_lisp_sources =
+if USE_OUR_SHA1
+compat_lisp_sources += compat/sha1.el
+endif
+if USE_OUR_HEX_UTIL
+compat_lisp_sources += compat/hex-util.el
+endif
+
+dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoload.el
 MAINTAINERCLEANFILES=jabber-autoload.el
 
 # The autoload file will cause Lisp sources to be rebuilt _twice_: the

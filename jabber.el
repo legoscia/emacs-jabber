@@ -152,7 +152,7 @@ configure a Google Talk account like this:
 (require 'jabber-wmii)
 (require 'jabber-osd)
 
-(require 'jabber-autoload)
+(load "jabber-autoload")
 
 
 (defvar *jabber-current-status* nil
