@@ -6,7 +6,8 @@ AC_DEFUN([AX_EMACS_RUN_IFELSE],
 [cat >conftest.el <<EOF
 $1
 EOF
-AS_IF([$EMACS -batch -l conftest.el >/dev/null 2>&1], [$2], [$3])])
+AC_RUN_LOG([$EMACS -batch -l conftest.el])
+AS_IF([test $ac_status -eq 0], [$2], [$3])])
 
 # AX_CHECK_EMACS_LIB(LIBRARY, ACTION-IF-PRESENT, ACTION-IF-NOT)
 # -------------------------------------------------------------
