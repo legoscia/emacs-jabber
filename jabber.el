@@ -85,7 +85,7 @@ configure a Google Talk account like this:
 				   (const :tag "STARTTLS" starttls)
 				   (const :tag "Unencrypted" network)
 				   (const :tag "Legacy SSL/TLS" ssl))))))
-  :group 'jabber-core)
+  :group 'jabber)
 
 (defcustom jabber-default-show ""
   "default show state"
