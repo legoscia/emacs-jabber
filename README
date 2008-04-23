@@ -1,5 +1,6 @@
-This is jabber.el 0.8, a Jabber client for Emacs.  If you don't know
-what Jabber is, see http://www.jabber.org .
+This is jabber.el 0.8, a Jabber client for Emacs.  Jabber (also known
+as XMPP) is an instant messaging system; see http://www.jabber.org for
+more information.
 
 Home page:    http://emacs-jabber.sourceforge.net
 Project page: http://sourceforge.net/projects/emacs-jabber
@@ -13,8 +14,9 @@ GNU Emacs
 
 jabber.el depends on GNU Emacs (21, 22, 23 works fine), in particular
 xml.el, and some files from Gnus 5.10. If you don't have Gnus 5.10
-(M-x gnus-version will tell), you can download sha1.el and hex-util.el
-from Gnus CVS at http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/
+(M-x gnus-version will tell), you can get sha1.el and hex-util.el
+from the compat subdirectory.  (The configure script tries to detect
+this situation and include the files in the build)
 
 
 XEmacs
@@ -53,26 +55,30 @@ there is no guarantee of other connections being encrypted.
 
 Installation
 ============
-To install, put all .el files somewhere in your load-path (or have
-your load-path include the directory they're in) and put
-(require 'jabber) in your .emacs file.  To install the Info
-documentation, copy jabber.info to /usr/local/info and run
-"install-info /usr/local/info/jabber.info".
+jabber.el can be installed using the commands:
+./configure
+make
+make install
 
-If you've been using a post-0.6 CVS version of jabber.el, you might
-need to remove some redundant hook functions.  Make sure that
-jabber-alert-message-hooks doesn't contain jabber-message-history, and
-that jabber-alert-presence-hooks doesn't contain
-jabber-presence-watch.
+You can specify which emacs you want to use:
+./configure EMACS=emacs-or-xemacs-21.4
+
+You can also install jabber.el by hand.  Put all .el files somewhere
+in your load-path (or have your load-path include the directory
+they're in) and put (require 'jabber) in your .emacs file.  To install
+the Info documentation, copy jabber.info to /usr/local/info and run
+"install-info /usr/local/info/jabber.info".
 
 Also, users upgrading from 0.7-0.7.x may meet some configuration
 issues. Please, report them as bugs in tracker, to help update docs.
 
 Usage
 =====
-To start using it, type M-x jabber-customize and set your username and
-server.  Then, type C-x C-j C-c (or equivalently M-x jabber-connect)
-to connect (with prefix argument, register new account).
+
+To connect to a Jabber server, type C-x C-j C-c (or equivalently M-x
+jabber-connect-all) and enter your JID.  With prefix argument,
+register a new account.  You can set your JID permanently with M-x
+jabber-customize.
 
 Your roster is displayed in a buffer called *-jabber-*.  To
 disconnect, type C-x C-j C-d or M-x jabber-disconnect.
