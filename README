@@ -71,8 +71,8 @@ they're in.  To install the Info documentation, copy jabber.info to
 After installation by either method, add (load "jabber-autoloads") to
 your .emacs file.
 
-Also, users upgrading from 0.7-0.7.x may meet some configuration
-issues. Please, report them as bugs in tracker, to help update docs.
+If you are upgrading from 0.7-0.7.x, you need to update your
+configuration.  See the section "Account settings" in the manual.
 
 Usage
 =====

@@ -53,7 +53,7 @@ this permission notice are preserved on all copies.
 * Time queries::                
 * Useful features::             
 * Message history::             
-* Message events::              
+* Typing notifications::        
 * Roster import and export::    
 * XMPP URIs::                   
 * Customization::               
@@ -130,7 +130,8 @@ start with @kbd{C-x C-j}, and you can get a list of them by typing
 
 I'll assume that you have already successfully installed jabber.el; if
 not, consult the @file{README} file.  Also, make sure you have
-@code{(require 'jabber)} in your @file{.emacs}.
+@code{(require 'jabber)} or @code{(load "jabber-autoloads")}in your
+@file{.emacs}.
 
 Now, type @kbd{M-x jabber-customize}. This brings up a customize
 buffer for jabber.el. One variable to customize are
@@ -379,7 +380,7 @@ the meaning of roles and affiliations.
 
 @menu
 * Automation::                  
-* Bookmarks::                
+* Bookmarks::                   
 * Invitations::                 
 * Private messages::            
 * MUC Administration::          
@@ -863,7 +864,7 @@ interface and do other useful things.
 * Autoaway::                    
 * Modeline status::             
 * Keepalive::                   
-* Reconnecting::
+* Reconnecting::                
 * Tracking activity::           
 * Watch buddies::               
 * Spell checking::              
@@ -1055,7 +1056,7 @@ what you receive or what you have already sent.  You may want to add
 For more information about Emacs spell checking, @xref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
-@node Message history, Message events, Useful features, Top
+@node Message history, Typing notifications, Useful features, Top
 @chapter Message history
 
 @cindex History
@@ -1120,8 +1121,14 @@ jabber-alert-muc-hooks by adding truncation upon receiving message.
 Truncation limit may be set by customizing
 @code{jabber-log-lines-to-keep} variable.
 
-@node Message events, Roster import and export, Message history, Top
-@chapter Message events
+@node Typing notifications, Roster import and export, Message history, Top
+@chapter Typing notifications
+
+There are two protocols for ``contact is typing'' notifications in
+Jabber.  jabber.el supports both of them, displaying various information
+in the header line of chat buffers.
+
+@section Message events
 
 @cindex Composing
 @cindex Delivered
@@ -1131,9 +1138,9 @@ Truncation limit may be set by customizing
 @vindex jabber-events-confirm-displayed
 @vindex jabber-events-confirm-composing
 
-In the status line of the chat buffer, you can sometimes see
-notifications about the progress of the message you just sent.  These
-states are possible:
+The older protocol is called Message Events (@pxref{XEP-0022}).  Besides
+typing notification, it lets you know what happens to the messages you send.
+These states are possible:
 
 @itemize @bullet
 @item
@@ -1146,7 +1153,7 @@ Delivered to user's client (but not necessarily displayed)
 Displayed to user
 
 @item
-User is composing a reply
+User is typing a message
 
 @end itemize
 
@@ -1161,7 +1168,40 @@ the variables @code{jabber-events-confirm-delivered},
 not to request such information by customizing
 @code{jabber-events-request-these}.
 
-@node Roster import and export, XMPP URIs, Message events, Top
+@section Chat states
+
+@vindex jabber-chatstates-confirm
+
+The newer protocol is called Chat States (@pxref{XEP-0085}).  Rather
+than dealing with individual messages, it describes the state of the
+chat session between two people.  The following states are possible:
+
+@itemize @bullet
+@item
+Active (the default state, not displayed)
+
+@item
+Inactive
+
+@item
+Composing
+
+@item
+Paused (i.e., taking a short pause in composing)
+
+@item
+Gone
+
+@end itemize
+
+jabber.el can display all five states, but only ever sends ``active''
+and ``composing'' itself.
+
+To customize sending of chat states, customize the variable
+@code{jabber-chatstates-confirm}.
+
+
+@node Roster import and export, XMPP URIs, Typing notifications, Top
 @chapter Roster import and export
 
 @findex jabber-export-roster
@@ -1273,12 +1313,56 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex Password
 @cindex JID
 @cindex Resource
+@cindex Network server
 
 All account settings reside in @code{jabber-account-list} variable.
-By customizing it, you cat set JID, password, resource, and turn
-account on/off. Optionally, you can set alternative network server,
-port and connection type. See comments for this variable to learn how
-to set it up.
+Usually you only need to set the JID, in the form
+@samp{username@@server} (or @samp{username@@server/resource} to use a
+specific resource name).  These are the other account options:
+
+@table @asis
+@item Disabled
+If the account is disabled, @code{jabber-connect-all} will not attempt
+to connect it.  You can still connect it manually with
+@code{jabber-connect}.
+
+@item Password
+You can set the password of the account, so you don't have to enter it
+when you connect.  Note that it will be stored unencrypted in your
+customization file.
+
+@item Network server
+If the JID of the Jabber server is not also its DNS name, you may have
+to enter the real DNS name or IP address of the server here.
+
+@item Connection type
+This option specifies whether to use an encrypted connection to the
+server.  Usually you want ``STARTTLS'' (@code{starttls}), which means
+that encryption is activated if the server supports it.  The other
+possibilities are ``unencrypted'' (@code{network}), which means just
+that, and ``legacy SSL/TLS'' (@code{ssl}), which means that encryption
+is activated on connection.
+
+@item Port
+If the Jabber server uses a nonstandard port, specify it here.  The
+default is 5222 for STARTTLS and unencrypted connections, and 5223 for
+legacy SSL connections.
+@end table
+
+@subsection For Google Talk
+
+@cindex Google Talk
+
+If you have a very new version of @file{dns.el}, you can connect to
+Google Talk just by specifying your Gmail address.  If not, set
+``network server'' to @kbd{talk.google.com} and ``connection type'' to
+``legacy SSL''.
+
+@subsection Upgrade note
+
+Previous versions of jabber.el had the variables @code{jabber-username},
+@code{jabber-server}, @code{jabber-resource} and
+@code{jabber-password}.  These are now obsolete and not used.
 
 @node Miscellaneous settings, Customizing the roster buffer, Account settings, Customization
 @section Miscellaneous settings
@@ -2197,9 +2281,6 @@ used for file transfer.
 XEP-0085 is partially supported. Currently only active/composing
 notifications are @emph{sent} though all five notifications are handled on
 receipt.
-
-To customize sending of chat states, customize
-@code{jabber-chatstates-confirm} variable.
 
 @node XEP-0086, XEP-0090, XEP-0085, Protocol support
 @section XEP-0086 (Error Condition Mappings)
