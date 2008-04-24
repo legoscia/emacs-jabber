@@ -30,6 +30,7 @@
 (defgroup jabber nil "Jabber instant messaging"
   :group 'applications)
 
+;;;###autoload
 (defcustom jabber-account-list nil
   "List of Jabber accounts.
 Each element of the list is a cons cell describing a Jabber account,
@@ -213,11 +214,13 @@ configure a Google Talk account like this:
     (nil . "Offline"))
   "Mapping from presence types to readable strings")
 
+;;;###autoload
 (defun jabber-customize ()
   "customize jabber options"
   (interactive)
   (customize-group 'jabber))
 
+;;;###autoload
 (defun jabber-info ()
   "open jabber.el manual"
   (interactive)
