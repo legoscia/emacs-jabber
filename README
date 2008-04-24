@@ -64,10 +64,12 @@ You can specify which emacs you want to use:
 ./configure EMACS=emacs-or-xemacs-21.4
 
 You can also install jabber.el by hand.  Put all .el files somewhere
-in your load-path (or have your load-path include the directory
-they're in) and put (require 'jabber) in your .emacs file.  To install
-the Info documentation, copy jabber.info to /usr/local/info and run
-"install-info /usr/local/info/jabber.info".
+in your load-path, or have your load-path include the directory
+they're in.  To install the Info documentation, copy jabber.info to
+/usr/local/info and run "install-info /usr/local/info/jabber.info".
+
+After installation by either method, add (load "jabber-autoloads") to
+your .emacs file.
 
 Also, users upgrading from 0.7-0.7.x may meet some configuration
 issues. Please, report them as bugs in tracker, to help update docs.
