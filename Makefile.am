@@ -27,15 +27,17 @@ if USE_OUR_HEX_UTIL
 compat_lisp_sources += compat/hex-util.el
 endif
 
-dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoload.el
-MAINTAINERCLEANFILES=jabber-autoload.el
+dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el
+MAINTAINERCLEANFILES=jabber-autoloads.el
+
+EXTRA_DIST = jabber-pkg.el
 
 # The autoload file will cause Lisp sources to be rebuilt _twice_: the
 # timestamp of the Lisp compilation is set _before_ the autoloads are
 # regenerated, which means that jabber-autoload.el is once again
 # considered new, which means that everything will be built again.
 # Suggestions welcome.
-jabber-autoload.el: $(my_lisp_sources)
+jabber-autoloads.el: $(my_lisp_sources)
 	$(EMACS) --batch --eval "(setq generated-autoload-file \"$(abs_builddir)/$@\")" -f batch-update-autoloads $(srcdir)
 
 info_TEXINFOS=jabber.texi
@@ -44,3 +46,13 @@ dist_libexec_SCRIPTS = xmppuri.sh
 
 SUBDIRS = . tests
 
+# Package everything in a form suitable for ELPA.  That is, use
+# "jabber" instead of "emacs-jabber" as base name.
+elpa: dist
+	rm -rf emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
+	$(AMTAR) xzf emacs-jabber-$(PACKAGE_VERSION).tar.gz
+	mv emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
+	cd jabber-$(PACKAGE_VERSION) ; install-info jabber.info dir
+	$(AMTAR) chf jabber-$(PACKAGE_VERSION).tar jabber-$(PACKAGE_VERSION)
+	rm -rf jabber-$(PACKAGE_VERSION)
+	@echo "Created jabber-$(PACKAGE_VERSION).tar"

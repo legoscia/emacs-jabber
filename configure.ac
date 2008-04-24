@@ -11,5 +11,5 @@ AX_CHECK_EMACS_LIB([hex-util], [HAVE_HEX_UTIL=yes], [HAVE_HEX_UTIL=no])
 AM_CONDITIONAL([USE_OUR_SHA1], [test x$HAVE_SHA1 = xno -a x$HAVE_SHA1_EL = xno])
 AM_CONDITIONAL([USE_OUR_HEX_UTIL], [test x$HAVE_HEX_UTIL = xno])
 
-AC_CONFIG_FILES([Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile tests/Makefile jabber-pkg.el])
 AC_OUTPUT
