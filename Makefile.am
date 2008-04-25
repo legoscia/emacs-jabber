@@ -30,7 +30,7 @@ endif
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el
 MAINTAINERCLEANFILES=jabber-autoloads.el
 
-EXTRA_DIST = jabber-pkg.el
+EXTRA_DIST = jabber-pkg.el.in
 
 # The autoload file will cause Lisp sources to be rebuilt _twice_: the
 # timestamp of the Lisp compilation is set _before_ the autoloads are
@@ -48,11 +48,14 @@ SUBDIRS = . tests
 
 # Package everything in a form suitable for ELPA.  That is, use
 # "jabber" instead of "emacs-jabber" as base name.
+CLEANFILES = jabber-pkg.el
 elpa: dist
 	rm -rf emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
 	$(AMTAR) xzf emacs-jabber-$(PACKAGE_VERSION).tar.gz
 	mv emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
 	cd jabber-$(PACKAGE_VERSION) ; install-info jabber.info dir
+	sed "s/@""PACKAGE_VERSION@""/$(PACKAGE_VERSION)/" < $(srcdir)/jabber-pkg.el.in > jabber-$(PACKAGE_VERSION)/jabber-pkg.el
 	$(AMTAR) chf jabber-$(PACKAGE_VERSION).tar jabber-$(PACKAGE_VERSION)
 	rm -rf jabber-$(PACKAGE_VERSION)
 	@echo "Created jabber-$(PACKAGE_VERSION).tar"
+
