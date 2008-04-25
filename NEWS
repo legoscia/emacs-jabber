@@ -41,7 +41,7 @@ Subscription requests now displayed in chat buffers. See "Presence
 subscription" section in manual.
 
 ** Option: hide avatar in chat buffer
-`jabber-chat-buffer-show-avatar'.  (not documented yet)
+`jabber-chat-buffer-show-avatar'.
 
 ** Gmail notifications
 (Not documented nor autoloaded)

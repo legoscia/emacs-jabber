@@ -815,6 +815,7 @@ your avatar file is limited to 8 kilobytes.
 @vindex jabber-vcard-avatars-retrieve
 @vindex jabber-vcard-avatars-publish
 @vindex jabber-avatar-cache-directory
+@vindex jabber-chat-buffer-show-avatar
 
 jabber.el supports viewing and publishing avatars according to XEP-0153,
 vCard-Based Avatars.  By default, if you have an avatar in your vCard
@@ -825,7 +826,9 @@ Emacs can display images.
 
 To disable retrieval of other people's avatars, set
 @code{jabber-vcard-avatars-retrieve} to nil.  To disable publishing of
-your own avatar, set @code{jabber-vcard-avatars-publish} to nil.
+your own avatar, set @code{jabber-vcard-avatars-publish} to nil.  To
+disable avatars in chat buffer header lines, set
+@code{jabber-chat-buffer-show-avatar} to nil.
 
 Avatars are cached in the directory specified by
 @code{jabber-avatar-cache-directory}, by default
