@@ -121,11 +121,18 @@ jabber.el.  If you have used Jabber before and are familiar with the
 terminology, you might find it a bit too basic --- in that case, just
 skim it, making sure to pick up the commands mentioned.
 
+I'll assume that you have already successfully installed jabber.el; if
+not, consult the @file{README} file.  Also, make sure you have
+@code{(require 'jabber)} or @code{(load "jabber-autoloads")} in your
+@file{.emacs}.
+
 There are a handful of global keybindings for common commands.  They
 start with @kbd{C-x C-j}, and you can get a list of them by typing
 @kbd{C-x C-j C-h}.
 
 @menu
+* Do you have a Jabber account?::  
+* Registering an account::      
 * Connecting::                  
 * Chatting::                    
 * Presence::                    
@@ -133,28 +140,29 @@ start with @kbd{C-x C-j}, and you can get a list of them by typing
 * Roster buffer::               
 @end menu
 
-@node Connecting, Chatting, Basic operation, Basic operation
-@section Connecting
+@node Do you have a Jabber account?, Registering an account, Basic operation, Basic operation
+@section Do you have a Jabber account?
 
-@findex jabber-connect-all
-@findex jabber-connect
-@findex jabber-disconnect-all
-@findex jabber-disconnect
+Jabber has become rather popular as an instant messaging technology.
+Several sites use it, but often not under the names ``Jabber'' or
+``XMPP''.  Examples:
 
-@cindex Connecting
+@itemize @bullet
+@item
+Google Talk uses Jabber.  If you have a Gmail address, you can use it as
+a Jabber ID.  @xref{Account settings}, for Google-specific configuration.
+
+@item
+LJ Talk (of Livejournal) uses Jabber.  Your Jabber ID is
+@code{@samp{ljusername}@@livejournal.com}.
+@end itemize
+
+@node Registering an account, Connecting, Do you have a Jabber account?, Basic operation
+@section Registering an account
+
 @cindex Registering an account
 
-I'll assume that you have already successfully installed jabber.el; if
-not, consult the @file{README} file.  Also, make sure you have
-@code{(require 'jabber)} or @code{(load "jabber-autoloads")}in your
-@file{.emacs}.
-
-Now, type @kbd{M-x jabber-customize}. This brings up a customize
-buffer for jabber.el. One variable to customize are
-@code{jabber-account-list}. It sets accounts, that jabber.el knows about. See
-comments for this variable to learn how to set it up. Save your
-changes, and type @kbd{M-x jabber-connect-all} or @kbd{C-x C-j C-c} to
-connect. Use @kbd{M-x jabber-connect} to connect just one account (or just type @kbd{C-u C-x C-j C-c}).
+TBD
 
 If you do not yet have a Jabber account, you can register one.  Enter
 your desired username and the server you wish
@@ -164,8 +172,19 @@ in-band registration, you will be presented with a registration form to
 fill out and send.  There the username you chose will be prefilled.
 Don't change it, otherwise jabber.el will be confused.
 
-If you successfully connect, jabber.el will download your roster and
-display it in a buffer called @code{*-jabber-*}.
+@node Connecting, Chatting, Registering an account, Basic operation
+@section Connecting
+
+@findex jabber-connect-all
+@findex jabber-connect
+@findex jabber-disconnect-one
+@findex jabber-disconnect
+
+@cindex Connecting
+
+Now, type @kbd{C-x C-j C-c} and enter your JID and password.  If you
+successfully connect, jabber.el will download your roster and display it
+in a buffer called @code{*-jabber-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
 this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
@@ -173,6 +192,13 @@ C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
 Use @kbd{M-x jabber-disconnect-one} to disconnect just one account (or just type @kbd{C-u C-x C-j C-d}).
+
+If you don't want to type your JID every time you connect, you can save
+it in the variable @code{jabber-account-list}.  @xref{Account
+settings}.  If you configure more than one account, all of them will be
+connected when you type @kbd{C-x C-j C-c}, as that key is bound to
+@code{jabber-connect-all}.  To connect only one account, possibly one
+that's not in your list, type @kbd{M-x jabber-connect}.
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
