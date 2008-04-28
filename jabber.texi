@@ -23,7 +23,7 @@ this permission notice are preserved on all copies.
 
 @titlepage
 @title jabber.el
-@subtitle where Emacs and Jabber meet
+@subtitle instant messaging for Jabber
 @author by Magnus Henoch and Tom Berger
 
 @page
@@ -75,12 +75,12 @@ please visit @uref{http://www.jabber.org}.
 As a Jabber client, jabber.el is mostly just a face in the crowd,
 except that it uses buffers where GUI clients have windows.  There is
 a roster buffer, and to chat with someone you open a chat buffer, and
-there are browse buffers (increasingly inexactly named) for
+there are buffers for
 interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
 
-jabber.el does not yet support GPG, sending and receiving
+jabber.el does not yet support PGP encryption, sending and receiving
 roster items, and various other things.
 
 @menu
@@ -90,12 +90,28 @@ roster items, and various other things.
 @node Contact,  , Introduction, Introduction
 @section Contact
 
-jabber.el is developed by Tom Berger (e-mail
-@email{object@@intellectronica.net}, JID @code{object@@jabber.org.uk}) and
-Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
-@code{legoscia@@jabber.cd.chalmers.se}).  There is a web page at
-@uref{http://emacs-jabber.sf.net/}, and a Sourceforge
-project page at @uref{http://sourceforge.net/projects/emacs-jabber}.
+@itemize @bullet
+@item
+There is a web page at
+@uref{http://emacs-jabber.sf.net/}.
+
+@item
+There is a Sourceforge
+project page at @uref{http://sourceforge.net/projects/emacs-jabber},
+with bug and patch trackers.
+
+@item
+There is a mailing list:
+@uref{mailto:emacs-jabber-general@@lists.sourceforge.net},
+@uref{https://lists.sourceforge.net/lists/listinfo/emacs-jabber-general},
+@uref{http://dir.gmane.org/gmane.emacs.jabber.general}
+
+@item
+There is a chat room, @code{jabber.el@@conference.jabber.se}.  If you
+have successfully connected, you can join it by typing @kbd{M-x
+jabber-groupchat-join} and entering the address.
+
+@end itemize
 
 @node Basic operation, Groupchat, Introduction, Top
 @chapter Basic operation
