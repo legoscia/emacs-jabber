@@ -269,6 +269,16 @@ See `jabber-sort-order' for order used."
      ((string= a-name b-name) 0)
      (t 1))))
 
+(defun jabber-roster-sort-by-group (a b)
+  "Sort roster items by group membership."
+  (flet ((first-group (item) (or (car (get item 'groups)) "")))
+    (let ((a-group (first-group a))
+	  (b-group (first-group b)))
+      (cond
+       ((string-lessp a-group b-group) -1)
+       ((string= a-group b-group) 0)
+       (t 1)))))
+
 (defun jabber-fix-status (status)
   "Make status strings more readable"
   (when status
