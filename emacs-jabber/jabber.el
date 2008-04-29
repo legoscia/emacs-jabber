@@ -30,6 +30,7 @@
 (defgroup jabber nil "Jabber instant messaging"
   :group 'applications)
 
+;;;###autoload
 (defcustom jabber-account-list nil
   "List of Jabber accounts.
 Each element of the list is a cons cell describing a Jabber account,
@@ -85,7 +86,7 @@ configure a Google Talk account like this:
 				   (const :tag "STARTTLS" starttls)
 				   (const :tag "Unencrypted" network)
 				   (const :tag "Legacy SSL/TLS" ssl))))))
-  :group 'jabber-core)
+  :group 'jabber)
 
 (defcustom jabber-default-show ""
   "default show state"
@@ -143,44 +144,17 @@ configure a Google Talk account like this:
 (require 'jabber-ft-server)
 (require 'jabber-socks5)
 
-;; XXX: automate this some time
-(autoload 'jabber-export-roster "jabber-export"
-  "Create buffer from which roster can be exported to a file."
-  t)
-(autoload 'jabber-import-roster "jabber-export"
-  "Create buffer for roster import from FILE."
-  t)
-(autoload 'jabber-compose "jabber-compose"
-  "Create a buffer for composing a Jabber message."
-  t)
-(autoload 'jabber-private-get "jabber-private"
-  "Retrieve an item from private XML storage.
-The item to retrieve is identified by NODE-NAME (a symbol) and
-NAMESPACE (a string).
-On success, SUCCESS-CALLBACK is called with the retrieved XML fragment.
-On error, ERROR-CALLBACK is called with the entire IQ result."
-  nil)
-(autoload 'jabber-private-set "jabber-private"
-  "Store FRAGMENT in private XML storage.
-SUCCESS-CALLBACK, SUCCESS-CLOSURE-DATA, ERROR-CALLBACK and
-ERROR-CLOSURE-DATA are used as in `jabber-send-iq'."
-  nil)
-(autoload 'jabber-get-bookmarks "jabber-bookmarks"
-  "Retrieve bookmarks (if needed) and call CONT.
-Arguments to CONT are JC and the bookmark list.  CONT will be
-called as the result of a filter function or a timer.
-If REFRESH is non-nil, always fetch bookmarks."
-  nil)
-(autoload 'jabber-edit-bookmarks "jabber-bookmarks"
-  "Create a buffer for editing bookmarks interactively."
-  t)
-(autoload 'jabber-get-conference-data "jabber-bookmarks"
-  "Get bookmark data for CONFERENCE-JID.
-KEY may be nil or one of :name, :autojoin, :nick and :password.
-If KEY is nil, a plist containing the above keys is returned.
-CONT is called when the result is available, with JC and the
-result as arguments."
-  nil)
+;; External notifiers
+(require 'jabber-screen)
+(require 'jabber-ratpoison)
+(require 'jabber-sawfish)
+(require 'jabber-festival)
+(require 'jabber-xmessage)
+(require 'jabber-wmii)
+(require 'jabber-osd)
+
+(load "jabber-autoloads")
+
 
 (defvar *jabber-current-status* nil
   "the users current presence staus")
@@ -240,11 +214,13 @@ result as arguments."
     (nil . "Offline"))
   "Mapping from presence types to readable strings")
 
+;;;###autoload
 (defun jabber-customize ()
   "customize jabber options"
   (interactive)
   (customize-group 'jabber))
 
+;;;###autoload
 (defun jabber-info ()
   "open jabber.el manual"
   (interactive)

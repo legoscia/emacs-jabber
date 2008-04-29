@@ -19,6 +19,8 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+(eval-when-compile (require 'jabber-alert))
+
 (condition-case e
     (progn
       ;; Most people don't have Festival, so this will often fail

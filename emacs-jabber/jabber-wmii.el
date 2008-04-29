@@ -18,6 +18,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(eval-when-compile (require 'jabber-alert))
+
 (defvar jabber-wmii-color "#ffffff #335577 #447799"
   "Color specification as needed by the wmii window manager for the jabber alert messages.")
 
