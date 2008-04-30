@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080429
+Release: alt0.20080501
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -42,26 +42,20 @@ You need to install %name-el only if you intend to modify any of the
 %name code or see some Lisp examples.
 
 %prep
-%setup -n %name-%version
-
+%setup
 %build
-makeinfo jabber.texi
 
 %install
-mkdir -p %buildroot%_emacslispdir/%pkg_name
-install -m 644 *.el %buildroot%_emacslispdir/%pkg_name/
+%autoreconf
+%configure --with-lispdir=%_emacslispdir/%pkg_name
+make abs_builddir="%_builddir/%name-%version"
+make install DESTDIR=%buildroot abs_builddir="%_builddir/%name-%version"
+
+mkdir -p %buildroot%_bindir
+mv -v %buildroot%_libexecdir/xmppuri.sh %buildroot%_bindir
 
 mkdir -p %buildroot%_emacs_sitestart_dir
 install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
-
-mkdir -p %buildroot%_infodir
-install -m 644 %pkg_name.info %buildroot%_infodir/
-
-%add_lisp_loadpath %buildroot%_emacslispdir/%pkg_name
-%byte_recompile_lispdir
-
-mkdir -p %buildroot%_bindir
-install -m 755 xmppuri.sh %buildroot%_bindir
 
 %post
 %install_info %pkg_name.info
@@ -73,15 +67,21 @@ install -m 755 xmppuri.sh %buildroot%_bindir
 %_bindir/*
 %dir %_emacslispdir/%pkg_name
 %_emacslispdir/%pkg_name/*.elc
+%_emacslispdir/%pkg_name/jabber-autoloads.el
 %_infodir/%pkg_name.info*
 %config(noreplace) %_emacs_sitestart_dir/%pkg_name.el
 %doc README AUTHORS NEWS
 
 %files el
 %_emacslispdir/%pkg_name/*.el
+%exclude %_emacslispdir/%pkg_name/jabber-autoloads.el
 %doc %pkg_name.texi
 
 %changelog
+* Thu May  1 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080501
+- cvs-20080501
+- Migrate to new autotools build system
+
 * Thu May  1 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080429
 - cvs-20080429
 
