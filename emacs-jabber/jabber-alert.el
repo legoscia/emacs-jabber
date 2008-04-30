@@ -21,7 +21,6 @@
 
 (require 'jabber-util)
 
-(require 'jabber-muc-nick-completion) ;jabber-muc-looks-like-personal-p needs for define-personal-jabber-alert
 (require 'cl)
 
 (defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
@@ -275,15 +274,6 @@ Examples:
   (lambda (msg) (message "%s" msg)))
 (define-jabber-alert beep "Beep on event"
   (lambda (&rest ignore) (beep)))
-
-;; External notifiers
-(require 'jabber-screen)
-(require 'jabber-ratpoison)
-(require 'jabber-sawfish)
-(require 'jabber-festival)
-(require 'jabber-xmessage)
-(require 'jabber-wmii)
-(require 'jabber-osd)
 
 ;; Message alert hooks
 (defun jabber-message-default-message (from buffer text)

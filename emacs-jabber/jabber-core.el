@@ -124,6 +124,10 @@ problems."
   "Return non-nil if SASL functions are available."
   (featurep 'sasl))
 
+;; jabber-connect and jabber-connect-all should load jabber.el, not
+;; just jabber-core.el, when autoloaded.
+
+;;;###autoload (autoload 'jabber-connect-all "jabber" "Connect to all configured Jabber accounts.\nSee `jabber-account-list'.\nIf no accounts are configured (or ARG supplied), call `jabber-connect' interactively." t)
 (defun jabber-connect-all (&optional arg)
   "Connect to all configured Jabber accounts.
 See `jabber-account-list'.
@@ -153,6 +157,7 @@ If no accounts are configured (or ARG supplied), call `jabber-connect' interacti
 	       nil password network-server
 	       port connection-type))))))))
 
+;;;###autoload (autoload 'jabber-connect "jabber" "Connect to the Jabber server and start a Jabber XML stream.\nWith prefix argument, register a new account.\nWith double prefix argument, specify more connection details." t)
 (defun jabber-connect (username server resource &optional
 				registerp password network-server
 				port connection-type)

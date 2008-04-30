@@ -23,7 +23,7 @@ this permission notice are preserved on all copies.
 
 @titlepage
 @title jabber.el
-@subtitle where Emacs and Jabber meet
+@subtitle instant messaging for Jabber
 @author by Magnus Henoch and Tom Berger
 
 @page
@@ -53,7 +53,7 @@ this permission notice are preserved on all copies.
 * Time queries::                
 * Useful features::             
 * Message history::             
-* Message events::              
+* Typing notifications::        
 * Roster import and export::    
 * XMPP URIs::                   
 * Customization::               
@@ -75,12 +75,12 @@ please visit @uref{http://www.jabber.org}.
 As a Jabber client, jabber.el is mostly just a face in the crowd,
 except that it uses buffers where GUI clients have windows.  There is
 a roster buffer, and to chat with someone you open a chat buffer, and
-there are browse buffers (increasingly inexactly named) for
+there are buffers for
 interaction with servers and services.  Then again, jabber.el delivers
 excellent console performance and customizable hooks (if you have
 speech synthesizer software, hook it up to your presence alerts).
 
-jabber.el does not yet support GPG, sending and receiving
+jabber.el does not yet support PGP encryption, sending and receiving
 roster items, and various other things.
 
 @menu
@@ -90,12 +90,28 @@ roster items, and various other things.
 @node Contact,  , Introduction, Introduction
 @section Contact
 
-jabber.el is developed by Tom Berger (e-mail
-@email{object@@intellectronica.net}, JID @code{object@@jabber.org.uk}) and
-Magnus Henoch (e-mail @email{mange@@freemail.hu}, JID
-@code{legoscia@@jabber.cd.chalmers.se}).  There is a web page at
-@uref{http://intellectronica.net/emacs-jabber/}, and a Sourceforge
-project page at @uref{http://sourceforge.net/projects/emacs-jabber}.
+@itemize @bullet
+@item
+There is a web page at
+@uref{http://emacs-jabber.sf.net/}.
+
+@item
+There is a Sourceforge
+project page at @uref{http://sourceforge.net/projects/emacs-jabber},
+with bug and patch trackers.
+
+@item
+There is a mailing list:
+@uref{mailto:emacs-jabber-general@@lists.sourceforge.net},
+@uref{https://lists.sourceforge.net/lists/listinfo/emacs-jabber-general},
+@uref{http://dir.gmane.org/gmane.emacs.jabber.general}
+
+@item
+There is a chat room, @code{jabber.el@@conference.jabber.se}.  If you
+have successfully connected, you can join it by typing @kbd{M-x
+jabber-groupchat-join} and entering the address.
+
+@end itemize
 
 @node Basic operation, Groupchat, Introduction, Top
 @chapter Basic operation
@@ -105,11 +121,18 @@ jabber.el.  If you have used Jabber before and are familiar with the
 terminology, you might find it a bit too basic --- in that case, just
 skim it, making sure to pick up the commands mentioned.
 
+I'll assume that you have already successfully installed jabber.el; if
+not, consult the @file{README} file.  Also, make sure you have
+@code{(require 'jabber)} or @code{(load "jabber-autoloads")} in your
+@file{.emacs}.
+
 There are a handful of global keybindings for common commands.  They
 start with @kbd{C-x C-j}, and you can get a list of them by typing
 @kbd{C-x C-j C-h}.
 
 @menu
+* Do you have a Jabber account?::  
+* Registering an account::      
 * Connecting::                  
 * Chatting::                    
 * Presence::                    
@@ -117,27 +140,29 @@ start with @kbd{C-x C-j}, and you can get a list of them by typing
 * Roster buffer::               
 @end menu
 
-@node Connecting, Chatting, Basic operation, Basic operation
-@section Connecting
+@node Do you have a Jabber account?, Registering an account, Basic operation, Basic operation
+@section Do you have a Jabber account?
 
-@findex jabber-connect-all
-@findex jabber-connect
-@findex jabber-disconnect-all
-@findex jabber-disconnect
+Jabber has become rather popular as an instant messaging technology.
+Several sites use it, but often not under the names ``Jabber'' or
+``XMPP''.  Examples:
 
-@cindex Connecting
+@itemize @bullet
+@item
+Google Talk uses Jabber.  If you have a Gmail address, you can use it as
+a Jabber ID.  @xref{Account settings}, for Google-specific configuration.
+
+@item
+LJ Talk (of Livejournal) uses Jabber.  Your Jabber ID is
+@code{@samp{ljusername}@@livejournal.com}.
+@end itemize
+
+@node Registering an account, Connecting, Do you have a Jabber account?, Basic operation
+@section Registering an account
+
 @cindex Registering an account
 
-I'll assume that you have already successfully installed jabber.el; if
-not, consult the @file{README} file.  Also, make sure you have
-@code{(require 'jabber)} in your @file{.emacs}.
-
-Now, type @kbd{M-x jabber-customize}. This brings up a customize
-buffer for jabber.el. One variable to customize are
-@code{jabber-account-list}. It sets accounts, that jabber.el knows about. See
-comments for this variable to learn how to set it up. Save your
-changes, and type @kbd{M-x jabber-connect-all} or @kbd{C-x C-j C-c} to
-connect. Use @kbd{M-x jabber-connect} to connect just one account (or just type @kbd{C-u C-x C-j C-c}).
+TBD
 
 If you do not yet have a Jabber account, you can register one.  Enter
 your desired username and the server you wish
@@ -147,8 +172,19 @@ in-band registration, you will be presented with a registration form to
 fill out and send.  There the username you chose will be prefilled.
 Don't change it, otherwise jabber.el will be confused.
 
-If you successfully connect, jabber.el will download your roster and
-display it in a buffer called @code{*-jabber-*}.
+@node Connecting, Chatting, Registering an account, Basic operation
+@section Connecting
+
+@findex jabber-connect-all
+@findex jabber-connect
+@findex jabber-disconnect-one
+@findex jabber-disconnect
+
+@cindex Connecting
+
+Now, type @kbd{C-x C-j C-c} and enter your JID and password.  If you
+successfully connect, jabber.el will download your roster and display it
+in a buffer called @code{*-jabber-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
 this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
@@ -156,6 +192,13 @@ C-j C-p}.  @xref{Presence}, for more information.
 
 To disconnect, type @kbd{M-x jabber-disconnect} or @kbd{C-x C-j C-d}.
 Use @kbd{M-x jabber-disconnect-one} to disconnect just one account (or just type @kbd{C-u C-x C-j C-d}).
+
+If you don't want to type your JID every time you connect, you can save
+it in the variable @code{jabber-account-list}.  @xref{Account
+settings}.  If you configure more than one account, all of them will be
+connected when you type @kbd{C-x C-j C-c}, as that key is bound to
+@code{jabber-connect-all}.  To connect only one account, possibly one
+that's not in your list, type @kbd{M-x jabber-connect}.
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
@@ -379,7 +422,7 @@ the meaning of roles and affiliations.
 
 @menu
 * Automation::                  
-* Bookmarks::                
+* Bookmarks::                   
 * Invitations::                 
 * Private messages::            
 * MUC Administration::          
@@ -814,6 +857,7 @@ your avatar file is limited to 8 kilobytes.
 @vindex jabber-vcard-avatars-retrieve
 @vindex jabber-vcard-avatars-publish
 @vindex jabber-avatar-cache-directory
+@vindex jabber-chat-buffer-show-avatar
 
 jabber.el supports viewing and publishing avatars according to XEP-0153,
 vCard-Based Avatars.  By default, if you have an avatar in your vCard
@@ -824,7 +868,9 @@ Emacs can display images.
 
 To disable retrieval of other people's avatars, set
 @code{jabber-vcard-avatars-retrieve} to nil.  To disable publishing of
-your own avatar, set @code{jabber-vcard-avatars-publish} to nil.
+your own avatar, set @code{jabber-vcard-avatars-publish} to nil.  To
+disable avatars in chat buffer header lines, set
+@code{jabber-chat-buffer-show-avatar} to nil.
 
 Avatars are cached in the directory specified by
 @code{jabber-avatar-cache-directory}, by default
@@ -863,7 +909,7 @@ interface and do other useful things.
 * Autoaway::                    
 * Modeline status::             
 * Keepalive::                   
-* Reconnecting::
+* Reconnecting::                
 * Tracking activity::           
 * Watch buddies::               
 * Spell checking::              
@@ -1055,7 +1101,7 @@ what you receive or what you have already sent.  You may want to add
 For more information about Emacs spell checking, @xref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
-@node Message history, Message events, Useful features, Top
+@node Message history, Typing notifications, Useful features, Top
 @chapter Message history
 
 @cindex History
@@ -1120,8 +1166,14 @@ jabber-alert-muc-hooks by adding truncation upon receiving message.
 Truncation limit may be set by customizing
 @code{jabber-log-lines-to-keep} variable.
 
-@node Message events, Roster import and export, Message history, Top
-@chapter Message events
+@node Typing notifications, Roster import and export, Message history, Top
+@chapter Typing notifications
+
+There are two protocols for ``contact is typing'' notifications in
+Jabber.  jabber.el supports both of them, displaying various information
+in the header line of chat buffers.
+
+@section Message events
 
 @cindex Composing
 @cindex Delivered
@@ -1131,9 +1183,9 @@ Truncation limit may be set by customizing
 @vindex jabber-events-confirm-displayed
 @vindex jabber-events-confirm-composing
 
-In the status line of the chat buffer, you can sometimes see
-notifications about the progress of the message you just sent.  These
-states are possible:
+The older protocol is called Message Events (@pxref{XEP-0022}).  Besides
+typing notification, it lets you know what happens to the messages you send.
+These states are possible:
 
 @itemize @bullet
 @item
@@ -1146,7 +1198,7 @@ Delivered to user's client (but not necessarily displayed)
 Displayed to user
 
 @item
-User is composing a reply
+User is typing a message
 
 @end itemize
 
@@ -1161,7 +1213,40 @@ the variables @code{jabber-events-confirm-delivered},
 not to request such information by customizing
 @code{jabber-events-request-these}.
 
-@node Roster import and export, XMPP URIs, Message events, Top
+@section Chat states
+
+@vindex jabber-chatstates-confirm
+
+The newer protocol is called Chat States (@pxref{XEP-0085}).  Rather
+than dealing with individual messages, it describes the state of the
+chat session between two people.  The following states are possible:
+
+@itemize @bullet
+@item
+Active (the default state, not displayed)
+
+@item
+Inactive
+
+@item
+Composing
+
+@item
+Paused (i.e., taking a short pause in composing)
+
+@item
+Gone
+
+@end itemize
+
+jabber.el can display all five states, but only ever sends ``active''
+and ``composing'' itself.
+
+To customize sending of chat states, customize the variable
+@code{jabber-chatstates-confirm}.
+
+
+@node Roster import and export, XMPP URIs, Typing notifications, Top
 @chapter Roster import and export
 
 @findex jabber-export-roster
@@ -1273,12 +1358,56 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex Password
 @cindex JID
 @cindex Resource
+@cindex Network server
 
 All account settings reside in @code{jabber-account-list} variable.
-By customizing it, you cat set JID, password, resource, and turn
-account on/off. Optionally, you can set alternative network server,
-port and connection type. See comments for this variable to learn how
-to set it up.
+Usually you only need to set the JID, in the form
+@samp{username@@server} (or @samp{username@@server/resource} to use a
+specific resource name).  These are the other account options:
+
+@table @asis
+@item Disabled
+If the account is disabled, @code{jabber-connect-all} will not attempt
+to connect it.  You can still connect it manually with
+@code{jabber-connect}.
+
+@item Password
+You can set the password of the account, so you don't have to enter it
+when you connect.  Note that it will be stored unencrypted in your
+customization file.
+
+@item Network server
+If the JID of the Jabber server is not also its DNS name, you may have
+to enter the real DNS name or IP address of the server here.
+
+@item Connection type
+This option specifies whether to use an encrypted connection to the
+server.  Usually you want ``STARTTLS'' (@code{starttls}), which means
+that encryption is activated if the server supports it.  The other
+possibilities are ``unencrypted'' (@code{network}), which means just
+that, and ``legacy SSL/TLS'' (@code{ssl}), which means that encryption
+is activated on connection.
+
+@item Port
+If the Jabber server uses a nonstandard port, specify it here.  The
+default is 5222 for STARTTLS and unencrypted connections, and 5223 for
+legacy SSL connections.
+@end table
+
+@subsection For Google Talk
+
+@cindex Google Talk
+
+If you have a very new version of @file{dns.el}, you can connect to
+Google Talk just by specifying your Gmail address.  If not, set
+``network server'' to @kbd{talk.google.com} and ``connection type'' to
+``legacy SSL''.
+
+@subsection Upgrade note
+
+Previous versions of jabber.el had the variables @code{jabber-username},
+@code{jabber-server}, @code{jabber-resource} and
+@code{jabber-password}.  These are now obsolete and not used.
 
 @node Miscellaneous settings, Customizing the roster buffer, Account settings, Customization
 @section Miscellaneous settings
@@ -2197,9 +2326,6 @@ used for file transfer.
 XEP-0085 is partially supported. Currently only active/composing
 notifications are @emph{sent} though all five notifications are handled on
 receipt.
-
-To customize sending of chat states, customize
-@code{jabber-chatstates-confirm} variable.
 
 @node XEP-0086, XEP-0090, XEP-0085, Protocol support
 @section XEP-0086 (Error Condition Mappings)
