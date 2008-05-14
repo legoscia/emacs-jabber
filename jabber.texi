@@ -271,7 +271,7 @@ case, use something like @code{(jabber-send-presence "away" "idle for
 
 By default, jabber.el sets your presence when you connect.  If you
 want it not to do that, remove @code{jabber-send-default-presence}
-from @code{jabber-post-connect-hook}.  If you want to change the
+from @code{jabber-post-connect-hooks}.  If you want to change the
 presence that is sent, change the variables
 @code{jabber-default-show}, @code{jabber-default-status} and
 @code{jabber-default-priority}.
@@ -446,7 +446,7 @@ the JID of the group, and your preferred nickname.
 If you want to automatically join certain rooms when connecting, you
 can set @code{jabber-muc-autojoin} to a list containing the JIDs of
 the rooms you want to enter.  To disable this feature, remove
-@code{jabber-muc-autojoin} from @code{jabber-post-connect-hook}.
+@code{jabber-muc-autojoin} from @code{jabber-post-connect-hooks}.
 
 Please note, that @code{jabber-muc-default-nicknames} and
 @code{jabber-muc-autojoin} are machine-local. To make them available
@@ -928,9 +928,9 @@ haven't used your computer for a while.  This lets your contacts know
 that you might not answer immediately.
 
 To activate this feature, add @code{jabber-autoaway-start} to
-@code{jabber-post-connect-hook}, e.g:
+@code{jabber-post-connect-hooks}, e.g:
 @example
-(add-hook 'jabber-post-connect-hook 'jabber-autoaway-start)
+(add-hook 'jabber-post-connect-hooks 'jabber-autoaway-start)
 @end example
 
 There are different methods to find how long you have been ``idle''.
@@ -1811,11 +1811,12 @@ jabber.el provides various hooks that you can use for whatever
 purpose.
 
 @table @code
-@vindex jabber-post-connect-hook
-@item jabber-post-connect-hook
+@vindex jabber-post-connect-hooks
+@item jabber-post-connect-hooks
 This hook is called after successful connection and authentication.
 By default it contains @code{jabber-send-default-presence}
-(@pxref{Presence}).
+(@pxref{Presence}).  The hook functions get the connection object as
+argument.
 
 @vindex jabber-lost-connection-hook
 @item jabber-lost-connection-hook
