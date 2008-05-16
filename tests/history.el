@@ -11,7 +11,7 @@
       (progn
 	(jabber-history-log-message "in" "romeo@montague.net/Balcony" nil "hi" our-time)
 	(with-temp-buffer
-	  (insert-file-literally jabber-global-history-filename)
+	  (insert-file-contents-literally jabber-global-history-filename)
 	  (let ((expected "\\[\"\\([^\"]+\\)\" \"in\" \"romeo@montague.net/Balcony\" \"me\" \"hi\"]\n")
 		(actual (buffer-string)))
 	    (unless (string-match expected actual)
