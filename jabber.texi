@@ -118,7 +118,7 @@ jabber-groupchat-join} and entering the address.
 
 This chapter is intended as an introduction to basic usage of
 jabber.el.  If you have used Jabber before and are familiar with the
-terminology, you might find it a bit too basic --- in that case, just
+terminology, you might find it a bit too basic---in that case, just
 skim it, making sure to pick up the commands mentioned.
 
 I'll assume that you have already successfully installed jabber.el; if
@@ -154,7 +154,7 @@ a Jabber ID.  @xref{Account settings}, for Google-specific configuration.
 
 @item
 LJ Talk (of Livejournal) uses Jabber.  Your Jabber ID is
-@code{@samp{ljusername}@@livejournal.com}.
+@samp{@var{ljusername}@@livejournal.com}.
 @end itemize
 
 @node Registering an account, Connecting, Do you have a Jabber account?, Basic operation
@@ -162,15 +162,16 @@ LJ Talk (of Livejournal) uses Jabber.  Your Jabber ID is
 
 @cindex Registering an account
 
-TBD
+If you do not yet have a Jabber account, you can register one.  The
+registration processes for various servers differ, but many servers
+support so-called ``in-band registration'', which is described in this
+section.
 
-If you do not yet have a Jabber account, you can register one.  Enter
-your desired username and the server you wish
-to use in @code{jabber-account-list}, save, and type @kbd{C-u M-x
-jabber-connect}.  If the server supports
-in-band registration, you will be presented with a registration form to
-fill out and send.  There the username you chose will be prefilled.
-Don't change it, otherwise jabber.el will be confused.
+To register an account, type @kbd{C-u M-x jabber-connect} and enter your
+desired JID in the form @samp{@var{username}@@@var{server}}.  You will
+be presented with a registration form to fill out and send.  There the
+username you chose will be prefilled.  After registration, you can
+connect to the server as usual.
 
 @node Connecting, Chatting, Registering an account, Basic operation
 @section Connecting
@@ -198,7 +199,8 @@ it in the variable @code{jabber-account-list}.  @xref{Account
 settings}.  If you configure more than one account, all of them will be
 connected when you type @kbd{C-x C-j C-c}, as that key is bound to
 @code{jabber-connect-all}.  To connect only one account, possibly one
-that's not in your list, type @kbd{M-x jabber-connect}.
+that's not in your list, type @kbd{M-x jabber-connect} or @kbd{C-u C-x
+C-j C-c}.
 
 @node Chatting, Presence, Connecting, Basic operation
 @section Chatting
