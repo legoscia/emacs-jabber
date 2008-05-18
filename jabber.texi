@@ -246,12 +246,12 @@ activity}.
 @vindex jabber-default-status
 @vindex jabber-default-priority
 
-``Presence'' is the Jabber term for letting other people know that you
+@dfn{Presence} is the Jabber term for letting other people know that you
 are online, and additionally how ``available'' you are.  There are
-three elements to presence: availability status (called ``show''),
+three elements to presence: availability state (called ``show''),
 status message, and priority.
 
-Your show status may either be empty (meaning simply ``online''), or
+Your show state may either be empty (meaning simply ``online''), or
 one of @code{away}, @code{xa}, @code{dnd} and @code{chat}, meaning
 ``away'', ``extended away'' (i.e. away for an extended period), ``do
 not disturb'', and ``free for chat'', respectively.  This information
@@ -264,24 +264,76 @@ such as ``at home'', ``working'', ``phone'', ``playing games'' or
 whatever you want.  It is sent to everyone subscribing to your
 presence, but not all clients prominently display it to the user.
 
-The priority is only interesting if you are running more than one
-Jabber client at a time accessing the same account.  In that case,
-messages sent to you without an indication of which client to send to
-are sent to the client with the highest priority.
+The priority is only interesting if you are running more than one Jabber
+client at a time accessing the same account.  @xref{Resources and
+priority}.
 
-To set your presence, use the function @code{jabber-send-presence}.
+To set your presence, use the function @code{jabber-send-presence}
+(bound to @kbd{C-x C-j C-p}).
 It can be called both interactively and in Lisp code.  For the latter
 case, use something like @code{(jabber-send-presence "away" "idle for
-10 minutes" 10)}.
+10 minutes" 10)}.  There are a few shortcuts:
+@table @kbd
+@item C-x C-j C-a
+Send ``away'' presence (with prefix argument, specify status text)
+@item C-x C-j C-x
+Send ``extended away'' presence (with prefix argument, specify status
+text)
+@item C-x C-j C-o
+Send default presence (see below)
+@end table
 
 By default, jabber.el sets your presence when you connect.  If you
-want it not to do that, remove @code{jabber-send-default-presence}
+want it not to do that, remove @code{jabber-send-current-presence}
 from @code{jabber-post-connect-hooks}.  If you want to change the
 presence that is sent, change the variables
 @code{jabber-default-show}, @code{jabber-default-status} and
 @code{jabber-default-priority}.
 
 With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
+
+@menu
+* Resources and priority::      
+* Directed presence::           
+@end menu
+
+@node Resources and priority, Directed presence, Presence, Presence
+@subsection Resources and priority
+
+@cindex Resource
+@cindex Priority
+
+Every connection to an account has a specific name, a @dfn{resource}.
+The account itself has a JID of the form
+@samp{@var{username}@@@var{server}} (a @dfn{bare JID}), but the
+connections have JIDs of the form
+@samp{@var{username}@@@var{server}/@var{resource}} (a @dfn{full JID}).
+You can choose the resource name yourself by entering a JID of the
+latter form at the connection prompt (@pxref{Connecting}), or by
+configuring it in @code{jabber-account-list} (@pxref{Account settings})
+
+Each session has a @dfn{priority}.  The priority determines what happens
+when a message is sent to the bare JID (i.e. without specifying what
+connection should receive message).  Such messages are delivered to the
+connection with the highest non-negative priority value.  If there are
+no connections, or if all connections have negative priority, the
+message is either stored on the server for later delivery or bounced to
+the sender, depending on the server configuration.
+
+If there are several connections with the same priority, the behaviour
+depends on the server.  Some server implementations deliver the message
+to all such connections, while others choose one connection depending on
+certain rules.
+
+Note that these rules do not apply when a message is sent to a full
+JID.  Such messages are sent to the specified resource, if it is still
+connected, and otherwise treated as messages to the bare JID.  In the
+chat buffers of jabber.el, messages are sent to whatever JID the last
+message came from (usually a full JID), or to the bare JID if no message
+has been received yet.  Other clients may have different behaviour.
+
+@node Directed presence,  , Resources and priority, Presence
+@subsection Directed presence
 
 @cindex directed presence
 @cindex send directed presence
@@ -306,7 +358,7 @@ Having permission to view the presence status of a person is called
 persons can be asymmetric.
 
 When jabber.el receives a presence subscription request, it will present
-it to you in an chat buffer, and offer you to choose subscription mode
+it to you in a chat buffer, and offer you to choose subscription mode
 and send a subscription request back to that person.
 
 To request subscription to someone, type @kbd{M-x
@@ -1362,7 +1414,6 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex Resource
 @cindex Password
 @cindex JID
-@cindex Resource
 @cindex Network server
 
 All account settings reside in @code{jabber-account-list} variable.
