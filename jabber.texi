@@ -437,14 +437,6 @@ The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
 shown here.
 
-Also, to save from repeating unnesesary typing you can press @kbd{Tab}
-key to complete nick of groupchat member, you a talking with. You can
-customize your form of personal talking in MUC
-(@code{jabber-muc-completion-delimiter}) and form of personal talking
-to you (@code{jabber-muc-looks-personaling-symbols}) - see
-``jabber-chat'' customization group. Defaults are sane, so unlikely
-you could change this, but... it is Emacs!
-
 @findex jabber-groupchat-join
 @cindex Joining a groupchat
 @cindex Changing nickname
@@ -457,7 +449,7 @@ that only moderators can see your JID.  You can change your nickname
 with @kbd{M-x jabber-muc-nick}.  @xref{Automation}, for setting default 
 nicknames.
 
-@cindex query groupchat
+@cindex Query groupchat
 @vindex jabber-muc-disable-disco-check
 When trying to join a room, jabber.el first sends a service discovery
 info request to the room, to find out whether it exists and what
@@ -465,12 +457,29 @@ features are enabled (in particular whether the room is
 password-protected).  However, this can cause problems with some buggy
 MUC services (or services that respond in a way that jabber.el doesn't
 expect).  A workaround for that is to set
-@code{jabber-muc-disable-disco-check} to t; however, the bug should be
+@code{jabber-muc-disable-disco-check} to @code{t}; however, the bug should be
 unearthed and fixed.
 
 Groupchat messages will be displayed in a buffer called
-@code{*-jabber-groupchat-:-@var{groupchat}-*}.  It works much like the
-chat buffer.
+@code{*-jabber-groupchat-:-@var{groupchat}-*}.  By default, the buffer
+name is based on the JID of the chat room.  If you want a shorter name,
+you can add the chat room to your roster and give it a name, using the
+command @kbd{M-x jabber-roster-change}.  The groupchat buffer works much
+like the chat buffer.  It has its own class of alerts
+(@pxref{Customizing alerts}), and uses activity tracking
+(@pxref{Tracking activity}).
+
+@vindex jabber-muc-completion-delimiter
+@vindex jabber-muc-looks-personaling-symbols
+@cindex Groupchat completion
+@cindex Nick completion in groupchat
+Also, to save from repeating unnesesary typing you can press @kbd{Tab}
+key to complete nick of a groupchat member that you are talking with.
+You can customize your form of personal talking in MUC
+(@code{jabber-muc-completion-delimiter}) and form of personal talking to
+you (@code{jabber-muc-looks-personaling-symbols})---see ``jabber-chat''
+customization group. Defaults are sane, so it is unlikely that you would
+want to change this, but... it is Emacs!
 
 @cindex Topic, MUC
 @findex jabber-muc-set-topic
@@ -500,40 +509,42 @@ the meaning of roles and affiliations.
 * MUC Administration::          
 @end menu
 
-@node Automation, Bookmarks, Groupchat, Groupchat
-@section Automation
+@node Configuration, Bookmarks, Groupchat, Groupchat
+@section Configuration
 
 @vindex jabber-muc-default-nicknames
 @vindex jabber-muc-autojoin
 @findex jabber-muc-autojoin
 @cindex Default MUC nickname
 @cindex Autojoin chat rooms
+@cindex Bookmarks, MUC
+@findex jabber-edit-bookmarks
 
-You can select a default nickname by setting
-@code{jabber-account-list} (part of JID before @code{@@}).
-Additionally, you can set different nicknames for different groups, by
-customizing @code{jabber-muc-default-nicknames}.  There you specify
-the JID of the group, and your preferred nickname.
+You can configure jabber.el to use a certain nickname for a certain
+room, or to automatically join a certain room when you connect.  You can
+do this either by storing bookmarks on the server or by setting Emacs
+variables.
 
-If you want to automatically join certain rooms when connecting, you
-can set @code{jabber-muc-autojoin} to a list containing the JIDs of
+Type @kbd{M-x jabber-edit-bookmarks} to add bookmarks.  You can specify
+the JID of the conference, the name of the conference (not used by
+jabber.el), whether to automatically join the room, your desired
+nickname (or leave empty), and the room password (or leave empty).
+
+The default nickname for groupchats is the username part of your JID.
+If you don't use bookmarks, you can set different nicknames for
+different groups by customizing @code{jabber-muc-default-nicknames}.
+There you specify the JID of the group, and your preferred nickname.
+
+Automatically joining certain rooms when connecting can be accomplished
+by setting @code{jabber-muc-autojoin} to a list containing the JIDs of
 the rooms you want to enter.  To disable this feature, remove
 @code{jabber-muc-autojoin} from @code{jabber-post-connect-hooks}.
 
 Please note, that @code{jabber-muc-default-nicknames} and
-@code{jabber-muc-autojoin} are machine-local. To make them available
-to any client on any machine, import them in your bookmarks. See
-@xref{Bookmarks}.
-
-@node Bookmarks, Invitations, Automation, Groupchat
-@section Bookmarks
-
-@cindex Bookmarks
-@findex jabber-edit-bookmarks
-
-You can store your conference settings on server-side to make them
-available from any machine and client. Use @code{M-x
-jabber-edit-bookmarks} to edit server-side bookmarks.
+@code{jabber-muc-autojoin} are machine-local, but apply to @emph{all}
+accounts---if you connect several accounts, both will try to connect to
+the same chat rooms, or use the same nickname.  This will lead to
+confusion.
 
 @node Invitations, Private messages, Bookmarks, Groupchat
 @section Invitations
