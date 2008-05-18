@@ -1,6 +1,6 @@
 ;; jabber-bookmarks.el - bookmarks according to XEP-0048
 
-;; Copyright (C) 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2007, 2008 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -96,6 +96,7 @@ on success or failure, respectively."
   (unless callback
     (setq callback #'ignore))
   (jabber-private-set
+   jc
    `(storage ((xmlns . "storage:bookmarks"))
 	     ,@bookmarks)
    callback t
