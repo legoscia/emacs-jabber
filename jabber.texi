@@ -355,11 +355,21 @@ presence update.
 
 Having permission to view the presence status of a person is called
 @dfn{subscribing to his presence}.  Presence subscription between two
-persons can be asymmetric.
+persons can be asymmetric.  Subscription state is shown in the roster
+display by arrows (@pxref{Customizing the roster buffer}).  A
+left-pointing arrow means that the contact can see your presence
+(``from'').  A right-pointing arrow means that you can see the contact's
+presence (``to'').  The most common case is mutual subscription, a
+double-ended arrow (``both'').
 
 When jabber.el receives a presence subscription request, it will present
 it to you in a chat buffer, and offer you to choose subscription mode
-and send a subscription request back to that person.
+and send a subscription request back to that person.  The ``Mutual''
+button accepts the request and sends a reciprocal request.@footnote{If this
+request is superfluous, the server will drop it without bothering the
+contact.}  The ``One-way'' button accepts the request, but doesn't ask
+for a subscription in return.  The ``Decline'' button declines the
+request.
 
 To request subscription to someone, type @kbd{M-x
 jabber-send-subscription-request}.  You will be prompted for the JID
