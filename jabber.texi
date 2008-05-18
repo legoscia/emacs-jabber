@@ -554,7 +554,7 @@ confusion.
 
 You can invite someone to a groupchat with @kbd{M-x jabber-muc-invite}
 (also available in the MUC menu).  Pay attention to the order of the
-arguments --- as both users and rooms are just JIDs, it is technically
+arguments---as both users and rooms are just JIDs, it is technically
 possible to invite a room to a user, but that's probably not what you
 want.
 
