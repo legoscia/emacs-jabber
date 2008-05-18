@@ -69,7 +69,8 @@ they're in.  To install the Info documentation, copy jabber.info to
 /usr/local/info and run "install-info /usr/local/info/jabber.info".
 
 After installation by either method, add (load "jabber-autoloads") to
-your .emacs file.
+your .emacs file.  (If you got the code from CVS, you still need the
+makefile to generate jabber-autoloads.el.)
 
 If you are upgrading from 0.7-0.7.x, you need to update your
 configuration.  See the section "Account settings" in the manual.
