@@ -645,7 +645,7 @@ Rights depend on room configuration.  The room might be members-only, or
 grant voice only to members.
 
 @item outcast
-Banned from the room
+Banned from the room.
 @end table
 
 
