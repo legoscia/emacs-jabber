@@ -212,6 +212,12 @@ There are several ways to open a chat buffer.  The shortest way is to
 put point over the person you want to chat with in the roster display
 and hit RET.
 
+You can also use the function @code{jabber-chat-with}.  This function is
+bound to @kbd{C-x C-j C-j} in the global keymap.  You will be asked to
+enter a JID in the minibuffer.  You can also enter the roster name of
+one of your contacts.  All JIDs and names in your roster can be
+tab-completed.
+
 You can also use menus to access commands.  In the roster display, you
 can access several menus through keystrokes or mouse clicks.  You can
 bring one big menu up by pressing the second mouse button, or you can
@@ -219,18 +225,15 @@ bring up the ``chat menu'' by typing @kbd{C-c C-c}.  If you do the
 latter while point is on a roster entry, that entry will be the
 default value when you are asked for whom to chat with.
 
-You can also use the function @code{jabber-chat-with}, which is what the
-menu item is bound to.  This function is bound to @kbd{C-x C-j C-j} in
-the global keymap.
-
 Now, try opening a chat with someone.  A buffer named
 @code{*-jabber-chat-:-@var{person}-*} will be created and selected.
 Type your message at the end of the buffer, and hit @kbd{RET} to send
 it.  To include a newline in your message, use @kbd{C-j}.
 
 When you receive a message from someone, you will see a red indicator in
-the mode line.  You can click this indicator or type @kbd{C-x C-j C-l}
-to switch to the relevant buffer.
+the mode line.  You can click this indicator with the mouse, or type
+@kbd{C-x C-j C-l} to switch to the relevant buffer.  @xref{Tracking
+activity}.
 
 @node Presence, Presence subscription, Chatting, Basic operation
 @section Presence
