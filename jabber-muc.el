@@ -408,7 +408,7 @@ groupchat buffer."
   (interactive 
    (let ((account (jabber-read-account))
 	 (group (jabber-read-jid-completing "group: ")))
-     (list account group (jabber-muc-read-my-nickname group (plist-get (fsm-get-state-data account) :username)) t)))
+     (list account group (jabber-muc-read-my-nickname account group) t)))
 
   ;; If the user is already in the room, we don't need as many checks.
   (if (or (assoc group *jabber-active-groupchats*)
@@ -450,7 +450,9 @@ groupchat buffer."
       (let ((password
 	     ;; Is the room password-protected?
 	     (when (member "muc_passwordprotected" features)
-	       (read-passwd (format "Password for %s: " (jabber-jid-displayname group))))))
+	       (or
+		(jabber-get-conference-data jc group nil :password)
+		(read-passwd (format "Password for %s: " (jabber-jid-displayname group)))))))
 
 	(jabber-groupchat-join-3 jc group nickname password popup)))))
 
@@ -479,12 +481,12 @@ groupchat buffer."
     (let ((buffer (jabber-muc-create-buffer jc group)))
       (switch-to-buffer buffer))))
 
-(defun jabber-muc-read-my-nickname (group default)
+(defun jabber-muc-read-my-nickname (jc group)
   "Read nickname for joining GROUP."
   (let ((default-nickname (or
-			   ;; XXX: use bookmarks
+			   (jabber-get-conference-data jc group nil :nick)
 			   (cdr (assoc group jabber-muc-default-nicknames))
-			   default)))
+			   (plist-get (fsm-get-state-data jc) :username))))
     (jabber-read-with-input-method (format "Nickname: (default %s) "
 					   default-nickname) 
 				   nil nil default-nickname)))
@@ -647,7 +649,7 @@ group, else it is a JID."
 	      (let ((action
 		     `(lambda (&rest ignore) (interactive)
 			(jabber-groupchat-join jabber-buffer-connection ,group
-					       (jabber-muc-read-my-nickname ,group ,(plist-get (fsm-get-state-data jabber-buffer-connection) :username))))))
+					       (jabber-muc-read-my-nickname ,jabber-buffer-connection ,group)))))
 		(if (fboundp 'insert-button)
 		    (insert-button "Accept"
 				   'action action)

@@ -35,22 +35,30 @@ and t if no bookmarks where found.")
 KEY may be nil or one of :name, :autojoin, :nick and :password.
 If KEY is nil, a plist containing the above keys is returned.
 CONT is called when the result is available, with JC and the
-result as arguments."
-  (jabber-get-bookmarks 
-   jc
-   (lexical-let ((conference-jid conference-jid)
-		 (key key)
-		 (cont cont))
-     (lambda (jc result)
-       (let ((entry
-	      (dolist (node result)
+result as arguments.  If CONT is nil, return the requested data
+immediately, and return nil if it is not in the cache."
+  (if (null cont)
+      (jabber-get-conference-data-internal
+       (jabber-get-bookmarks-from-cache jc)
+       conference-jid
+       key)
+    (jabber-get-bookmarks 
+     jc
+     (lexical-let ((conference-jid conference-jid)
+		   (key key)
+		   (cont cont))
+       (lambda (jc result)
+	 (let ((entry (jabber-get-conference-data-internal result conference-jid key)))
+	   (funcall cont jc entry)))))))
+
+(defun jabber-get-conference-data-internal (result conference-jid key)
+  (let ((entry (dolist (node result)
 		(when (and (eq (jabber-xml-node-name node) 'conference)
 			   (string= (jabber-xml-get-attribute node 'jid) conference-jid))
 		  (return (jabber-parse-conference-bookmark node))))))
-	 (funcall cont jc
-		  (if key
-		      (plist-get entry key)
-		    entry)))))))
+    (if key
+	(plist-get entry key)
+      entry)))
 
 (defun jabber-parse-conference-bookmark (node)
   "Convert a <conference/> tag into a plist.
@@ -88,6 +96,13 @@ If REFRESH is non-nil, always fetch bookmarks."
 	   t)))
     (puthash my-jid value jabber-bookmarks)
     (funcall cont jc (when (listp value) value))))
+
+;;;###autoload
+(defun jabber-get-bookmarks-from-cache (jc)
+  "Return cached bookmarks for JC.
+If bookmarks have not yet been fetched by `jabber-get-bookmarks',
+return nil."
+  (gethash (jabber-connection-bare-jid jc) jabber-bookmarks))
 
 (defun jabber-set-bookmarks (jc bookmarks &optional callback)
   "Set bookmarks to BOOKMARKS, which is a list of XML elements.
