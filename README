@@ -75,6 +75,15 @@ makefile to generate jabber-autoloads.el.)
 If you are upgrading from 0.7-0.7.x, you need to update your
 configuration.  See the section "Account settings" in the manual.
 
+Special notes for CVS version
+=============================
+If you are running jabber.el from CVS, you need to generate the
+jabber-autoloads.el file yourself.  The simplest way to do this is by
+using the "./configure && make" process.
+
+To generate the configure script, make sure that autoconf and automake
+are installed and run "autoreconf -i".
+
 Usage
 =====
 
