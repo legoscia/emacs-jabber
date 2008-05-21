@@ -446,7 +446,7 @@ be prompted for the groupchat to join, and your nickname in the
 groupchat.  This nickname doesn't need to have any correlation to your
 JID; in fact, groupchats are usually (but not always) configured such
 that only moderators can see your JID.  You can change your nickname
-with @kbd{M-x jabber-muc-nick}.  @xref{Automation}, for setting default 
+with @kbd{M-x jabber-muc-nick}.  @xref{Configuration}, for setting default 
 nicknames.
 
 @cindex Query groupchat
@@ -502,14 +502,13 @@ the meaning of roles and affiliations.
 
 
 @menu
-* Automation::                  
-* Bookmarks::                   
+* Configuration::               
 * Invitations::                 
 * Private messages::            
 * MUC Administration::          
 @end menu
 
-@node Configuration, Bookmarks, Groupchat, Groupchat
+@node Configuration, Invitations, Groupchat, Groupchat
 @section Configuration
 
 @vindex jabber-muc-default-nicknames
@@ -546,7 +545,7 @@ accounts---if you connect several accounts, both will try to connect to
 the same chat rooms, or use the same nickname.  This will lead to
 confusion.
 
-@node Invitations, Private messages, Bookmarks, Groupchat
+@node Invitations, Private messages, Configuration, Groupchat
 @section Invitations
 
 @cindex Invitations
