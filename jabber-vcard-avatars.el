@@ -1,6 +1,6 @@
 ;;; jabber-vcard-avatars.el --- Avatars by JEP-0153
 
-;; Copyright (C) 2006, 2007  Magnus Henoch
+;; Copyright (C) 2006, 2007, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -52,14 +52,19 @@ Keys are full JIDs.")
     (let* ((from (jabber-jid-user (jabber-xml-get-attribute xml-data 'from)))
 	   (photo (jabber-xml-path xml-data '(("vcard-temp:x:update" . "x") photo)))
 	   (sha1-hash (car (jabber-xml-node-children photo))))
-      (if (null sha1-hash)
-	  ;; User has removed avatar
-	  (jabber-avatar-set from nil)
-	(if (jabber-avatar-find-cached sha1-hash)
-	    ;; Avatar is cached
-	    (jabber-avatar-set from sha1-hash)
-	  ;; Avatar is not cached; retrieve it
-	  (jabber-vcard-avatars-fetch jc from sha1-hash))))))
+      (cond
+       ((null sha1-hash)
+	;; User has removed avatar
+	(jabber-avatar-set from nil))
+       ((string= sha1-hash (get (jabber-jid-symbol from) 'avatar-hash))
+	;; Same avatar as before; do nothing
+	)
+       ((jabber-avatar-find-cached sha1-hash)
+	;; Avatar is cached
+	(jabber-avatar-set from sha1-hash))
+       (t
+	;; Avatar is not cached; retrieve it
+	(jabber-vcard-avatars-fetch jc from sha1-hash))))))
 
 (defun jabber-vcard-avatars-fetch (jc who sha1-hash)
   "Fetch WHO's vCard, and extract avatar."
