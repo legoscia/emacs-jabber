@@ -1,7 +1,7 @@
 ;; jabber-version.el - version reporting by JEP-0092
 
+;; Copyright (C) 2003, 2004, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -21,9 +21,7 @@
 
 (require 'jabber-iq)
 (require 'jabber-util)
-
-(defconst jabber-version "0.7.1-dev1"
-  "version returned to those who query us")
+(require 'jabber-ourversion)
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request software version" 'jabber-get-version))
