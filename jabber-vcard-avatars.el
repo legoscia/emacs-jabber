@@ -69,7 +69,8 @@ Keys are full JIDs.")
 (defun jabber-vcard-avatars-fetch (jc who sha1-hash)
   "Fetch WHO's vCard, and extract avatar."
   (interactive (list (jabber-read-account)
-		     (jabber-read-jid-completing "Fetch whose vCard avatar: ")))
+		     (jabber-read-jid-completing "Fetch whose vCard avatar: ")
+		     nil))
   (jabber-send-iq jc who "get" '(vCard ((xmlns . "vcard-temp")))
 		  #'jabber-vcard-avatars-vcard (cons who sha1-hash)
 		  #'ignore nil))
@@ -82,7 +83,8 @@ Keys are full JIDs.")
     (if photo
 	(let ((avatar (jabber-avatar-from-base64-string (nth 2 photo)
 							(nth 1 photo))))
-	  (unless (string= sha1-hash (avatar-sha1-sum avatar))
+	  (unless (or (null sha1-hash)
+		      (string= sha1-hash (avatar-sha1-sum avatar)))
 	    (when jabber-avatar-verbose
 	      (message "%s's avatar should have SHA1 sum %s, but has %s"
 		       (jabber-jid-displayname from)
