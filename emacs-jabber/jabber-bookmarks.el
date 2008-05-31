@@ -38,10 +38,10 @@ CONT is called when the result is available, with JC and the
 result as arguments.  If CONT is nil, return the requested data
 immediately, and return nil if it is not in the cache."
   (if (null cont)
-      (jabber-get-conference-data-internal
-       (jabber-get-bookmarks-from-cache jc)
-       conference-jid
-       key)
+      (let ((cache (jabber-get-bookmarks-from-cache jc)))
+       (if (and cache (listp cache))
+        (jabber-get-conference-data-internal
+         cache conference-jid key)))
     (jabber-get-bookmarks 
      jc
      (lexical-let ((conference-jid conference-jid)
