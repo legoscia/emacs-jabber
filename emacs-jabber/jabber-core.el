@@ -255,7 +255,11 @@ With double prefix argument, specify more connection details."
   ;; Close the network connection.
   (let ((connection (plist-get state-data :connection)))
     (when (processp connection)
-      (delete-process connection)))
+      (let ((process-buffer (process-buffer connection)))
+	(delete-process connection)
+	(when (and (bufferp process-buffer)
+		   (not jabber-debug-keep-process-buffers))
+	  (kill-buffer process-buffer)))))
   (setq state-data (plist-put state-data :connection nil))
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)

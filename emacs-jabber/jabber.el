@@ -194,6 +194,12 @@ configure a Google Talk account like this:
   :type 'boolean
   :group 'jabber-debug)
 
+(defcustom jabber-debug-keep-process-buffers nil
+  "If nil, kill process buffers when the process dies.
+Contents of process buffers might be useful for debugging."
+  :type 'boolean
+  :group 'jabber-debug)
+
 (defconst jabber-presence-faces
  '(("" . jabber-roster-user-online)
    ("away" . jabber-roster-user-away)

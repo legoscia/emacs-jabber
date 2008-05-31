@@ -1,6 +1,6 @@
 ;; jabber-history.el - recording message history
 
-;; Copyright (C) 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2004 - Mathias Dahl
 
 ;; This file is a part of jabber.el.
@@ -160,7 +160,10 @@ Jabber history files."
 	(make-directory jabber-history-dir))
       (when (jabber-rotate-history-p history-file)
 	(jabber-history-rotate history-file))
-      (write-region (point-min) (point-max) history-file t 'quiet))))
+      (condition-case e
+	  (write-region (point-min) (point-max) history-file t 'quiet)
+	(error
+	 (message "Unable to write history: %s" (error-message-string e)))))))
 
 (defun jabber-history-query (start-time
 			     end-time
