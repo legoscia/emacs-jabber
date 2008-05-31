@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080501
+Release: alt0.20080531
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -78,6 +78,9 @@ install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 %doc %pkg_name.texi
 
 %changelog
+* Sat May 31 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080531
+- cvs-20080531
+
 * Thu May  1 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080501
 - cvs-20080501
 - Migrate to new autotools build system
