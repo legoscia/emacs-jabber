@@ -27,7 +27,7 @@ if USE_OUR_HEX_UTIL
 compat_lisp_sources += compat/hex-util.el
 endif
 
-dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el
+dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el jabber-ourversion.el
 MAINTAINERCLEANFILES=jabber-autoloads.el
 
 EXTRA_DIST = jabber-pkg.el.in

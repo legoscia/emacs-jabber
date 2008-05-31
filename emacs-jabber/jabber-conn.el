@@ -123,12 +123,18 @@ connection fails."
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
-	    (let ((connection 
-		   (open-network-stream
-		    "jabber"
-		    (generate-new-buffer jabber-process-buffer)
-		    (car target)
-		    (cdr target))))
+	    (let ((process-buffer (generate-new-buffer jabber-process-buffer))
+		  connection)
+	      (unwind-protect
+		  (setq connection (open-network-stream
+				    "jabber"
+				    process-buffer
+				    (car target)
+				    (cdr target)))
+
+		(unless (or connection jabber-debug-keep-process-buffers)
+		  (kill-buffer process-buffer)))
+	
 	      (when connection
 		(fsm-send fsm (list :connected connection))
 		(throw 'connected connection)))
@@ -161,12 +167,16 @@ connection fails."
 	   'open-ssl-stream)
 	  (t
 	   (error "Neither TLS nor SSL connect functions available")))))
-    (let ((connection
-	   (funcall connect-function
-		    "jabber"
-		    (generate-new-buffer jabber-process-buffer)
-		    (or network-server server)
-		    (or port 5223))))
+    (let ((process-buffer (generate-new-buffer jabber-process-buffer))
+	  connection)
+      (unwind-protect
+	  (setq connection (funcall connect-function
+				    "jabber"
+				    process-buffer
+				    (or network-server server)
+				    (or port 5223)))
+	(unless (or connection jabber-debug-keep-process-buffers)
+	  (kill-buffer process-buffer)))
       (if connection
 	  (fsm-send fsm (list :connected connection))
 	(fsm-send fsm :connection-failed)))))
@@ -190,12 +200,17 @@ connection fails."
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
-	    (let ((connection
-		   (starttls-open-stream
-		    "jabber"
-		    (generate-new-buffer jabber-process-buffer)
-		    (car target)
-		    (cdr target))))
+	    (let ((process-buffer (generate-new-buffer jabber-process-buffer))
+		  connection)
+	      (unwind-protect
+		  (setq connection
+			(starttls-open-stream
+			 "jabber"
+			 process-buffer
+			 (car target)
+			 (cdr target)))
+		(unless (or connection jabber-debug-keep-process-buffers)
+		  (kill-buffer process-buffer)))
 	      (when connection
 		(fsm-send fsm (list :connected connection))
 		(throw 'connected connection)))
