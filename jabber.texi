@@ -675,14 +675,14 @@ jabber.el has limited support for file transfer.  The most important
 limit is that files sent and received are kept in buffers, so Emacs must
 be able to allocate enough memory for the entire file, and the file size
 must be smaller than the maximum buffer size.@footnote{The maximum
-buffer size is kept in the variable @code{most-positive-fixnum}.  On
-most 32-bit systems, this is 128 or 256 megabytes, depending on your
+buffer size depends on in the variable @code{most-positive-fixnum}.  On
+32-bit systems, this is 128 or 256 megabytes, depending on your
 Emacs version.}
 
 jabber.el is able to exchange files with most Jabber clients (and also
 some MSN transports), but notably not with the official Google Talk
 client.  The Google Talk client uses a different file transfer protocol
-that, at the time of this release, has not been published.
+which, at the time of this release, has not been published.
 
 @menu
 * Receiving files::             
@@ -705,6 +705,7 @@ transfered; @kbd{C-x C-b} is one way of doing that.  @xref{List Buffers,
 is done, the message ``@var{file} downloaded'' appears in the echo area,
 and the buffer is killed.
 
+@c This truly sucks...
 If this doesn't happen, it is most likely the sender's fault.  The
 sender needs to have a public IP address, either directly, through port
 forwarding (in which case the client needs to be configured with the
