@@ -1,5 +1,5 @@
 AC_INIT([jabber.el], [0.8.0], [emacs-jabber-general@lists.sourceforge.net], [emacs-jabber])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-zip])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-zip 1.9])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_PATH_LISPDIR
