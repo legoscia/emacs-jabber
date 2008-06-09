@@ -408,7 +408,9 @@ TIME is in a format accepted by `format-time-string'."
 
 (defun jabber-report-success (jc xml-data context)
   "IQ callback reporting success or failure of the operation.
-CONTEXT is a string describing the action."
+CONTEXT is a string describing the action.
+\"CONTEXT succeeded\" or \"CONTEXT failed: REASON\" is displayed in
+the echo area."
   (let ((type (jabber-xml-get-attribute xml-data 'type)))
     (message (concat context
 		     (if (string= type "result")
