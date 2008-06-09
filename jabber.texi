@@ -730,7 +730,7 @@ transfer implementation of jabber.el, and in Emacs versions earlier than
 automatically, otherwise it needs to be manually configured.
 
 You can check whether your Jabber server has a proxy with @kbd{M-x
-jabber-get-disco-items}; see @ref{Service discovery and browsing}.
+jabber-get-disco-items}; see @ref{Service discovery}.
 
 @vindex jabber-socks5-proxies
 @findex jabber-socks5-query-all-proxies
@@ -774,112 +774,69 @@ keybindings as in the roster buffer, and if you call a function
 operating on a JID while point is over a JID, that JID will be the
 default value, so you don't have to type it or copy it yourself.
 
-You can change browse buffer name creation template by customizing
-@code{jabber-browse-buffer-format} variable.
+You can change the buffer name template by customizing
+the variable @code{jabber-browse-buffer-format}.
 
 @menu
-* Service discovery and browsing::  
-* Registering::                 
-* Searching::                   
+* Commands::                    
+* Your home server::            
+* Transports::                  
+* User directories::            
+* MUC services::                
+@end menu
+
+@node Commands, Your home server, Services, Services
+@section Commands
+
+A small number of commands is used for almost all interaction with
+Jabber services.  Essentially, they are all the same: you request a form
+from the server, fill it in, and send it back.
+
+Most of these commands are available under the Service menu, which is
+opened by typing @kbd{C-c C-s}.  Service discovery is under the Info
+menu instead, which is available under @kbd{C-c C-i}.
+
+@menu
+* Registration::                
+* Search::                      
+* Ad-Hoc Commands::             
+* Service discovery::           
+* Browsing::                    
+@end menu
+
+@node Registration, Search, Commands, Commands
+@subsection Registration
+
+@cindex Registration
+@findex jabber-get-register
+
+You can get a registration form for a service by typing @kbd{M-x
+jabber-get-register} and entering the JID of the service.  On success,
+you get a single-stage form to fill in.
+
+There are two buttons at the bottom of the form, ``Submit'' and ``Cancel
+registration''.  ``Submit'' does what you would expect it to, but
+``Cancel registration'' cancels any existing registration with the
+service.  Whichever of them you choose, you get a message in the echo
+area informing whether the operation succeeded.
+
+@node Search, Ad-Hoc Commands, Registration, Commands
+@subsection Search
+
+@cindex Search
+@findex jabber-get-search
+
+You can get a search form for a service by typing @kbd{M-x
+jabber-get-search}.  This gives you a single-stage form to fill in.
+After you press the ``Submit'' button at the bottom, the search results
+will be displayed in the same buffer.
+
+@menu
 * Ad-Hoc Commands::             
 @end menu
 
-@node Service discovery and browsing, Registering, Services, Services
-@section Service discovery and browsing
-
-@cindex Service discovery
-@cindex Browsing
-@findex jabber-get-browse
-@findex jabber-get-disco-items
-@findex jabber-get-disco-info
-
-To find services you want to use, you need to discover them first.
-This can be done with either service discovery or browsing.  Service
-discovery is the newer and preferred protocol, while browsing is still
-used by much software.  The use of both is very similar.
-
-The most common use of service discovery is to browse your home
-server, to see what services are provided locally.  Note, however,
-that this is no restriction; you can use services from all over the
-network.
-
-For service discovery there are two commands,
-@code{jabber-get-disco-items} and @code{jabber-get-disco-info},
-depending on whether you want information about that specific JID or
-about services related to it, respectively.  To start browsing, type
-@kbd{M-x jabber-get-browse} and enter the JID you want to browse.
-
-These commands can be accessed from the Info menu, which is opened by
-typing @kbd{C-c C-i}.
-
-If you think that the interface to service discovery is awkward and
-should be replaced with something better, you are completely right.
-
-@node Registering, Searching, Service discovery and browsing, Services
-@section Registering
-
-@cindex Registration
-@cindex Cancelling registration
-@cindex Changing password
-@cindex Gateway registration
-@cindex Password change
-@cindex Account removal
-@cindex Removing an account
-@findex jabber-get-register
-
-Some services, in particular user directories and gateways to legacy
-IM systems, require registration.  To register with such a service,
-either type @kbd{M-x jabber-get-register} or select it from the
-Service menu, which is opened by typing @kbd{C-c C-s}.  You have to
-know the service's JID, possibly from service discovery.
-(@pxref{Service discovery and browsing})
-
-This is also the way to change your registration details, e.g. your
-password --- just ask to register with that service again.  To change
-the password of your Jabber account, ask to register with your Jabber
-server.
-
-Please note that any passwords sent in this way will be sent in
-cleartext to your Jabber server, unless you have enabled SSL encryption,
- and possibly sent in cleartext from your
-server to the server hosting the service.
-
-jabber.el will then request a registration form from that service.  If
-for some reason the service does not answer (maybe network problems,
-or some services neither support registration nor report errors about
-that) that will be the last thing you saw about it.  jabber.el will
-not report timeout errors, but rather simply wait until you shut it
-down.
-
-Once the response arrives, the form will be rendered in a browse
-buffer.  Just fill out the fields, and hit Submit.  You will receive
-confirmation of your registration in the echo area.
-
-To cancel an existing registration (and also for cancelling your
-Jabber account, if you sent a registration request to your server),
-hit Cancel.  The unregistration will be confirmed in the echo area.
-
-@node Searching, Ad-Hoc Commands, Registering, Services
-@section Searching
-
-@cindex Searching
-@findex jabber-get-search
-
-Some services, notably user directories and gateways to legacy IM
-systems, allow searching.  Searching in Jabber generally means
-searching for someone's JID, but the protocol is general enough to
-support most databases.
-
-To search a service, either type @kbd{M-x jabber-get-search} or select
-it from the Service menu, which is opened by typing @kbd{C-c C-s}.
-
-Just like with registration, this command sends a request for a search
-form, and displays it if and when the response arrives.  Enter your
-search and submit it.  Search results will be displayed in a different
-browse buffer.
-
-@node Ad-Hoc Commands,  , Searching, Services
-@section Ad-Hoc Commands
+@node Ad-Hoc Commands, Service discovery, Search, Commands
+@subsection Ad-Hoc Commands
 
 @cindex Ad-Hoc Commands
 @findex jabber-ahc-get-list
@@ -887,19 +844,10 @@ browse buffer.
 
 jabber.el supports a subset of XEP-0050, the standard for Ad-Hoc
 Commands.  As the name implies, this can be used for just about
-anything.  It has been used for remote-controlling clients (e.g. Psi),
-and administering services (e.g. PyMSNt).
+anything.  In particular, it is used not only by services, but also by
+clients (e.g. Psi, and jabber.el itself).
 
-Currently, jabber.el uses ad-hoc commands for setting presence remotely.
-If you realize that you forgot to set your client to ``away'' with a low
-priority, you can do it remotely from any JID from @code{jabber-account-list}. So, you can add disabled JIDs in @code{jabber-account-list} to allow them control your presence.@footnote{Most Jabber servers also
-support kicking a client off the net by logging in with another client
-with exactly the same resource.}
-
-The commands for executing ad-hoc commands are available under the
-Service menu, which is opened by typing @kbd{C-c C-s}.
-
-To find which commands are available, run ``Request command-list''
+To find which commands are available, run ``Request command list''
 (@code{jabber-ahc-get-list}).@footnote{This is the same thing as a
 disco items request to the node
 @code{http://jabber.org/protocol/commands}.}
@@ -907,8 +855,152 @@ disco items request to the node
 To run a command from the list, put point over it and run ``Execute
 command'' (@code{jabber-ahc-execute-command}), accepting the defaults
 for JID and node.  (If you already know those, you could of course
-enter them yourself)  The form you get should hopefully be
-self-explanatory.
+enter them yourself.)
+
+What happens next depends on the command and the service.  In some
+cases, the service just responds that the command has been run.  You may
+also get a form to fill out.  This form may have multiple stages, in
+which case there are ``Next'' and ``Previous'' buttons for navigating
+between stages.  You may also see ``Complete'', which runs the command
+skipping any remaining stages of the form, and ``Cancel'', which cancels
+the command.
+
+Currently, jabber.el uses ad-hoc commands for setting presence remotely.
+If you realize that you forgot to set your client to ``away'' with a low
+priority, you can do it remotely from any JID from
+@code{jabber-account-list}. So, you can add disabled JIDs in
+@code{jabber-account-list} to allow them control your
+presence.@footnote{Most Jabber servers also support kicking a client off
+the net by logging in with another client with exactly the same
+resource.}
+
+@node Service discovery, Browsing, Ad-Hoc Commands, Commands
+@subsection Service discovery
+
+@cindex Service discovery
+@findex jabber-get-disco-items
+@findex jabber-get-disco-info
+
+Service discovery is used to find information about servers, services
+and clients.  There are two kinds of requests: find @dfn{info} about a
+Jabber entity---i.e. its identity and supported features---and find
+@dfn{items} related to an entity, where the definition of ``related'' is
+left to the entity itself.
+
+The commands to execute such requests are @code{jabber-get-disco-info}
+and @code{jabber-get-disco-items}, respectively.  These commands can be
+accessed from the Info menu, which is opened by typing @kbd{C-c C-i}.
+The commands accept a JID and optionally a ``node''.
+
+The result of such a command is displayed in a browse buffer.  For an
+info request, the result just lists the identities and features of the
+entity.  For an item request, the related items are listed.  The items
+may be JIDs, or JIDs with a node.  If you put point on one of the items,
+its JID and node will be the default value for any Jabber command.
+
+If you think that the interface to service discovery is awkward and
+should be replaced with something better, you are completely right.
+
+@node Browsing,  , Service discovery, Commands
+@subsection Browsing
+
+@cindex Browsing
+@findex jabber-get-browse
+
+Before service discovery, browsing was the way to find information about
+Jabber entities.  Nowadays it is all but superseded, but jabber.el still
+supports it.  You can use it by typing @kbd{M-x jabber-get-browse}.  It
+works much like service discovery.
+
+@node Your home server, Transports, Commands, Services
+@section Your home server
+
+@cindex Password change
+@cindex Changing password
+@cindex Account removal
+@cindex Removing an account
+
+You can interact with your Jabber server to change your password or
+remove your account.  Both of these can be accomplished by typing
+@kbd{M-x jabber-get-register} and typing the JID of your server;
+@pxref{Registration}.
+
+
+@node Transports, User directories, Your home server, Services
+@section Transports to other IM networks
+
+@cindex Gateways
+@cindex Transports
+@cindex MSN transport
+@cindex ICQ transport
+@cindex AIM transport
+
+Some Jabber services make it possible to communicate with users on other
+instant messaging networks (e.g. MSN, ICQ, AIM), in effect turning your
+Jabber client into a multi-protocol client.  These are called
+@dfn{gateways} or @dfn{transports}.  They work by impersonating you on
+the legacy network; therefore you need to provide your username and
+password through registration.
+
+@subsection Finding a transport
+
+To use such a transport, you first need to find one, obviously.
+Sometimes your home server provides the transports you need, but you are
+not limited to those; in principle you can use any transport on the
+Jabber network.  Some transports only accept local users, though.
+
+Transports are generally mentioned on the web page of the Jabber server
+in question.  You can also find transports from within the client;
+@pxref{Service discovery}.
+
+@subsection Registering with a transport
+
+To register with a transport, type @kbd{M-x jabber-get-register} and
+enter the JID of the transport.  This will open a registration form
+where you get to fill in your login information; @pxref{Registration}.
+You can later use this same form to change the information or cancel
+your registration.
+
+After you have registered, the transport will request presence
+subscription.  It needs that to know when you are online, and
+synchronize your presence on the legacy network.
+
+@subsection Contact list
+
+Once you are registered, the transport will transfer the contact list
+from the legacy service.  From the Jabber side, it appears as if lots of
+people suddenly request presence subscription to you.  This is somewhat
+inconvenient, but it is currently the only way that the transport can
+influence your Jabber contact list, as it is an entity external to your
+server.@footnote{Of course, jabber.el could do more to alleviate this
+inconvenience.}
+
+When you have accepted these presence subscriptions, the contacts from
+legacy networks appear as if they were Jabber contacts.
+
+@subsection Finding users
+
+Some legacy networks have a global database of users, and some
+transports support searching that database.  In that case, you can
+search for other users with @kbd{M-x jabber-get-search};
+@pxref{Search}.
+
+@node User directories, MUC services, Transports, Services
+@section User directories
+
+There are some Jabber user directories, usually abbreviated JUDs.  The
+most well-known one is @samp{users.jabber.org}.  You can register with
+such a directory to let other people find you (@pxref{Registration}),
+and you can search the directory (@pxref{Search}).
+
+@node MUC services,  , User directories, Services
+@section MUC services
+
+MUC services (Multi-User Chat, chat rooms) are usually not operated by
+these commands, but by commands specific to the MUC protocol;
+@pxref{Groupchat}.  However, some MUC services offer nickname
+registration through the registration protocol (@pxref{Registration}),
+and other commands; @pxref{Ad-Hoc Commands}.
 
 @node Personal information, Avatars, Services, Top
 @chapter Personal information
