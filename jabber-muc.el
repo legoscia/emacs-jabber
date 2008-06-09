@@ -884,28 +884,21 @@ Return nil if X-MUC is nil."
       ;; error from room itself? or are we leaving?
       (if (or (null nickname)
 	      (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats)))
-	  ;; Assume that an error means that we were thrown out of the
-	  ;; room...
-	  (let* ((leavingp t)
-		 (message (cond
-			   ((string= type "error")
-			    (cond
-			     ;; ...except for certain cases.
-			     ((equal status-code "406")
-			      ;; XXX: were we already in the room?
-			    (concat "Error entering room"
-				    (when error-node
-				      (concat ": " (jabber-parse-error error-node)))))
-			   ((equal status-code "301")
-			    (concat "You have been banned"
-				    (when actor (concat " by " actor))
-				    (when reason (concat " - '" reason "'"))))
-			   ((equal status-code "307")
-			    (concat "You have been kicked"
-				    (when actor (concat " by " actor))
-				    (when reason (concat " - '" reason "'"))))
-			   (t
-			    "You have left the chatroom"))))
+	  (let ((message (cond
+			  ((string= type "error")
+			   (concat "Error entering room"
+				   (when error-node
+				     (concat ": " (jabber-parse-error error-node)))))
+			  ((equal status-code "301")
+			   (concat "You have been banned"
+				   (when actor (concat " by " actor))
+				   (when reason (concat " - '" reason "'"))))
+			  ((equal status-code "307")
+			   (concat "You have been kicked"
+				   (when actor (concat " by " actor))
+				   (when reason (concat " - '" reason "'"))))
+			  (t
+			   "You have left the chatroom"))))
 	    (jabber-muc-remove-groupchat group)
 	    ;; If there is no buffer for this groupchat, don't bother
 	    ;; creating one just to tell that user left the room.
