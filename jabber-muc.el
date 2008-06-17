@@ -878,8 +878,6 @@ Return nil if X-MUC is nil."
 	 (status-code (if error-node
 			  (jabber-xml-get-attribute error-node 'code)
 			(jabber-xml-get-attribute (car (jabber-xml-get-children x-muc 'status)) 'code))))
-    (message "from: %s, type: %s, status-code: %s, error-node: %s"
-	     from type status-code error-node)
     ;; handle leaving a room
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
