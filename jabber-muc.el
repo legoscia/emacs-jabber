@@ -22,6 +22,7 @@
 (require 'jabber-chat)
 (require 'jabber-widget)
 (require 'jabber-newdisco)
+(require 'jabber-autoloads)
 
 (require 'cl)
 
@@ -48,6 +49,7 @@ Values are lists of nickname strings.")
 (defvar jabber-muc-topic ""
   "The topic of the current MUC room.")
 
+;;;###autoload
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
@@ -56,6 +58,7 @@ Values are lists of nickname strings.")
 		(string :tag "JID of room")
 		(string :tag "Nickname"))))
 
+;;;###autoload
 (defcustom jabber-muc-autojoin nil
   "List of MUC rooms to automatically join on connection.
 This list is saved in your Emacs customizations.  You can also store
@@ -136,6 +139,7 @@ The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
   :group 'jabber-chat)
 
+;;;###autoload
 (defvar jabber-muc-printers '()
   "List of functions that may be able to print part of a MUC message.
 This gets prepended to `jabber-chat-printers', which see.")
@@ -710,6 +714,7 @@ group, else it is a JID."
 				  (or (plist-get bookmark :nick)
 				      (plist-get (fsm-get-state-data jc) :username)))))))))
 
+;;;###autoload
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
 That does not include private messages in a groupchat, but does

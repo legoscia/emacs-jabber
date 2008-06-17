@@ -20,6 +20,7 @@
 
 (require 'jabber-private)
 (require 'jabber-widget)
+(require 'jabber-autoloads)
 
 (require 'cl)
 
@@ -60,6 +61,7 @@ immediately, and return nil if it is not in the cache."
 	(plist-get entry key)
       entry)))
 
+;;;###autoload
 (defun jabber-parse-conference-bookmark (node)
   "Convert a <conference/> tag into a plist.
 The plist may contain the keys :jid, :name, :autojoin,

@@ -21,6 +21,7 @@
 (require 'jabber-core)
 (require 'jabber-chatbuffer)
 (require 'jabber-history)
+(require 'jabber-autoloads)
 
 (require 'ewoc)
 (eval-when-compile (require 'cl))
@@ -167,6 +168,7 @@ These fields are available:
   "Face used for error messages"
   :group 'jabber-chat)
 
+;;;###autoload
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")
 

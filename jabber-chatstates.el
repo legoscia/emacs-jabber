@@ -22,6 +22,7 @@
 ;; - Currently only active/composing notifications are /sent/ though all 5
 ;;   notifications are handled on receipt.
 
+(require 'jabber-autoloads)
 (require 'cl)
 
 (defgroup jabber-chatstates nil
@@ -31,9 +32,18 @@
 (defconst jabber-chatstates-xmlns "http://jabber.org/protocol/chatstates"
   "XML namespace for the chatstates feature.")
 
-;;; INCOMING
-;;; Code for requesting chat state notifications from others and handling
-;;; them.
+(defcustom jabber-chatstates-confirm t
+  "Send notifications about chat states?"
+  :group 'jabber-chatstates
+  :type 'boolean)
+
+(defvar jabber-chatstates-requested 'first-time
+  "Whether or not chat states notification was requested.
+This is one of the following:
+first-time - send state in first stanza, then switch to nil
+t - send states
+nil - don't send states")
+(make-variable-buffer-local 'jabber-chatstates-requested)
 
 (defvar jabber-chatstates-last-state nil
   "The last seen chat state.")
@@ -42,6 +52,10 @@
 (defvar jabber-chatstates-message ""
   "Human-readable presentation of chat state information")
 (make-variable-buffer-local 'jabber-chatstates-message)
+
+;;; INCOMING
+;;; Code for requesting chat state notifications from others and handling
+;;; them.
 
 (defun jabber-chatstates-update-message ()
   (setq jabber-chatstates-message
@@ -64,19 +78,6 @@
 ;;; OUTGOING
 ;;; Code for handling requests for chat state notifications and providing
 ;;; them, modulo user preferences.
-
-(defcustom jabber-chatstates-confirm t
-  "Send notifications about chat states?"
-  :group 'jabber-chatstates
-  :type 'boolean)
-
-(defvar jabber-chatstates-requested 'first-time
-  "Whether or not chat states notification was requested.
-This is one of the following:
-first-time - send state in first stanza, then switch to nil
-t - send states
-nil - don't send states")
-(make-variable-buffer-local 'jabber-chatstates-requested)
 
 (defvar jabber-chatstates-composing-sent nil
   "Has composing notification been sent?

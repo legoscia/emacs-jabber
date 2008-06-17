@@ -1,6 +1,6 @@
 ;;; jabber-avatar.el --- generic functions for avatars
 
-;; Copyright (C) 2006, 2007  Magnus Henoch
+;; Copyright (C) 2006, 2007, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(require 'mailcap)
 (eval-when-compile (require 'cl))
 
 ;;;; Variables

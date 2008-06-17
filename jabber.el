@@ -194,17 +194,20 @@ configure a Google Talk account like this:
 (defgroup jabber-debug nil "debugging options"
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-debug-log-xml nil
   "log all XML i/o in *-jabber-xml-log-*"
   :type 'boolean
   :group 'jabber-debug)
 
+;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
   "If nil, kill process buffers when the process dies.
 Contents of process buffers might be useful for debugging."
   :type 'boolean
   :group 'jabber-debug)
 
+;;;###autoload
 (defconst jabber-presence-faces
  '(("" . jabber-roster-user-online)
    ("away" . jabber-roster-user-away)
@@ -215,6 +218,7 @@ Contents of process buffers might be useful for debugging."
    (nil . jabber-roster-user-offline))
  "Mapping from presence types to faces")
 
+;;;###autoload
 (defconst jabber-presence-strings
   '(("" . "Online")
     ("away" . "Away")

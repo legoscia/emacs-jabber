@@ -405,6 +405,7 @@ With prefix argument, ask for status message."
 		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
   (jabber-send-presence "xa" status *jabber-current-priority*))
 
+;;;###autoload
 (defun jabber-send-default-presence (&optional jc)
   "Send default presence.
 Default presence is specified by `jabber-default-priority', `jabber-default-show',
