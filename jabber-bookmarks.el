@@ -82,7 +82,7 @@ called as the result of a filter function or a timer.
 If REFRESH is non-nil, always fetch bookmarks."
   (let ((bookmarks (gethash (jabber-connection-bare-jid jc) jabber-bookmarks)))
     (if (and (not refresh) bookmarks)
-	(run-with-timer 0.1 nil cont jc (when (listp bookmarks) bookmarks))
+	(run-with-timer 0 nil cont jc (when (listp bookmarks) bookmarks))
       (lexical-let* ((cont cont)
 		     (callback (lambda (jc result) (jabber-get-bookmarks-1 jc result cont))))
 	(jabber-private-get jc 'storage "storage:bookmarks"

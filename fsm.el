@@ -313,7 +313,7 @@ event handler explicitly asks to keep the timer."
   "Send EVENT to FSM asynchronously.
 If the state machine generates a response, eventually call
 CALLBACK with the response as only argument."
-  (run-with-timer 0.1 nil #'fsm-send-sync fsm event callback))
+  (run-with-timer 0 nil #'fsm-send-sync fsm event callback))
 
 (defun fsm-update (fsm new-state new-state-data timeout)
   (let ((fsm-name (cadr fsm))
