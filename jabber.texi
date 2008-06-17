@@ -1086,9 +1086,14 @@ Use @kbd{M-x jabber-get-last-online} for that.
 @cindex idle time, query
 @findex jabber-get-idle-time
 You can also ask a client about how long a user has been idle with
-@kbd{M-x jabber-get-idle-time}.  Not all clients support this,
+@kbd{M-x jabber-get-idle-time}.  Not all clients answer such queries,
 e.g. jabber.el doesn't.  This command can also tell the uptime of a
 server or component.
+
+The first of these commands uses the old Entity Time protocol
+(@pxref{XEP-0090}).  It has been superseded by XEP-0202, but jabber.el
+doesn't implement the newer protocol yet.  The latter two commands use
+the Last Activity protocol (@pxref{XEP-0012}).
 
 @node Useful features, Message history, Time queries, Top
 @chapter Useful features
