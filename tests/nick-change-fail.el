@@ -68,8 +68,9 @@ to enter the room named by `ncf-room-name' with the nick \"Romeo\"."
 
 (jabberd-connect)
 
-(while (not ncf-done)
-  (sit-for 0.1))
+(with-timeout (5 (error "Timeout"))
+  (while (not ncf-done)
+    (sit-for 0.1)))
 (when ncf-error
   (princ 
    (format
