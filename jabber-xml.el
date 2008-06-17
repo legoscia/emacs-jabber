@@ -216,6 +216,7 @@ any string   character data of this node"
 		     (list attr `(jabber-xml-get-attribute ,xml-data ',attr)))
 		 attributes)
      ,@body))
+(put 'jabber-xml-let-attributes 'lisp-indent-function 2)
 
 (provide 'jabber-xml)
 
