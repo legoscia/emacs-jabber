@@ -330,7 +330,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        `(status () ,*jabber-current-status*))
     ,(when (> (length *jabber-current-show*) 0)
 	 `(show () ,*jabber-current-show*))
-    (priority () ,(number-to-string *jabber-current-priority*))
+    ,(when *jabber-current-priority*
+       `(priority () ,(number-to-string *jabber-current-priority*)))
     ,@(apply 'append (mapcar (lambda (f)
 			       (funcall f jc))
 			     jabber-presence-element-functions))))
