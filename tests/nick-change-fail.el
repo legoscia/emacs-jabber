@@ -80,7 +80,10 @@ to enter the room named by `ncf-room-name' with the nick \"Romeo\"."
   (princ "Conversation was:\n")
   (with-current-buffer "*-jabber-xml-log-romeo@montague.net-*"
     (princ (buffer-string)))
-  (princ "Contents of groupchat buffer:\n")
-  (with-current-buffer (jabber-muc-get-buffer ncf-room-name)
-    (princ (buffer-string)))
+  (let ((muc-buffer (get-buffer (jabber-muc-get-buffer ncf-room-name))))
+    (if muc-buffer
+	(with-current-buffer muc-buffer
+	  (princ "Contents of groupchat buffer:\n")
+	  (princ (buffer-string)))
+      (princ "Groupchat buffer not created.\n")))
   (kill-emacs 1))
