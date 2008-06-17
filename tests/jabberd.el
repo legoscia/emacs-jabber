@@ -12,7 +12,8 @@ client FSM and the stanza, until one function returns non-nil,
 indicating that it has handled the stanza.")
 
 (defvar jabberd-iq-get-handlers
-  '(("jabber:iq:roster" . jabberd-iq-empty-success))
+  '(("jabber:iq:roster" . jabberd-iq-empty-success)
+    ("jabber:iq:auth" . jabberd-iq-auth-get))
   "Alist of handlers for IQ get stanzas.
 The key is the namespace of the request (a string), and the value
 is a function to handle the request.  The function takes two
@@ -20,7 +21,8 @@ arguments, the client FSM and the stanza.")
 
 (defvar jabberd-iq-set-handlers
   '(("urn:ietf:params:xml:ns:xmpp-bind" . jabberd-iq-bind)
-    ("urn:ietf:params:xml:ns:xmpp-session" . jabberd-iq-empty-success))
+    ("urn:ietf:params:xml:ns:xmpp-session" . jabberd-iq-empty-success)
+    ("jabber:iq:auth" . jabberd-iq-empty-success))
   "Alist of handlers for IQ set stanzas.
 The key is the namespace of the request (a string), and the value
 is a function to handle the request.  The function takes two
@@ -65,6 +67,8 @@ arguments, the client FSM and the stanza.")
     (dolist (stanza stanzas)
       (cond
        ((stringp stanza)
+	;; "Send" a stream start in return.
+	(fsm-send fsm (list :stream-start "42" "1.0"))
 	;; If we have a stream start, see whether it wants XMPP 1.0.
 	;; If so, send <stream:features>.
 	(when (string-match "version=[\"']" stanza)
@@ -123,5 +127,13 @@ arguments, the client FSM and the stanza.")
      `(iq ((type . "result") (id . ,id))
 	  (bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
 		(jid () "romeo@montague.net/Orchard"))))))
+
+(defun jabberd-iq-auth-get (fsm stanza)
+  (jabber-xml-let-attributes (id) stanza
+    (jabberd-send
+     fsm
+     `(iq ((type . "result") (id . ,id))
+	  (query ((xmlns . "jabber:iq:auth"))
+		 (username) (password) (digest) (resource))))))
 
 (provide 'jabberd)
