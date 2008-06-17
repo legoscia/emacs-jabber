@@ -88,6 +88,7 @@ configure a Google Talk account like this:
 				   (const :tag "Legacy SSL/TLS" ssl))))))
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-show ""
   "default show state"
   :type '(choice (const :tag "Online" "")
@@ -97,11 +98,13 @@ configure a Google Talk account like this:
 		 (const :tag "Do not disturb" "dnd"))
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-status ""
   "default status string"
   :type 'string
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-priority 10
   "default priority"
   :type 'integer
@@ -155,13 +158,15 @@ configure a Google Talk account like this:
 
 (require 'jabber-autoloads)
 
-
+;;;###autoload
 (defvar *jabber-current-status* nil
   "the users current presence staus")
 
+;;;###autoload
 (defvar *jabber-current-show* nil
   "the users current presence show")
 
+;;;###autoload
 (defvar *jabber-current-priority* nil
   "the user's current priority")
 

@@ -25,6 +25,7 @@
 (require 'jabber-util)
 (require 'jabber-menu)
 (require 'jabber-muc)
+(require 'jabber-autoloads)
 
 (require 'assoc)
 
@@ -285,6 +286,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (setq count (1+ count))))
     count))
 
+;;;###autoload
 (defun jabber-send-presence (show status priority)
   "Set presence for all accounts."
   (interactive (list (completing-read "show:"

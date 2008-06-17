@@ -25,6 +25,7 @@
 
 (require 'cl)
 
+;;;###autoload
 (defvar *jabber-active-groupchats* nil
   "alist of groupchats and nicknames
 Keys are strings, the bare JID of the room.
@@ -139,6 +140,7 @@ The format is that of `mode-line-format' and `header-line-format'."
   "List of functions that may be able to print part of a MUC message.
 This gets prepended to `jabber-chat-printers', which see.")
 
+;;;###autoload
 (defun jabber-muc-get-buffer (group)
   "Return the chat buffer for chatroom GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -163,6 +165,7 @@ This function is idempotent."
     (setq header-line-format jabber-muc-header-line-format)
     (current-buffer)))
 
+;;;###autoload
 (defun jabber-muc-private-get-buffer (group nickname)
   "Return the chat buffer for private chat with NICKNAME in GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -722,11 +725,13 @@ include groupchat invites."
 	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats))
      (jabber-xml-path message '(("http://jabber.org/protocol/muc#user" . "x") invite)))))
 
+;;;###autoload
 (defun jabber-muc-sender-p (jid)
   "Return non-nil if JID is a full JID of an MUC participant."
   (and (assoc (jabber-jid-user jid) *jabber-active-groupchats*)
        (jabber-jid-resource jid)))
 
+;;;###autoload
 (defun jabber-muc-private-message-p (message)
   "Return non-nil if MESSAGE is a private message in a groupchat."
   (let ((from (jabber-xml-get-attribute message 'from))
