@@ -1010,16 +1010,16 @@ and other commands; @pxref{Ad-Hoc Commands}.
 @findex jabber-vcard-get
 @findex jabber-vcard-edit
 
-The Jabber way of handling personal information (name, addresses,
-phone numbers, etc) is ``vCards'' encoded in XML.  You can get
-information about a user by running @kbd{M-x jabber-vcard-get}, and
-you can edit your own information by running @kbd{M-x
-jabber-vcard-edit}.
+The Jabber way of handling personal information (name, addresses, phone
+numbers, etc) is ``vCards'' encoded in XML.@footnote{@xref{XEP-0054}.}
+You can get information about a user by running @kbd{M-x
+jabber-vcard-get}, and you can edit your own information by running
+@kbd{M-x jabber-vcard-edit}.
 
-The form for editing your information can be slightly confusing ---
-you are allowed to enter any number of addresses, phone numbers and
-e-mail addresses, each of which has a set of orthogonal properties.
-You can add and remove items with the [INS] and [DEL] buttons,
+The form for editing your information can be slightly confusing---you
+are allowed to enter any number of addresses, phone numbers and e-mail
+addresses, each of which has a set of orthogonal properties.  You can
+add and remove items with the @samp{[INS]} and @samp{[DEL]} buttons,
 respectively.
 
 This is also where you set your avatar (@pxref{Avatars}).  The size of
@@ -1038,14 +1038,30 @@ jabber.el supports viewing and publishing avatars according to XEP-0153,
 vCard-Based Avatars.  By default, if you have an avatar in your vCard
 (@pxref{Personal information}), it will be published for others to see,
 and if other people publish their avatars, they will be displayed in the
-roster buffer and in the header line of chat buffers, assuming that your
-Emacs can display images.
+roster buffer and in the header line of chat buffers, if your Emacs can
+display images.  Otherwise, jabber.el will not fetch avatars at all.
 
 To disable retrieval of other people's avatars, set
 @code{jabber-vcard-avatars-retrieve} to nil.  To disable publishing of
 your own avatar, set @code{jabber-vcard-avatars-publish} to nil.  To
 disable avatars in chat buffer header lines, set
 @code{jabber-chat-buffer-show-avatar} to nil.
+
+There are a number of restrictions on avatar images in the
+specification.  Most of them are not enforced by jabber.el.
+@itemize @bullet
+@item
+The image should be smaller than 8 kilobytes; this is enforced by
+jabber.el.
+@item
+The image height and width should be between 32 and 96 pixels; the
+recommended size is 64 by 64 pixels.
+@item
+The image should be square.
+@item
+The image should be in either PNG, GIF, or JPEG format.  (jabber.el will
+behave incorrectly if the image is not in a format supported by Emacs.)
+@end itemize
 
 Avatars are cached in the directory specified by
 @code{jabber-avatar-cache-directory}, by default
