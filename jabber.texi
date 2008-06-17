@@ -102,7 +102,7 @@ with bug and patch trackers.
 
 @item
 There is a mailing list:
-@uref{mailto:emacs-jabber-general@@lists.sourceforge.net},
+@email{emacs-jabber-general@@lists.sourceforge.net},
 @uref{https://lists.sourceforge.net/lists/listinfo/emacs-jabber-general},
 @uref{http://dir.gmane.org/gmane.emacs.jabber.general}
 
