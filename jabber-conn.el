@@ -35,10 +35,6 @@
 
 (require 'srv)
 
-;; TODO: Add custom flag, to not complain about plain-text passwords
-;;       in encrypted connections
-;;
-
 ;; This variable holds the connection, which is used for further
 ;; input/output to the server
 (defvar *jabber-connection* nil
