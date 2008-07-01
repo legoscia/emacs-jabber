@@ -1134,30 +1134,33 @@ The method to use is specified by @code{jabber-autoaway-method}.  The
 value of this variable should be a function that returns the number of
 seconds you have been idle.  Three functions are provided.
 
-If you are running Emacs 22 and thus have the @code{current-idle-time}
-function, it is used by default.  Note that this method only measures
-the time since you last interacted with Emacs, and thus disregards
-activity in other programs.
+If your Emacs has the @code{current-idle-time} function (which was
+introduced in Emacs 22), it is used by default.  Note that this method
+only measures the time since you last interacted with Emacs, and thus
+disregards activity in other programs.
 
-If you are using the X Window System, you can use the
-@uref{http://www.dtek.chalmers.se/~henoch/text/xprintidle.html,
-xprintidle} program.  Make sure that @code{jabber-xprintidle-program} is
-set to the correct file name.  This uses the same method as @uref{http://www.jwz.org/xscreensaver,XScreensaver}
-to find your idle time.
+If you are using the X Window System, you can use the xprintidle
+program.@footnote{@uref{http://www.dtek.chalmers.se/~henoch/text/xprintidle.html}}
+Make sure that @code{jabber-xprintidle-program} is set to the correct
+file name.  This uses the same method as
+@uref{http://www.jwz.org/xscreensaver,XScreensaver} to find your idle
+time.
 
-If you use xscreensaver program, you can use
-``xscreensaver-emacs-jabber'' perl-script for syncronize xscreensaver
-and jabber.el status. It is are simple perl-daemon that watch for
-xscreensaver status and set jabber.el's presence when needed. I.e.:
-its set XA presence when screen is blanked or locked (by hands or by
-idle timeout) and default presence when its unlocked/unblanked. To use
-it, just run ``xscreensaver-emacs-jabber'' after xscreensaver and make
-sure that your Emacs run in server mode (that you run (server-start)
-in init files. Alternativetily, you can add turn on and off
-server-mode by jabber.el's hooks).
+If you use the xscreensaver program, you can use
+the @file{xscreensaver-emacs-jabber} Perl script to synchronize xscreensaver
+and jabber.el status. It is a simple Perl daemon that watches for
+xscreensaver status and sets jabber.el's presence when needed.  I.e.:
+it sets XA presence when the screen is blanked or locked (by hands or by
+idle timeout) and default presence when it's unlocked/unblanked. To use
+it, just run @file{xscreensaver-emacs-jabber} after xscreensaver and make
+sure that your Emacs run in server mode (that you run @code{(server-start)}
+in init files; @pxref{Emacs Server, , Using Emacs as a Server, emacs,
+GNU Emacs Manual}.  Alternatively, you can turn on and off server-mode
+by jabber.el's hooks).
 
 If you are using Emacs on a GNU/Linux terminal, the function
-@code{jabber-termatime-get-idle-time} is used by default.
+@code{jabber-termatime-get-idle-time} is used by default.  It uses the
+access time of the terminal device as a measure of idle time.
 
 @node Modeline status, Keepalive, Autoaway, Useful features
 @section Modeline status
