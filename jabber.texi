@@ -1214,17 +1214,19 @@ respectively.
 @section Reconnecting
 
 @cindex Reconnect
-@cindex Reconnecting
+@cindex Automatic reconnection
 @vindex jabber-auto-reconnect
 
-Jabber.el support automatic reconnection to Jabber server(s) upon lost
-connection. By default it is off. To turn on, customize
-@code{jabber-auto-reconnect} variable. You will need
-@file{password.el} to fully use this feature. It may be found in
-recent Gnus (No Gnus) or downloaded and installed separately.
+jabber.el supports automatic reconnection to Jabber server(s) upon lost
+connection.  By default it is off.  To turn on, customize
+the @code{jabber-auto-reconnect} variable.  
 
-See also comments about
-password(s) in Custom's buffer help.
+This is of limited use if you have to type your password every time
+jabber.el reconnects.  There are two ways to save your password: you can
+set it in @code{jabber-account-alist} (@pxref{Account Settings}), and
+you can use @file{password-cache.el}, which is available in
+recent versions of Gnus and in Emacs 23.  Note that you probably want to
+customize @code{password-cache-expiry} if you use the latter.
 
 @node Tracking activity, Watch buddies, Reconnecting, Useful features
 @section Tracking activity
