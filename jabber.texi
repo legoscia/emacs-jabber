@@ -1223,7 +1223,7 @@ the @code{jabber-auto-reconnect} variable.
 
 This is of limited use if you have to type your password every time
 jabber.el reconnects.  There are two ways to save your password: you can
-set it in @code{jabber-account-alist} (@pxref{Account Settings}), and
+set it in @code{jabber-account-alist} (@pxref{Account settings}), and
 you can use @file{password-cache.el}, which is available in
 recent versions of Gnus and in Emacs 23.  Note that you probably want to
 customize @code{password-cache-expiry} if you use the latter.
