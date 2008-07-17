@@ -42,6 +42,7 @@
 (require 'jabber-core)
 (require 'jabber-alert)
 (require 'jabber-util)
+(require 'jabber-autoloads)
 (require 'cl)
 
 (defgroup jabber-activity nil

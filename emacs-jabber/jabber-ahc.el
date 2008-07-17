@@ -1,6 +1,6 @@
 ;; jabber-ahc.el - Ad-Hoc Commands by JEP-0050
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -21,6 +21,7 @@
 
 (require 'jabber-disco)
 (require 'jabber-widget)
+(require 'jabber-autoloads)
 
 (defvar jabber-ahc-sessionid nil
   "session id of Ad-Hoc Command session")

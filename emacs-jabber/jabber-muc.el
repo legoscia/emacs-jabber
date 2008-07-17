@@ -22,9 +22,11 @@
 (require 'jabber-chat)
 (require 'jabber-widget)
 (require 'jabber-newdisco)
+(require 'jabber-autoloads)
 
 (require 'cl)
 
+;;;###autoload
 (defvar *jabber-active-groupchats* nil
   "alist of groupchats and nicknames
 Keys are strings, the bare JID of the room.
@@ -47,6 +49,7 @@ Values are lists of nickname strings.")
 (defvar jabber-muc-topic ""
   "The topic of the current MUC room.")
 
+;;;###autoload
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
@@ -55,6 +58,7 @@ Values are lists of nickname strings.")
 		(string :tag "JID of room")
 		(string :tag "Nickname"))))
 
+;;;###autoload
 (defcustom jabber-muc-autojoin nil
   "List of MUC rooms to automatically join on connection.
 This list is saved in your Emacs customizations.  You can also store
@@ -135,10 +139,12 @@ The format is that of `mode-line-format' and `header-line-format'."
   :type 'sexp
   :group 'jabber-chat)
 
+;;;###autoload
 (defvar jabber-muc-printers '()
   "List of functions that may be able to print part of a MUC message.
 This gets prepended to `jabber-chat-printers', which see.")
 
+;;;###autoload
 (defun jabber-muc-get-buffer (group)
   "Return the chat buffer for chatroom GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -163,6 +169,7 @@ This function is idempotent."
     (setq header-line-format jabber-muc-header-line-format)
     (current-buffer)))
 
+;;;###autoload
 (defun jabber-muc-private-get-buffer (group nickname)
   "Return the chat buffer for private chat with NICKNAME in GROUP.
 Either a string or a buffer is returned, so use `get-buffer' or
@@ -707,6 +714,7 @@ group, else it is a JID."
 				  (or (plist-get bookmark :nick)
 				      (plist-get (fsm-get-state-data jc) :username)))))))))
 
+;;;###autoload
 (defun jabber-muc-message-p (message)
   "Return non-nil if MESSAGE is a groupchat message.
 That does not include private messages in a groupchat, but does
@@ -722,11 +730,13 @@ include groupchat invites."
 	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats))
      (jabber-xml-path message '(("http://jabber.org/protocol/muc#user" . "x") invite)))))
 
+;;;###autoload
 (defun jabber-muc-sender-p (jid)
   "Return non-nil if JID is a full JID of an MUC participant."
   (and (assoc (jabber-jid-user jid) *jabber-active-groupchats*)
        (jabber-jid-resource jid)))
 
+;;;###autoload
 (defun jabber-muc-private-message-p (message)
   "Return non-nil if MESSAGE is a private message in a groupchat."
   (let ((from (jabber-xml-get-attribute message 'from))
@@ -874,32 +884,45 @@ Return nil if X-MUC is nil."
 	 (item (car (jabber-xml-get-children x-muc 'item)))
 	 (actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
 	 (reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
-	 (status-code (jabber-xml-get-attribute
-		       (car (jabber-xml-get-children x-muc 'status))
-		       'code))
-	 (error-node (car (jabber-xml-get-children presence 'error))))
+	 (error-node (car (jabber-xml-get-children presence 'error)))
+	 (status-code (if error-node
+			  (jabber-xml-get-attribute error-node 'code)
+			(jabber-xml-get-attribute (car (jabber-xml-get-children x-muc 'status)) 'code))))
     ;; handle leaving a room
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
       ;; error from room itself? or are we leaving?
       (if (or (null nickname)
 	      (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats)))
-	  (let ((message (cond
-			  ((string= type "error")
-			   (concat "Error entering room"
-				   (when error-node
-				     (concat ": " (jabber-parse-error error-node)))))
-			  ((equal status-code "301")
-			   (concat "You have been banned"
-				   (when actor (concat " by " actor))
-				   (when reason (concat " - '" reason "'"))))
-			  ((equal status-code "307")
-			   (concat "You have been kicked"
-				   (when actor (concat " by " actor))
-				   (when reason (concat " - '" reason "'"))))
-			  (t
-			   "You have left the chatroom"))))
-	    (jabber-muc-remove-groupchat group)
+	  ;; Assume that an error means that we were thrown out of the
+	  ;; room...
+	  (let* ((leavingp t)
+		 (message (cond
+			   ((string= type "error")
+			    (cond
+			     ;; ...except for certain cases.
+			     ((or (equal status-code "406")
+				  (equal status-code "409"))
+			      (setq leavingp nil)
+			      (concat "Nickname change not allowed"
+				      (when error-node
+					(concat ": " (jabber-parse-error error-node)))))
+			     (t
+			      (concat "Error entering room"
+				      (when error-node
+					(concat ": " (jabber-parse-error error-node)))))))
+			   ((equal status-code "301")
+			    (concat "You have been banned"
+				    (when actor (concat " by " actor))
+				    (when reason (concat " - '" reason "'"))))
+			   ((equal status-code "307")
+			    (concat "You have been kicked"
+				    (when actor (concat " by " actor))
+				    (when reason (concat " - '" reason "'"))))
+			   (t
+			    "You have left the chatroom"))))
+	    (when leavingp
+	      (jabber-muc-remove-groupchat group))
 	    ;; If there is no buffer for this groupchat, don't bother
 	    ;; creating one just to tell that user left the room.
 	    (let ((buffer (get-buffer (jabber-muc-get-buffer group))))

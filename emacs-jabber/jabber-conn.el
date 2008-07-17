@@ -35,10 +35,6 @@
 
 (require 'srv)
 
-;; TODO: Add custom flag, to not complain about plain-text passwords
-;;       in encrypted connections
-;;
-
 ;; This variable holds the connection, which is used for further
 ;; input/output to the server
 (defvar *jabber-connection* nil
@@ -79,7 +75,8 @@ nil means prefer gnutls but fall back to openssl.
 (defvar jabber-connect-methods
   '((network jabber-network-connect jabber-network-send)
     (starttls jabber-starttls-connect jabber-ssl-send)
-    (ssl jabber-ssl-connect jabber-ssl-send))
+    (ssl jabber-ssl-connect jabber-ssl-send)
+    (virtual jabber-virtual-connect jabber-virtual-send))
   "Alist of connection methods and functions.
 First item is the symbol naming the method.
 Second item is the connect function.
@@ -232,6 +229,23 @@ Return non-nil on success, nil on failure."
     (starttls-negotiate (plist-get (fsm-get-state-data fsm) :connection)))
    ((eq (car xml-data) 'failure)
     nil)))
+
+(defvar *jabber-virtual-server-function* nil
+  "Function to use for sending stanzas on a virtual connection.
+The function should accept two arguments, the connection object
+and a string that the connection wants to send.")
+
+(defun jabber-virtual-connect (fsm server network-server port)
+  "Connect to a virtual \"server\".
+Use `*jabber-virtual-server-function*' as send function."
+  (unless (functionp *jabber-virtual-server-function*)
+    (error "No virtual server function specified"))
+  ;; We pass the fsm itself as "connection object", as that is what a
+  ;; virtual server needs to send stanzas.
+  (fsm-send fsm (list :connected fsm)))
+
+(defun jabber-virtual-send (connection string)
+  (funcall *jabber-virtual-server-function* connection string))
 
 (provide 'jabber-conn)
 ;; arch-tag: f95ec240-8cd3-11d9-9dbf-000a95c2fcd0

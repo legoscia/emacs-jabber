@@ -94,10 +94,12 @@
 			  "/>")))
       xml))))
 
-(defun jabber-xml-skip-tag-forward ()
+(defun jabber-xml-skip-tag-forward (&optional dont-recurse-into-stream)
   "Skip to end of tag or matching closing tag if present.
 Return t iff after a closing tag, otherwise throws an 'unfinished
 tag with value nil.
+If DONT-RECURSE-INTO-STREAM is true, stop after an opening
+<stream:stream> tag.
 
 The version of `sgml-skip-tag-forward' in Emacs 21 isn't good
 enough for us."
@@ -116,11 +118,12 @@ enough for us."
 	t)
        ((looking-at ">")
 	(forward-char 1)
-	(loop 
-	 do (skip-chars-forward "^<")
-	 until (looking-at (regexp-quote (concat "</" node-name ">")))
-	 do (jabber-xml-skip-tag-forward))
-	(goto-char (match-end 0))
+	(unless (and dont-recurse-into-stream (equal node-name "stream:stream"))
+	  (loop 
+	   do (skip-chars-forward "^<")
+	   until (looking-at (regexp-quote (concat "</" node-name ">")))
+	   do (jabber-xml-skip-tag-forward))
+	  (goto-char (match-end 0)))
 	t)
        (t
 	(throw 'unfinished nil)))))
@@ -216,6 +219,7 @@ any string   character data of this node"
 		     (list attr `(jabber-xml-get-attribute ,xml-data ',attr)))
 		 attributes)
      ,@body))
+(put 'jabber-xml-let-attributes 'lisp-indent-function 2)
 
 (provide 'jabber-xml)
 

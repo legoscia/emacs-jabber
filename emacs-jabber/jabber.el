@@ -88,6 +88,7 @@ configure a Google Talk account like this:
 				   (const :tag "Legacy SSL/TLS" ssl))))))
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-show ""
   "default show state"
   :type '(choice (const :tag "Online" "")
@@ -97,11 +98,13 @@ configure a Google Talk account like this:
 		 (const :tag "Do not disturb" "dnd"))
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-status ""
   "default status string"
   :type 'string
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-default-priority 10
   "default priority"
   :type 'integer
@@ -153,15 +156,17 @@ configure a Google Talk account like this:
 (require 'jabber-wmii)
 (require 'jabber-osd)
 
-(load "jabber-autoloads")
+(require 'jabber-autoloads)
 
-
+;;;###autoload
 (defvar *jabber-current-status* nil
   "the users current presence staus")
 
+;;;###autoload
 (defvar *jabber-current-show* nil
   "the users current presence show")
 
+;;;###autoload
 (defvar *jabber-current-priority* nil
   "the user's current priority")
 
@@ -189,17 +194,20 @@ configure a Google Talk account like this:
 (defgroup jabber-debug nil "debugging options"
   :group 'jabber)
 
+;;;###autoload
 (defcustom jabber-debug-log-xml nil
   "log all XML i/o in *-jabber-xml-log-*"
   :type 'boolean
   :group 'jabber-debug)
 
+;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
   "If nil, kill process buffers when the process dies.
 Contents of process buffers might be useful for debugging."
   :type 'boolean
   :group 'jabber-debug)
 
+;;;###autoload
 (defconst jabber-presence-faces
  '(("" . jabber-roster-user-online)
    ("away" . jabber-roster-user-away)
@@ -210,6 +218,7 @@ Contents of process buffers might be useful for debugging."
    (nil . jabber-roster-user-offline))
  "Mapping from presence types to faces")
 
+;;;###autoload
 (defconst jabber-presence-strings
   '(("" . "Online")
     ("away" . "Away")

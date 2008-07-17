@@ -25,6 +25,7 @@
 (require 'jabber-util)
 (require 'jabber-menu)
 (require 'jabber-muc)
+(require 'jabber-autoloads)
 
 (require 'assoc)
 
@@ -285,6 +286,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  (setq count (1+ count))))
     count))
 
+;;;###autoload
 (defun jabber-send-presence (show status priority)
   "Set presence for all accounts."
   (interactive (list (completing-read "show:"
@@ -330,7 +332,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
        `(status () ,*jabber-current-status*))
     ,(when (> (length *jabber-current-show*) 0)
 	 `(show () ,*jabber-current-show*))
-    (priority () ,(number-to-string *jabber-current-priority*))
+    ,(when *jabber-current-priority*
+       `(priority () ,(number-to-string *jabber-current-priority*)))
     ,@(apply 'append (mapcar (lambda (f)
 			       (funcall f jc))
 			     jabber-presence-element-functions))))
@@ -402,6 +405,7 @@ With prefix argument, ask for status message."
 		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
   (jabber-send-presence "xa" status *jabber-current-priority*))
 
+;;;###autoload
 (defun jabber-send-default-presence (&optional jc)
   "Send default presence.
 Default presence is specified by `jabber-default-priority', `jabber-default-show',
