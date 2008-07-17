@@ -114,10 +114,9 @@ Optional argument GROUP to look."
 		(let ((t1 (cdr nt1))
 		      (t2 (cdr nt2)))
 		  (if (and (zerop t1) (zerop t2))
-		      (minusp (compare-strings
-			       (car nt1) 0 nil
-			       (car nt2) 0 nil
-			       t))
+		      (string<
+                       (car nt1) 
+                       (car nt2))
 		    (> t1 t2)))))
       (mapcar 'car (sort (mapcar 'fetch-time nicks)
 			  'cmp)))))
