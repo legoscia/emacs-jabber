@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080531
+Release: alt0.20080717
 Name: emacs-jabber
 License: %gpl2plus
 Group: Editors
@@ -23,6 +23,7 @@ BuildPreReq: emacs-devel >= 0.0.1-alt2
 BuildPreReq: emacs-common
 BuildPreReq: rpm-build-licenses
 BuildPreReq: emacs-gnus >= 5.10
+BuildPreReq: automake >= 1.9
 
 %description
 jabber.el is a minimal Jabber client running under Emacs.
@@ -78,6 +79,10 @@ install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 %doc %pkg_name.texi
 
 %changelog
+* Thu Jul 17 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080717
+- cvs-20080717
+- Automake >= 1.9 needed for fresh jabber.el
+
 * Sat May 31 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080531
 - cvs-20080531
 
