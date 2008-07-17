@@ -1,6 +1,6 @@
 ;; jabber-ahc-presence.el - provide remote control of presence
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -20,6 +20,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-ahc)
+(require 'jabber-autoloads)
 
 (defconst jabber-ahc-presence-node "http://jabber.org/protocol/rc#set-status"
   "Node used by jabber-ahc-presence")

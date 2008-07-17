@@ -20,6 +20,7 @@
 
 (require 'jabber-private)
 (require 'jabber-widget)
+(require 'jabber-autoloads)
 
 (require 'cl)
 
@@ -60,6 +61,7 @@ immediately, and return nil if it is not in the cache."
 	(plist-get entry key)
       entry)))
 
+;;;###autoload
 (defun jabber-parse-conference-bookmark (node)
   "Convert a <conference/> tag into a plist.
 The plist may contain the keys :jid, :name, :autojoin,
@@ -82,7 +84,7 @@ called as the result of a filter function or a timer.
 If REFRESH is non-nil, always fetch bookmarks."
   (let ((bookmarks (gethash (jabber-connection-bare-jid jc) jabber-bookmarks)))
     (if (and (not refresh) bookmarks)
-	(run-with-timer 0.1 nil cont jc (when (listp bookmarks) bookmarks))
+	(run-with-timer 0 nil cont jc (when (listp bookmarks) bookmarks))
       (lexical-let* ((cont cont)
 		     (callback (lambda (jc result) (jabber-get-bookmarks-1 jc result cont))))
 	(jabber-private-get jc 'storage "storage:bookmarks"

@@ -313,16 +313,17 @@ With double prefix argument, specify more connection details."
     (:connected
      (let ((connection (cadr event))
 	   (registerp (plist-get state-data :registerp)))
-     
-       ;; TLS connections leave data in the process buffer, which
-       ;; the XML parser will choke on.
-       (with-current-buffer (process-buffer connection)
-	 (erase-buffer))
 
        (setq state-data (plist-put state-data :connection connection))
 
-       (set-process-filter connection (fsm-make-filter fsm))
-       (set-process-sentinel connection (fsm-make-sentinel fsm))
+       (when (processp connection)
+	 ;; TLS connections leave data in the process buffer, which
+	 ;; the XML parser will choke on.
+	 (with-current-buffer (process-buffer connection)
+	   (erase-buffer))
+
+	 (set-process-filter connection (fsm-make-filter fsm))
+	 (set-process-sentinel connection (fsm-make-sentinel fsm)))
 
        (list :connected state-data)))
 
@@ -990,8 +991,8 @@ Return an fsm result list if it is."
 		   "")
 		 ">
 ")))
-    (jabber-send-string jc stream-header)
-    (jabber-log-xml jc "sending" stream-header)))
+    (jabber-log-xml jc "sending" stream-header)
+    (jabber-send-string jc stream-header)))
 
 (defun jabber-send-string (jc string)
   "Send STRING to the connection JC."

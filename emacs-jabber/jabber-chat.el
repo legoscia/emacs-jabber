@@ -21,6 +21,7 @@
 (require 'jabber-core)
 (require 'jabber-chatbuffer)
 (require 'jabber-history)
+(require 'jabber-autoloads)
 
 (require 'ewoc)
 (eval-when-compile (require 'cl))
@@ -167,6 +168,7 @@ These fields are available:
   "Face used for error messages"
   :group 'jabber-chat)
 
+;;;###autoload
 (defvar jabber-chatting-with nil
   "JID of the person you are chatting with")
 
@@ -209,6 +211,7 @@ added to the outgoing message.")
   "Float-time of earliest backlog entry inserted into buffer.
 nil if no backlog has been inserted.")
 
+;;;###autoload
 (defun jabber-chat-get-buffer (chat-with)
   "Return the chat buffer for chatting with CHAT-WITH (bare or full JID).
 Either a string or a buffer is returned, so use `get-buffer' or

@@ -1,6 +1,6 @@
 ;; jabber-chatbuffer.el - functions common to all chat buffers
 
-;; Copyright (C) 2005, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2005, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -41,8 +41,10 @@ window or at `fill-column', whichever is shorter."
 (defvar jabber-chat-ewoc nil
   "The ewoc showing the messages of this chat buffer.")
 
+;;;###autoload
 (defvar jabber-buffer-connection nil
   "The connection used by this buffer.")
+;;;###autoload
 (make-variable-buffer-local 'jabber-buffer-connection)
 
 (defun jabber-chat-mode (jc ewoc-pp)
