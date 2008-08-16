@@ -186,6 +186,8 @@ With double prefix argument, specify more connection details."
 	 (setq network-server
 	       (read-string (format "Network server: (default `%s') " network-server)
 			    nil nil network-server))
+	 (when (zerop (length network-server))
+	   (setq network-server nil))
 	 (setq port
 	       (car
 		(read-from-string
