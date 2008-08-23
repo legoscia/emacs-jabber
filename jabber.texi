@@ -1241,10 +1241,10 @@ customize @code{password-cache-expiry} if you use the latter.
 When you're working on something important you might want to delay
 responding to incoming messages.  However, when you're done working,
 will you remember them?  If you're anything like me, you'll have a lot
-of buffers in your Emacs session, and a jabber chat buffer can easily
+of buffers in your Emacs session, and a Jabber chat buffer can easily
 get lost.
 
-When you type @kbd{M-x jabber-activity-mode} Emacs starts keeping
+When @code{jabber-activity-mode} is enabled (by default, it is), Emacs keeps
 track of the buddies which have messaged you since last you visited
 their buffer, and will display them in mode line.  As soon as you
 visit their buffer they disappear from the mode line, indicating that
