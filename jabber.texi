@@ -1525,7 +1525,8 @@ Open or create the file @file{user.js} in your Mozilla profile directory
 (in the same directory as @file{prefs.js}), and add the following line:
 
 @example
-user_pref("network.protocol-handler.app.xmpp", "@var{/path/to}/xmppuri.sh");
+user_pref("network.protocol-handler.app.xmpp",
+  "@var{/path/to}/xmppuri.sh");
 @end example
 
 Restart Mozilla for this change to take effect.
