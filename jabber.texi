@@ -1307,9 +1307,6 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
 @cindex History
 @cindex Backlog
-@cindex Rotation
-@cindex Truncate
-@cindex Truncation
 @findex jabber-truncate-top
 @findex jabber-truncate-muc
 @findex jabber-truncate-chat
@@ -1324,18 +1321,15 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @vindex jabber-log-lines-to-keep
 
 If you want a record of messages sent and received, set
-@code{jabber-history-enabled} to t.  By default all messages to will
+@code{jabber-history-enabled} to t.  By default all messages will
 be saved to a global history file specified by
 @code{jabber-global-history-filename}
 (@file{~/.jabber_global_message_log} by default).  If you prefer to
-store your chats' history in per-contact files, you can set the
-@code{jabber-use-global-history} variable to @code{nil}.  When using
+store your chats' history in per-contact files, you can set
+@code{jabber-use-global-history} to @code{nil}.  When using
 per-contact history, files are named by the contact JID and saved
 under the directory specified by the variable
 @code{jabber-history-dir} (default is @file{~/.emacs-jabber}).
-
-There is no facility for reading old messages yet, but just reading
-the file as text should be enough for many purposes.
 
 When you open a new chat buffer and have entries in your history file,
 the last few messages you recently exchanged with the contact in
@@ -1343,16 +1337,24 @@ question will be inserted.  You can control how many messages with
 @code{jabber-backlog-number} (by default 10), and how old messages
 with @code{jabber-backlog-days} (by default 3 days).
 
+@findex jabber-chat-display-more-backlog
+If you want to see more messages, use the function
+@code{jabber-chat-display-more-backlog}, available in the Chat menu.
+This is currently the only way to view the message history, apart from
+opening the history files manually.
+
+@cindex Rotation of history files
+@cindex History file rotation
 If you worry about your history file(s) size, you can enable history
 rotation feature by setting the variable
 @code{jabber-history-enable-rotation} to @code{t} (default is
 @code{nil}).  This feature ``rotates'' your history files according to
 the following rule: When @code{jabber-history-size-limit} (in
-kilobytes) is reached, the history file is renamed to
-<history-file>-<number>, where <number> is 1 or the smallest number
+kilobytes) is reached, the @var{history-file} is renamed to
+@file{@var{history-file}-@var{number}}, where @var{number} is 1 or the smallest number
 after the last rotation.  For example, suppose you set the
 @code{jabber-history-size-limit} variable to 512 and you chat with
-your buddy foo@@jabber.server using the per-contact strategy to store
+your buddy @samp{foo@@jabber.server} using the per-contact strategy to store
 history files.  So, when the history file (@file{foo@@jabber-server})
 reaches 512K bytes, it will be renamed to @file{foo@@jabber-server-1}
 and @file{foo@@jabber-server} will be set empty. Next time
@@ -1361,11 +1363,14 @@ and @file{foo@@jabber-server} will be set empty. Next time
 presented with the per-contact history file strategy, history rotation
 works for both per-contact and global history logging strategies.
 
-If you want also to truncate chat and muc buffer from growing too
-much, you can customize jabber-alert-message-hooks and
-jabber-alert-muc-hooks by adding truncation upon receiving message.
-Truncation limit may be set by customizing
-@code{jabber-log-lines-to-keep} variable.
+@cindex Truncate
+@cindex Truncation
+If you also want to keep chat and groupchat buffers from growing too
+much, you can customize @code{jabber-alert-message-hooks} and
+@code{jabber-alert-muc-hooks} by adding truncation upon receiving
+message (@code{jabber-truncate-chat} and @code{jabber-truncate-muc}, respectively).
+The truncation limit may be set by customizing the variable
+@code{jabber-log-lines-to-keep}.
 
 @node Typing notifications, Roster import and export, Message history, Top
 @chapter Typing notifications
