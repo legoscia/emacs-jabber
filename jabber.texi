@@ -1352,7 +1352,9 @@ rotation feature by setting the variable
 the following rule: When @code{jabber-history-size-limit} (in
 kilobytes) is reached, the @var{history-file} is renamed to
 @file{@var{history-file}-@var{number}}, where @var{number} is 1 or the smallest number
-after the last rotation.  For example, suppose you set the
+after the last rotation.
+
+For example, suppose you set the
 @code{jabber-history-size-limit} variable to 512 and you chat with
 your buddy @samp{foo@@jabber.server} using the per-contact strategy to store
 history files.  So, when the history file (@file{foo@@jabber-server})
