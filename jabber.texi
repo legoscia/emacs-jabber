@@ -1807,6 +1807,7 @@ that takes a string as an argument, write
   "Display a message in a fooish way"
   'foo)
 @end example
+@noindent
 and all details will be taken care of for you.
 
 The hooks take different arguments depending on category.  However,
@@ -1820,11 +1821,11 @@ mailing list, or to the Sourceforge patch tracker.
 
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
-removing the function to and from the hook.  For other things, there
+removing the function to and from the hook.  For other purposes, there
 are corresponding general hooks, that are defvars instead of
-defcustoms, and that are to be managed by Lisp code.  They have the
+defcustoms, and that are meant to be managed by Lisp code.  They have the
 same name as the alert hooks minus the @code{-alert} part,
-i.e. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
+e.g. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
 etc.
 
 @menu
@@ -1862,6 +1863,7 @@ Window, , Choosing a Window for Display, elisp, GNU Emacs Lisp
 Reference Manual}, for information about customizing its behaviour.
 This is enabled by default for info requests.
 
+@cindex Sound effects
 The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,
 enter the names of the sound files in
@@ -1871,22 +1873,35 @@ specific sound files for contacts matching a regexp in the variables
 @code{jabber-alert-message-wave-alist} and
 @code{jabber-alert-presence-wave-alist}.
 
+@cindex Screen terminal manager
 The @code{screen} alerts send a message through the Screen terminal
-manager (see @uref{http://www.gnu.org/software/screen/}).  They do no
+manager@footnote{See @uref{http://www.gnu.org/software/screen/}.}.  They do no
 harm if called when you don't use Screen.
 
+@cindex Ratpoison window manager
+@cindex Window manager, Ratpoison
 The @code{ratpoison} alerts send a message through the Ratpoison
-window manager (see @uref{http://ratpoison.sourceforge.net/}).  They
+window manager@footnote{See @uref{http://ratpoison.sourceforge.net/}.}.  They
 do no harm if used when you're not running X, but if you are running X
 with another window manager, the ratpoison processes will never exit.
 You can look at them with @code{list-processes}.
 
+@cindex Sawfish window manager
+@cindex Window manager, Sawfish
 The @code{sawfish} alerts send a message through the Sawfish window
 manager.
 
+@cindex xmessage
+@vindex jabber-xmessage-timeout
+The @code{xmessage} alerts send a message through the standard
+@code{xmessage} tool.  The variable @code{jabber-xmessage-timeout}
+controls how long the alert appears.
+
+@cindex Festival speech synthesis
+@cindex Speech synthesis, Festival
 The @code{festival} alerts speak the message using the Emacs interface
-of the Festival speech synthesis system (see
-@uref{http://www.cstr.ed.ac.uk/projects/festival/}).
+of the Festival speech synthesis system@footnote{See
+@uref{http://www.cstr.ed.ac.uk/projects/festival/}.}.
 
 Additionally, for one-to-one and MUC messages, there are @code{scroll}
 alerts (enabled by default), that aim to do the right thing with chat
