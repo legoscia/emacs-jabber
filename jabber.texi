@@ -1703,8 +1703,8 @@ jabber-display-roster} after changing this variable to update the display.
 @cindex Faces, chat buffer
 
 You can customize the look of the prompts in the chat buffer.  There
-are separate settings for local (i.e. your own messages) and foreign
-prompts.
+are separate settings for local text (i.e. what you write) and foreign text
+(i.e. what other people write).
 
 @vindex jabber-chat-text-local
 @vindex jabber-chat-text-foreign
@@ -1731,13 +1731,14 @@ The nickname of the user.  For the foreign prompt, this is the name of
 the contact in the roster, or the JID if no name set.  For the local
 prompt, this is the username part of your JID.
 @item %u
-The username of the user.
+The username of the user (i.e. the first part of the JID).
 @item %r
 The resource.
 @item %j
 The bare JID of the user
 @end table
 
+@cindex Timestamp format
 @vindex jabber-chat-time-format
 @code{jabber-chat-time-format} defines how @code{%t} shows time.  Its
 format is identical to that passed to @code{format-time-string}.
@@ -1752,6 +1753,7 @@ timestamps everywhere except where you need long ones.  You can always
 see the complete timestamp in a tooltip by hovering over the prompt with
 the mouse.
 
+@cindex Rare timestamps
 @vindex jabber-print-rare-time
 @vindex jabber-rare-time-format
 @vindex jabber-chat-text-local
@@ -1761,6 +1763,7 @@ By default, timestamps are printed in the chat buffer every hour (at
 setting @code{jabber-rare-time-format}.  Rare timestamps will be printed
 whenever time formatted by that format string would change.
 
+@cindex Header line of chat buffers
 @vindex jabber-chat-header-line-format
 @vindex jabber-muc-header-line-format
 You can also customize the header line of chat buffers, by modifying
@@ -1773,7 +1776,7 @@ Format, elisp, GNU Emacs Lisp Reference Manual}.  For MUC buffers,
 @vindex jabber-chat-fill-long-lines
 @cindex Filling long lines in chat buffer
 The variable @code{jabber-chat-fill-long-lines} controls whether long
-lines in the chat buffer are filled.
+lines in the chat buffer are wrapped.
 
 @node Customizing alerts, Hooks, Customizing the chat buffer, Customization
 @section Customizing alerts
