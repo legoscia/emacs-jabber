@@ -1634,28 +1634,25 @@ to enable it permanently.
 @node Customizing the roster buffer, Customizing the chat buffer, Menu, Customization
 @section Customizing the roster buffer
 
-@vindex jabber-roster-sort-functions
-@vindex jabber-sort-order
-@vindex jabber-show-resources
-@vindex jabber-roster-line-format
-@vindex jabber-resource-line-format
-@vindex jabber-roster-buffer
-@vindex jabber-roster-show-bindings
 @cindex Roster buffer, customizing
 
 @cindex Sorting the roster
+@vindex jabber-roster-sort-functions
 @code{jabber-roster-sort-functions} controls how roster items are
 sorted.  By default, contacts are sorted first by presence, and then
 alphabetically by displayed name.
 
+@vindex jabber-sort-order
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
 status (@pxref{Presence}) or @code{nil}, which represents offline.
 
+@vindex jabber-show-resources
 @code{jabber-show-resources} controls when your contacts' resources
 are shown in the roster buffer.  The default is to show resources when
 a contact has more than one connected resource.
 
+@vindex jabber-roster-line-format
 @code{jabber-roster-line-format} specifies how the entry for each
 contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
@@ -1664,9 +1661,9 @@ preceded by a percent sign:
 @item %a
 Avatar of contact, if any
 @item %c
-"*" if the contact is connected, or " " if not
+@samp{*} if the contact is connected, or @samp{ } if not
 @item %u
-Subscription state - see below
+Subscription state---see below
 @item %n
 Nickname of contact, or JID if no nickname
 @item %j
@@ -1674,26 +1671,29 @@ Bare JID of contact (without resource)
 @item %r
 Highest-priority resource of contact
 @item %s
-Availability of contact as string ("Online", "Away" etc)
+Availability of contact as a string ("Online", "Away" etc)
 @item %S
 Status string specified by contact
 @end table
 
+@code{%u} is replaced by one of the strings given by
+`jabber-roster-subscription-display'.
+
+@vindex jabber-resource-line-format
 @code{jabber-resource-line-format} is nearly identical, except that
 the values correspond to the values of the resource in question, and
 that the @code{%p} escape is available, which inserts the priority of
 the resource.
 
+@vindex jabber-roster-buffer
 @code{jabber-roster-buffer} specifies the name of the roster buffer.
-If you change this, the new name will be used the next time you
-connect.
+If you change this, the new name will be used the next time the roster
+is redisplayed.
 
+@vindex jabber-roster-show-bindings
 @code{jabber-roster-show-bindings} controls whether to show a list of
 keybindings at the top of the roster buffer.  You need to run @kbd{M-x
 jabber-display-roster} after changing this variable to update the display.
-
-@code{%u} is replaced by one of the strings given by
-`jabber-roster-subscription-display'.
 
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
