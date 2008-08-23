@@ -107,7 +107,12 @@ Offline is represented as nil."
   :group 'jabber-roster)
 
 (defcustom jabber-show-resources 'sometimes
-  "Show resources in roster?"
+  "Show contacts' resources in roster?
+This can be one of the following symbols:
+
+nil       Never show resources
+sometimes Show resources when there are more than one
+always    Always show resources"
   :type '(radio (const :tag "Never" nil)
 		(const :tag "When more than one connected resource" sometimes)
 		(const :tag "Always" always))
