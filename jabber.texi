@@ -1551,7 +1551,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 
 @menu
 * Account settings::            
-* Miscellaneous settings::      
+* Menu::                        
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
 * Customizing alerts::          
@@ -1559,7 +1559,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Debug options::               
 @end menu
 
-@node Account settings, Miscellaneous settings, Customization, Customization
+@node Account settings, Menu, Customization, Customization
 @section Account settings
 
 @cindex Username
@@ -1568,7 +1568,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex JID
 @cindex Network server
 
-All account settings reside in @code{jabber-account-list} variable.
+All account settings reside in the variable @code{jabber-account-list}.
 Usually you only need to set the JID, in the form
 @samp{username@@server} (or @samp{username@@server/resource} to use a
 specific resource name).  These are the other account options:
@@ -1606,8 +1606,10 @@ legacy SSL connections.
 
 @cindex Google Talk
 
-If you have a very new version of @file{dns.el}, you can connect to
-Google Talk just by specifying your Gmail address.  If not, set
+If you have a very new version of @file{dns.el},@footnote{Specifically,
+you need Emacs 23, or No Gnus 0.3.} you can connect to
+Google Talk just by specifying your Gmail address as JID.  Otherwise,
+you also need to set
 ``network server'' to @kbd{talk.google.com} and ``connection type'' to
 ``legacy SSL''.
 
@@ -1617,8 +1619,8 @@ Previous versions of jabber.el had the variables @code{jabber-username},
 @code{jabber-server}, @code{jabber-resource} and
 @code{jabber-password}.  These are now obsolete and not used.
 
-@node Miscellaneous settings, Customizing the roster buffer, Account settings, Customization
-@section Miscellaneous settings
+@node Menu, Customizing the roster buffer, Account settings, Customization
+@section Menu
 
 @findex jabber-menu
 @cindex Menus
@@ -1629,7 +1631,7 @@ jabber-menu}.  Unfortunately, this cannot be changed through Customize
 settings, so you need to add @code{(jabber-menu)} to your @file{.emacs}
 to enable it permanently.
 
-@node Customizing the roster buffer, Customizing the chat buffer, Miscellaneous settings, Customization
+@node Customizing the roster buffer, Customizing the chat buffer, Menu, Customization
 @section Customizing the roster buffer
 
 @vindex jabber-roster-sort-functions
