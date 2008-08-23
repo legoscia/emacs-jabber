@@ -1395,16 +1395,16 @@ These states are possible:
 
 @itemize @bullet
 @item
-Delivered to offline storage (the user will receive it on next logon)
+@samp{In offline storage} (the user will receive it on next logon)
 
 @item
-Delivered to user's client (but not necessarily displayed)
+@samp{Delivered} to user's client (but not necessarily displayed)
 
 @item
-Displayed to user
+@samp{Displayed} to user
 
 @item
-User is typing a message
+User is @samp{typing a message}
 
 @end itemize
 
