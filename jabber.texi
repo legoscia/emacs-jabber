@@ -1299,7 +1299,7 @@ flyspell-mode}.  It will check only what you are currently writing, not
 what you receive or what you have already sent.  You may want to add
 @code{flyspell-mode} to @code{jabber-chat-mode-hook}.
 
-For more information about Emacs spell checking, @xref{Spelling, ,
+For more information about Emacs spell checking, @pxref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
 @node Message history, Typing notifications, Useful features, Top
