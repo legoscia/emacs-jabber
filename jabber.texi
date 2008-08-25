@@ -1842,7 +1842,7 @@ etc.
 @cindex Alerts
 @cindex Scroll
 
-Eight alerts are already written for all four alert categories.  These
+Twelve alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
 
 The @code{beep} alerts simply sound the terminal bell by calling
@@ -1891,11 +1891,22 @@ Emacs doesn't hold on to them, though.
 The @code{sawfish} alerts send a message through the Sawfish window
 manager.
 
+@cindex wmii window manager
+@cindex Window manager, wmii
+The @code{wmii} alerts display a message through the wmii window
+manager.
+
 @cindex xmessage
 @vindex jabber-xmessage-timeout
 The @code{xmessage} alerts send a message through the standard
 @code{xmessage} tool.  The variable @code{jabber-xmessage-timeout}
 controls how long the alert appears.
+
+@cindex OSD
+The @code{osd} alerts send a message onto your screen using
+XOSD.@footnote{XOSD can be found at
+@uref{http://www.ignavus.net/software.html}.  You also need
+@file{osd.el} from @uref{http://www.brockman.se/software/osd.el}.}
 
 @cindex Festival speech synthesis
 @cindex Speech synthesis, Festival
@@ -1903,17 +1914,18 @@ The @code{festival} alerts speak the message using the Emacs interface
 of the Festival speech synthesis system@footnote{See
 @uref{http://www.cstr.ed.ac.uk/projects/festival/}.}.
 
+@cindex Scroll chat buffers
 Additionally, for one-to-one and MUC messages, there are @code{scroll}
 alerts (enabled by default), that aim to do the right thing with chat
 buffers that are visible but not active.  Sometimes you want point to
 scroll down, and sometimes not.  These functions should do what you
 mean; if they don't, it's a bug.
 
-Also, in MUC you can use family of so-called ``personal'' alerts.
-Their like other MUC alerts, but fires only if incoming message
-addresed directly to you. One example of such alert is
-@code{jabber-muc-echo-personal}, which show MUC message only if it
-addresed to you.
+Also, in MUC you can use a family of so-called ``personal'' alerts.
+They are like other MUC alerts, but fire only on incoming messages
+addresed directly to you (also known as ``private messages'').  One
+example of such an alert is @code{jabber-muc-echo-personal}, which shows
+a note for an MUC message only if it was addressed to you.
 
 Some of these functions are in the @file{jabber-alert.el} file, and the
 others are in their own files.  You can use them as templates or
