@@ -1951,6 +1951,10 @@ function.  This function should look like:
 stati, respectively, and @var{statustext} is the status message if
 provided, otherwise nil.
 
+@var{oldstatus} and @var{newstatus} can be one of @code{""}
+(i.e. online), @code{"away"}, @code{"xa"}, @code{"dnd"}, @code{"chat"},
+@code{"error"} and @code{nil} (i.e. offline).
+
 @var{newstatus} can also be one of @code{"subscribe"},
 @code{"subscribed"}, @code{"unsubscribe"} and @code{"unsubscribed"}.
 
