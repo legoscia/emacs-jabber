@@ -1884,7 +1884,7 @@ The @code{ratpoison} alerts send a message through the Ratpoison
 window manager@footnote{See @uref{http://ratpoison.sourceforge.net/}.}.  They
 do no harm if used when you're not running X, but if you are running X
 with another window manager, the ratpoison processes will never exit.
-You can look at them with @code{list-processes}.
+Emacs doesn't hold on to them, though.
 
 @cindex Sawfish window manager
 @cindex Window manager, Sawfish
