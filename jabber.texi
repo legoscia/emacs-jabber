@@ -1971,13 +1971,6 @@ function.  This last argument is usually the only one they use.
 
 @vindex jabber-alert-message-function
 @findex jabber-message-default-message
-@vindex jabber-message-alert-same-buffer
-
-If you don't want message alerts when the chat buffer in question is
-already the current buffer, set @code{jabber-message-alert-same-buffer}
-to nil.  This affects the behaviour of the default message function, so
-you'll have to reimplement this functionality if you write your own
-message function.
 
 Set @code{jabber-alert-message-function} to your desired
 function.@footnote{Logically it should be
@@ -2001,6 +1994,13 @@ person if specified in the roster, otherwise the JID.
 All message alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.
+
+@vindex jabber-message-alert-same-buffer
+If you don't want message alerts when the chat buffer in question is
+already the current buffer, set @code{jabber-message-alert-same-buffer}
+to nil.  This affects the behaviour of the default message function, so
+you'll have to reimplement this functionality if you write your own
+message function.
 
 @node MUC alerts, Info alerts, Message alerts, Customizing alerts
 @subsection MUC alerts
