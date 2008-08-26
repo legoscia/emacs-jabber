@@ -2097,15 +2097,21 @@ This hook is called when the roster buffer is created.
 @node Debug options,  , Hooks, Customization
 @section Debug options
 
-@vindex jabber-debug-log-xml
-@cindex XML log
-
 These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
 
+@vindex jabber-debug-log-xml
+@cindex XML log
 @code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
-sent and received are logged in the buffer @code{*-jabber-xml-log-*}
+sent and received are logged in the buffer @code{*-jabber-xml-log-@var{jid}-*}
 in list format.  @xref{XML representation}.
+
+@vindex jabber-debug-keep-process-buffers
+Usually, the process buffers for Jabber connections are killed when the
+connection is closed, as they would otherwise just fill up memory.
+However, they might contain information about why the connection was
+lost.  To keep process buffers, set
+@code{jabber-debug-keep-process-buffers} to @code{t}.
 
 @node Hacking and extending, Protocol support, Customization, Top
 @chapter Hacking and extending
