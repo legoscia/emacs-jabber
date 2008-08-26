@@ -2058,20 +2058,22 @@ purpose.
 @vindex jabber-post-connect-hooks
 @item jabber-post-connect-hooks
 This hook is called after successful connection and authentication.
-By default it contains @code{jabber-send-default-presence}
+By default it contains @code{jabber-send-current-presence}
 (@pxref{Presence}).  The hook functions get the connection object as
 argument.
 
-@vindex jabber-lost-connection-hook
-@item jabber-lost-connection-hook
+@vindex jabber-lost-connection-hooks
+@item jabber-lost-connection-hooks
 This hook is called when you have been disconnected for unknown
 reasons.  Usually this isn't noticed for quite a long time.
 
+The hook is called with one argument: the connection object.
+
 @vindex jabber-pre-disconnect-hook
 @item jabber-pre-disconnect-hook
-This hook is called just before voluntary disconnection.  This might
-be due to failed authentication, so check
-@code{*jabber-authenticated*} if you want to send a stanza.
+This hook is called just before voluntary disconnection, i.e. in
+@code{jabber-disconnect}, the command to disconnect all accounts.  There
+is currently no hook for disconnection of a single account.
 
 @vindex jabber-post-disconnect-hook
 @item jabber-post-disconnect-hook
@@ -2081,6 +2083,14 @@ after @code{jabber-lost-connection-hook}.
 @vindex jabber-chat-mode-hook
 @item jabber-chat-mode-hook
 This hook is called when a new chat buffer is created.
+
+@vindex jabber-browse-mode-hook
+@item jabber-browse-mode-hook
+This hook is called when a new browse buffer is created.
+
+@vindex jabber-roster-mode-hook
+@item jabber-roster-mode-hook
+This hook is called when the roster buffer is created.
 
 @end table
 
