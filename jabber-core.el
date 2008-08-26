@@ -741,21 +741,21 @@ With double prefix argument, specify more connection details."
   (interactive "P")
   (if arg
       (jabber-disconnect-one (jabber-read-account))
-      (unless *jabber-disconnecting*	; avoid reentry
-    (let ((*jabber-disconnecting* t))
-      (dolist (c jabber-connections)
-	(jabber-disconnect-one c t))
-      (setq jabber-connections nil)
+    (unless *jabber-disconnecting*	; avoid reentry
+      (let ((*jabber-disconnecting* t))
+	(run-hooks 'jabber-pre-disconnect-hook)
+	(dolist (c jabber-connections)
+	  (jabber-disconnect-one c t))
+	(setq jabber-connections nil)
 
-      (jabber-disconnected)
-      (when (interactive-p)
-	(message "Disconnected from Jabber server(s)"))))))
+	(jabber-disconnected)
+	(when (interactive-p)
+	  (message "Disconnected from Jabber server(s)"))))))
 
 (defun jabber-disconnect-one (jc &optional dont-redisplay)
   "Disconnect from one Jabber server.
 If DONT-REDISPLAY is non-nil, don't update roster buffer."
   (interactive (list (jabber-read-account)))
-  ;;(run-hooks 'jabber-pre-disconnect-hook)
   (fsm-send-sync jc :do-disconnect)
   (when (interactive-p)
     (message "Disconnected from %s"
