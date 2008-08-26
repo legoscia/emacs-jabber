@@ -79,8 +79,9 @@ This might be due to failed authentication.  Check `*jabber-authenticated*'."
   :type 'hook
   :group 'jabber-core)
 
-(defcustom jabber-lost-connection-hook nil
-  "*Hooks run after involuntary disconnection"
+(defcustom jabber-lost-connection-hooks nil
+  "*Hooks run after involuntary disconnection.
+The functions are called with one argument: the connection object."
   :type 'hook
   :group 'jabber-core)
 
@@ -269,7 +270,7 @@ With double prefix argument, specify more connection details."
 	(reason (plist-get state-data :disconnection-reason))
 	(ever-session-established (plist-get state-data :ever-session-established)))
     (unless expected
-      (run-hooks 'jabber-lost-connection-hook)
+      (run-hook-with-args 'jabber-lost-connection-hooks fsm)
       (message "%s@%s/%s: connection lost: `%s'"
 	       (plist-get state-data :username)
 	       (plist-get state-data :server)
