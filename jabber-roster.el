@@ -1,6 +1,6 @@
 ;; jabber-roster.el - displaying the roster    -*- coding: utf-8; -*-
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -97,7 +97,8 @@ These functions should take two roster items A and B, and return:
 >0 if A > B"
   :type 'hook
   :options '(jabber-roster-sort-by-status 
-	     jabber-roster-sort-by-displayname)
+	     jabber-roster-sort-by-displayname
+	     jabber-roster-sort-by-group)
   :group 'jabber-roster)
 
 (defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
