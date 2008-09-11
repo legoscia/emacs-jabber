@@ -2122,6 +2122,7 @@ yourself and trying to figure it out, but as a guide on where to
 look.  Knowledge of Jabber protocols is assumed.
 
 @menu
+* Connection object::           
 * XML representation::          
 * Roster structure::            
 * Listening for new requests::  
@@ -2131,7 +2132,41 @@ look.  Knowledge of Jabber protocols is assumed.
 * Stanza chains::               
 @end menu
 
-@node XML representation, Roster structure, Hacking and extending, Hacking and extending
+@node Connection object, XML representation, Hacking and extending, Hacking and extending
+@section Connection object
+@cindex connection object
+@cindex account object
+@cindex FSM
+
+Each Jabber connection is represented by a ``connection object''.  This
+object has the form of a finite state machine, and is realized by the
+library @code{fsm}.@footnote{So far, this library is only distributed
+with jabber.el.  The author hopes that it could be useful for other
+projects, too.}
+
+The various states of this object are defined in @file{jabber-core.el}.
+They describe the way of the connection through the establishing of a
+network connection and authentication, and finally comes to the
+@code{:session-established} state where ordinary traffic takes place.
+
+These details are normally opaque to an extension author.  As will be
+noted, many functions expect to receive a connection object, and
+functions at extension points generally receive such an object in order
+to pass it on.  The following functions simply query the internal state
+of the connection:
+
+@defun jabber-connection-jid connection
+The @code{jabber-connection-jid} function returns the full JID of
+@var{connection}, i.e. a string of the form
+@code{"username@@server/resource"}.
+@end defun
+
+@defun jabber-connection-bare-jid connection
+The @code{jabber-connection-bare-jid} function returns the bare JID of
+@var{connection}, i.e. a string of the form @code{"username@@server"}.
+@end defun
+
+@node XML representation, Roster structure, Connection object, Hacking and extending
 @section XML representation
 
 @cindex XML representation
