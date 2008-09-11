@@ -2194,10 +2194,21 @@ Note the empty string as the third element of the @code{frobozz}
 list.  It is not present in newer (post-21.3) versions of
 @file{xml.el}, but it's probably best to assume it might be there.
 
-If you want to see what an XML tag would look like, use
-@code{jabber-sexp2xml}, which takes a tag and returns a string.  You
-will usually not need it in your code, as you can use
-@code{jabber-send-sexp} to send away your tags to the server.
+@defun jabber-sexp2xml xml-sexp
+This function takes a tag in list representation, and returns its XML
+representation as a string.  You will normally not need to use this
+function directly, but it can be useful to see how your sexps will look
+when sent to the outer, non-Lisp, world.
+@end defun
+
+@defun jabber-send-sexp connection sexp
+This function sends @var{sexp}, an XMPP stanza in list representation,
+and sends it over @var{connection}.
+
+You will normally use the functions @code{jabber-send-presence},
+@code{jabber-send-message} and @code{jabber-send-iq} instead of this
+function.
+@end defun
 
 @node Roster structure, Listening for new requests, XML representation, Hacking and extending
 @section Roster structure
