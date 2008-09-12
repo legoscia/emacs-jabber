@@ -2272,7 +2272,8 @@ information from the resource with the highest priority is inserted in
 To listen for new IQ requests, add the appropriate entry in
 @code{jabber-iq-get-xmlns-alist} or @code{jabber-iq-set-xmlns-alist}.
 The key is the namespace of the request, and the value is a function
-that takes one argument, the entire IQ stanza in list format.
+that takes two arguments, the connection object, and
+the entire IQ stanza in list format.
 @code{jabber-process-iq} reads these alists to determine which
 function to call on incoming packets.
 
@@ -2280,62 +2281,71 @@ For example, the Ad-Hoc Commands module contains the following:
 
 @example
 (add-to-list 'jabber-iq-set-xmlns-alist
-	     (cons "http://jabber.org/protocol/commands" 'jabber-ahc-process))
+	     (cons "http://jabber.org/protocol/commands"
+                   'jabber-ahc-process))
 @end example
 
 To send a response to an IQ request, use @samp{(jabber-send-iq
-@var{sender} "result" @var{query} nil nil nil nil @var{id})}, where
-@var{query} is the query in list format.  @code{jabber-send-iq} will
-encapsulate the query in an IQ packet with the specified id.
+@var{connection} @var{sender} "result" @var{query} nil nil nil nil
+@var{id})}, where @var{query} is the query in list format.
+@code{jabber-send-iq} will encapsulate the query in an IQ packet with
+the specified id.
 
 To return an error to the Jabber entity that sent the query, use
 @code{jabber-signal-error}.  The signal is caught by
 @code{jabber-process-iq}, which takes care of sending the error.
+You can also use @code{jabber-send-iq-error}.
 
 @node Sending new requests, Extending service discovery, Listening for new requests, Hacking and extending
 @section Sending new requests
 
 @findex jabber-send-iq
 @findex jabber-process-iq
-@findex jabber-report-success
-@findex jabber-process-data
 
 To send an IQ request, use @code{jabber-send-iq}.  It will generate an
 id, and create a mapping for it for use when the response comes.  The
 syntax is:
 
 @example
-(jabber-send-iq @var{to} @var{type} @var{query}
+(jabber-send-iq @var{connection} @var{to} @var{type} @var{query}
                 @var{success-callback} @var{success-closure}
                 @var{failure-callback} @var{failure-closure})
 @end example
 
-Both callbacks take two arguments, the IQ stanza returned and the
-closure item mentioned here.
+@var{success-callback} will be called if the response is of type
+@samp{result}, and @var{failure-callback} will be called if the response
+is of type @samp{error}.  Both callbacks take three arguments, the
+connection object, the IQ stanza of the response, and the corresponding
+closure item earlier passed to @code{jabber-send-iq}.
 
-Two standard callbacks are provided.  @code{jabber-report-success}
-takes a string as closure item, and reports success or failure in the
-echo area.  @code{jabber-process-data} prepares a browse buffer.  If
-its closure argument is a function, it calls that function with point
-in this browse buffer.  If it's a string, it prints that string along
-with the error message in the IQ response.  If it's anything else
+@findex jabber-report-success
+@findex jabber-process-data
+Two standard callbacks are provided.  @code{jabber-report-success} takes
+a string as closure item, and reports success or failure in the echo
+area by appending either @samp{succeeded} or @samp{failed} to the
+string.  @code{jabber-process-data} prepares a browse buffer.  If its
+closure argument is a function, it calls that function with point in
+this browse buffer.  If it's a string, it prints that string along with
+the error message in the IQ response.  If it's anything else
 (e.g. @code{nil}), it just dumps the XML in the browse buffer.
 
 Examples follow.  This is the hypothetical Jabber protocol ``frob'',
 for which only success report is needed:
 @example
-(jabber-send-iq "someone@@somewhere.org" "set"
+(jabber-send-iq connection
+                "someone@@somewhere.org" "set"
                 '(query ((xmlns . "frob")))
                 'jabber-report-success "Frobbing"
                 'jabber-report-success "Frobbing")
 @end example
-This will print ``Frobbing succeeded'' or ``Frobbing failed: reason'',
+This will print ``Frobbing succeeded'' or ``Frobbing failed: @var{reason}'',
 respectively, in the echo area.
 
 The protocol ``investigate'' needs to parse results and show them in a
 browse buffer:
 @example
-(jabber-send-iq "someone@@somewhere.org" "get"
+(jabber-send-iq connection
+                "someone@@somewhere.org" "get"
                 '(query ((xmlns . "investigate")))
                 'jabber-process-data 'jabber-process-investigate
                 'jabber-process-data "Investigation failed")
