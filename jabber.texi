@@ -2124,7 +2124,7 @@ look.  Knowledge of Jabber protocols is assumed.
 @menu
 * Connection object::           
 * XML representation::          
-* Roster structure::            
+* JID symbols::                 
 * Listening for new requests::  
 * Sending new requests::        
 * Extending service discovery::  
@@ -2166,7 +2166,7 @@ The @code{jabber-connection-bare-jid} function returns the bare JID of
 @var{connection}, i.e. a string of the form @code{"username@@server"}.
 @end defun
 
-@node XML representation, Roster structure, Connection object, Hacking and extending
+@node XML representation, JID symbols, Connection object, Hacking and extending
 @section XML representation
 
 @cindex XML representation
@@ -2210,15 +2210,11 @@ You will normally use the functions @code{jabber-send-presence},
 function.
 @end defun
 
-@node Roster structure, Listening for new requests, XML representation, Hacking and extending
-@section Roster structure
+@node JID symbols, Listening for new requests, XML representation, Hacking and extending
+@section JID symbols
 
-@vindex *jabber-roster*
 @vindex jabber-jid-obarray
-
-Roster entries are contained in the list @code{*jabber-roster*}.
-
-A roster entry is a symbol.  Its name is the JID, and it is interned
+JIDs are sometimes represented as symbols.  Its name is the JID, and it is interned
 in @code{jabber-jid-obarray}.  A roster entry can have the following
 properties:
 
@@ -2260,7 +2256,7 @@ information from the resource with the highest priority is inserted in
 @code{show} and @code{status} by the function
 @code{jabber-prioritize-resources}.
 
-@node Listening for new requests, Sending new requests, Roster structure, Hacking and extending
+@node Listening for new requests, Sending new requests, JID symbols, Hacking and extending
 @section Listening for new requests
 
 @findex jabber-send-iq
