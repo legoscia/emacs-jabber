@@ -396,7 +396,11 @@ H        Toggle displaying this text
 	  (dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
 	    (run-hook-with-args hook 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer)))))
       (when current-line
-	(goto-line current-line)
+	;; Go back to previous line - don't use goto-line, since it
+	;; sets the mark.
+	(goto-char (point-min))
+	(forward-line (1- current-line))
+	;; ...and go back to previous column
 	(move-to-column current-column)))))
 
 (defun jabber-display-roster-entry (jc buddy)
