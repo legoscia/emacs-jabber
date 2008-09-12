@@ -2226,10 +2226,11 @@ The XML tag received from the server on roster update
 The name of the roster item (just like the XML attribute)
 
 @item subscription
-The subscription state (also copied)
+The subscription state; a string, one of @code{"none"}, @code{"from"},
+@code{"to"} and @code{"both"}
 
 @item ask
-The ask state (copied)
+The ask state; either @code{nil} or @code{"subscribe"}
 
 @item groups
 A list of strings (possibly empty) containing all the groups the
@@ -2239,7 +2240,10 @@ contact is in
 Boolean, true if any resource is connected
 
 @item show
-Presence show status for highest-priority connected resource
+Presence show value for highest-priority connected resource; a string,
+one of @code{""} (i.e. online), @code{"away"}, @code{"xa"},
+@code{"dnd"}, @code{"chat"}, @code{"error"} and @code{nil}
+(i.e. offline)
 
 @item status
 Presence status message for highest-priority connected resource
