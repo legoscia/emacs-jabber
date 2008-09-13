@@ -196,7 +196,7 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defcustom jabber-debug-log-xml nil
-  "log all XML i/o in *-jabber-xml-log-*"
+  "log all XML i/o in *-jabber-xml-log-JID-*"
   :type 'boolean
   :group 'jabber-debug)
 

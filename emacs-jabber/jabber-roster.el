@@ -1,6 +1,6 @@
 ;; jabber-roster.el - displaying the roster    -*- coding: utf-8; -*-
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -97,7 +97,8 @@ These functions should take two roster items A and B, and return:
 >0 if A > B"
   :type 'hook
   :options '(jabber-roster-sort-by-status 
-	     jabber-roster-sort-by-displayname)
+	     jabber-roster-sort-by-displayname
+	     jabber-roster-sort-by-group)
   :group 'jabber-roster)
 
 (defcustom jabber-sort-order '("chat" "" "away" "dnd" "xa")
@@ -107,7 +108,12 @@ Offline is represented as nil."
   :group 'jabber-roster)
 
 (defcustom jabber-show-resources 'sometimes
-  "Show resources in roster?"
+  "Show contacts' resources in roster?
+This can be one of the following symbols:
+
+nil       Never show resources
+sometimes Show resources when there are more than one
+always    Always show resources"
   :type '(radio (const :tag "Never" nil)
 		(const :tag "When more than one connected resource" sometimes)
 		(const :tag "Always" always))
@@ -390,7 +396,11 @@ H        Toggle displaying this text
 	  (dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
 	    (run-hook-with-args hook 'roster (current-buffer) (funcall jabber-alert-info-message-function 'roster (current-buffer)))))
       (when current-line
-	(goto-line current-line)
+	;; Go back to previous line - don't use goto-line, since it
+	;; sets the mark.
+	(goto-char (point-min))
+	(forward-line (1- current-line))
+	;; ...and go back to previous column
 	(move-to-column current-column)))))
 
 (defun jabber-display-roster-entry (jc buddy)

@@ -360,6 +360,11 @@ With a numeric arg, enable this display if arg is positive."
 	  ;; existing title format.  In particular, if the car is
 	  ;; a symbol, we can't just add our stuff at the beginning.
 	  ;; If the car is "", we should be safe.
+	  ;; 
+	  ;; In my experience, sometimes the activity count gets
+	  ;; included twice in the title.  I'm not sure exactly why,
+	  ;; but it would be nice to replace the code below with
+	  ;; something cleaner.
 	  (if (equal (car frame-title-format) "")
 	      (add-to-list 'frame-title-format
 			   jabber-activity-count-in-title-format)

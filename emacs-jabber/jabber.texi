@@ -1241,10 +1241,10 @@ customize @code{password-cache-expiry} if you use the latter.
 When you're working on something important you might want to delay
 responding to incoming messages.  However, when you're done working,
 will you remember them?  If you're anything like me, you'll have a lot
-of buffers in your Emacs session, and a jabber chat buffer can easily
+of buffers in your Emacs session, and a Jabber chat buffer can easily
 get lost.
 
-When you type @kbd{M-x jabber-activity-mode} Emacs starts keeping
+When @code{jabber-activity-mode} is enabled (by default, it is), Emacs keeps
 track of the buddies which have messaged you since last you visited
 their buffer, and will display them in mode line.  As soon as you
 visit their buffer they disappear from the mode line, indicating that
@@ -1299,7 +1299,7 @@ flyspell-mode}.  It will check only what you are currently writing, not
 what you receive or what you have already sent.  You may want to add
 @code{flyspell-mode} to @code{jabber-chat-mode-hook}.
 
-For more information about Emacs spell checking, @xref{Spelling, ,
+For more information about Emacs spell checking, @pxref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
 @node Message history, Typing notifications, Useful features, Top
@@ -1307,9 +1307,6 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 
 @cindex History
 @cindex Backlog
-@cindex Rotation
-@cindex Truncate
-@cindex Truncation
 @findex jabber-truncate-top
 @findex jabber-truncate-muc
 @findex jabber-truncate-chat
@@ -1324,18 +1321,15 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @vindex jabber-log-lines-to-keep
 
 If you want a record of messages sent and received, set
-@code{jabber-history-enabled} to t.  By default all messages to will
+@code{jabber-history-enabled} to t.  By default all messages will
 be saved to a global history file specified by
 @code{jabber-global-history-filename}
 (@file{~/.jabber_global_message_log} by default).  If you prefer to
-store your chats' history in per-contact files, you can set the
-@code{jabber-use-global-history} variable to @code{nil}.  When using
+store your chats' history in per-contact files, you can set
+@code{jabber-use-global-history} to @code{nil}.  When using
 per-contact history, files are named by the contact JID and saved
 under the directory specified by the variable
 @code{jabber-history-dir} (default is @file{~/.emacs-jabber}).
-
-There is no facility for reading old messages yet, but just reading
-the file as text should be enough for many purposes.
 
 When you open a new chat buffer and have entries in your history file,
 the last few messages you recently exchanged with the contact in
@@ -1343,16 +1337,26 @@ question will be inserted.  You can control how many messages with
 @code{jabber-backlog-number} (by default 10), and how old messages
 with @code{jabber-backlog-days} (by default 3 days).
 
+@findex jabber-chat-display-more-backlog
+If you want to see more messages, use the function
+@code{jabber-chat-display-more-backlog}, available in the Chat menu.
+This is currently the only way to view the message history, apart from
+opening the history files manually.
+
+@cindex Rotation of history files
+@cindex History file rotation
 If you worry about your history file(s) size, you can enable history
 rotation feature by setting the variable
 @code{jabber-history-enable-rotation} to @code{t} (default is
 @code{nil}).  This feature ``rotates'' your history files according to
 the following rule: When @code{jabber-history-size-limit} (in
-kilobytes) is reached, the history file is renamed to
-<history-file>-<number>, where <number> is 1 or the smallest number
-after the last rotation.  For example, suppose you set the
+kilobytes) is reached, the @var{history-file} is renamed to
+@file{@var{history-file}-@var{number}}, where @var{number} is 1 or the smallest number
+after the last rotation.
+
+For example, suppose you set the
 @code{jabber-history-size-limit} variable to 512 and you chat with
-your buddy foo@@jabber.server using the per-contact strategy to store
+your buddy @samp{foo@@jabber.server} using the per-contact strategy to store
 history files.  So, when the history file (@file{foo@@jabber-server})
 reaches 512K bytes, it will be renamed to @file{foo@@jabber-server-1}
 and @file{foo@@jabber-server} will be set empty. Next time
@@ -1361,11 +1365,14 @@ and @file{foo@@jabber-server} will be set empty. Next time
 presented with the per-contact history file strategy, history rotation
 works for both per-contact and global history logging strategies.
 
-If you want also to truncate chat and muc buffer from growing too
-much, you can customize jabber-alert-message-hooks and
-jabber-alert-muc-hooks by adding truncation upon receiving message.
-Truncation limit may be set by customizing
-@code{jabber-log-lines-to-keep} variable.
+@cindex Truncate
+@cindex Truncation
+If you also want to keep chat and groupchat buffers from growing too
+much, you can customize @code{jabber-alert-message-hooks} and
+@code{jabber-alert-muc-hooks} by adding truncation upon receiving
+message (@code{jabber-truncate-chat} and @code{jabber-truncate-muc}, respectively).
+The truncation limit may be set by customizing the variable
+@code{jabber-log-lines-to-keep}.
 
 @node Typing notifications, Roster import and export, Message history, Top
 @chapter Typing notifications
@@ -1390,16 +1397,16 @@ These states are possible:
 
 @itemize @bullet
 @item
-Delivered to offline storage (the user will receive it on next logon)
+@samp{In offline storage} (the user will receive it on next logon)
 
 @item
-Delivered to user's client (but not necessarily displayed)
+@samp{Delivered} to user's client (but not necessarily displayed)
 
 @item
-Displayed to user
+@samp{Displayed} to user
 
 @item
-User is typing a message
+User is @samp{typing a message}
 
 @end itemize
 
@@ -1518,7 +1525,8 @@ Open or create the file @file{user.js} in your Mozilla profile directory
 (in the same directory as @file{prefs.js}), and add the following line:
 
 @example
-user_pref("network.protocol-handler.app.xmpp", "@var{/path/to}/xmppuri.sh");
+user_pref("network.protocol-handler.app.xmpp",
+  "@var{/path/to}/xmppuri.sh");
 @end example
 
 Restart Mozilla for this change to take effect.
@@ -1543,7 +1551,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 
 @menu
 * Account settings::            
-* Miscellaneous settings::      
+* Menu::                        
 * Customizing the roster buffer::  
 * Customizing the chat buffer::  
 * Customizing alerts::          
@@ -1551,7 +1559,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 * Debug options::               
 @end menu
 
-@node Account settings, Miscellaneous settings, Customization, Customization
+@node Account settings, Menu, Customization, Customization
 @section Account settings
 
 @cindex Username
@@ -1560,7 +1568,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex JID
 @cindex Network server
 
-All account settings reside in @code{jabber-account-list} variable.
+All account settings reside in the variable @code{jabber-account-list}.
 Usually you only need to set the JID, in the form
 @samp{username@@server} (or @samp{username@@server/resource} to use a
 specific resource name).  These are the other account options:
@@ -1598,8 +1606,10 @@ legacy SSL connections.
 
 @cindex Google Talk
 
-If you have a very new version of @file{dns.el}, you can connect to
-Google Talk just by specifying your Gmail address.  If not, set
+If you have a very new version of @file{dns.el},@footnote{Specifically,
+you need Emacs 23, or No Gnus 0.3.} you can connect to
+Google Talk just by specifying your Gmail address as JID.  Otherwise,
+you also need to set
 ``network server'' to @kbd{talk.google.com} and ``connection type'' to
 ``legacy SSL''.
 
@@ -1609,8 +1619,8 @@ Previous versions of jabber.el had the variables @code{jabber-username},
 @code{jabber-server}, @code{jabber-resource} and
 @code{jabber-password}.  These are now obsolete and not used.
 
-@node Miscellaneous settings, Customizing the roster buffer, Account settings, Customization
-@section Miscellaneous settings
+@node Menu, Customizing the roster buffer, Account settings, Customization
+@section Menu
 
 @findex jabber-menu
 @cindex Menus
@@ -1621,31 +1631,28 @@ jabber-menu}.  Unfortunately, this cannot be changed through Customize
 settings, so you need to add @code{(jabber-menu)} to your @file{.emacs}
 to enable it permanently.
 
-@node Customizing the roster buffer, Customizing the chat buffer, Miscellaneous settings, Customization
+@node Customizing the roster buffer, Customizing the chat buffer, Menu, Customization
 @section Customizing the roster buffer
 
-@vindex jabber-roster-sort-functions
-@vindex jabber-sort-order
-@vindex jabber-show-resources
-@vindex jabber-roster-line-format
-@vindex jabber-resource-line-format
-@vindex jabber-roster-buffer
-@vindex jabber-roster-show-bindings
 @cindex Roster buffer, customizing
 
 @cindex Sorting the roster
+@vindex jabber-roster-sort-functions
 @code{jabber-roster-sort-functions} controls how roster items are
 sorted.  By default, contacts are sorted first by presence, and then
 alphabetically by displayed name.
 
+@vindex jabber-sort-order
 @code{jabber-sort-order} controls how roster items are sorted by
 presence.  It is a list containing strings corresponding to show
 status (@pxref{Presence}) or @code{nil}, which represents offline.
 
+@vindex jabber-show-resources
 @code{jabber-show-resources} controls when your contacts' resources
 are shown in the roster buffer.  The default is to show resources when
 a contact has more than one connected resource.
 
+@vindex jabber-roster-line-format
 @code{jabber-roster-line-format} specifies how the entry for each
 contact looks.  It is a string where some characters are special if
 preceded by a percent sign:
@@ -1654,9 +1661,9 @@ preceded by a percent sign:
 @item %a
 Avatar of contact, if any
 @item %c
-"*" if the contact is connected, or " " if not
+@samp{*} if the contact is connected, or @samp{ } if not
 @item %u
-Subscription state - see below
+Subscription state---see below
 @item %n
 Nickname of contact, or JID if no nickname
 @item %j
@@ -1664,26 +1671,29 @@ Bare JID of contact (without resource)
 @item %r
 Highest-priority resource of contact
 @item %s
-Availability of contact as string ("Online", "Away" etc)
+Availability of contact as a string ("Online", "Away" etc)
 @item %S
 Status string specified by contact
 @end table
 
+@code{%u} is replaced by one of the strings given by
+`jabber-roster-subscription-display'.
+
+@vindex jabber-resource-line-format
 @code{jabber-resource-line-format} is nearly identical, except that
 the values correspond to the values of the resource in question, and
 that the @code{%p} escape is available, which inserts the priority of
 the resource.
 
+@vindex jabber-roster-buffer
 @code{jabber-roster-buffer} specifies the name of the roster buffer.
-If you change this, the new name will be used the next time you
-connect.
+If you change this, the new name will be used the next time the roster
+is redisplayed.
 
+@vindex jabber-roster-show-bindings
 @code{jabber-roster-show-bindings} controls whether to show a list of
 keybindings at the top of the roster buffer.  You need to run @kbd{M-x
 jabber-display-roster} after changing this variable to update the display.
-
-@code{%u} is replaced by one of the strings given by
-`jabber-roster-subscription-display'.
 
 @node Customizing the chat buffer, Customizing alerts, Customizing the roster buffer, Customization
 @section Customizing the chat buffer
@@ -1693,8 +1703,8 @@ jabber-display-roster} after changing this variable to update the display.
 @cindex Faces, chat buffer
 
 You can customize the look of the prompts in the chat buffer.  There
-are separate settings for local (i.e. your own messages) and foreign
-prompts.
+are separate settings for local text (i.e. what you write) and foreign text
+(i.e. what other people write).
 
 @vindex jabber-chat-text-local
 @vindex jabber-chat-text-foreign
@@ -1721,13 +1731,14 @@ The nickname of the user.  For the foreign prompt, this is the name of
 the contact in the roster, or the JID if no name set.  For the local
 prompt, this is the username part of your JID.
 @item %u
-The username of the user.
+The username of the user (i.e. the first part of the JID).
 @item %r
 The resource.
 @item %j
 The bare JID of the user
 @end table
 
+@cindex Timestamp format
 @vindex jabber-chat-time-format
 @code{jabber-chat-time-format} defines how @code{%t} shows time.  Its
 format is identical to that passed to @code{format-time-string}.
@@ -1742,6 +1753,7 @@ timestamps everywhere except where you need long ones.  You can always
 see the complete timestamp in a tooltip by hovering over the prompt with
 the mouse.
 
+@cindex Rare timestamps
 @vindex jabber-print-rare-time
 @vindex jabber-rare-time-format
 @vindex jabber-chat-text-local
@@ -1751,6 +1763,7 @@ By default, timestamps are printed in the chat buffer every hour (at
 setting @code{jabber-rare-time-format}.  Rare timestamps will be printed
 whenever time formatted by that format string would change.
 
+@cindex Header line of chat buffers
 @vindex jabber-chat-header-line-format
 @vindex jabber-muc-header-line-format
 You can also customize the header line of chat buffers, by modifying
@@ -1763,7 +1776,7 @@ Format, elisp, GNU Emacs Lisp Reference Manual}.  For MUC buffers,
 @vindex jabber-chat-fill-long-lines
 @cindex Filling long lines in chat buffer
 The variable @code{jabber-chat-fill-long-lines} controls whether long
-lines in the chat buffer are filled.
+lines in the chat buffer are wrapped.
 
 @node Customizing alerts, Hooks, Customizing the chat buffer, Customization
 @section Customizing alerts
@@ -1794,6 +1807,7 @@ that takes a string as an argument, write
   "Display a message in a fooish way"
   'foo)
 @end example
+@noindent
 and all details will be taken care of for you.
 
 The hooks take different arguments depending on category.  However,
@@ -1807,11 +1821,11 @@ mailing list, or to the Sourceforge patch tracker.
 
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
-removing the function to and from the hook.  For other things, there
+removing the function to and from the hook.  For other purposes, there
 are corresponding general hooks, that are defvars instead of
-defcustoms, and that are to be managed by Lisp code.  They have the
+defcustoms, and that are meant to be managed by Lisp code.  They have the
 same name as the alert hooks minus the @code{-alert} part,
-i.e. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
+e.g. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
 etc.
 
 @menu
@@ -1828,7 +1842,7 @@ etc.
 @cindex Alerts
 @cindex Scroll
 
-Eight alerts are already written for all four alert categories.  These
+Twelve alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
 
 The @code{beep} alerts simply sound the terminal bell by calling
@@ -1849,6 +1863,7 @@ Window, , Choosing a Window for Display, elisp, GNU Emacs Lisp
 Reference Manual}, for information about customizing its behaviour.
 This is enabled by default for info requests.
 
+@cindex Sound effects
 The @code{wave} alerts play a sound file by calling
 @code{play-sound-file}.  No sound files are provided.  To use this,
 enter the names of the sound files in
@@ -1858,34 +1873,59 @@ specific sound files for contacts matching a regexp in the variables
 @code{jabber-alert-message-wave-alist} and
 @code{jabber-alert-presence-wave-alist}.
 
+@cindex Screen terminal manager
 The @code{screen} alerts send a message through the Screen terminal
-manager (see @uref{http://www.gnu.org/software/screen/}).  They do no
+manager@footnote{See @uref{http://www.gnu.org/software/screen/}.}.  They do no
 harm if called when you don't use Screen.
 
+@cindex Ratpoison window manager
+@cindex Window manager, Ratpoison
 The @code{ratpoison} alerts send a message through the Ratpoison
-window manager (see @uref{http://ratpoison.sourceforge.net/}).  They
+window manager@footnote{See @uref{http://ratpoison.sourceforge.net/}.}.  They
 do no harm if used when you're not running X, but if you are running X
 with another window manager, the ratpoison processes will never exit.
-You can look at them with @code{list-processes}.
+Emacs doesn't hold on to them, though.
 
+@cindex Sawfish window manager
+@cindex Window manager, Sawfish
 The @code{sawfish} alerts send a message through the Sawfish window
 manager.
 
-The @code{festival} alerts speak the message using the Emacs interface
-of the Festival speech synthesis system (see
-@uref{http://www.cstr.ed.ac.uk/projects/festival/}).
+@cindex wmii window manager
+@cindex Window manager, wmii
+The @code{wmii} alerts display a message through the wmii window
+manager.
 
+@cindex xmessage
+@vindex jabber-xmessage-timeout
+The @code{xmessage} alerts send a message through the standard
+@code{xmessage} tool.  The variable @code{jabber-xmessage-timeout}
+controls how long the alert appears.
+
+@cindex OSD
+The @code{osd} alerts send a message onto your screen using
+XOSD.@footnote{XOSD can be found at
+@uref{http://www.ignavus.net/software.html}.  You also need
+@file{osd.el} from @uref{http://www.brockman.se/software/osd.el}.}
+
+@cindex Festival speech synthesis
+@cindex Speech synthesis, Festival
+The @code{festival} alerts speak the message using the Emacs interface
+of the Festival speech synthesis system@footnote{See
+@uref{http://www.cstr.ed.ac.uk/projects/festival/}.}.
+
+@cindex Scroll chat buffers
 Additionally, for one-to-one and MUC messages, there are @code{scroll}
 alerts (enabled by default), that aim to do the right thing with chat
 buffers that are visible but not active.  Sometimes you want point to
 scroll down, and sometimes not.  These functions should do what you
 mean; if they don't, it's a bug.
 
-Also, in MUC you can use family of so-called ``personal'' alerts.
-Their like other MUC alerts, but fires only if incoming message
-addresed directly to you. One example of such alert is
-@code{jabber-muc-echo-personal}, which show MUC message only if it
-addresed to you.
+Also, in MUC you can use a family of so-called ``personal'' alerts.
+They are like other MUC alerts, but fire only on incoming messages
+addresed directly to you (also known as ``private messages'').  One
+example of such an alert is @code{jabber-muc-echo-personal}, which shows
+a note for an MUC message only if it was addressed to you.
 
 Some of these functions are in the @file{jabber-alert.el} file, and the
 others are in their own files.  You can use them as templates or
@@ -1911,6 +1951,10 @@ function.  This function should look like:
 stati, respectively, and @var{statustext} is the status message if
 provided, otherwise nil.
 
+@var{oldstatus} and @var{newstatus} can be one of @code{""}
+(i.e. online), @code{"away"}, @code{"xa"}, @code{"dnd"}, @code{"chat"},
+@code{"error"} and @code{nil} (i.e. offline).
+
 @var{newstatus} can also be one of @code{"subscribe"},
 @code{"subscribed"}, @code{"unsubscribe"} and @code{"unsubscribed"}.
 
@@ -1927,13 +1971,6 @@ function.  This last argument is usually the only one they use.
 
 @vindex jabber-alert-message-function
 @findex jabber-message-default-message
-@vindex jabber-message-alert-same-buffer
-
-If you don't want message alerts when the chat buffer in question is
-already the current buffer, set @code{jabber-message-alert-same-buffer}
-to nil.  This affects the behaviour of the default message function, so
-you'll have to reimplement this functionality if you write your own
-message function.
 
 Set @code{jabber-alert-message-function} to your desired
 function.@footnote{Logically it should be
@@ -1957,6 +1994,13 @@ person if specified in the roster, otherwise the JID.
 All message alert hooks take the same arguments plus the additional
 @var{proposed-alert}, which is the result of the specified message
 function.
+
+@vindex jabber-message-alert-same-buffer
+If you don't want message alerts when the chat buffer in question is
+already the current buffer, set @code{jabber-message-alert-same-buffer}
+to nil.  This affects the behaviour of the default message function, so
+you'll have to reimplement this functionality if you write your own
+message function.
 
 @node MUC alerts, Info alerts, Message alerts, Customizing alerts
 @subsection MUC alerts
@@ -2014,20 +2058,22 @@ purpose.
 @vindex jabber-post-connect-hooks
 @item jabber-post-connect-hooks
 This hook is called after successful connection and authentication.
-By default it contains @code{jabber-send-default-presence}
+By default it contains @code{jabber-send-current-presence}
 (@pxref{Presence}).  The hook functions get the connection object as
 argument.
 
-@vindex jabber-lost-connection-hook
-@item jabber-lost-connection-hook
+@vindex jabber-lost-connection-hooks
+@item jabber-lost-connection-hooks
 This hook is called when you have been disconnected for unknown
 reasons.  Usually this isn't noticed for quite a long time.
 
+The hook is called with one argument: the connection object.
+
 @vindex jabber-pre-disconnect-hook
 @item jabber-pre-disconnect-hook
-This hook is called just before voluntary disconnection.  This might
-be due to failed authentication, so check
-@code{*jabber-authenticated*} if you want to send a stanza.
+This hook is called just before voluntary disconnection, i.e. in
+@code{jabber-disconnect}, the command to disconnect all accounts.  There
+is currently no hook for disconnection of a single account.
 
 @vindex jabber-post-disconnect-hook
 @item jabber-post-disconnect-hook
@@ -2038,20 +2084,34 @@ after @code{jabber-lost-connection-hook}.
 @item jabber-chat-mode-hook
 This hook is called when a new chat buffer is created.
 
+@vindex jabber-browse-mode-hook
+@item jabber-browse-mode-hook
+This hook is called when a new browse buffer is created.
+
+@vindex jabber-roster-mode-hook
+@item jabber-roster-mode-hook
+This hook is called when the roster buffer is created.
+
 @end table
 
 @node Debug options,  , Hooks, Customization
 @section Debug options
 
-@vindex jabber-debug-log-xml
-@cindex XML log
-
 These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
 
+@vindex jabber-debug-log-xml
+@cindex XML log
 @code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
-sent and received are logged in the buffer @code{*-jabber-xml-log-*}
+sent and received are logged in the buffer @code{*-jabber-xml-log-@var{jid}-*}
 in list format.  @xref{XML representation}.
+
+@vindex jabber-debug-keep-process-buffers
+Usually, the process buffers for Jabber connections are killed when the
+connection is closed, as they would otherwise just fill up memory.
+However, they might contain information about why the connection was
+lost.  To keep process buffers, set
+@code{jabber-debug-keep-process-buffers} to @code{t}.
 
 @node Hacking and extending, Protocol support, Customization, Top
 @chapter Hacking and extending
@@ -2062,8 +2122,9 @@ yourself and trying to figure it out, but as a guide on where to
 look.  Knowledge of Jabber protocols is assumed.
 
 @menu
+* Connection object::           
 * XML representation::          
-* Roster structure::            
+* JID symbols::                 
 * Listening for new requests::  
 * Sending new requests::        
 * Extending service discovery::  
@@ -2071,7 +2132,41 @@ look.  Knowledge of Jabber protocols is assumed.
 * Stanza chains::               
 @end menu
 
-@node XML representation, Roster structure, Hacking and extending, Hacking and extending
+@node Connection object, XML representation, Hacking and extending, Hacking and extending
+@section Connection object
+@cindex connection object
+@cindex account object
+@cindex FSM
+
+Each Jabber connection is represented by a ``connection object''.  This
+object has the form of a finite state machine, and is realized by the
+library @code{fsm}.@footnote{So far, this library is only distributed
+with jabber.el.  The author hopes that it could be useful for other
+projects, too.}
+
+The various states of this object are defined in @file{jabber-core.el}.
+They describe the way of the connection through the establishing of a
+network connection and authentication, and finally comes to the
+@code{:session-established} state where ordinary traffic takes place.
+
+These details are normally opaque to an extension author.  As will be
+noted, many functions expect to receive a connection object, and
+functions at extension points generally receive such an object in order
+to pass it on.  The following functions simply query the internal state
+of the connection:
+
+@defun jabber-connection-jid connection
+The @code{jabber-connection-jid} function returns the full JID of
+@var{connection}, i.e. a string of the form
+@code{"username@@server/resource"}.
+@end defun
+
+@defun jabber-connection-bare-jid connection
+The @code{jabber-connection-bare-jid} function returns the bare JID of
+@var{connection}, i.e. a string of the form @code{"username@@server"}.
+@end defun
+
+@node XML representation, JID symbols, Connection object, Hacking and extending
 @section XML representation
 
 @cindex XML representation
@@ -2099,20 +2194,27 @@ Note the empty string as the third element of the @code{frobozz}
 list.  It is not present in newer (post-21.3) versions of
 @file{xml.el}, but it's probably best to assume it might be there.
 
-If you want to see what an XML tag would look like, use
-@code{jabber-sexp2xml}, which takes a tag and returns a string.  You
-will usually not need it in your code, as you can use
-@code{jabber-send-sexp} to send away your tags to the server.
+@defun jabber-sexp2xml xml-sexp
+This function takes a tag in list representation, and returns its XML
+representation as a string.  You will normally not need to use this
+function directly, but it can be useful to see how your sexps will look
+when sent to the outer, non-Lisp, world.
+@end defun
 
-@node Roster structure, Listening for new requests, XML representation, Hacking and extending
-@section Roster structure
+@defun jabber-send-sexp connection sexp
+This function sends @var{sexp}, an XMPP stanza in list representation,
+and sends it over @var{connection}.
 
-@vindex *jabber-roster*
+You will normally use the functions @code{jabber-send-presence},
+@code{jabber-send-message} and @code{jabber-send-iq} instead of this
+function.
+@end defun
+
+@node JID symbols, Listening for new requests, XML representation, Hacking and extending
+@section JID symbols
+
 @vindex jabber-jid-obarray
-
-Roster entries are contained in the list @code{*jabber-roster*}.
-
-A roster entry is a symbol.  Its name is the JID, and it is interned
+JIDs are sometimes represented as symbols.  Its name is the JID, and it is interned
 in @code{jabber-jid-obarray}.  A roster entry can have the following
 properties:
 
@@ -2124,10 +2226,11 @@ The XML tag received from the server on roster update
 The name of the roster item (just like the XML attribute)
 
 @item subscription
-The subscription state (also copied)
+The subscription state; a string, one of @code{"none"}, @code{"from"},
+@code{"to"} and @code{"both"}
 
 @item ask
-The ask state (copied)
+The ask state; either @code{nil} or @code{"subscribe"}
 
 @item groups
 A list of strings (possibly empty) containing all the groups the
@@ -2137,7 +2240,10 @@ contact is in
 Boolean, true if any resource is connected
 
 @item show
-Presence show status for highest-priority connected resource
+Presence show value for highest-priority connected resource; a string,
+one of @code{""} (i.e. online), @code{"away"}, @code{"xa"},
+@code{"dnd"}, @code{"chat"}, @code{"error"} and @code{nil}
+(i.e. offline)
 
 @item status
 Presence status message for highest-priority connected resource
@@ -2154,7 +2260,7 @@ information from the resource with the highest priority is inserted in
 @code{show} and @code{status} by the function
 @code{jabber-prioritize-resources}.
 
-@node Listening for new requests, Sending new requests, Roster structure, Hacking and extending
+@node Listening for new requests, Sending new requests, JID symbols, Hacking and extending
 @section Listening for new requests
 
 @findex jabber-send-iq
@@ -2166,7 +2272,8 @@ information from the resource with the highest priority is inserted in
 To listen for new IQ requests, add the appropriate entry in
 @code{jabber-iq-get-xmlns-alist} or @code{jabber-iq-set-xmlns-alist}.
 The key is the namespace of the request, and the value is a function
-that takes one argument, the entire IQ stanza in list format.
+that takes two arguments, the connection object, and
+the entire IQ stanza in list format.
 @code{jabber-process-iq} reads these alists to determine which
 function to call on incoming packets.
 
@@ -2174,62 +2281,71 @@ For example, the Ad-Hoc Commands module contains the following:
 
 @example
 (add-to-list 'jabber-iq-set-xmlns-alist
-	     (cons "http://jabber.org/protocol/commands" 'jabber-ahc-process))
+	     (cons "http://jabber.org/protocol/commands"
+                   'jabber-ahc-process))
 @end example
 
 To send a response to an IQ request, use @samp{(jabber-send-iq
-@var{sender} "result" @var{query} nil nil nil nil @var{id})}, where
-@var{query} is the query in list format.  @code{jabber-send-iq} will
-encapsulate the query in an IQ packet with the specified id.
+@var{connection} @var{sender} "result" @var{query} nil nil nil nil
+@var{id})}, where @var{query} is the query in list format.
+@code{jabber-send-iq} will encapsulate the query in an IQ packet with
+the specified id.
 
 To return an error to the Jabber entity that sent the query, use
 @code{jabber-signal-error}.  The signal is caught by
 @code{jabber-process-iq}, which takes care of sending the error.
+You can also use @code{jabber-send-iq-error}.
 
 @node Sending new requests, Extending service discovery, Listening for new requests, Hacking and extending
 @section Sending new requests
 
 @findex jabber-send-iq
 @findex jabber-process-iq
-@findex jabber-report-success
-@findex jabber-process-data
 
 To send an IQ request, use @code{jabber-send-iq}.  It will generate an
 id, and create a mapping for it for use when the response comes.  The
 syntax is:
 
 @example
-(jabber-send-iq @var{to} @var{type} @var{query}
+(jabber-send-iq @var{connection} @var{to} @var{type} @var{query}
                 @var{success-callback} @var{success-closure}
                 @var{failure-callback} @var{failure-closure})
 @end example
 
-Both callbacks take two arguments, the IQ stanza returned and the
-closure item mentioned here.
+@var{success-callback} will be called if the response is of type
+@samp{result}, and @var{failure-callback} will be called if the response
+is of type @samp{error}.  Both callbacks take three arguments, the
+connection object, the IQ stanza of the response, and the corresponding
+closure item earlier passed to @code{jabber-send-iq}.
 
-Two standard callbacks are provided.  @code{jabber-report-success}
-takes a string as closure item, and reports success or failure in the
-echo area.  @code{jabber-process-data} prepares a browse buffer.  If
-its closure argument is a function, it calls that function with point
-in this browse buffer.  If it's a string, it prints that string along
-with the error message in the IQ response.  If it's anything else
+@findex jabber-report-success
+@findex jabber-process-data
+Two standard callbacks are provided.  @code{jabber-report-success} takes
+a string as closure item, and reports success or failure in the echo
+area by appending either @samp{succeeded} or @samp{failed} to the
+string.  @code{jabber-process-data} prepares a browse buffer.  If its
+closure argument is a function, it calls that function with point in
+this browse buffer.  If it's a string, it prints that string along with
+the error message in the IQ response.  If it's anything else
 (e.g. @code{nil}), it just dumps the XML in the browse buffer.
 
 Examples follow.  This is the hypothetical Jabber protocol ``frob'',
 for which only success report is needed:
 @example
-(jabber-send-iq "someone@@somewhere.org" "set"
+(jabber-send-iq connection
+                "someone@@somewhere.org" "set"
                 '(query ((xmlns . "frob")))
                 'jabber-report-success "Frobbing"
                 'jabber-report-success "Frobbing")
 @end example
-This will print ``Frobbing succeeded'' or ``Frobbing failed: reason'',
+This will print ``Frobbing succeeded'' or ``Frobbing failed: @var{reason}'',
 respectively, in the echo area.
 
 The protocol ``investigate'' needs to parse results and show them in a
 browse buffer:
 @example
-(jabber-send-iq "someone@@somewhere.org" "get"
+(jabber-send-iq connection
+                "someone@@somewhere.org" "get"
                 '(query ((xmlns . "investigate")))
                 'jabber-process-data 'jabber-process-investigate
                 'jabber-process-data "Investigation failed")
