@@ -1,7 +1,7 @@
 ;; jabber-keepalive.el - try to detect lost connection
 
+;; Copyright (C) 2004, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2007 - Detlev Zundel - dzu@gnu.org
-;; Copyright (C) 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -108,7 +108,7 @@ for all accounts regardless of the argument."
 	     (current-time-string)
 	     (plist-get (fsm-get-state-data c) :server))
 
-    (run-hooks jabber-lost-connection-hook)
+    (run-hooks jabber-lost-connection-hooks c)
     (jabber-disconnect-one c nil)))
 
 (provide 'jabber-keepalive)

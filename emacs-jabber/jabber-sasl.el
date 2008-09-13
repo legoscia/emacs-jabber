@@ -56,7 +56,7 @@
 			  :test #'string=)))
 	  (if node
 	      (fsm-send jc :use-legacy-auth-instead)
-	    (message "No suitable SASL mechanism found")
+	    (message "Authentication failure: no suitable SASL mechanism found")
 	    (fsm-send jc :authentication-failure)))
 
       ;; Watch for plaintext logins over unencrypted connections
