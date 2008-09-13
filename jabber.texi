@@ -1946,7 +1946,7 @@ function.  This function should look like:
    )
 @end example
 
-@var{who} is the JID symbol (@pxref{Roster structure}),
+@var{who} is the JID symbol (@pxref{JID symbols}),
 @var{oldstatus} and @var{newstatus} are the previous and current
 stati, respectively, and @var{statustext} is the status message if
 provided, otherwise nil.
@@ -1983,7 +1983,7 @@ really ugly.}  This function should look like:
    )
 @end example
 
-@var{from} is the JID symbol (@pxref{Roster structure}), @var{buffer}
+@var{from} is the JID symbol (@pxref{JID symbols}), @var{buffer}
 is the buffer where the message is displayed, and @var{text} is the
 text of the message.
 
