@@ -471,6 +471,25 @@ This function uses `jabber-info-message-alist' to find a message."
 (define-personal-jabber-alert jabber-muc-switch)
 (define-personal-jabber-alert jabber-muc-display)
 
+(defcustom jabber-alert-autoanswer-alist nil
+  "Specific phrases to autoanswer on specific message.
+The keys are regexps matching the incoming message text, and the values are
+autoanswer phrase."
+  :type '(alist :key-type regexp :value-type string)
+  :group 'jabber-alerts)
+
+(defun jabber-autoanswer-answer (from buffer text proposed-alert)
+  "Answer automaticaly when incoming text matches first element
+of `jabber-alert-autoanswer-alist'"
+  (when (and proposed-alert jabber-alert-autoanswer-alist)
+    (let ((message
+           (dolist (entry jabber-alert-autoanswer-alist)
+             (when (string-match (car entry) text)
+               (return (cdr entry))))))
+      (if message
+          (jabber-chat-send jabber-buffer-connection message)))
+    ))
+
 (provide 'jabber-alert)
 
 ;;; arch-tag: 725bd73e-c613-4fdc-a11d-3392a7598d4f
