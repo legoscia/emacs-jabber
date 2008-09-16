@@ -489,6 +489,7 @@ of `jabber-alert-autoanswer-alist'"
       (if message
           (jabber-chat-send jabber-buffer-connection message)))
     ))
+(pushnew 'jabber-autoanswer-answer (get 'jabber-alert-message-hooks 'custom-options))
 
 (provide 'jabber-alert)
 
