@@ -491,6 +491,19 @@ of `jabber-alert-autoanswer-alist'"
     ))
 (pushnew 'jabber-autoanswer-answer (get 'jabber-alert-message-hooks 'custom-options))
 
+(defun jabber-autoanswer-answer-muc (nick group buffer text proposed-alert)
+  "Answer automaticaly when incoming text matches first element
+of `jabber-alert-autoanswer-alist'"
+  (when (and proposed-alert jabber-alert-autoanswer-alist)
+    (let ((message
+           (dolist (entry jabber-alert-autoanswer-alist)
+             (when (string-match (car entry) text)
+               (return (cdr entry))))))
+      (if message
+          (jabber-chat-send jabber-buffer-connection message)))
+    ))
+(pushnew 'jabber-autoanswer-answer-muc (get 'jabber-alert-muc-hooks 'custom-options))
+
 (provide 'jabber-alert)
 
 ;;; arch-tag: 725bd73e-c613-4fdc-a11d-3392a7598d4f
