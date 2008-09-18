@@ -1914,6 +1914,11 @@ The @code{festival} alerts speak the message using the Emacs interface
 of the Festival speech synthesis system@footnote{See
 @uref{http://www.cstr.ed.ac.uk/projects/festival/}.}.
 
+@cindex Autoanswerer
+The @code{autoanswer} alert is kind of special: it will not show you
+message/muc alert, but instead will automaticaly answer to sender. See
+variable `jabber-autoanswer-alist' description for details.
+
 @cindex Scroll chat buffers
 Additionally, for one-to-one and MUC messages, there are @code{scroll}
 alerts (enabled by default), that aim to do the right thing with chat
