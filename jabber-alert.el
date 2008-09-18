@@ -471,6 +471,39 @@ This function uses `jabber-info-message-alist' to find a message."
 (define-personal-jabber-alert jabber-muc-switch)
 (define-personal-jabber-alert jabber-muc-display)
 
+(defcustom jabber-autoanswer-alist nil
+  "Specific phrases to autoanswer on specific message.
+The keys are regexps matching the incoming message text, and the values are
+autoanswer phrase."
+  :type '(alist :key-type regexp :value-type string)
+  :group 'jabber-alerts)
+
+(defun jabber-autoanswer-answer (from buffer text proposed-alert)
+  "Answer automaticaly when incoming text matches first element
+of `jabber-autoanswer-alist'"
+  (when (and proposed-alert jabber-autoanswer-alist)
+    (let ((message
+           (dolist (entry jabber-autoanswer-alist)
+             (when (string-match (car entry) text)
+               (return (cdr entry))))))
+      (if message
+          (jabber-chat-send jabber-buffer-connection message)))
+    ))
+(pushnew 'jabber-autoanswer-answer (get 'jabber-alert-message-hooks 'custom-options))
+
+(defun jabber-autoanswer-answer-muc (nick group buffer text proposed-alert)
+  "Answer automaticaly when incoming text matches first element
+of `jabber-autoanswer-alist'"
+  (when (and proposed-alert jabber-autoanswer-alist)
+    (let ((message
+           (dolist (entry jabber-autoanswer-alist)
+             (when (string-match (car entry) text)
+               (return (cdr entry))))))
+      (if message
+          (jabber-chat-send jabber-buffer-connection message)))
+    ))
+(pushnew 'jabber-autoanswer-answer-muc (get 'jabber-alert-muc-hooks 'custom-options))
+
 (provide 'jabber-alert)
 
 ;;; arch-tag: 725bd73e-c613-4fdc-a11d-3392a7598d4f
