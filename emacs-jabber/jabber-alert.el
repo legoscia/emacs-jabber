@@ -471,7 +471,7 @@ This function uses `jabber-info-message-alist' to find a message."
 (define-personal-jabber-alert jabber-muc-switch)
 (define-personal-jabber-alert jabber-muc-display)
 
-(defcustom jabber-alert-autoanswer-alist nil
+(defcustom jabber-autoanswer-alist nil
   "Specific phrases to autoanswer on specific message.
 The keys are regexps matching the incoming message text, and the values are
 autoanswer phrase."
@@ -480,10 +480,10 @@ autoanswer phrase."
 
 (defun jabber-autoanswer-answer (from buffer text proposed-alert)
   "Answer automaticaly when incoming text matches first element
-of `jabber-alert-autoanswer-alist'"
-  (when (and proposed-alert jabber-alert-autoanswer-alist)
+of `jabber-autoanswer-alist'"
+  (when (and proposed-alert jabber-autoanswer-alist)
     (let ((message
-           (dolist (entry jabber-alert-autoanswer-alist)
+           (dolist (entry jabber-autoanswer-alist)
              (when (string-match (car entry) text)
                (return (cdr entry))))))
       (if message
@@ -493,10 +493,10 @@ of `jabber-alert-autoanswer-alist'"
 
 (defun jabber-autoanswer-answer-muc (nick group buffer text proposed-alert)
   "Answer automaticaly when incoming text matches first element
-of `jabber-alert-autoanswer-alist'"
-  (when (and proposed-alert jabber-alert-autoanswer-alist)
+of `jabber-autoanswer-alist'"
+  (when (and proposed-alert jabber-autoanswer-alist)
     (let ((message
-           (dolist (entry jabber-alert-autoanswer-alist)
+           (dolist (entry jabber-autoanswer-alist)
              (when (string-match (car entry) text)
                (return (cdr entry))))))
       (if message
