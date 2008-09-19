@@ -589,14 +589,14 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	(setq foundp t)
 	
 	(when (eql mode :insert)
-	(let ((url (car (jabber-xml-node-children
-			 (car (jabber-xml-get-children x 'url)))))
-	      (desc (car (jabber-xml-node-children
-			  (car (jabber-xml-get-children x 'desc))))))
-	  (insert (jabber-propertize
-		   "URL: " 'face 'jabber-chat-prompt-system))
-	  (insert (format "%s <%s>" desc url))
-	  (insert "\n")))))
+	  (let ((url (car (jabber-xml-node-children
+			   (car (jabber-xml-get-children x 'url)))))
+		(desc (car (jabber-xml-node-children
+			    (car (jabber-xml-get-children x 'desc))))))
+	    (insert (jabber-propertize
+		     "URL: " 'face 'jabber-chat-prompt-system))
+	    (insert (format "%s <%s>" desc url))
+	    (insert "\n")))))
     foundp))
 
 (defun jabber-chat-goto-address (&rest ignore)
