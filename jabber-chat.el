@@ -599,10 +599,11 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	    (insert "\n")))))
     foundp))
 
-(defun jabber-chat-goto-address (&rest ignore)
+(defun jabber-chat-goto-address (xml-data who mode)
   "Call `goto-address' on the newly written text."
-  (ignore-errors 
-    (goto-address)))
+  (when (eq mode :insert)
+    (ignore-errors 
+      (goto-address))))
 
 ;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu
