@@ -440,17 +440,40 @@ else send defaults (see `jabber-send-default-presence')."
 		      ,@(when (and request (> (length request) 0))
 			  (list `(status () ,request))))))
 
+(defvar jabber-roster-group-history nil
+  "History of entered roster groups")
+
 (add-to-list 'jabber-jid-roster-menu
 	     (cons "Add/modify roster entry" 'jabber-roster-change))
 (defun jabber-roster-change (jc jid name groups)
   "Add or change a roster item."
   (interactive (let* ((jid (jabber-jid-symbol
 			    (jabber-read-jid-completing "Add/change JID: ")))
+		      (account (jabber-read-account))
 		      (name (get jid 'name))
-		      (groups (get jid 'groups)))
-		 (list (jabber-read-account)
+		      (groups (get jid 'groups))
+		      (all-groups
+		       (apply #'append
+			      (mapcar
+			       (lambda (j) (get j 'groups))
+			       (plist-get (fsm-get-state-data account) :roster)))))
+		 (when (string< emacs-version "22")
+		   ;; Older emacsen want the completion table to be an alist...
+		   (setq all-groups (mapcar #'list all-groups)))
+		 (list account
 		       jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
-		       (car (read-from-string (jabber-read-with-input-method (format "Groups: (default `%S') " groups) nil nil (format "%S" groups)))))))
+		       (delete ""
+			       (completing-read-multiple 
+				(format
+				 "Groups, comma-separated: (default %s) "
+				 (if groups
+				     (mapconcat #'identity groups ",")
+				   "none"))
+				all-groups
+				nil nil nil
+				'jabber-roster-group-history
+				(mapconcat #'identity groups ",")
+				t)))))
   ;; If new fields are added to the roster XML structure in a future standard,
   ;; they will be clobbered by this function.
   ;; XXX: specify account
