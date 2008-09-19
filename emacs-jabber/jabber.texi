@@ -1263,6 +1263,10 @@ set @code{jabber-activity-count-in-title} to t.  The format of the
 number can be changed through
 @code{jabber-activity-count-in-title-format}.
 
+To hide activity notifications for some contacts, use
+@code{jabber-activity-banned} variable - just add boring JIDs (as
+regexps) here.
+
 For complete customizability, write a hook function for
 @code{jabber-activity-update-hook}.  From that function, you can take
 action based on @code{jabber-activity-jids},
