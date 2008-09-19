@@ -123,6 +123,11 @@ there are unread messages which otherwise would be lost."
   :type 'boolean
   :group 'jabber-activity)
 
+(defcustom jabber-activity-banned nil
+  "List of regexps of banned JID"
+  :type '(repeat string)
+  :group 'jabber-activity)
+
 (defface jabber-activity-face
   '((t (:foreground "red" :weight bold)))
   "The face for displaying jabber-activity-string in the mode line"
@@ -209,10 +214,14 @@ least `jabber-activity-shorten-minimum' long."
       (get-buffer (jabber-muc-get-buffer jid))))
 
 (defun jabber-activity-show-p-default (jid)
-  "Returns t only if there is an invisible buffer for JID"
+  "Returns t only if there is an invisible buffer for JID
+and JID not in jabber-activity-banned"
   (let ((buffer (jabber-activity-find-buffer-name jid)))
     (and (buffer-live-p buffer)
-	 (not (get-buffer-window buffer 'visible)))))
+	 (not (get-buffer-window buffer 'visible))
+         (not (dolist (entry jabber-activity-banned)
+                (when (string-match entry jid)
+                  (return t)))))))
 
 (defun jabber-activity-make-name-alist ()
   "Rebuild `jabber-activity-name-alist' based on currently known JIDs"
