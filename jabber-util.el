@@ -611,8 +611,9 @@ See Info node `(jabber)XMPP URIs'."
     (cond
      ;; Join an MUC.
      ((string= method "join")
-      (jabber-groupchat-join
-       (jabber-read-account) jid (jabber-muc-read-my-nickname jid) t))
+      (let ((account (jabber-read-account)))
+	(jabber-groupchat-join
+	 account jid (jabber-muc-read-my-nickname account jid) t)))
      ;; Register with a service.
      ((string= method "register")
       (jabber-get-register (jabber-read-account) jid))
