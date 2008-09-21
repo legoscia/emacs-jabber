@@ -182,6 +182,7 @@ Trailing newlines are always removed, regardless of this variable."
 
 (defvar jabber-roster-mode-map 
   (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
     (set-keymap-parent map jabber-common-keymap)
     (define-key map [mouse-2] 'jabber-popup-combined-menu)
     (define-key map (kbd "TAB") 'jabber-go-to-next-jid)

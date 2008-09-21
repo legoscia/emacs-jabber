@@ -284,6 +284,9 @@ With double prefix argument, specify more connection details."
       ;; of connections.
       (setq jabber-connections
 	    (delq fsm jabber-connections))
+      (when jabber-mode-line-mode
+        (jabber-mode-line-presence-update))
+      (jabber-display-roster)
       ;; And let the FSM sleep...
       (list state-data nil))))
 

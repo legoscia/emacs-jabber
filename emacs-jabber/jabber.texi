@@ -1846,7 +1846,7 @@ etc.
 @cindex Alerts
 @cindex Scroll
 
-Twelve alerts are already written for all four alert categories.  These
+Thirteen alerts are already written for all four alert categories.  These
 all obey the result from the corresponding message function.
 
 The @code{beep} alerts simply sound the terminal bell by calling
@@ -1911,6 +1911,11 @@ The @code{osd} alerts send a message onto your screen using
 XOSD.@footnote{XOSD can be found at
 @uref{http://www.ignavus.net/software.html}.  You also need
 @file{osd.el} from @uref{http://www.brockman.se/software/osd.el}.}
+
+@cindex libnotify
+@cindex notification-daemon
+The @code{libnotify} alerts send a message onto your screen using
+@code{notification-daemon}.
 
 @cindex Festival speech synthesis
 @cindex Speech synthesis, Festival

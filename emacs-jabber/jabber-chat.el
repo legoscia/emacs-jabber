@@ -296,8 +296,8 @@ This function is idempotent."
 
 (defun jabber-process-chat (jc xml-data)
   "If XML-DATA is a one-to-one chat message, handle it as such."
-  ;; XXX: there's more to being a chat message than not being MUC.
-  ;; Maybe make independent predicate.
+  ;; For now, everything that is not a public MUC message is
+  ;; potentially a 1to1 chat message.
   (when (not (jabber-muc-message-p xml-data))
     ;; Note that we handle private MUC messages here.
     (let ((from (jabber-xml-get-attribute xml-data 'from))
@@ -305,19 +305,22 @@ This function is idempotent."
 	  (body-text (car (jabber-xml-node-children
 			   (car (jabber-xml-get-children
 				 xml-data 'body))))))
-      (with-current-buffer (if (jabber-muc-sender-p from)
-			       (jabber-muc-private-create-buffer
-				jc
-				(jabber-jid-user from)
-				(jabber-jid-resource from))
-			     (jabber-chat-create-buffer jc from))
-	;; Call alert hooks only when something is output
-	(when (or error-p
-		  (run-hook-with-args-until-success 'jabber-chat-printers xml-data :foreign :printp))
+      ;; First check if we would output anything for this stanza.
+      (when (or error-p
+		(run-hook-with-args-until-success 'jabber-chat-printers xml-data :foreign :printp))
+	;; If so, create chat buffer, if necessary...
+	(with-current-buffer (if (jabber-muc-sender-p from)
+				 (jabber-muc-private-create-buffer
+				  jc
+				  (jabber-jid-user from)
+				  (jabber-jid-resource from))
+			       (jabber-chat-create-buffer jc from))
+	  ;; ...add the message to the ewoc...
 	  (let ((node
 		 (ewoc-enter-last jabber-chat-ewoc (list (if error-p :error :foreign) xml-data :time (current-time)))))
 	    (jabber-maybe-print-rare-time node))
 
+	  ;; ...and call alert hooks.
 	  (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
 	    (run-hook-with-args hook
 				from (current-buffer) body-text
@@ -589,20 +592,21 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	(setq foundp t)
 	
 	(when (eql mode :insert)
-	(let ((url (car (jabber-xml-node-children
-			 (car (jabber-xml-get-children x 'url)))))
-	      (desc (car (jabber-xml-node-children
-			  (car (jabber-xml-get-children x 'desc))))))
-	  (insert (jabber-propertize
-		   "URL: " 'face 'jabber-chat-prompt-system))
-	  (insert (format "%s <%s>" desc url))
-	  (insert "\n")))))
+	  (let ((url (car (jabber-xml-node-children
+			   (car (jabber-xml-get-children x 'url)))))
+		(desc (car (jabber-xml-node-children
+			    (car (jabber-xml-get-children x 'desc))))))
+	    (insert (jabber-propertize
+		     "URL: " 'face 'jabber-chat-prompt-system))
+	    (insert (format "%s <%s>" desc url))
+	    (insert "\n")))))
     foundp))
 
-(defun jabber-chat-goto-address (&rest ignore)
+(defun jabber-chat-goto-address (xml-data who mode)
   "Call `goto-address' on the newly written text."
-  (ignore-errors 
-    (goto-address)))
+  (when (eq mode :insert)
+    (ignore-errors 
+      (goto-address))))
 
 ;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu
