@@ -401,6 +401,16 @@ This function is not called directly, but is the default for
 	     "")))
       (concat formattedname formattedstatus formattedtext)))))
 
+(defun jabber-presence-only-chat-open-message (who oldstatus newstatus statustext)
+  "This function returns the same as `jabber-presence-default-message' but only 
+if there is a chat buffer open for WHO, keeping the amount of presence messages 
+at a more manageable level when there are lots of users.
+
+This function is not called directly, but can be used as the value for
+`jabber-alert-presence-message-function'."
+  (when (get-buffer (jabber-chat-get-buffer (jabber-xml-get-attribute xml-data 'from)))
+    (jabber-presence-default-message who oldstatus newstatus statustext)))
+
 (defun jabber-presence-wave (who oldstatus newstatus statustext proposed-alert)
   "Play the wave file specified in `jabber-alert-presence-wave'"
   (when proposed-alert
