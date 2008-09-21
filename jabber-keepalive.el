@@ -51,6 +51,10 @@
 
 (defun jabber-keepalive-start (&optional jc)
   "Activate keepalive.
+That is, regularly send a ping request to the server, and
+disconnect if it doesn't answer.  See `jabber-keepalive-interval'
+and `jabber-keepalive-timeout'.
+
 The JC argument makes it possible to add this function to
 `jabber-post-connect-hooks'; it is ignored.  Keepalive is activated
 for all accounts regardless of the argument."
