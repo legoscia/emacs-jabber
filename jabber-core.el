@@ -68,10 +68,16 @@
 
 (defcustom jabber-post-connect-hooks '(jabber-send-current-presence
 				       jabber-muc-autojoin
-				       jabber-whitespace-ping-start)
+				       jabber-whitespace-ping-start
+				       jabber-vcard-avatars-find-current)
   "*Hooks run after successful connection and authentication.
 The functions should accept one argument, the connection object."
   :type 'hook
+  :options '(jabber-send-current-presence
+	     jabber-muc-autojoin
+	     jabber-whitespace-ping-start
+	     jabber-keepalive-start
+	     jabber-vcard-avatars-find-current)
   :group 'jabber-core)
 
 (defcustom jabber-pre-disconnect-hook nil
