@@ -118,10 +118,7 @@ Keys are full JIDs.")
     (when (not (string= old-hash new-hash))
       (puthash (jabber-connection-bare-jid jc)
 	       new-hash jabber-vcard-avatars-current-hash)
-      (jabber-vcard-avatars-send-presence jc))))
-
-(defun jabber-vcard-avatars-send-presence (jc)
-  (jabber-send-presence *jabber-current-show* *jabber-current-status* *jabber-current-priority*))
+      (jabber-send-current-presence jc))))
 
 (add-to-list 'jabber-presence-element-functions 'jabber-vcard-avatars-presence-element)
 (defun jabber-vcard-avatars-presence-element (jc)
