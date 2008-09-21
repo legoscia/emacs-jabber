@@ -132,7 +132,6 @@ configure a Google Talk account like this:
 (require 'jabber-version)
 (require 'jabber-ahc-presence)
 (require 'jabber-modeline)
-(require 'jabber-keepalive)
 (require 'jabber-watch)
 (require 'jabber-activity)
 (require 'jabber-vcard)
