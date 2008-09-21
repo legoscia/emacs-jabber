@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt0.20080920
+Release: alt0.20080921
 Name: emacs-jabber
 License: %gpl2plus
 Group: Networking/Instant messaging
@@ -79,6 +79,9 @@ install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 %doc %pkg_name.texi
 
 %changelog
+* Sun Sep 21 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080921
+- cvs-20080921
+
 * Sat Sep 20 2008 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt0.20080920
 - cvs-20080920
 
