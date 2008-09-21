@@ -656,7 +656,7 @@ group, else it is a JID."
 	      (let ((action
 		     `(lambda (&rest ignore) (interactive)
 			(jabber-groupchat-join jabber-buffer-connection ,group
-					       (jabber-muc-read-my-nickname ,jabber-buffer-connection ,group)))))
+					       (jabber-muc-read-my-nickname jabber-buffer-connection ,group)))))
 		(if (fboundp 'insert-button)
 		    (insert-button "Accept"
 				   'action action)
