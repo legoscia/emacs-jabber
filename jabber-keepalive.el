@@ -85,7 +85,8 @@ for all accounts regardless of the argument."
     ;; Whether we get an error or not is not interesting.
     ;; Getting a response at all is.
     (jabber-send-iq c nil "get"
-		    '(query ((xmlns . "jabber:iq:time")))
+		    ;; "ping" is XEP-0199
+		    '(query ((xmlns . "urn:xmpp:ping")))
 		    'jabber-keepalive-got-response nil
 		    'jabber-keepalive-got-response nil)))
 
