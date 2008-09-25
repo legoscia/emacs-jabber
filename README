@@ -29,26 +29,25 @@ and patches are very welcome.
 
 SASL
 ====
-jabber.el will use the SASL library of FLIM (Faithful Library about
-Internet Message; it is also included in newer versions of Gnus) if
-it's present.  If not, it will fall back to XEP-0077 authentication.
+jabber.el will use the SASL library of Emacs (from version 23) or Gnus
+(from No Gnus 0.3) if it's present.  If not, it will fall back to
+XEP-0077 authentication.
 
 TLS/SSL
 =======
-To get an encrypted connection, the most convenient option is to
-install starttls.el from Gnus (currently only present in the
-development version).  This requires GnuTLS to be installed, but
+To get an encrypted connection, the most convenient option is to use
+starttls.el (from Emacs 22 or Gnus 5.10).  This requires GnuTLS (in
+particular the command line tool gnutls-cli) to be installed, but
 requires no configuration at all.
 
-You can also use either tls.el (from Gnus) or ssl.el.  These are
-interfaces to GnuTLS and OpenSSL, respectively; use the appropriate
-one.  Recent versions of tls.el support both programs, though.  The
-version of ssl.el distributed with Gnus is outdated; use the one from
-W3 CVS instead:
+You can also use either tls.el (from Emacs 22 or Gnus 5.10) or ssl.el.
+These are interfaces to GnuTLS and OpenSSL, respectively; use the
+appropriate one.  Recent versions of tls.el support both programs,
+though.  The version of ssl.el distributed with Gnus is outdated; use
+the one from W3 CVS instead:
 http://cvs.savannah.gnu.org/viewcvs/w3/lisp/ssl.el?root=w3
 
-To actually use encryption with one of these libraries, customize the
-variables jabber-connection-type and jabber-connection-ssl-program.
+To use the latter form of encryption, customize jabber-account-list.
 
 Note that only the connection from you to the server is encrypted;
 there is no guarantee of other connections being encrypted.
