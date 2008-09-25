@@ -50,14 +50,24 @@
     ;; No suitable mechanism?
     (if (null mechanism)
 	;; Maybe we can use legacy authentication
-	(let ((node (find "http://jabber.org/features/iq-auth"
+	(let ((iq-auth (find "http://jabber.org/features/iq-auth"
 			  (jabber-xml-get-children stream-features 'auth)
-			  :key #'(lambda (node) (jabber-xml-get-attribute node 'xmlns))
-			  :test #'string=)))
-	  (if node
-	      (fsm-send jc :use-legacy-auth-instead)
+			  :key #'jabber-xml-get-xmlns
+			  :test #'string=))
+	      ;; Or maybe we have to use STARTTLS, but can't
+	      (starttls (find "urn:ietf:params:xml:ns:xmpp-tls"
+			      (jabber-xml-get-children stream-features 'starttls)
+			      :key #'jabber-xml-get-xmlns
+			      :test #'string=)))
+	  (cond
+	   (iq-auth
+	    (fsm-send jc :use-legacy-auth-instead))
+	   (starttls
+	    (message "STARTTLS encryption required, but disabled/non-functional at our end")
+	    (fsm-send jc :authentication-failure))
+	   (t
 	    (message "Authentication failure: no suitable SASL mechanism found")
-	    (fsm-send jc :authentication-failure)))
+	    (fsm-send jc :authentication-failure))))
 
       ;; Watch for plaintext logins over unencrypted connections
       (if (and (not (plist-get (fsm-get-state-data jc) :encrypted))
