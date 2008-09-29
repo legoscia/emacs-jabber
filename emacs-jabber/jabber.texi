@@ -1187,25 +1187,58 @@ contacts, respectively.
 
 @cindex Keepalive
 @cindex Detecting lost connections
-@findex jabber-keepalive-start
-@findex jabber-keepalive-stop
-@vindex jabber-keepalive-interval
-@vindex jabber-keepalive-timeout
 
 Sometimes network connections are lost without you noticing.  This is
 especially true with Jabber, as it is quite reasonable to keep the
 connection open for a long time without either sending or receiving
 any data.
 
-If you want to detect a lost connection earlier, you can use the
-keepalive functions.  Type @kbd{M-x jabber-keepalive-start} to start
-it, and @kbd{M-x jabber-keepalive-stop} to stop it.
+On the other hand, the server may want to do the same kind of
+detection, and may expect the client to send something at regular
+intervals.
 
-These functions work by asking your server for the time once in a
+If you want to detect a lost connection earlier, or make sure that the
+server doesn't drop your connection, you can use the
+keepalive functions.  These come in two flavours: whitespace pings and
+XMPP pings.
+
+@subsection Whitespace pings
+@cindex Whitespace pings
+
+A @dfn{whitespace ping} is a single space character sent to the server.
+This is often enough to make NAT devices consider the connection
+``alive'', and likewise for certain Jabber servers, e.g. Openfire.  It
+may also make the OS detect a lost connection faster---a TCP connection
+on which no data is sent or received is indistinguishable from a lost
+connection.
+
+@findex jabber-whitespace-ping-start
+@findex jabber-whitespace-ping-stop
+Type @kbd{M-x jabber-whitespace-ping-start} to start it, and @kbd{M-x
+jabber-whitespace-ping-stop} to stop it.  The former is in
+@code{jabber-post-connect-hooks} by default; @pxref{Hooks}.
+
+@vindex jabber-whitespace-ping-interval
+The frequency of whitespace pings is controlled by the variable
+@code{jabber-whitespace-ping-interval}.  The default value is once every
+30 seconds.
+
+@subsection XMPP pings
+
+These functions work by sending a ping request to your server once in a
 while (by default every ten minutes), and considering the connection
 lost if the server doesn't answer within reasonable time (by default
 20 seconds).
 
+@findex jabber-keepalive-start
+@findex jabber-keepalive-stop
+Type @kbd{M-x jabber-keepalive-start} to start
+it, and @kbd{M-x jabber-keepalive-stop} to stop it.  You may want to add
+@code{jabber-keepalive-start} to @code{jabber-post-connect-hooks};
+@pxref{Hooks}.
+
+@vindex jabber-keepalive-interval
+@vindex jabber-keepalive-timeout
 You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.

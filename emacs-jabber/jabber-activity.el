@@ -43,6 +43,7 @@
 (require 'jabber-alert)
 (require 'jabber-util)
 (require 'jabber-autoloads)
+(require 'jabber-muc-nick-completion)   ;we need jabber-muc-looks-like-personal-p
 (require 'cl)
 
 (defgroup jabber-activity nil
@@ -131,6 +132,11 @@ there are unread messages which otherwise would be lost."
 (defface jabber-activity-face
   '((t (:foreground "red" :weight bold)))
   "The face for displaying jabber-activity-string in the mode line"
+  :group 'jabber-activity)
+
+(defface jabber-activity-personal-face
+  '((t (:foreground "blue" :weight bold)))
+  "The face for displaying personal jabber-activity-string in the mode line"
   :group 'jabber-activity)
 
 (defvar jabber-activity-jids nil
@@ -243,9 +249,11 @@ if needed, and returns a (jid . string) pair suitable for the mode line"
 		       (cons jid (mapcar #'car jabber-activity-name-alist))))
 	(jabber-activity-lookup-name jid)))))
 
-(defun jabber-activity-mode-line-update ()
+(defun jabber-activity-mode-line-update (&optional group text presence)
   "Update the string shown in the mode line using `jabber-activity-make-string'
-on JIDs where `jabber-activity-show-p'"
+on JIDs where `jabber-activity-show-p'. Optional not-nil GROUP mean that message come from MUC.
+Optional TEXT used with one-to-one or MUC chats and may be used to identify personal MUC message.
+Optional PRESENCE mean personal presence request or alert."
   (setq jabber-activity-mode-string
   	(if jabber-activity-jids
 	    (mapconcat
@@ -253,7 +261,13 @@ on JIDs where `jabber-activity-show-p'"
 	       (let ((jump-to-jid (car x)))
 		 (jabber-propertize
 		  (cdr x)
-		  'face 'jabber-activity-face
+		  'face (if (or
+                             (and group text (jabber-muc-looks-like-personal-p text group)) ;MUC message
+                             (and (not group) text) ;one-to-one chat message
+                             presence               ;presence request/alert
+                             )
+                            'jabber-activity-personal-face
+                          'jabber-activity-face)
 		  ;; XXX: XEmacs doesn't have make-mode-line-mouse-map.
 		  ;; Is there another way to make this work?
 		  'local-map (when (fboundp 'make-mode-line-mouse-map)
@@ -286,19 +300,19 @@ on JIDs where `jabber-activity-show-p'"
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p from)
     (add-to-list 'jabber-activity-jids from)
-    (jabber-activity-mode-line-update)))
+    (jabber-activity-mode-line-update nil text)))
 
 (defun jabber-activity-add-muc (nick group buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p group)
     (add-to-list 'jabber-activity-jids group)
-    (jabber-activity-mode-line-update)))
+    (jabber-activity-mode-line-update group text)))
 
 (defun jabber-activity-presence (who oldstatus newstatus statustext proposed-alert)
   "Add a JID to mode line on subscription requests."
   (when (string= newstatus "subscribe")
     (add-to-list 'jabber-activity-jids (symbol-name who))
-    (jabber-activity-mode-line-update)))
+    (jabber-activity-mode-line-update nil nil t)))
 
 (defun jabber-activity-kill-hook ()
   "Query the user as to whether killing Emacs should be cancelled
