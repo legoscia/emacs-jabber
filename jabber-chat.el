@@ -22,7 +22,7 @@
 (require 'jabber-chatbuffer)
 (require 'jabber-history)
 (require 'jabber-autoloads)
-
+(require 'jabber-menu)                  ;we need jabber-jid-chat-menu
 (require 'ewoc)
 (eval-when-compile (require 'cl))
 
