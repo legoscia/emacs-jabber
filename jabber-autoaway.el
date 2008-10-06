@@ -85,6 +85,7 @@ This is used to detect whether the user has become unidle.")
   (when jabber-autoaway-verbose
     (apply #'message args)))
 
+;;;###autoload
 (defun jabber-autoaway-start (&optional ignored)
   "Start autoaway timer.
 The IGNORED argument is there so you can put this function in

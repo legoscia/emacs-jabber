@@ -77,7 +77,8 @@ The functions should accept one argument, the connection object."
 	     jabber-muc-autojoin
 	     jabber-whitespace-ping-start
 	     jabber-keepalive-start
-	     jabber-vcard-avatars-find-current)
+	     jabber-vcard-avatars-find-current
+	     jabber-autoaway-start)
   :group 'jabber-core)
 
 (defcustom jabber-pre-disconnect-hook nil
@@ -219,6 +220,9 @@ With double prefix argument, specify more connection details."
 	     (jabber-jid-server jid)
 	     (jabber-jid-resource jid)
 	     registerp password network-server port connection-type))))
+
+  (require 'jabber)
+
   (if (member (list username
 		    server)
 	      (mapcar
