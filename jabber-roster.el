@@ -224,6 +224,7 @@ bring up menus of actions.
 
 (put 'jabber-roster-mode 'mode-class 'special)
 
+;;;###autoload
 (defun jabber-switch-to-roster-buffer (&optional jc)
   "Switch to roster buffer.
 Optional JC argument is ignored; it's there so this function can
@@ -486,6 +487,7 @@ BUDDY is a JID symbol."
 				 resource-str)
 	    (insert "\n" resource-str)))))))
 
+;;;###autoload
 (defun jabber-roster-update (jc new-items changed-items deleted-items)
   "Update roster, in memory and on display.
 Add NEW-ITEMS, update CHANGED-ITEMS and remove DELETED-ITEMS, all
