@@ -30,7 +30,6 @@
   (interactive (list
 		(jabber-read-account)
 		(jabber-read-jid-completing "Request version of: " nil nil nil 'full)))
-  ;; XXX: you will not get any result unless you add the resource to the JID.
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:version")))
