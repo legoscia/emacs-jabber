@@ -1605,6 +1605,7 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @cindex JID
 @cindex Network server
 
+@vindex jabber-account-list
 All account settings reside in the variable @code{jabber-account-list}.
 Usually you only need to set the JID, in the form
 @samp{username@@server} (or @samp{username@@server/resource} to use a
