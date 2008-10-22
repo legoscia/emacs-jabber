@@ -1659,14 +1659,18 @@ Previous versions of jabber.el had the variables @code{jabber-username},
 @node Menu, Customizing the roster buffer, Account settings, Customization
 @section Menu
 
-@findex jabber-menu
+@vindex jabber-display-menu
 @cindex Menus
+There is a Jabber menu on the menu bar with some common commands.  By
+default, it is displayed only if you are connected, or if you have
+configured any accounts.  You can set the variable
+@code{jabber-display-menu} to @code{t} or @code{nil}, to have the menu
+displayed always or never, respectively.  The default behaviour
+corresponds to the setting @code{maybe}.
 
-If you want a Jabber menu on the menu bar with some common commands,
-type @kbd{M-x jabber-menu}.  You can remove it again with @kbd{C-u M-x
-jabber-menu}.  Unfortunately, this cannot be changed through Customize
-settings, so you need to add @code{(jabber-menu)} to your @file{.emacs}
-to enable it permanently.
+@findex jabber-menu
+Earlier, the way to have the menu appear was to call the function
+@code{jabber-menu}.  It still works, but is considered obsolete.
 
 @node Customizing the roster buffer, Customizing the chat buffer, Menu, Customization
 @section Customizing the roster buffer
