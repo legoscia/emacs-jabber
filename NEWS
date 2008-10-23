@@ -51,6 +51,9 @@ subscription" section in manual.
 ** Gmail notifications
 (Not documented nor autoloaded)
 
+** GConf-based installation of URI handler
+(Not documented yet)
+
 * New features in jabber.el 0.7.1
 
 ** STARTTLS

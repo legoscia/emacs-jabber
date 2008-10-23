@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<gconfschemafile>
+  <schemalist>
+    <schema>
+      <key>/schemas/desktop/gnome/url-handlers/xmpp/enabled</key>
+      <applyto>/desktop/gnome/url-handlers/xmpp/enabled</applyto>
+      <owner>emacs-jabber</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+        <short>Whether the specified command should handle "xmpp" URLs</short>
+        <long>True if the command specified in the "command" key should handle "xmpp" URLs.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/desktop/gnome/url-handlers/xmpp/command</key>
+      <applyto>/desktop/gnome/url-handlers/xmpp/command</applyto>
+      <owner>emacs-jabber</owner>
+      <type>string</type>
+      <default>@libexecdir@/xmppuri.sh "%s"</default>
+      <locale name="C">
+        <short>The handler for "xmpp" URLs</short>
+        <long>The command used to handle "xmpp" URLs, if enabled.</long>
+      </locale>
+    </schema>
+    <schema>
+      <key>/schemas/desktop/gnome/url-handlers/xmpp/needs_terminal</key>
+      <applyto>/desktop/gnome/url-handlers/xmpp/needs_terminal</applyto>
+      <owner>emacs-jabber</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+        <short>Run the command in a terminal</short>
+        <long>True if the command used to handle this type of URL should be run in a terminal.</long>
+      </locale>
+    </schema>
+  </schemalist>
+</gconfschemafile>
