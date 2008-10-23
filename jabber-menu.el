@@ -38,7 +38,7 @@ With prefix argument, remove it."
   (interactive "P")
   (setq jabber-display-menu (if remove nil t))
   (force-mode-line-update))
-(make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead")
+(make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead.")
 
 (define-key-after global-map
   [menu-bar jabber-menu]
