@@ -49,7 +49,7 @@ With prefix argument, remove it."
 
 (define-key jabber-menu
   [jabber-menu-connect]
-  '("Connect" . jabber-connect))
+  '("Connect" . jabber-connect-all))
 
 (define-key jabber-menu
   [jabber-menu-disconnect]
