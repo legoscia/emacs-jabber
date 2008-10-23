@@ -19,6 +19,9 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 'jabber-util)
+(require 'jabber-autoloads)
+
 (defvar jabber-menu (make-sparse-keymap "jabber-menu"))
 
 (defcustom jabber-display-menu 'maybe
@@ -45,7 +48,8 @@ With prefix argument, remove it."
   (list 'menu-item "Jabber" jabber-menu
 	:visible '(or (eq jabber-display-menu t)
 		      (and (eq jabber-display-menu 'maybe)
-			   (or jabber-account-list jabber-connections)))))
+			   (or jabber-account-list
+			       (bound-and-true-p jabber-connections))))))
 
 (define-key jabber-menu
   [jabber-menu-connect]
