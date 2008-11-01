@@ -119,19 +119,18 @@ window or at `fill-column', whichever is shorter."
   (save-excursion
     (let ((inhibit-read-only t)
 	  (width (window-width (get-buffer-window (current-buffer)))))
-      (save-restriction
-	(goto-char (point-min))
-	(let ((adaptive-fill-mode nil)) ;Why?  -sm
-	  (while (not (eobp))
-	    (end-of-line)
-	    (when (>= (current-column) (min fill-column width))
+      (goto-char (point-min))
+      (let ((adaptive-fill-mode nil))	;Why?  -sm
+	(while (not (eobp))
+	  (end-of-line)
+	  (when (>= (current-column) (min fill-column width))
+	    (save-restriction
 	      (narrow-to-region (min (1+ (point)) (point-max))
 				(point-at-bol))
-              (let ((goback (point-marker)))
-                (fill-paragraph nil)
-                (goto-char (marker-position goback)))
-	      (widen))
-	    (forward-line 1)))))))
+	      (let ((goback (point-marker)))
+		(fill-paragraph nil)
+		(goto-char (marker-position goback)))))
+	  (forward-line 1))))))
 
 (provide 'jabber-chatbuffer)
 ;; arch-tag: 917e5b60-5894-4c49-b3bc-12e1f97ffdc6
