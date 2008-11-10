@@ -1,6 +1,6 @@
 ;;; jabber-ft-common.el --- Common functions for sending and receiving files (JEP-0096)
 
-;; Copyright (C) 2006  Magnus Henoch
+;; Copyright (C) 2006, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
 
@@ -24,8 +24,10 @@
 					(when (executable-find "md5sum")
 					  (list (executable-find "md5sum"))))
   "The program to use to calculate MD5 sums of files.
-It should accept the file name as the only argument."
-  :type 'string
+The first item should be the name of the program, and the remaing
+items the arguments.  The file name is appended as the last
+argument."
+  :type '(repeat string)
   :group 'jabber)
 
 (defun jabber-ft-get-md5 (file-name)

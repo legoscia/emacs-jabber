@@ -1,7 +1,7 @@
 ;; jabber-menu.el - menu definitions
 
+;; Copyright (C) 2003, 2004, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2003, 2004 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
 
@@ -19,19 +19,41 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 'jabber-util)
+(require 'jabber-autoloads)
+
 (defvar jabber-menu (make-sparse-keymap "jabber-menu"))
+
+(defcustom jabber-display-menu 'maybe
+  "Decide whether the \"Jabber\" menu is displayed in the menu bar.
+If t, always display.
+If nil, never display.
+If maybe, display if any of `jabber-account-list' or `jabber-connections'
+is non-nil."
+  :group 'jabber
+  :type '(choice (const :tag "Never" nil)
+		 (const :tag "Always" t)
+		 (const :tag "When any accounts have been configured or connected" maybe)))
 
 (defun jabber-menu (&optional remove)
   "Put \"Jabber\" menu on menubar.
 With prefix argument, remove it."
   (interactive "P")
-  (define-key global-map
-    [menu-bar jabber-menu]
-    (and (not remove) (cons "Jabber" jabber-menu))))
+  (setq jabber-display-menu (if remove nil t))
+  (force-mode-line-update))
+(make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead.")
+
+(define-key-after global-map
+  [menu-bar jabber-menu]
+  (list 'menu-item "Jabber" jabber-menu
+	:visible '(or (eq jabber-display-menu t)
+		      (and (eq jabber-display-menu 'maybe)
+			   (or jabber-account-list
+			       (bound-and-true-p jabber-connections))))))
 
 (define-key jabber-menu
   [jabber-menu-connect]
-  '("Connect" . jabber-connect))
+  '("Connect" . jabber-connect-all))
 
 (define-key jabber-menu
   [jabber-menu-disconnect]
