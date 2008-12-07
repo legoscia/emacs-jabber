@@ -2432,9 +2432,10 @@ make them respond, add the appropriate entries to
 Both variables work in the same way.  They are alists, where the keys
 are the node names, and the values are lists of two items.
 
-The first item is the data to return --- either a list or a function
-taking the entire IQ stanza and returning a list, this list containing
-the XML nodes to include in the @code{<query/>} node in the response.
+The first item is the data to return --- either a list, or a function
+taking the connection object and the entire IQ stanza and returning a
+list; in either case this list contains the XML nodes to include in the
+@code{<query/>} node in the response.
 
 The second item is the access control function.  An access control
 function receives the JID as its only argument, and returns non-nil if
@@ -2442,7 +2443,7 @@ access is to be granted.  If nil is specified instead of a function,
 access is always granted.  One such function is provided,
 @code{jabber-my-jid-p}, which grants access for JIDs where the
 username and server (not necessarily resource) are equal to those of
-the user.
+the user, or one of the user's configured accounts.
 
 @node Chat printers, Stanza chains, Extending service discovery, Hacking and extending
 @section Chat printers
