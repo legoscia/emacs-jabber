@@ -2414,17 +2414,29 @@ UI taste.
 @node Extending service discovery, Chat printers, Sending new requests, Hacking and extending
 @section Service discovery
 
+Service discovery (XEP-0030) is a Jabber protocol for communicating
+features supported by a certain entity, and items affiliated with an
+entity.  jabber.el has APIs for both providing and requesting such
+information.
+
+
+@menu
+* Providing info::              
+* Requesting info::             
+@end menu
+
+@node Providing info, Requesting info, Extending service discovery, Extending service discovery
+@subsection Providing info
+
+Your new IQ request handlers will likely want to advertise their
+existence through service discovery.
+
 @vindex jabber-advertised-features
-@vindex jabber-disco-items-nodes
-@vindex jabber-disco-info-nodes
-@findex jabber-my-jid-p
-
-Your new handlers will likely want to advertise their existence
-through service discovery.
-
 To have an additional feature reported in response to disco info
 requests, add a string to @code{jabber-advertised-features}.
 
+@vindex jabber-disco-items-nodes
+@vindex jabber-disco-info-nodes
 By default, the service discovery functions reject all requests
 containing a node identifier with an ``Item not found'' error.  To
 make them respond, add the appropriate entries to
@@ -2437,13 +2449,72 @@ taking the connection object and the entire IQ stanza and returning a
 list; in either case this list contains the XML nodes to include in the
 @code{<query/>} node in the response.
 
+@findex jabber-my-jid-p
 The second item is the access control function.  An access control
-function receives the JID as its only argument, and returns non-nil if
-access is to be granted.  If nil is specified instead of a function,
-access is always granted.  One such function is provided,
-@code{jabber-my-jid-p}, which grants access for JIDs where the
-username and server (not necessarily resource) are equal to those of
-the user, or one of the user's configured accounts.
+function receives the connection object and a JID as arguments, and
+returns non-nil if access is to be granted.  If nil is specified
+instead of a function, access is always granted.  One such function is
+provided, @code{jabber-my-jid-p}, which grants access for JIDs where
+the username and server (not necessarily resource) are equal to those
+of the user, or one of the user's configured accounts.
+
+@node Requesting info,  , Providing info, Extending service discovery
+@subsection Requesting info
+
+jabber.el has a facility for requesting disco items and info.  All
+positive responses are cached.
+
+To request disco items or info from an entity, user one of these
+functions:
+
+@defun jabber-disco-get-info jc jid node callback closure-data &optional force
+Get disco information for @var{jid} and @var{node}.  A request is sent
+asynchronously on the connection @var{jc}.  When the response arrives,
+@var{callback} is called with three arguments: @var{jc},
+@var{closure-data}, and the result.  The result may be retrieved from
+the cache, unless @var{force} is non-nil.
+
+If the request was successful, or retrieved from cache, it looks like
+@code{(@var{identities} @var{features})}, where @var{identities} and
+@var{features} are lists.  Each identity is @code{["@var{name}"
+"@var{category}" "@var{type}"]}, and each feature is a string denoting
+the namespace of the feature.
+
+If the request failed, the result is an @code{<error/>} node.
+@end defun
+
+@defun jabber-disco-get-items jc jid node callback closure-data &optional force
+Get disco information for @var{jid} and @var{node}.  A request is sent
+asynchronously on the connection @var{jc}.  When the response arrives,
+@var{callback} is called with three arguments: @var{jc},
+@var{closure-data}, and the result.  The result may be retrieved from
+the cache, unless @var{force} is non-nil.
+
+If the request was successful, or retrieved from cache, the result is
+a list of items, where each item is @code{["@var{name}" "@var{jid}"
+"@var{node}"]}.  The values are either strings or nil.
+
+If the request failed, the result is an @code{<error/>} node.
+@end defun
+
+If you only want to see what is in the cache, use one of the following
+functions.  They don't use a callback, but return the result directly.
+
+@defun jabber-disco-get-info-immediately jid node
+Return cached disco information for @var{jid} and @var{node}, or nil
+if the cache doesn't contain this information.  The result is the same
+as for @code{jabber-disco-get-info}.
+@end defun
+
+@defun jabber-disco-get-items-immediately jid node
+Return cached disco items for @var{jid} and @var{node}, or nil
+if the cache doesn't contain this information.  The result is the same
+as for @code{jabber-disco-get-items}.
+@end defun
+
+In the future, this facility will be expanded to provide information
+acquired through XEP-0115, Entity capabilities, which is a protocol
+for sending disco information in @code{<presence/>} stanzas.
 
 @node Chat printers, Stanza chains, Extending service discovery, Hacking and extending
 @section Chat printers
