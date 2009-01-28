@@ -2531,8 +2531,12 @@ message in a chat buffer.  Included are functions for printing subjects
 (@code{jabber-chat-print-body}, and @code{jabber:x:oob}-style URLs
 (@code{jabber-chat-print-url}).  The functions in
 @code{jabber-chat-printers} are called in order, with the entire
-@code{<message/>} stanza as argument, and are expected to call
-@code{insert} if they have anything to add.
+@code{<message/>} stanza as argument.  As described in the docstring
+of @code{jabber-chat-printers}, these functions are run in one of two
+modes: @code{printp}, in which they are supposed to return true if
+they would print anything, and @code{insert}, in which they are
+supposed to actually print something, if appropriate, using the
+function @code{insert}.
 
 For MUC, the functions in @code{jabber-muc-printers} are prepended to
 those in @code{jabber-chat-printers}.
