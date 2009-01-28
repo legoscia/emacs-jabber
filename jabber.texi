@@ -2559,11 +2559,12 @@ returns non-nil.
 
 If you really need to get under the skin of jabber.el, you can add
 functions to the lists @code{jabber-message-chain},
-@code{jabber-iq-chain} and @code{jabber-presence-chain}.  The functions
-in these lists will be called in order when an XML stanza of the
-corresponding type arrives, with the entire XML stanza passed as the
-only argument.  Earlier functions can modify the stanza to change the
-behaviour of downstream functions.
+@code{jabber-iq-chain} and @code{jabber-presence-chain}.  The
+functions in these lists will be called in order when an XML stanza of
+the corresponding type arrives, with the connection object and the
+entire XML stanza passed as arguments.  Earlier functions can modify
+the stanza to change the behaviour of downstream functions, but
+remember: with great power comes great responsibility.
 
 @node Protocol support, Concept index, Hacking and extending, Top
 @appendix Protocol support
