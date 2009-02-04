@@ -111,7 +111,7 @@ indefinitely.  See `password-cache' and `password-cache-expiry'."
   :type 'integer
   :group 'jabber-core)
 
-(defcustom jabber-roster-buffer "*-jabber-*"
+(defcustom jabber-roster-buffer "*-jabber-roster-*"
   "The name of the roster buffer"
   :type 'string
   :group 'jabber-core)

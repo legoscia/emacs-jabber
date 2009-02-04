@@ -185,7 +185,7 @@ connect to the server as usual.
 
 Now, type @kbd{C-x C-j C-c} and enter your JID and password.  If you
 successfully connect, jabber.el will download your roster and display it
-in a buffer called @code{*-jabber-*}.
+in a buffer called @code{*-jabber-roster-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
 this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
@@ -387,9 +387,9 @@ roster buffer.
 @cindex Menus
 @cindex Key bindings
 
-The roster buffer is called @code{*-jabber-*}.  It simply contains a
-list of the contacts on your roster.  If you have several accounts
-connected, contacts will be grouped by account.
+The roster buffer is called @code{*-jabber-roster-*}.  It simply
+contains a list of the contacts on your roster.  If you have several
+accounts connected, contacts will be grouped by account.
 
 In the roster buffer, any command which requires a JID will default to
 the JID under point when called.  These commands can be called through
