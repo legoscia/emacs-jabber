@@ -282,7 +282,7 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
   "Uncache cached password for BARE-JID.
 Useful if the password proved to be wrong."
   (interactive (list (jabber-jid-user
-		      (completing-read "Forget password of account: " jabber-account-list))))
+		      (completing-read "Forget password of account: " jabber-account-list nil nil nil 'jabber-account-history))))
   (when (fboundp 'password-cache-remove)
     (password-cache-remove (jabber-password-key bare-jid))))
 
@@ -322,7 +322,7 @@ account."
                       (concat "Select Jabber account (default "
                               default
                               "): ")
-                      completions nil t nil nil
+                      completions nil t nil 'jabber-account-history
                       default)))
          (cdr (assoc input completions))))))))
 

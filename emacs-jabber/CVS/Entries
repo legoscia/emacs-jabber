@@ -27,7 +27,6 @@
 /jabber-logon.el/1.20/Wed Feb 20 01:22:18 2008//
 /jabber-modeline.el/1.7/Tue Mar 13 20:08:54 2007//
 /jabber-muc-nick-completion.el/1.12/Thu Jul 17 11:15:47 2008//
-/jabber-muc.el/1.82/Sun Sep 21 14:42:01 2008//
 /jabber-newdisco.el/1.6/Tue Jun 17 14:46:42 2008//
 /jabber-osd.el/1.3/Sun Apr 20 06:21:42 2008//
 /jabber-ourversion.el.in/1.1/Fri May 30 21:56:56 2008//
@@ -60,18 +59,19 @@ D/debian////
 D/gconf////
 D/m4////
 D/tests////
-/AUTHORS/1.18/Sat Dec 13 17:25:18 2008//
-/Makefile.am/1.9/Sat Dec 13 17:24:54 2008//
 /NEWS/1.71/Mon Nov 10 16:21:41 2008//
-/configure.ac/1.9/Sat Dec 13 17:24:54 2008//
 /jabber-autoaway.el/1.8/Mon Nov 10 16:21:41 2008//
 /jabber-chatbuffer.el/2.16/Mon Nov 10 16:21:41 2008//
-/jabber-core.el/1.99/Mon Nov 10 16:21:41 2008//
-/jabber-disco.el/1.15/Sat Dec 13 17:25:18 2008//
 /jabber-ft-common.el/1.3/Mon Nov 10 16:21:41 2008//
-/jabber-menu.el/1.9/Sat Dec 13 17:25:18 2008//
-/jabber-presence.el/1.52/Sat Dec 13 17:25:18 2008//
 /jabber-roster.el/1.58/Mon Nov 10 16:21:41 2008//
-/jabber-util.el/2.60/Sat Dec 13 17:25:21 2008//
 /jabber-version.el/1.14/Mon Nov 10 16:21:41 2008//
-/jabber.texi/1.138/Sat Dec 13 17:25:21 2008//
+/AUTHORS/1.18/Sun Feb 15 15:20:51 2009//
+/Makefile.am/1.9/Sun Feb 15 15:20:51 2009//
+/configure.ac/1.9/Sun Feb 15 15:20:51 2009//
+/jabber-core.el/1.101/Sun Feb 15 15:21:10 2009//
+/jabber-disco.el/1.15/Sun Feb 15 15:20:51 2009//
+/jabber-menu.el/1.9/Sun Feb 15 15:20:51 2009//
+/jabber-muc.el/1.83/Sun Feb 15 15:21:10 2009//
+/jabber-presence.el/1.53/Sun Feb 15 15:21:10 2009//
+/jabber-util.el/2.61/Sun Feb 15 15:21:11 2009//
+/jabber.texi/1.142/Sun Feb 15 15:21:11 2009//

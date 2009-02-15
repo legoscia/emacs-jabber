@@ -111,7 +111,7 @@ indefinitely.  See `password-cache' and `password-cache-expiry'."
   :type 'integer
   :group 'jabber-core)
 
-(defcustom jabber-roster-buffer "*-jabber-*"
+(defcustom jabber-roster-buffer "*-jabber-roster-*"
   "The name of the roster buffer"
   :type 'string
   :group 'jabber-core)
@@ -132,6 +132,12 @@ problems."
 (defsubst jabber-have-sasl-p ()
   "Return non-nil if SASL functions are available."
   (featurep 'sasl))
+
+(defvar jabber-account-history ()
+  "Keeps track of previously used jabber accounts")
+
+(defvar jabber-connection-type-history ()
+  "Keeps track of previously used connection types")
 
 ;; jabber-connect and jabber-connect-all should load jabber.el, not
 ;; just jabber-core.el, when autoloaded.
@@ -185,7 +191,7 @@ With many prefix arguments, one less is passed to `jabber-connect'."
 With prefix argument, register a new account.
 With double prefix argument, specify more connection details."
   (interactive
-   (let* ((jid (completing-read "Enter your JID: " jabber-account-list))
+   (let* ((jid (completing-read "Enter your JID: " jabber-account-list nil nil nil 'jabber-account-history))
 	  (entry (assoc jid jabber-account-list))
 	  (alist (cdr entry))
 	  password network-server port connection-type registerp)
@@ -222,7 +228,7 @@ With double prefix argument, specify more connection details."
 		    (mapcar (lambda (type)
 			      (cons (symbol-name (car type)) nil))
 			    jabber-connect-methods)
-		    nil t nil nil default)))))
+		    nil t nil 'jabber-connection-type-history default)))))
 	 (setq registerp (yes-or-no-p "Register new account? ")))
        (when (equal current-prefix-arg '(4))
 	 (setq registerp t))
