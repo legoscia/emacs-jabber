@@ -21,9 +21,64 @@
 
 (require 'jabber-util)
 (require 'jabber-autoloads)
+(eval-when-compile (require 'cl))
 
-(defvar jabber-menu (make-sparse-keymap "jabber-menu"))
+;;;###autoload
+(defvar jabber-menu
+  (let ((map (make-sparse-keymap "jabber-menu")))
+    (define-key map
+      [jabber-menu-connect]
+      '("Connect" . jabber-connect-all))
 
+    (define-key map
+      [jabber-menu-disconnect]
+      '("Disconnect" . jabber-disconnect))
+
+    (define-key map
+      [jabber-menu-roster]
+      '("Switch to roster" . jabber-switch-to-roster-buffer))
+
+    (define-key map
+      [jabber-menu-customize]
+      '("Customize" . jabber-customize))
+
+    (define-key map
+      [jabber-menu-info]
+      '("Help" . jabber-info))
+
+    (define-key map
+      [jabber-menu-status]
+      (cons "Set Status" (make-sparse-keymap "set-status")))
+    
+    (define-key map
+      [jabber-menu-status jabber-menu-status-chat]
+      '("Chatty" .
+	(lambda ()
+	  (interactive)
+	  (jabber-send-presence "chat"
+				(jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
+				*jabber-current-priority*))))
+    (define-key map
+      [jabber-menu-status jabber-menu-status-dnd]
+      '("Do not Disturb" .
+	(lambda ()
+	  (interactive)
+	  (jabber-send-presence "dnd"
+				(jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
+				*jabber-current-priority*))))
+    (define-key map
+      [jabber-menu-status jabber-menu-status-xa]
+      '("Extended Away" . jabber-send-xa-presence))
+    (define-key map
+      [jabber-menu-status jabber-menu-status-away]
+      '("Away" . jabber-send-away-presence))
+    (define-key map
+      [jabber-menu-status jabber-menu-status-online]
+      '("Online" . jabber-send-default-presence))
+
+    map))
+
+;;;###autoload
 (defcustom jabber-display-menu 'maybe
   "Decide whether the \"Jabber\" menu is displayed in the menu bar.
 If t, always display.
@@ -43,6 +98,7 @@ With prefix argument, remove it."
   (force-mode-line-update))
 (make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead.")
 
+;;;###autoload
 (define-key-after global-map
   [menu-bar jabber-menu]
   (list 'menu-item "Jabber" jabber-menu
@@ -50,59 +106,6 @@ With prefix argument, remove it."
 		      (and (eq jabber-display-menu 'maybe)
 			   (or jabber-account-list
 			       (bound-and-true-p jabber-connections))))))
-
-(define-key jabber-menu
-  [jabber-menu-connect]
-  '("Connect" . jabber-connect-all))
-
-(define-key jabber-menu
-  [jabber-menu-disconnect]
-  '("Disconnect" . jabber-disconnect))
-
-(define-key jabber-menu
-    [jabber-menu-roster]
-  '("Switch to roster" . jabber-switch-to-roster-buffer))
-
-(define-key jabber-menu
-  [jabber-menu-customize]
-  '("Customize" . jabber-customize))
-
-(define-key jabber-menu
-  [jabber-menu-info]
-  '("Help" . jabber-info))
-
-(define-key jabber-menu
-  [jabber-menu-status]
-  (cons "Set Status" (make-sparse-keymap "set-status")))
-
-(defmacro jabber-define-status-key (title show)
-  (list 'let (list ( list 'func (list 'make-symbol (list 'concat "jabber-send-presence-" show)))
-		   (list 'menu-item (list 'make-symbol (list 'concat "jabber-menu-status-" show))))
-	(list 'fset 'func `(lambda () (interactive)
-			     (jabber-send-presence ,show
-						   (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-						   (format "%d" *jabber-current-priority*))))
-	(list 'define-key 'jabber-menu
-	      (list 'vector ''jabber-menu-status 'menu-item)
-	      (list 'cons title 'func))))
-
-;;;(dolist (presence jabber-presence-strings)
-;;;  (jabber-define-status-key (cdr presence) (car presence)))
-;;(jabber-define-status-key "Online" "")
-
-(jabber-define-status-key "Chatty" "chat")
-;;(jabber-define-status-key "Away" "away")
-;;(jabber-define-status-key "Extended Away" "xa")
-(jabber-define-status-key "Do not Disturb" "dnd")
-(define-key jabber-menu
-    [jabber-menu-status jabber-menu-status-xa]
-  '("Extended Away" . jabber-send-xa-presence))
-(define-key jabber-menu
-    [jabber-menu-status jabber-menu-status-away]
-  '("Away" . jabber-send-away-presence))
-(define-key jabber-menu
-    [jabber-menu-status jabber-menu-status-online]
-  '("Online" . jabber-send-default-presence))
 
 (defvar jabber-jid-chat-menu nil
   "Menu items for chat menu")

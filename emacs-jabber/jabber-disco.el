@@ -1,6 +1,6 @@
 ;; jabber-disco.el - service discovery functions
 
-;; Copyright (C) 2003, 2004, 2007 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -144,7 +144,7 @@ See JEP-0030."
 	 (access-control (nth 1 return-list)))
     (if return-list
 	(if (and (functionp access-control)
-		 (not (funcall access-control to)))
+		 (not (funcall access-control jc to)))
 	    (jabber-signal-error "cancel" 'not-allowed)
 	  ;; Access control passed
 	  (let ((result (if (functionp func)

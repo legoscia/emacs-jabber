@@ -185,7 +185,7 @@ connect to the server as usual.
 
 Now, type @kbd{C-x C-j C-c} and enter your JID and password.  If you
 successfully connect, jabber.el will download your roster and display it
-in a buffer called @code{*-jabber-*}.
+in a buffer called @code{*-jabber-roster-*}.
 
 By default, you will appear as ``online'' to your contacts.  To change
 this to e.g. ``away'', type @kbd{M-x jabber-send-presence} or @kbd{C-x
@@ -387,9 +387,9 @@ roster buffer.
 @cindex Menus
 @cindex Key bindings
 
-The roster buffer is called @code{*-jabber-*}.  It simply contains a
-list of the contacts on your roster.  If you have several accounts
-connected, contacts will be grouped by account.
+The roster buffer is called @code{*-jabber-roster-*}.  It simply
+contains a list of the contacts on your roster.  If you have several
+accounts connected, contacts will be grouped by account.
 
 In the roster buffer, any command which requires a JID will default to
 the JID under point when called.  These commands can be called through
@@ -2414,17 +2414,29 @@ UI taste.
 @node Extending service discovery, Chat printers, Sending new requests, Hacking and extending
 @section Service discovery
 
+Service discovery (XEP-0030) is a Jabber protocol for communicating
+features supported by a certain entity, and items affiliated with an
+entity.  jabber.el has APIs for both providing and requesting such
+information.
+
+
+@menu
+* Providing info::              
+* Requesting info::             
+@end menu
+
+@node Providing info, Requesting info, Extending service discovery, Extending service discovery
+@subsection Providing info
+
+Your new IQ request handlers will likely want to advertise their
+existence through service discovery.
+
 @vindex jabber-advertised-features
-@vindex jabber-disco-items-nodes
-@vindex jabber-disco-info-nodes
-@findex jabber-my-jid-p
-
-Your new handlers will likely want to advertise their existence
-through service discovery.
-
 To have an additional feature reported in response to disco info
 requests, add a string to @code{jabber-advertised-features}.
 
+@vindex jabber-disco-items-nodes
+@vindex jabber-disco-info-nodes
 By default, the service discovery functions reject all requests
 containing a node identifier with an ``Item not found'' error.  To
 make them respond, add the appropriate entries to
@@ -2432,17 +2444,77 @@ make them respond, add the appropriate entries to
 Both variables work in the same way.  They are alists, where the keys
 are the node names, and the values are lists of two items.
 
-The first item is the data to return --- either a list or a function
-taking the entire IQ stanza and returning a list, this list containing
-the XML nodes to include in the @code{<query/>} node in the response.
+The first item is the data to return --- either a list, or a function
+taking the connection object and the entire IQ stanza and returning a
+list; in either case this list contains the XML nodes to include in the
+@code{<query/>} node in the response.
 
+@findex jabber-my-jid-p
 The second item is the access control function.  An access control
-function receives the JID as its only argument, and returns non-nil if
-access is to be granted.  If nil is specified instead of a function,
-access is always granted.  One such function is provided,
-@code{jabber-my-jid-p}, which grants access for JIDs where the
-username and server (not necessarily resource) are equal to those of
-the user.
+function receives the connection object and a JID as arguments, and
+returns non-nil if access is to be granted.  If nil is specified
+instead of a function, access is always granted.  One such function is
+provided, @code{jabber-my-jid-p}, which grants access for JIDs where
+the username and server (not necessarily resource) are equal to those
+of the user, or one of the user's configured accounts.
+
+@node Requesting info,  , Providing info, Extending service discovery
+@subsection Requesting info
+
+jabber.el has a facility for requesting disco items and info.  All
+positive responses are cached.
+
+To request disco items or info from an entity, user one of these
+functions:
+
+@defun jabber-disco-get-info jc jid node callback closure-data &optional force
+Get disco information for @var{jid} and @var{node}.  A request is sent
+asynchronously on the connection @var{jc}.  When the response arrives,
+@var{callback} is called with three arguments: @var{jc},
+@var{closure-data}, and the result.  The result may be retrieved from
+the cache, unless @var{force} is non-nil.
+
+If the request was successful, or retrieved from cache, it looks like
+@code{(@var{identities} @var{features})}, where @var{identities} and
+@var{features} are lists.  Each identity is @code{["@var{name}"
+"@var{category}" "@var{type}"]}, and each feature is a string denoting
+the namespace of the feature.
+
+If the request failed, the result is an @code{<error/>} node.
+@end defun
+
+@defun jabber-disco-get-items jc jid node callback closure-data &optional force
+Get disco information for @var{jid} and @var{node}.  A request is sent
+asynchronously on the connection @var{jc}.  When the response arrives,
+@var{callback} is called with three arguments: @var{jc},
+@var{closure-data}, and the result.  The result may be retrieved from
+the cache, unless @var{force} is non-nil.
+
+If the request was successful, or retrieved from cache, the result is
+a list of items, where each item is @code{["@var{name}" "@var{jid}"
+"@var{node}"]}.  The values are either strings or nil.
+
+If the request failed, the result is an @code{<error/>} node.
+@end defun
+
+If you only want to see what is in the cache, use one of the following
+functions.  They don't use a callback, but return the result directly.
+
+@defun jabber-disco-get-info-immediately jid node
+Return cached disco information for @var{jid} and @var{node}, or nil
+if the cache doesn't contain this information.  The result is the same
+as for @code{jabber-disco-get-info}.
+@end defun
+
+@defun jabber-disco-get-items-immediately jid node
+Return cached disco items for @var{jid} and @var{node}, or nil
+if the cache doesn't contain this information.  The result is the same
+as for @code{jabber-disco-get-items}.
+@end defun
+
+In the future, this facility will be expanded to provide information
+acquired through XEP-0115, Entity capabilities, which is a protocol
+for sending disco information in @code{<presence/>} stanzas.
 
 @node Chat printers, Stanza chains, Extending service discovery, Hacking and extending
 @section Chat printers
@@ -2459,8 +2531,12 @@ message in a chat buffer.  Included are functions for printing subjects
 (@code{jabber-chat-print-body}, and @code{jabber:x:oob}-style URLs
 (@code{jabber-chat-print-url}).  The functions in
 @code{jabber-chat-printers} are called in order, with the entire
-@code{<message/>} stanza as argument, and are expected to call
-@code{insert} if they have anything to add.
+@code{<message/>} stanza as argument.  As described in the docstring
+of @code{jabber-chat-printers}, these functions are run in one of two
+modes: @code{printp}, in which they are supposed to return true if
+they would print anything, and @code{insert}, in which they are
+supposed to actually print something, if appropriate, using the
+function @code{insert}.
 
 For MUC, the functions in @code{jabber-muc-printers} are prepended to
 those in @code{jabber-chat-printers}.
@@ -2483,11 +2559,12 @@ returns non-nil.
 
 If you really need to get under the skin of jabber.el, you can add
 functions to the lists @code{jabber-message-chain},
-@code{jabber-iq-chain} and @code{jabber-presence-chain}.  The functions
-in these lists will be called in order when an XML stanza of the
-corresponding type arrives, with the entire XML stanza passed as the
-only argument.  Earlier functions can modify the stanza to change the
-behaviour of downstream functions.
+@code{jabber-iq-chain} and @code{jabber-presence-chain}.  The
+functions in these lists will be called in order when an XML stanza of
+the corresponding type arrives, with the connection object and the
+entire XML stanza passed as arguments.  Earlier functions can modify
+the stanza to change the behaviour of downstream functions, but
+remember: with great power comes great responsibility.
 
 @node Protocol support, Concept index, Hacking and extending, Top
 @appendix Protocol support

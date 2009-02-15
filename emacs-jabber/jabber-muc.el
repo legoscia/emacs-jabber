@@ -49,6 +49,15 @@ Values are lists of nickname strings.")
 (defvar jabber-muc-topic ""
   "The topic of the current MUC room.")
 
+(defvar jabber-role-history ()
+  "Keeps track of previously used roles")
+
+(defvar jabber-affiliation-history ()
+  "Keeps track of previously used affiliations")
+
+(defvar jabber-muc-nickname-history ()
+  "Keeps track of previously referred-to nicknames")
+
 ;;;###autoload
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
@@ -349,7 +358,7 @@ JID; only provide completion as a guide."
   (let ((nicknames (cdr (assoc group jabber-muc-participants))))
     (unless nicknames
       (error "Unknown group: %s" group))
-    (completing-read prompt nicknames nil t)))
+    (completing-read prompt nicknames nil t nil 'jabber-muc-nickname-history)))
 
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
@@ -564,7 +573,7 @@ groupchat buffer."
    (jabber-muc-argument-list
     (let ((nickname (jabber-muc-read-nickname jabber-group "Nickname: ")))
       (list nickname
-	    (completing-read "New role: " '(("none") ("visitor") ("participant") ("moderator")) nil t)
+	    (completing-read "New role: " '(("none") ("visitor") ("participant") ("moderator")) nil t nil 'jabber-role-history)
 	    (read-string "Reason: ")))))
   (unless (or (zerop (length nickname)) (zerop (length role)))
     (jabber-send-iq jc group "set"
@@ -592,7 +601,7 @@ group, else it is a JID."
 	 (jabber-read-jid-completing "User: "))
        nickname-p
        (completing-read "New affiliation: "
-			'(("none") ("outcast") ("member") ("admin") ("owner")) nil t)
+			'(("none") ("outcast") ("member") ("admin") ("owner")) nil t nil 'jabber-affiliation-history)
        (read-string "Reason: ")))))
   (let ((jid
 	 (if nickname-p

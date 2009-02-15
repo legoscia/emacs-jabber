@@ -35,6 +35,9 @@ Each function takes one argument, the connection, and returns a
 possibly empty list of extra child element of the <presence/>
 stanza.")
 
+(defvar jabber-presence-history ()
+  "Keeps track of previously used presence status types")
+
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (jc x) (jabber-process-roster jc x nil)))))
 (defun jabber-process-roster (jc xml-data closure-data)
@@ -295,7 +298,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					("xa" . nil)
 					("dnd" . nil)
 					("chat" . nil))
-				      nil t)
+				      nil t nil 'jabber-presence-history)
 		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
 		     (read-string "priority: " (progn
 						 (unless *jabber-current-priority*
@@ -372,7 +375,7 @@ TYPE is one of:
 			    ("unsubscribe")
 			    ("subscribed")
 			    ("unsubscribed"))
-			  nil t nil nil "online")))
+			  nil t nil 'jabber-presence-history "online")))
   (cond
    ((member type '("probe" "unavailable" 
 		   "subscribe" "unsubscribe"
@@ -395,15 +398,15 @@ With prefix argument, ask for status message."
   (interactive (list
 		(when current-prefix-arg
 		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
-  (jabber-send-presence "away" status *jabber-current-priority*))
+  (jabber-send-presence "away" (if status status *jabber-current-status*) *jabber-current-priority*))
 
 (defun jabber-send-xa-presence (&optional status)
   "Send extended away presence.
 With prefix argument, ask for status message."
   (interactive (list
-		(when current-prefix-arg
-		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
-  (jabber-send-presence "xa" status *jabber-current-priority*))
+        (when current-prefix-arg
+          (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
+  (jabber-send-presence "xa" (if status status *jabber-current-status*) *jabber-current-priority*))
 
 ;;;###autoload
 (defun jabber-send-default-presence (&optional jc)
@@ -413,7 +416,10 @@ and `jabber-default-status'."
   (interactive)
   ;; jc is ignored.  It's only there so this function can be in
   ;; jabber-post-connect-hooks.
-  (jabber-send-presence jabber-default-show jabber-default-status jabber-default-priority))
+  (jabber-send-presence
+   jabber-default-show
+   (if (not (string= jabber-default-status "")) jabber-default-status *jabber-current-status*)
+   jabber-default-priority))
 
 (defun jabber-send-current-presence (&optional jc)
   "(Re-)send current presence.
