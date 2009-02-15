@@ -35,6 +35,9 @@ Each function takes one argument, the connection, and returns a
 possibly empty list of extra child element of the <presence/>
 stanza.")
 
+(defvar jabber-presence-history ()
+  "Keeps track of previously used presence status types")
+
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (jc x) (jabber-process-roster jc x nil)))))
 (defun jabber-process-roster (jc xml-data closure-data)
@@ -295,7 +298,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					("xa" . nil)
 					("dnd" . nil)
 					("chat" . nil))
-				      nil t)
+				      nil t nil 'jabber-presence-history)
 		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
 		     (read-string "priority: " (progn
 						 (unless *jabber-current-priority*
@@ -372,7 +375,7 @@ TYPE is one of:
 			    ("unsubscribe")
 			    ("subscribed")
 			    ("unsubscribed"))
-			  nil t nil nil "online")))
+			  nil t nil 'jabber-presence-history "online")))
   (cond
    ((member type '("probe" "unavailable" 
 		   "subscribe" "unsubscribe"
