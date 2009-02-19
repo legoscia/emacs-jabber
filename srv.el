@@ -46,7 +46,10 @@ of the list.  The list is empty if no SRV records were found."
     (error "No dns.el available"))
   (unless (assq 'SRV dns-query-types)
     (error "dns.el doesn't support SRV lookups"))
-  (let* ((result (query-dns target 'SRV t))
+  ;; `dns-query' used to be `query-dns'.  Try both names for now.
+  (let* ((result (if (fboundp 'query-dns)
+		     (query-dns target 'SRV t)
+		   (dns-query target 'SRV t)))
 	 (answers (mapcar #'(lambda (a)
 			      (cadr (assq 'data a)))
 			  (cadr (assq 'answers result))))
