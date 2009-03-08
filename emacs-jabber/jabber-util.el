@@ -128,13 +128,18 @@ properties to add to the result."
     (concat (plist-get sd :username) "@"
 	    (plist-get sd :server))))
 
+(defun jabber-find-connection (bare-jid)
+  "Find the connection to the account named by BARE-JID.
+Return nil if none found."
+  (dolist (jc jabber-connections)
+    (when (string= bare-jid (jabber-connection-bare-jid jc))
+      (return jc))))
+
 (defun jabber-find-active-connection (dead-jc)
   "Given a dead connection, find an active connection to the same account.
 Return nil if none found."
   (let ((jid (jabber-connection-bare-jid dead-jc)))
-    (dolist (jc jabber-connections)
-      (when (string= jid (jabber-connection-bare-jid jc))
-	(return jc)))))
+    (jabber-find-connection jid)))
 
 (defun jabber-jid-username (string)
   "return the username portion of a JID, or nil if no username"
