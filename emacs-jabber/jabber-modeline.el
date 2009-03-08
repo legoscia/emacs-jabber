@@ -83,6 +83,8 @@ and offline contacts, respectively."
 					    'jabber-mode-line-presence
 					    " "
 					    'jabber-mode-line-contacts))
+        (put 'jabber-mode-line-string 'risky-local-variable t)
+        (put 'jabber-mode-line-presence 'risky-local-variable t)
 	(jabber-mode-line-presence-update)
 	(jabber-mode-line-count-contacts)
 	(ad-activate 'jabber-send-presence)
