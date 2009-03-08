@@ -219,14 +219,14 @@ Contents of process buffers might be useful for debugging."
 
 ;;;###autoload
 (defconst jabber-presence-strings
-  '(("" . "Online")
-    ("away" . "Away")
-    ("xa" . "Extended Away")
-    ("dnd" . "Do not Disturb")
-    ("chat" . "Chatty")
-    ("error" . "Error")
-    (nil . "Offline"))
-  "Mapping from presence types to readable strings")
+  `(("" . ,(jabber-propertize "Online" 'face 'jabber-roster-user-online))
+    ("away" . ,(jabber-propertize "Away" 'face 'jabber-roster-user-away))
+    ("xa" . ,(jabber-propertize "Extended Away" 'face 'jabber-roster-user-xa))
+    ("dnd" . ,(jabber-propertize "Do not Disturb" 'face 'jabber-roster-user-dnd))
+    ("chat" . ,(jabber-propertize "Chatty" 'face 'jabber-roster-user-chatty))
+    ("error" . ,(jabber-propertize "Error" 'face 'jabber-roster-user-error))
+    (nil . ,(jabber-propertize "Offline" 'face 'jabber-roster-user-offline)))
+  "Mapping from presence types to readable, colorized strings")
 
 ;;;###autoload
 (defun jabber-customize ()
