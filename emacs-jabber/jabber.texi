@@ -1718,6 +1718,11 @@ Availability of contact as a string ("Online", "Away" etc)
 Status string specified by contact
 @end table
 
+@code{jabber-roster-show-title} controls whether to show a "Jabber
+roster" string at the top of the roster buffer.  You need to run
+@kbd{M-x jabber-display-roster} after changing this variable to update
+the display.
+
 @code{%u} is replaced by one of the strings given by
 `jabber-roster-subscription-display'.
 

@@ -139,6 +139,11 @@ Trailing newlines are always removed, regardless of this variable."
   :type 'boolean
   :group 'jabber-roster)
 
+(defcustom jabber-roster-show-title t
+  "Show title in roster buffer?"
+  :type 'boolean
+  :group 'jabber-roster)
+
 (defcustom jabber-roster-mode-hook nil
   "Hook run when entering Roster mode."
   :group 'jabber-roster
@@ -336,7 +341,8 @@ such.")
 	  (current-column (current-column)))
       (erase-buffer)
       (setq jabber-roster-ewoc nil)
-      (insert (jabber-propertize "Jabber roster" 'face 'jabber-title-large) "\n")
+      (when jabber-roster-show-title
+	(insert (jabber-propertize "Jabber roster" 'face 'jabber-title-large) "\n"))
       (when jabber-roster-show-bindings
 	(insert "RET      Open chat buffer        C-k      Delete roster item
 e        Edit item               s        Send subscription request
