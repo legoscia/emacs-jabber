@@ -1,0 +1,17 @@
+Source: emacs-jabber
+Section: net
+Priority: optional
+Maintainer: Magnus Henoch <mange@freemail.hu>
+Build-Depends: debhelper (>= 4.0.0), texinfo
+Standards-Version: 3.6.1
+
+Package: emacs-jabber
+Architecture: all
+Depends: gnus (>= 5.10.6-1.NO.20050713-1) | flim | emacs-snapshot | emacs22
+Description: Jabber client for Emacs/XEmacs
+ jabber.el (emacs-jabber) is a Jabber client for Emacs and XEmacs.
+ .
+ Jabber is an open instant messaging system.  For more information on
+ Jabber, see http://www.jabber.org/.
+ .
+ Homepage: http://emacs-jabber.sourceforge.net/

@@ -1,0 +1,186 @@
+-*- mode: outline -*-
+
+* New features in jabber.el 0.8
+** Support for multiple accounts
+Configuration variables have changed.  See section "Account settings"
+in the manual.
+
+** Activity mode improved
+Customizable face for personal messages added, list of unwanted (banned) JIDs added
+
+** Simple automatic answering machine
+Realized as alert. Can match regexp and answer with predefined string
+
+** OSD alerts (message, MUC, MUC-personal)
+
+** Family of personal MUC alerts added
+See section "Standard alerts" in manual.
+
+** MUC nicks completion
+See sectin "Groupchat" in manual.
+
+** Automatic reconnection
+Not enabled by default; See "Reconnecting" section in manual.
+
+** Support for XEP-0085
+This means "contact is typing" notifications when chatting with Gajim
+or Google Talk users, among others.
+See "Typing notifications" section in the manual.
+
+** Option: hide offline contacts in roster
+See "The roster buffer" in manual.
+
+** Clean history from chat buffers
+See jabber-truncate-* functions and new options for
+jabber-alert-muc-hooks and jabber-alert-message-hooks. See section
+"Message history" in manual too.
+
+** MUC bookmarks
+See jabber-edit-bookmarks function and "Bookmarks" section in manual.
+
+** Name of browse buffers customizable
+See "Services" section in manual.
+
+** Subscription requests are sent to chat buffers
+Subscription requests now displayed in chat buffers. See "Presence
+subscription" section in manual.
+
+** Option: hide avatar in chat buffer
+`jabber-chat-buffer-show-avatar'.
+
+** Gmail notifications
+(Not documented nor autoloaded)
+
+** GConf-based installation of URI handler
+(Not documented yet)
+
+* New features in jabber.el 0.7.1
+
+** STARTTLS
+
+** SRV records
+Requires No Gnus.
+
+** Message composition buffer
+Try jabber-compose.
+
+** XMPP URIs are handled
+See manual for setup.
+
+** Autoaway
+
+** MUC features
+*** Don't display alerts for your own messages
+See jabber-muc-alert-self.
+*** Presence changes are sent to MUC rooms too
+*** Check room features before joining
+
+** Avatars
+Viewing and publishing JEP-0153 avatars (vCard-based) is now
+supported.
+
+** File transfer
+
+** Sound files per contact for alerts
+
+** Per-user history files changed
+For some time after 0.7 these file names erroneously contained double
+quotes.  If you have used the CVS version you'll need to rename your
+history files manually.
+
+** New function: jabber-send-directed-presence
+
+** Entity time supported (XEP-0090)
+
+** Last activity supported (XEP-0012)
+
+* New features in jabber.el 0.7
+
+** SSL connections possible
+See variable `jabber-connection-type'.
+
+** Chat buffers rewritten
+New modular design gives increased extensibility.
+*** Received URLs are displayed
+*** Long lines are filled
+See jabber-chat-fill-long-lines.
+*** Rare timestamps are printed by default
+See jabber-print-rare-time and jabber-rare-time-format.
+
+** MUC features
+*** Different default nicknames for different MUC rooms
+See jabber-muc-default-nicknames.
+*** Autojoin MUC rooms on connection
+See jabber-muc-autojoin.
+*** Change nickname
+Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
+*** Invitations
+Both sending and receiving invitiations is supported.
+*** Basic affiliation change support
+(Not finished)
+*** Private MUC messages
+*** Support for setting and displaying topic
+
+** Global key bindings
+Global keymap under C-x C-j.
+
+** Vcard viewer and editor
+
+** Roster export
+
+** Message events (JEP-0022)
+
+** Easy way to define external notifiers
+See define-jabber-alert.  Alerts for Festival (speech synthesis),
+Sawfish, and xmessage added.
+
+** Activity mode improved
+Can now display count in frame title.  Update hook added.
+
+** Roster display optimized
+
+** Optionally use per-contact history files
+
+** Jabber menu in menubar not enabled by default
+Call jabber-menu to have it there.
+
+** Flyspell in chat buffers
+Flyspell will only spell check what you're currently writing.
+
+** Different time formats for instant and delayed messages
+See `jabber-chat-time-format' and `jabber-chat-delayed-time-format'.
+You can see the complete timestamp in a tooltip by holding the mouse
+over the prompt.
+
+** Chat buffers in inactive windows are scrolled
+
+** Roster is sorted by name also
+
+* New features in jabber.el 0.6.1
+
+** Message history
+Set jabber-history-enabled to t to activate it.
+
+** Backlogs
+If you have history enabled, the last few messages are inserted when
+you open a new chat buffer.
+
+** Activity tracking on the mode line
+Activate it with M-x jabber-activity-mode.
+
+** Receive an alert when a specific person goes online
+Use it with M-x jabber-watch-add.
+
+** Support for /me in chats
+As in "/me laughs" etc.
+
+** Message alerts for current buffer can be disabled
+Set jabber-message-alert-same-buffer to nil to do that.
+
+** Basic moderation support in MUC
+
+** MUC alerts are separated from ordinary message alerts
+Customize jabber-alert-muc-hooks to get your desired behaviour.
+
+
+arch-tag: 1CE20E4E-3BD9-11D9-8D64-000A95C2FCD0
