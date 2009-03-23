@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt1.20090308
+Release: alt1.20090323
 Name: emacs-jabber
 License: %gpl2plus
 Group: Networking/Instant messaging
@@ -12,7 +12,7 @@ Summary: A minimal jabber client for Emacs
 
 Packager: Emacs Maintainers Team <emacs@packages.altlinux.org>
 
-Source: %name-%version.tar.bz2
+Source: %name-%version.tar
 Source1: %pkg_name-emacs.el
 Patch0: %name-%version-alt.patch
 
@@ -81,6 +81,9 @@ install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 %doc %pkg_name.texi
 
 %changelog
+* Mon Mar 23 2009 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt1.20090323
+- git-20090323
+
 * Sun Mar  8 2009 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt1.20090308
 - cvs-20090308
 - Presence-highlight patch from tracker applied

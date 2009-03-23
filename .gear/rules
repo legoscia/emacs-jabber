@@ -1,3 +1,3 @@
-tar.bz2: v@version@-@release@:emacs-jabber name=@name@-@version@
-diff: v@version@-@release@:emacs-jabber emacs-jabber name=@name@-@version@-alt.patch
-copy: *.el
+tar: v@version@-@release@:.
+diff: v@version@-@release@:. . name=@name@-@version@-alt.patch
+copy: jabber-emacs.el
