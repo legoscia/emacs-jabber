@@ -106,7 +106,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     ;; This is the function that does the actual updating and
     ;; redrawing of the roster.
     (jabber-roster-update jc new-items changed-items deleted-items)
-      
+
     (if (and id (string= type "set"))
 	(jabber-send-iq jc nil "result" nil
 			nil nil nil nil id)))
@@ -217,7 +217,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 				    oldstatus
 				    newstatus
 				    (plist-get resource-plist 'status)
-				    (funcall jabber-alert-presence-message-function 
+				    (funcall jabber-alert-presence-message-function
 					     buddy
 					     oldstatus
 					     newstatus
@@ -292,24 +292,20 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 ;;;###autoload
 (defun jabber-send-presence (show status priority)
   "Set presence for all accounts."
-  (interactive (list (completing-read "show:"
-				      '(("" . nil)
-					("away" . nil)
-					("xa" . nil)
-					("dnd" . nil)
-					("chat" . nil))
-				      nil t nil 'jabber-presence-history)
-		     (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-		     (read-string "priority: " (progn
-						 (unless *jabber-current-priority*
-						   (setq *jabber-current-priority*
-							 jabber-default-priority))
-						 (int-to-string *jabber-current-priority*)))))
-  (if (numberp priority)
-      (setq priority (int-to-string priority)))
-  (setq *jabber-current-status* status)
-  (setq *jabber-current-show* show)
-  (setq *jabber-current-priority* (string-to-number priority))
+  (interactive
+   (list
+    (completing-read "show: " '("" "away" "xa" "dnd" "chat")
+		     nil t nil 'jabber-presence-history)
+    (jabber-read-with-input-method "status message: " *jabber-current-status*
+				   '*jabber-status-history*)
+    (read-string "priority: " (int-to-string (if *jabber-current-priority*
+						 *jabber-current-priority*
+					       jabber-default-priority)))))
+
+  (setq *jabber-current-show* show *jabber-current-status* status)
+  (setq *jabber-current-priority*
+	(if (numberp priority) priority (string-to-number priority)))
+
   (let (subelements-map)
     ;; For each connection, we use a different set of subelements.  We
     ;; cache them, to only generate them once.
@@ -319,14 +315,17 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
       (let ((subelements (jabber-presence-children jc)))
 	(aput 'subelements-map jc subelements)
 	(jabber-send-sexp-if-connected jc `(presence () ,@subelements))))
+
     ;; Then send presence to groupchats
-    (dolist (groupchat *jabber-active-groupchats*)
-      (let* ((buffer (get-buffer (jabber-muc-get-buffer (car groupchat))))
+    (dolist (gc *jabber-active-groupchats*)
+      (let* ((buffer (get-buffer (jabber-muc-get-buffer (car gc))))
 	     (jc (when buffer
 		   (buffer-local-value 'jabber-buffer-connection buffer)))
 	     (subelements (cdr (assq jc subelements-map))))
 	(when jc
-	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car groupchat))) ,@subelements))))))
+	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car gc)))
+						       ,@subelements))))))
+
   (jabber-display-roster))
 
 (defun jabber-presence-children (jc)
@@ -377,7 +376,7 @@ TYPE is one of:
 			    ("unsubscribed"))
 			  nil t nil 'jabber-presence-history "online")))
   (cond
-   ((member type '("probe" "unavailable" 
+   ((member type '("probe" "unavailable"
 		   "subscribe" "unsubscribe"
 		   "subscribed" "unsubscribed"))
     (jabber-send-sexp jc `(presence ((to . ,jid)
@@ -440,7 +439,7 @@ else send defaults (see `jabber-send-default-presence')."
 		     (jabber-read-jid-completing "to: ")
 		     (jabber-read-with-input-method "request: ")))
   (jabber-send-sexp jc
-		    `(presence 
+		    `(presence
 		      ((to . ,to)
 		       (type . "subscribe"))
 		      ,@(when (and request (> (length request) 0))
@@ -469,7 +468,7 @@ else send defaults (see `jabber-send-default-presence')."
 		 (list account
 		       jid (jabber-read-with-input-method (format "Name: (default `%s') " name) nil nil name)
 		       (delete ""
-			       (completing-read-multiple 
+			       (completing-read-multiple
 				(format
 				 "Groups, comma-separated: (default %s) "
 				 (if groups
@@ -483,14 +482,14 @@ else send defaults (see `jabber-send-default-presence')."
   ;; If new fields are added to the roster XML structure in a future standard,
   ;; they will be clobbered by this function.
   ;; XXX: specify account
-  (jabber-send-iq jc nil "set" 
+  (jabber-send-iq jc nil "set"
 		  (list 'query (list (cons 'xmlns "jabber:iq:roster"))
 			(list 'item (append
 				     (list (cons 'jid (symbol-name jid)))
 				     (if (and name (> (length name) 0))
 					 (list (cons 'name name))))
 			      (mapcar #'(lambda (x) `(group () ,x))
-				      groups))) 
+				      groups)))
 		  #'jabber-report-success "Roster item change"
 		  #'jabber-report-success "Roster item change"))
 
