@@ -394,47 +394,50 @@ TYPE is one of:
 (defun jabber-send-away-presence (&optional status)
   "Set status to away.
 With prefix argument, ask for status message."
-  (interactive (list
-		(when current-prefix-arg
-		  (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
-  (jabber-send-presence "away" (if status status *jabber-current-status*) *jabber-current-priority*))
+  (interactive
+   (list
+    (when current-prefix-arg
+      (jabber-read-with-input-method
+       "status message: " *jabber-current-status* '*jabber-status-history*))))
+  (jabber-send-presence "away" (if status status *jabber-current-status*)
+			*jabber-current-priority*))
 
+;; XXX code duplication!
 (defun jabber-send-xa-presence (&optional status)
   "Send extended away presence.
 With prefix argument, ask for status message."
-  (interactive (list
-        (when current-prefix-arg
-          (jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*))))
-  (jabber-send-presence "xa" (if status status *jabber-current-status*) *jabber-current-priority*))
+  (interactive
+   (list
+    (when current-prefix-arg
+      (jabber-read-with-input-method
+       "status message: " *jabber-current-status* '*jabber-status-history*))))
+  (jabber-send-presence "xa" (if status status *jabber-current-status*)
+			*jabber-current-priority*))
 
 ;;;###autoload
-(defun jabber-send-default-presence (&optional jc)
+(defun jabber-send-default-presence (&optional ignore)
   "Send default presence.
-Default presence is specified by `jabber-default-priority', `jabber-default-show',
-and `jabber-default-status'."
+Default presence is specified by `jabber-default-show',
+`jabber-default-status', and `jabber-default-priority'."
   (interactive)
-  ;; jc is ignored.  It's only there so this function can be in
-  ;; jabber-post-connect-hooks.
   (jabber-send-presence
-   jabber-default-show
-   (if (not (string= jabber-default-status "")) jabber-default-status *jabber-current-status*)
-   jabber-default-priority))
+   jabber-default-show jabber-default-status jabber-default-priority))
 
-(defun jabber-send-current-presence (&optional jc)
+(defun jabber-send-current-presence (&optional ignore)
   "(Re-)send current presence.
 That is, if presence has already been sent, use current settings,
-else send defaults (see `jabber-send-default-presence')."
+otherwise send defaults (see `jabber-send-default-presence')."
   (interactive)
-  ;; jc is ignored.  It's only there so this function can be in
-  ;; jabber-post-connect-hooks.
   (if *jabber-current-show*
-      (jabber-send-presence *jabber-current-show* *jabber-current-status* *jabber-current-priority*)
+      (jabber-send-presence *jabber-current-show* *jabber-current-status*
+			    *jabber-current-priority*)
     (jabber-send-default-presence)))
 
-(add-to-list 'jabber-jid-roster-menu
-	     (cons "Send subscription request" 'jabber-send-subscription-request))
+(add-to-list 'jabber-jid-roster-menu (cons "Send subscription request"
+					   'jabber-send-subscription-request))
 (defun jabber-send-subscription-request (jc to &optional request)
-  "send a subscription request to jid, showing him your request text, if specified"
+  "send a subscription request to jid, showing him your request
+text, if specified"
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "to: ")
 		     (jabber-read-with-input-method "request: ")))
