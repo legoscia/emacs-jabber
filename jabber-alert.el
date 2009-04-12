@@ -491,7 +491,7 @@ autoanswer phrase."
 (defun jabber-autoanswer-answer (from buffer text proposed-alert)
   "Answer automaticaly when incoming text matches first element
 of `jabber-autoanswer-alist'"
-  (when (and proposed-alert jabber-autoanswer-alist)
+  (when (and from buffer text proposed-alert jabber-autoanswer-alist)
     (let ((message
            (dolist (entry jabber-autoanswer-alist)
              (when (string-match (car entry) text)
@@ -504,7 +504,7 @@ of `jabber-autoanswer-alist'"
 (defun jabber-autoanswer-answer-muc (nick group buffer text proposed-alert)
   "Answer automaticaly when incoming text matches first element
 of `jabber-autoanswer-alist'"
-  (when (and proposed-alert jabber-autoanswer-alist)
+  (when (and nick group buffer text proposed-alert jabber-autoanswer-alist)
     (let ((message
            (dolist (entry jabber-autoanswer-alist)
              (when (string-match (car entry) text)
