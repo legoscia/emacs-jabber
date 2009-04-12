@@ -159,7 +159,7 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defvar *jabber-current-status* nil
-  "the users current presence staus")
+  "the users current presence status")
 
 ;;;###autoload
 (defvar *jabber-current-show* nil
