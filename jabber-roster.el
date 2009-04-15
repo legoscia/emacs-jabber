@@ -288,8 +288,10 @@ be used in `jabber-post-connection-hooks'."
 		     hash)))))
 
     ;; remove duplicates name of group
-    (setq all-groups (remove-duplicates all-groups
-					:test 'string=))
+    (setq all-groups (sort
+		      (remove-duplicates all-groups
+					 :test 'string=)
+		      'string<))
 
     ;; put to state-data all-groups as list of list
     (plist-put state-data :roster-groups
