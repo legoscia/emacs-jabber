@@ -447,7 +447,8 @@ H        Toggle displaying this text
 					  (plist-get (fsm-get-state-data jc) :server))
 					 'face 'jabber-title-medium)
 		      "\n__________________________________\n")
-		     "__________________________________")))
+		     "__________________________________"))
+	      (new-groups '()))
 	  (plist-put (fsm-get-state-data jc) :roster-ewoc ewoc)
 	  (dolist (group (plist-get (fsm-get-state-data jc) :roster-groups))
 	    (let* ((group-name (car group))
@@ -458,8 +459,10 @@ H        Toggle displaying this text
 	      (when (or jabber-roster-show-empty-group
 			(> (length buddies) 0))
 		(setq group-node (ewoc-enter-last ewoc (list group nil)))
+		(setq new-groups (append group (list group-name group-node)))
 		(dolist (buddy buddies)
 		  (ewoc-enter-after ewoc group-node (list group buddy))))))
+	  (plist-put (fsm-get-state-data jc) :roster-groups new-groups)
 	  (goto-char (point-max))
 	  (insert "\n")
 	  (put-text-property before-ewoc (point)
@@ -584,46 +587,15 @@ BUDDY is a JID symbol."
 Add NEW-ITEMS, update CHANGED-ITEMS and remove DELETED-ITEMS, all
 three being lists of JID symbols."
   (let ((roster (plist-get (fsm-get-state-data jc) :roster))
-	(ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc)))
+	(ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc))
+	(groups (plist-get (fsm-get-state-data jc) :roster-groups)))
     (dolist (delete-this deleted-items)
       (setq roster (delq delete-this roster)))
     (setq roster (append new-items roster))
     (plist-put (fsm-get-state-data jc) :roster roster)
 
-
-    ;; If there is no ewoc yet, create the roster buffer.
-    (if (null ewoc)
-	(jabber-display-roster)
-      ;; Otherwise, do incremental changes.
-
-      ;; The changed items need to be resorted, so we start by removing
-      ;; them as well.
-      (ewoc-filter ewoc
-		   (lambda (a) (not (or (member a changed-items)
-					(member a deleted-items)))))
-
-      ;; Now, insert items into ewoc.
-      (let* ((to-be-inserted
-	      (sort (jabber-roster-filter-display
-		     (append new-items changed-items))
-		    #'jabber-roster-sort-items))
-	     (where (ewoc-nth ewoc 0)))
-	(while to-be-inserted
-	  (cond
-	   ;; If we are at the end of the ewoc, put all elements there.
-	   ((null where)
-	    (dolist (a to-be-inserted)
-	      (ewoc-enter-last ewoc a))
-	    (setq to-be-inserted nil))
-	   ;; If the next element should go here, put it here.
-	   ((jabber-roster-sort-items (car to-be-inserted)
-				      (ewoc-data where))
-	    (ewoc-enter-before ewoc where
-			       (car to-be-inserted))
-	    (setq to-be-inserted (cdr to-be-inserted)))
-	   ;; Else, advance through the ewoc.
-	   (t
-	    (setq where (ewoc-next ewoc where)))))))))
+    ;; recreate roster buffer
+    (jabber-display-roster)))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
