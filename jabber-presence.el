@@ -417,9 +417,7 @@ and `jabber-default-status'."
   ;; jc is ignored.  It's only there so this function can be in
   ;; jabber-post-connect-hooks.
   (jabber-send-presence
-   jabber-default-show
-   (if (not (string= jabber-default-status "")) jabber-default-status *jabber-current-status*)
-   jabber-default-priority))
+   jabber-default-show jabber-default-status jabber-default-priority))
 
 (defun jabber-send-current-presence (&optional jc)
   "(Re-)send current presence.
