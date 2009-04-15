@@ -155,6 +155,11 @@ Trailing newlines are always removed, regardless of this variable."
   :group 'jabber-roster
   :type 'string)
 
+(defcustom jabber-roster-show-empty-group nil
+  "Show empty groups in roster?"
+  :group 'jabber-roster
+  :type 'boolean)
+
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
   "face for displaying online users"
@@ -249,12 +254,13 @@ be used in `jabber-post-connection-hooks'."
   "sort roster according to online status"
   (let ((state-data (fsm-get-state-data jc)))
     (dolist (group (plist-get state-data :roster-groups))
-      (puthash group
-	       (sort
-		(gethash group
-			 (plist-get state-data :roster-hash))
-		#'jabber-roster-sort-items)
-	       (plist-get state-data :roster-hash)))))
+      (let ((group-name (car group)))
+	(puthash (list group-name (cdr group))
+		 (sort
+		  (gethash group-name
+			   (plist-get state-data :roster-hash))
+		  #'jabber-roster-sort-items)
+		 (plist-get state-data :roster-hash))))))
 
 (defun jabber-roster-prepare-roster (jc)
   "make a hash based roster"
@@ -285,9 +291,9 @@ be used in `jabber-post-connection-hooks'."
     (setq all-groups (remove-duplicates all-groups
 					:test 'string=))
 
-    ;; put to state-data all-groups
+    ;; put to state-data all-groups as list of list
     (plist-put state-data :roster-groups
-	       all-groups)
+	       (mapcar #'list all-groups))
 
     ;; put to state-data hash-roster
     (plist-put state-data :roster-hash
@@ -428,9 +434,10 @@ H        Toggle displaying this text
 	      (ewoc (ewoc-create
 		       (lexical-let ((jc jc))
 			 (lambda (data)
-			   (let ((group (car data))
-				 (buddies (car (cdr data))))
-			     (jabber-display-roster-entry jc group buddies))))
+			   (let* ((group (car data))
+				  (group-name (car group))
+				  (buddy (car (cdr data))))
+			     (jabber-display-roster-entry jc group-name buddy))))
 		     (concat
 		      (jabber-propertize (concat
 					  (plist-get (fsm-get-state-data jc) :username)
@@ -441,11 +448,16 @@ H        Toggle displaying this text
 		     "__________________________________")))
 	  (plist-put (fsm-get-state-data jc) :roster-ewoc ewoc)
 	  (dolist (group (plist-get (fsm-get-state-data jc) :roster-groups))
-	    (let ((buddies (jabber-roster-filter-display
-			    (gethash group
+	    (let* ((group-name (car group))
+		   (group-node (car (cdr group)))
+		   (buddies (jabber-roster-filter-display
+			    (gethash group-name
 				     (plist-get (fsm-get-state-data jc) :roster-hash)))))
-	      (when (> (length buddies) 0)
-		(ewoc-enter-last ewoc (list group buddies)))))
+	      (when (or jabber-roster-show-empty-group
+			(> (length buddies) 0))
+		(setq group-node (ewoc-enter-last ewoc (list group nil)))
+		(dolist (buddy buddies)
+		  (ewoc-enter-after ewoc group-node (list group buddy))))))
 	  (goto-char (point-max))
 	  (insert "\n")
 	  (put-text-property before-ewoc (point)
@@ -464,97 +476,105 @@ H        Toggle displaying this text
 	;; ...and go back to previous column
 	(move-to-column current-column)))))
 
-(defun jabber-display-roster-entry (jc group buddies)
+(defun jabber-display-roster-entry (jc group-name buddy)
   "Format and insert a roster entry for BUDDY at point.
 BUDDY is a JID symbol."
-  (insert (jabber-propertize
-	   (concat group "\n")
-	   'face 'jabber-title-small))
-  (dolist (buddy buddies)
-    (let ((buddy-str (format-spec jabber-roster-line-format
-				  (list
-				   (cons ?a (jabber-propertize
-					     " "
-					     'display (get buddy 'avatar)))
-				   (cons ?c (if (get buddy 'connected) "*" " "))
-				   (cons ?u (cdr (assoc
-						  (or
-						   (get buddy 'subscription) "none")
-						  jabber-roster-subscription-display)))
-				   (cons ?n (if (> (length (get buddy 'name)) 0)
-						(get buddy 'name)
-					      (symbol-name buddy)))
-				   (cons ?j (symbol-name buddy))
-				   (cons ?r (or (get buddy 'resource) ""))
-				   (cons ?s (or
-					     (cdr (assoc (get buddy 'show)
-							 jabber-presence-strings))
-					     (get buddy 'show)))
-				   (cons ?S (if (get buddy 'status)
-						(jabber-fix-status (get buddy 'status))
-					      ""))
-				   ))))
-      (add-text-properties 0
-			   (length buddy-str)
-			   (list
-			    'face
-			    (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
-				'jabber-roster-user-online)
-			    ;;'mouse-face
-			    ;;(cons 'background-color "light grey")
-			    'help-echo
-			    (symbol-name buddy)
-			    'jabber-jid
-			    (symbol-name buddy)
-			    'jabber-account
-			    jc)
-			   buddy-str)
-      ;; (let ((map (make-sparse-keymap))
-      ;; 	      (chat-with-func (make-symbol (concat "jabber-chat-with" (symbol-name buddy)))))
-      ;; 	  (fset chat-with-func `(lambda () (interactive) (jabber-chat-with ,(symbol-name buddy))))
-      ;; 	  (define-key map [mouse-2] chat-with-func)
-      ;; 	  (put-text-property 0
-      ;; 			     (length buddy-str)
-      ;; 			     'keymap
-      ;; 			     map
-      ;; 			     buddy-str))
-      (insert buddy-str)
+  (if buddy
+      (let ((buddy-str (format-spec
+			jabber-roster-line-format
+			(list
+			 (cons ?a (jabber-propertize
+				   " "
+				   'display (get buddy 'avatar)))
+			 (cons ?c (if (get buddy 'connected) "*" " "))
+			 (cons ?u (cdr (assoc
+					(or
+					 (get buddy 'subscription) "none")
+					jabber-roster-subscription-display)))
+			 (cons ?n (if (> (length (get buddy 'name)) 0)
+				      (get buddy 'name)
+				    (symbol-name buddy)))
+			 (cons ?j (symbol-name buddy))
+			 (cons ?r (or (get buddy 'resource) ""))
+			 (cons ?s (or
+				   (cdr (assoc (get buddy 'show)
+					       jabber-presence-strings))
+				   (get buddy 'show)))
+			 (cons ?S (if (get buddy 'status)
+				      (jabber-fix-status (get buddy 'status))
+				    ""))
+			 ))))
+	(add-text-properties 0
+			     (length buddy-str)
+			     (list
+			      'face
+			      (or (cdr (assoc (get buddy 'show) jabber-presence-faces))
+				  'jabber-roster-user-online)
+			      ;;'mouse-face
+			      ;;(cons 'background-color "light grey")
+			      'help-echo
+			      (symbol-name buddy)
+			      'jabber-jid
+			      (symbol-name buddy)
+			      'jabber-account
+			      jc)
+			     buddy-str)
+	(insert buddy-str)
 
-      (when (or (eq jabber-show-resources 'always)
-		(and (eq jabber-show-resources 'sometimes)
-		     (> (jabber-count-connected-resources buddy) 1)))
-	(dolist (resource (get buddy 'resources))
-	  (when (plist-get (cdr resource) 'connected)
-	    (let ((resource-str (format-spec jabber-resource-line-format
-					     (list
-					      (cons ?c "*")
-					      (cons ?n (if (> (length (get buddy 'name)) 0)
-							   (get buddy 'name)
-							 (symbol-name buddy)))
-					      (cons ?j (symbol-name buddy))
-					      (cons ?r (if (> (length (car resource)) 0)
-							   (car resource)
-							 "empty"))
-					      (cons ?s (or
-							(cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-strings))
-							(plist-get (cdr resource) 'show)))
-					      (cons ?S (if (plist-get (cdr resource) 'status)
-							   (jabber-fix-status (plist-get (cdr resource) 'status))
-							 ""))
-					      (cons ?p (number-to-string (plist-get (cdr resource) 'priority)))))))
-	      (add-text-properties 0
-				   (length resource-str)
-				   (list
-				    'face
-				    (or (cdr (assoc (plist-get (cdr resource) 'show) jabber-presence-faces))
-					'jabber-roster-user-online)
-				    'jabber-jid
-				    (format "%s/%s" (symbol-name buddy) (car resource))
-				    'jabber-account
-				    jc)
-				   resource-str)
-	      (insert "\n" resource-str))))))
-	(insert "\n")))
+	(when (or (eq jabber-show-resources 'always)
+		  (and (eq jabber-show-resources 'sometimes)
+		       (> (jabber-count-connected-resources buddy) 1)))
+	  (dolist (resource (get buddy 'resources))
+	    (when (plist-get (cdr resource) 'connected)
+	      (let ((resource-str (format-spec jabber-resource-line-format
+					       (list
+						(cons ?c "*")
+						(cons ?n (if (>
+							      (length
+							       (get buddy 'name)) 0)
+							     (get buddy 'name)
+							   (symbol-name buddy)))
+						(cons ?j (symbol-name buddy))
+						(cons ?r (if (>
+							      (length
+							       (car resource)) 0)
+							     (car resource)
+							   "empty"))
+						(cons ?s (or
+							  (cdr (assoc
+								(plist-get
+								 (cdr resource) 'show)
+								jabber-presence-strings))
+							  (plist-get
+							   (cdr resource) 'show)))
+						(cons ?S (if (plist-get
+							      (cdr resource) 'status)
+							     (jabber-fix-status
+							      (plist-get (cdr resource)
+									 'status))
+							   ""))
+						(cons ?p (number-to-string
+							  (plist-get (cdr resource)
+								     'priority)))))))
+		(add-text-properties 0
+				     (length resource-str)
+				     (list
+				      'face
+				      (or (cdr (assoc (plist-get
+						       (cdr resource)
+						       'show)
+						      jabber-presence-faces))
+					  'jabber-roster-user-online)
+				      'jabber-jid
+				      (format "%s/%s" (symbol-name buddy) (car resource))
+				      'jabber-account
+				      jc)
+				     resource-str)
+		(insert "\n" resource-str))))))
+    (progn
+      (insert (jabber-propertize
+	       group-name
+	       'face 'jabber-title-small)))))
 
 ;;;###autoload
 (defun jabber-roster-update (jc new-items changed-items deleted-items)
