@@ -255,7 +255,7 @@ be used in `jabber-post-connection-hooks'."
   (let ((state-data (fsm-get-state-data jc)))
     (dolist (group (plist-get state-data :roster-groups))
       (let ((group-name (car group)))
-	(puthash (list group-name (cdr group))
+	(puthash group-name
 		 (sort
 		  (gethash group-name
 			   (plist-get state-data :roster-hash))
