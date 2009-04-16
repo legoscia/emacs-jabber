@@ -460,7 +460,7 @@ H        Toggle displaying this text
 			(> (length buddies) 0))
 		(setq group-node (ewoc-enter-last ewoc (list group nil)))
 		(setq new-groups (append group (list group-name group-node)))
-		(dolist (buddy buddies)
+		(dolist (buddy (reverse buddies))
 		  (ewoc-enter-after ewoc group-node (list group buddy))))))
 	  (plist-put (fsm-get-state-data jc) :roster-groups new-groups)
 	  (goto-char (point-max))
