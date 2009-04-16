@@ -230,6 +230,8 @@ Trailing newlines are always removed, regardless of this variable."
     map))
 
 (defun jabber-roster-ret-action-at-point ()
+  "Action for ret. Before try to roll up/down group. Eval
+chat-with-jid-at-point is no group at point"
   (interactive)
   (let ((group-at-point (get-text-property (point)
 					   'jabber-group))
