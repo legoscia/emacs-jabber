@@ -213,7 +213,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map (kbd "RET") 'jabber-roster-ret-action-at-point)
     (define-key map (kbd "C-k") 'jabber-roster-delete-at-point)
 
-    (define-key map "e" 'jabber-roster-change)
+    (define-key map "e" 'jabber-roster-edit-action-at-point)
     (define-key map "s" 'jabber-send-subscription-request)
     (define-key map "q" 'bury-buffer)
     (define-key map "i" 'jabber-get-disco-items)
@@ -241,22 +241,6 @@ chat-with-jid-at-point is no group at point"
 	(jabber-roster-roll-group account-at-point group-at-point)
       (jabber-chat-with-jid-at-point))))
 
-(defun jabber-roster-roll-group (jc group-name)
-  "Roll up/down group in roster"
-  (let* ((state-data (fsm-get-state-data jc))
-	 (roll-groups (plist-get state-data
-				 :roster-roll-groups)))
-    (plist-put
-     state-data :roster-roll-groups
-     (if (find group-name roll-groups
-	       :test 'string=)
-	 (remove-if-not (lambda (group-name-in-list)
-			  (not (string= group-name
-					group-name-in-list)))
-			roll-groups)
-       (append roll-groups (list group-name)))))
-  (jabber-display-roster))
-
 (defun jabber-roster-delete-at-point ()
   "Delete at point from roster.
 Try to delete the group from all contaacs.
@@ -276,6 +260,41 @@ Delete a jid if there is no group at point."
 						jids-with-group
 						group-at-point))
       (jabber-roster-delete-jid-at-point))))
+
+(defun jabber-roster-edit-action-at-point ()
+  "Action for e. Before try to edit group name.
+Eval `jabber-roster-change' is no group at point"
+  (interactive)
+  (let ((group-at-point (get-text-property (point)
+					   'jabber-group))
+	(account-at-point (get-text-property (point)
+					     'jabber-account)))
+    (if (and group-at-point account-at-point)
+	(let ((jids-with-group
+	       (gethash group-at-point
+			(plist-get
+			 (fsm-get-state-data account-at-point)
+			 :roster-hash))))
+	  (jabber-roster-edit-group-from-jids account-at-point
+					      jids-with-group
+					      group-at-point))
+      (call-interactively 'jabber-roster-change))))
+
+(defun jabber-roster-roll-group (jc group-name)
+  "Roll up/down group in roster"
+  (let* ((state-data (fsm-get-state-data jc))
+	 (roll-groups (plist-get state-data
+				 :roster-roll-groups)))
+    (plist-put
+     state-data :roster-roll-groups
+     (if (find group-name roll-groups
+	       :test 'string=)
+	 (remove-if-not (lambda (group-name-in-list)
+			  (not (string= group-name
+					group-name-in-list)))
+			roll-groups)
+       (append roll-groups (list group-name)))))
+  (jabber-display-roster))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
