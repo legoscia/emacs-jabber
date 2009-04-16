@@ -160,6 +160,11 @@ Trailing newlines are always removed, regardless of this variable."
   :group 'jabber-roster
   :type 'boolean)
 
+(defcustom jabber-roster-roll-up-group nil
+  "Show empty groups in roster?"
+  :group 'jabber-roster
+  :type 'boolean)
+
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
   "face for displaying online users"
@@ -205,7 +210,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map (kbd "S-TAB") 'jabber-go-to-previous-jid)
     (define-key map (kbd "M-TAB") 'jabber-go-to-previous-jid)
     (define-key map (kbd "<backtab>") 'jabber-go-to-previous-jid)
-    (define-key map (kbd "RET") 'jabber-chat-with-jid-at-point)
+    (define-key map (kbd "RET") 'jabber-roster-ret-action-at-point)
     (define-key map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
 
     (define-key map "e" 'jabber-roster-change)
@@ -223,6 +228,32 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map "H" 'jabber-roster-toggle-binding-display)
     ;;(define-key map "D" 'jabber-disconnect)
     map))
+
+(defun jabber-roster-ret-action-at-point ()
+  (interactive)
+  (let ((group-at-point (get-text-property (point)
+					   'jabber-group))
+	(account-at-point (get-text-property (point)
+					     'jabber-account)))
+    (if (and group-at-point account-at-point)
+	(jabber-roster-roll-group account-at-point group-at-point)
+      (jabber-chat-with-jid-at-point))))
+
+(defun jabber-roster-roll-group (jc group-name)
+  "Roll up/down group in roster"
+  (let* ((state-data (fsm-get-state-data jc))
+	 (roll-groups (plist-get state-data
+				 :roster-roll-groups)))
+    (plist-put
+     state-data :roster-roll-groups
+     (if (find group-name roll-groups
+	       :test 'string=)
+	 (remove-if-not (lambda (group-name-in-list)
+			  (not (string= group-name
+					group-name-in-list)))
+			roll-groups)
+       (append roll-groups (list group-name)))))
+  (jabber-display-roster))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
@@ -449,7 +480,7 @@ H        Toggle displaying this text
 		      "\n__________________________________\n")
 		     "__________________________________"))
 	      (new-groups '()))
-	  (plist-put (fsm-get-state-data jc) :roster-ewoc ewoc)
+	  (plist-put(fsm-get-state-data jc) :roster-ewoc ewoc)
 	  (dolist (group (plist-get (fsm-get-state-data jc) :roster-groups))
 	    (let* ((group-name (car group))
 		   (group-node (car (cdr group)))
@@ -460,8 +491,12 @@ H        Toggle displaying this text
 			(> (length buddies) 0))
 		(setq group-node (ewoc-enter-last ewoc (list group nil)))
 		(setq new-groups (append group (list group-name group-node)))
-		(dolist (buddy (reverse buddies))
-		  (ewoc-enter-after ewoc group-node (list group buddy))))))
+		(if (not (find
+			    group-name
+			    (plist-get (fsm-get-state-data jc) :roster-roll-groups)
+			    :test 'string=))
+		  (dolist (buddy (reverse buddies))
+		    (ewoc-enter-after ewoc group-node (list group buddy)))))))
 	  (plist-put (fsm-get-state-data jc) :roster-groups new-groups)
 	  (goto-char (point-max))
 	  (insert "\n")
@@ -577,9 +612,14 @@ BUDDY is a JID symbol."
 				     resource-str)
 		(insert "\n" resource-str))))))
     (progn
-      (insert (jabber-propertize
-	       group-name
-	       'face 'jabber-title-small)))))
+      (add-text-properties 0
+			   (length group-name)
+			   (list
+			    'face 'jabber-title-small
+			    'jabber-group group-name
+			    'jabber-account jc)
+			   group-name)
+      (insert group-name))))
 
 ;;;###autoload
 (defun jabber-roster-update (jc new-items changed-items deleted-items)
