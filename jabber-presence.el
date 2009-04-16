@@ -518,6 +518,16 @@ Signal an error if there is no JID at point."
 	(jabber-roster-delete account jid-at-point)
       (error "No contact at point"))))
 
+(defun jabber-roster-delete-group-from-jids (jc jids group)
+  "Delete group `group' from all JIDs"
+  (interactive)
+  (dolist (jid jids)
+    (jabber-roster-change
+     jc jid (get jid 'name)
+     (remove-if-not (lambda (g) (not (string= g group)))
+		    (get jid 'groups)))))
+
+
 (provide 'jabber-presence)
 
 ;;; arch-tag: b8616d4c-dde8-423e-86c7-da7b4928afc3

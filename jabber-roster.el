@@ -211,7 +211,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map (kbd "M-TAB") 'jabber-go-to-previous-jid)
     (define-key map (kbd "<backtab>") 'jabber-go-to-previous-jid)
     (define-key map (kbd "RET") 'jabber-roster-ret-action-at-point)
-    (define-key map (kbd "C-k") 'jabber-roster-delete-jid-at-point)
+    (define-key map (kbd "C-k") 'jabber-roster-delete-at-point)
 
     (define-key map "e" 'jabber-roster-change)
     (define-key map "s" 'jabber-send-subscription-request)
@@ -256,6 +256,26 @@ chat-with-jid-at-point is no group at point"
 			roll-groups)
        (append roll-groups (list group-name)))))
   (jabber-display-roster))
+
+(defun jabber-roster-delete-at-point ()
+  "Delete at point from roster.
+Try to delete the group from all contaacs.
+Delete a jid if there is no group at point."
+  (interactive)
+  (let ((group-at-point (get-text-property (point)
+					   'jabber-group))
+	(account-at-point (get-text-property (point)
+					     'jabber-account)))
+    (if (and group-at-point account-at-point)
+	(let ((jids-with-group
+	       (gethash group-at-point
+			(plist-get
+			 (fsm-get-state-data account-at-point)
+			 :roster-hash))))
+	  (jabber-roster-delete-group-from-jids account-at-point
+						jids-with-group
+						group-at-point))
+      (jabber-roster-delete-jid-at-point))))
 
 (defun jabber-roster-mode ()
   "Major mode for Jabber roster display.
