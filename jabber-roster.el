@@ -205,7 +205,7 @@ Trailing newlines are always removed, regardless of this variable."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (set-keymap-parent map jabber-common-keymap)
-    (define-key map [mouse-2] 'jabber-popup-combined-menu)
+    (define-key map [mouse-2] 'jabber-roster-mouse-2-action-at-point)
     (define-key map (kbd "TAB") 'jabber-go-to-next-jid)
     (define-key map (kbd "S-TAB") 'jabber-go-to-previous-jid)
     (define-key map (kbd "M-TAB") 'jabber-go-to-previous-jid)
@@ -240,6 +240,19 @@ chat-with-jid-at-point is no group at point"
     (if (and group-at-point account-at-point)
 	(jabber-roster-roll-group account-at-point group-at-point)
       (jabber-chat-with-jid-at-point))))
+
+(defun jabber-roster-mouse-2-action-at-point (e)
+  "Action for mouse-2. Before try to roll up/down group. Eval
+chat-with-jid-at-point is no group at point"
+  (interactive "e")
+  (mouse-set-point e)
+  (let ((group-at-point (get-text-property (point)
+					   'jabber-group))
+	(account-at-point (get-text-property (point)
+					     'jabber-account)))
+    (if (and group-at-point account-at-point)
+	(jabber-roster-roll-group account-at-point group-at-point)
+      (jabber-popup-combined-menu))))
 
 (defun jabber-roster-delete-at-point ()
   "Delete at point from roster.
