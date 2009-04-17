@@ -353,7 +353,7 @@ be used in `jabber-post-connection-hooks'."
 			   hash))))
 	  (progn
 	    (setq all-groups (append all-groups
-				    (list jabber-roster-default-group-name)))
+				     (list jabber-roster-default-group-name)))
 	    (puthash jabber-roster-default-group-name
 		     (append (gethash jabber-roster-default-group-name hash)
 			     (list buddy))
@@ -500,8 +500,10 @@ H        Toggle displaying this text
 		  "\n")))
 
       (dolist (jc jabber-connections)
-	;; make a hash-based roster
-	(jabber-roster-prepare-roster jc)
+	;; use a hash-based roster
+	(when (not (plist-get (fsm-get-state-data jc) :roster-hash))
+	  (jabber-roster-prepare-roster jc)
+	  )
 	;; We sort everything before putting it in the ewoc
 	(jabber-sort-roster jc)
 	(let ((before-ewoc (point))
@@ -531,7 +533,7 @@ H        Toggle displaying this text
 	      (when (or jabber-roster-show-empty-group
 			(> (length buddies) 0))
 		(setq group-node (ewoc-enter-last ewoc (list group nil)))
-		(setq new-groups (append group (list group-name group-node)))
+		(setq new-groups (append new-groups (list (list group-name group-node))))
 		(if (not (find
 			    group-name
 			    (plist-get (fsm-get-state-data jc) :roster-roll-groups)
@@ -652,7 +654,8 @@ BUDDY is a JID symbol."
 				      jc)
 				     resource-str)
 		(insert "\n" resource-str))))))
-    (progn
+    (let ((group-name (or group-name
+			  jabber-roster-default-group-name)))
       (add-text-properties 0
 			   (length group-name)
 			   (list
@@ -667,16 +670,71 @@ BUDDY is a JID symbol."
   "Update roster, in memory and on display.
 Add NEW-ITEMS, update CHANGED-ITEMS and remove DELETED-ITEMS, all
 three being lists of JID symbols."
-  (let ((roster (plist-get (fsm-get-state-data jc) :roster))
-	(ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc))
-	(groups (plist-get (fsm-get-state-data jc) :roster-groups)))
-    (dolist (delete-this deleted-items)
+  (let* ((roster (plist-get (fsm-get-state-data jc) :roster))
+	 (hash (plist-get (fsm-get-state-data jc) :roster-hash))
+	 (ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc))
+	 (all-groups (plist-get (fsm-get-state-data jc) :roster-groups))
+	 (new-groups '())
+	 (terminator
+	  (lambda (deleted-items)
+	    (dolist (delete-this deleted-items)
+	      (let ((groups (get delete-this 'groups))
+		    (terminator
+		     (lambda (g)
+		       (let*
+			   ((group (or g jabber-roster-default-group-name))
+			    (buddies (gethash group hash)))
+			 (when (not buddies)
+			   (setq new-groups (append new-groups (list group))))
+			 (puthash group
+				  (delq delete-this buddies)
+				  hash)))))
+		(if groups
+		    (dolist (group groups)
+		      (terminator group))
+		  (terminator groups)))))))
+
+    ;; fix a old-roster
+    (dolist (group groups)
       (setq roster (delq delete-this roster)))
     (setq roster (append new-items roster))
     (plist-put (fsm-get-state-data jc) :roster roster)
 
+    ;; update a hash-roster
+    (if (not hash)
+	(jabber-roster-prepare-roster jc)
+
+      ;; delete items
+      (dolist (delete-this (append deleted-items changed-items))
+	(let ((groups (get delete-this 'groups))
+	      (terminator
+	       (lambda (g)
+		 (let ((group (or g jabber-roster-default-group-name)))
+		   (puthash group
+			    (delq delete-this (gethash group hash))
+			    hash)))))
+	  (if groups
+	      (dolist (group groups)
+		(terminator group))
+	    (terminator groups))))
+
+      ;; insert changed-items
+      (dolist (change-this changed-items)
+	(let ((groups (get change-this 'groups))
+	      (updater
+	       (lambda (g)
+		 (let ((group (or g jabber-roster-default-group-name)))
+		   (puthash group
+			    (append (gethash group hash)
+				    (list change-this))
+			    hash)))))
+	(if groups
+	    (dolist (group groups)
+	      (updater group))
+	  (updater groups))))
+
     ;; recreate roster buffer
-    (jabber-display-roster)))
+    (jabber-display-roster))))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
