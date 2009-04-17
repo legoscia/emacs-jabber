@@ -36,5 +36,6 @@
 
 (define-jabber-alert awesome "Show a message through the Awesome window manager"
   'jabber-awesome-message)
+(define-personal-jabber-alert jabber-muc-awesome)
 
 (provide 'jabber-awesome)
