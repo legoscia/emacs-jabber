@@ -515,8 +515,7 @@ H        Toggle displaying this text
       (dolist (jc jabber-connections)
 	;; use a hash-based roster
 	(when (not (plist-get (fsm-get-state-data jc) :roster-hash))
-	  (jabber-roster-prepare-roster jc)
-	  )
+	  (jabber-roster-prepare-roster jc))
 	;; We sort everything before putting it in the ewoc
 	(jabber-sort-roster jc)
 	(let ((before-ewoc (point))
@@ -687,7 +686,6 @@ three being lists of JID symbols."
 	 (hash (plist-get (fsm-get-state-data jc) :roster-hash))
 	 (ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc))
 	 (all-groups (plist-get (fsm-get-state-data jc) :roster-groups))
-	 (new-groups '())
 	 (terminator
 	  (lambda (deleted-items)
 	    (dolist (delete-this deleted-items)
@@ -708,7 +706,7 @@ three being lists of JID symbols."
 		  (terminator groups)))))))
 
     ;; fix a old-roster
-    (dolist (group groups)
+    (dolist (delete-this deleted-items)
       (setq roster (delq delete-this roster)))
     (setq roster (append new-items roster))
     (plist-put (fsm-get-state-data jc) :roster roster)
@@ -719,35 +717,37 @@ three being lists of JID symbols."
 
       ;; delete items
       (dolist (delete-this (append deleted-items changed-items))
-	(let ((groups (get delete-this 'groups))
-	      (terminator
-	       (lambda (g)
-		 (let ((group (or g jabber-roster-default-group-name)))
-		   (puthash group
-			    (delq delete-this (gethash group hash))
-			    hash)))))
-	  (if groups
-	      (dolist (group groups)
-		(terminator group))
-	    (terminator groups))))
+	(dolist (group (or (get delete-this 'groups)
+			   (list jabber-roster-default-group-name)))
+	  (puthash group
+		   (delq delete-this (gethash group hash))
+		   hash)
+	  (when (= (length (gethash group hash)) 0)
+	    (setq all-groups
+		  (remove-if-not (lambda (g)
+				   (let ((group-name (car g)))
+				     (not (string= group-name group))))
+			roll-groups)))))
 
       ;; insert changed-items
       (dolist (change-this changed-items)
-	(let ((groups (get change-this 'groups))
-	      (updater
-	       (lambda (g)
-		 (let ((group (or g jabber-roster-default-group-name)))
-		   (puthash group
-			    (append (gethash group hash)
-				    (list change-this))
-			    hash)))))
-	(if groups
-	    (dolist (group groups)
-	      (updater group))
-	  (updater groups))))
+	(dolist (group (or (get change-this 'groups)
+			   (list jabber-roster-default-group-name)))
+	  (puthash group
+		   (append (gethash group hash)
+			   (list change-this))
+		   hash)
+	  (setq all-groups (append all-groups (list (list group))))))
 
-    ;; recreate roster buffer
-    (jabber-display-roster))))
+      (setq all-groups (sort
+			(remove-duplicates all-groups
+					   :test 'string=)
+			'string<))
+
+      (plist-put (fsm-get-state-data jc) :roster-groups all-groups))
+
+  ;; recreate roster buffer
+  (jabber-display-roster)))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
