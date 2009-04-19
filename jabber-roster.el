@@ -720,37 +720,39 @@ three being lists of JID symbols."
 
       ;; delete items
       (dolist (delete-this (append deleted-items changed-items))
-	(when jabber-roster-debug
-	  (message (concat "delete jid: " delete-this)))
-	(dolist (group (or (get delete-this 'groups)
-			   (list jabber-roster-default-group-name)))
+	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
-	    (message (concat "delete jid: " delete-this " from group " group)))
-	  (puthash group
-		   (delq delete-this (gethash group hash))
-		   hash)
-	  (when (= (length (gethash group hash)) 0)
+	    (message (concat "delete jid: " jid)))
+	  (dolist (group (or (get delete-this 'groups)
+			     (list jabber-roster-default-group-name)))
 	    (when jabber-roster-debug
-	      (message (concat "delete group " group)))
-	    (setq all-groups
-		  (remove-if-not (lambda (g)
-				   (let ((group-name (car g)))
-				     (not (string= group-name group))))
-			roll-groups)))))
+	      (message (concat "delete jid: " jid " from group " group)))
+	    (puthash group
+		     (delq delete-this (gethash group hash))
+		     hash)
+	    (when (= (length (gethash group hash)) 0)
+	      (when jabber-roster-debug
+		(message (concat "delete group " group)))
+	      (setq all-groups
+		    (remove-if-not (lambda (g)
+				     (let ((group-name (car g)))
+				       (not (string= group-name group))))
+				   roll-groups))))))
 
       ;; insert changed-items
       (dolist (insert-this (append changed-items new-items))
-	(when jabber-roster-debug
-	  (message (concat "insert jid: " insert-this)))
-	(dolist (group (or (get insert-this 'groups)
-			   (list jabber-roster-default-group-name)))
+	(let ((jid (symbol-name insert-this)))
 	  (when jabber-roster-debug
-	    (message (concat "insert jid: " insert-this " to group " group)))
-	  (puthash group
-		   (append (gethash group hash)
-			   (list insert-this))
-		   hash)
-	  (setq all-groups (append all-groups (list (list group))))))
+	    (message (concat "insert jid: " jid)))
+	  (dolist (group (or (get insert-this 'groups)
+			     (list jabber-roster-default-group-name)))
+	    (when jabber-roster-debug
+	      (message (concat "insert jid: " jid " to group " group)))
+	    (puthash group
+		     (append (gethash group hash)
+			     (list insert-this))
+		     hash)
+	    (setq all-groups (append all-groups (list (list group)))))))
 
       (setq all-groups (sort
 			(remove-duplicates all-groups
@@ -759,8 +761,11 @@ three being lists of JID symbols."
 
       (plist-put (fsm-get-state-data jc) :roster-groups all-groups))
 
-  ;; recreate roster buffer
-  (jabber-display-roster)))
+
+    (message "re display roster")
+
+    ;; recreate roster buffer
+    (jabber-display-roster)))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
