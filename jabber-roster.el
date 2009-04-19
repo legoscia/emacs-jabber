@@ -723,10 +723,9 @@ three being lists of JID symbols."
 	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
 	    (message (concat "delete jid: " jid)))
-	  (dolist (group (or (get delete-this 'groups-old)
-			     (list jabber-roster-default-group-name)))
+	  (dolist (group (mapcar (lambda (g) (car g)) all-groups))
 	    (when jabber-roster-debug
-	      (message (concat "delete jid: " jid " from group " group)))
+	      (message (concat "try to delete jid: " jid " from group " group)))
 	    (puthash group
 		     (delq delete-this (gethash group hash))
 		     hash))))
