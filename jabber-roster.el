@@ -201,6 +201,9 @@ Trailing newlines are always removed, regardless of this variable."
   "face for displaying offline users"
   :group 'jabber-roster)
 
+(defvar jabber-roster-debug nil
+  "debug roster draw")
+
 (defvar jabber-roster-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
@@ -712,14 +715,23 @@ three being lists of JID symbols."
     (if (not hash)
 	(jabber-roster-prepare-roster jc)
 
+      (when jabber-roster-debug
+	(message "update hash-based roster"))
+
       ;; delete items
       (dolist (delete-this (append deleted-items changed-items))
+	(when jabber-roster-debug
+	  (message (concat "delete jid: " delete-this)))
 	(dolist (group (or (get delete-this 'groups)
 			   (list jabber-roster-default-group-name)))
+	  (when jabber-roster-debug
+	    (message (concat "delete jid: " delete-this " from group " group)))
 	  (puthash group
 		   (delq delete-this (gethash group hash))
 		   hash)
 	  (when (= (length (gethash group hash)) 0)
+	    (when jabber-roster-debug
+	      (message (concat "delete group " group)))
 	    (setq all-groups
 		  (remove-if-not (lambda (g)
 				   (let ((group-name (car g)))
@@ -727,12 +739,16 @@ three being lists of JID symbols."
 			roll-groups)))))
 
       ;; insert changed-items
-      (dolist (change-this changed-items)
-	(dolist (group (or (get change-this 'groups)
+      (dolist (insert-this (append changed-items new-items))
+	(when jabber-roster-debug
+	  (message (concat "insert jid: " insert-this)))
+	(dolist (group (or (get insert-this 'groups)
 			   (list jabber-roster-default-group-name)))
+	  (when jabber-roster-debug
+	    (message (concat "insert jid: " insert-this " to group " group)))
 	  (puthash group
 		   (append (gethash group hash)
-			   (list change-this))
+			   (list insert-this))
 		   hash)
 	  (setq all-groups (append all-groups (list (list group))))))
 
