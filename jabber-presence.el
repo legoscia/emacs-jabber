@@ -100,6 +100,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	    ;; compatibility.
 	    (put roster-item 'xml item)
 
+	    (put roster-item 'groups-old
+		 (get roster-item 'groups))
+
 	    (put roster-item 'groups
 		 (mapcar (lambda (foo) (nth 2 foo))
 			 (jabber-xml-get-children item 'group)))))))

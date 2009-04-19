@@ -723,21 +723,13 @@ three being lists of JID symbols."
 	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
 	    (message (concat "delete jid: " jid)))
-	  (dolist (group (or (get delete-this 'groups)
+	  (dolist (group (or (get delete-this 'groups-old)
 			     (list jabber-roster-default-group-name)))
 	    (when jabber-roster-debug
 	      (message (concat "delete jid: " jid " from group " group)))
 	    (puthash group
 		     (delq delete-this (gethash group hash))
-		     hash)
-	    (when (= (length (gethash group hash)) 0)
-	      (when jabber-roster-debug
-		(message (concat "delete group " group)))
-	      (setq all-groups
-		    (remove-if-not (lambda (g)
-				     (let ((group-name (car g)))
-				       (not (string= group-name group))))
-				   roll-groups))))))
+		     hash))))
 
       ;; insert changed-items
       (dolist (insert-this (append changed-items new-items))
