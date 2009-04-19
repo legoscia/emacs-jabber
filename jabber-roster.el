@@ -754,15 +754,27 @@ three being lists of JID symbols."
 		     hash)
 	    (setq all-groups (append all-groups (list (list group)))))))
 
+      
+      (when jabber-roster-debug
+	(message "remove duplicates from new group"))
       (setq all-groups (sort
 			(remove-duplicates all-groups
-					   :test 'string=)
-			'string<))
+					   :test (lambda (g1 g2)
+						   (let ((g1-name (car g1))
+							 (g2-name (car g2)))
+						     (string= g1-name
+							      g2-name))))
+			(lambda (g1 g2)
+			  (let ((g1-name (car g1))
+				(g2-name (car g2)))
+			    (string< g1-name
+				     g2-name)))))
 
       (plist-put (fsm-get-state-data jc) :roster-groups all-groups))
 
 
-    (message "re display roster")
+    (when jabber-roster-debug
+      (message "re display roster"))
 
     ;; recreate roster buffer
     (jabber-display-roster)))
