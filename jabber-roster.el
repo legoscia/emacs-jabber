@@ -538,21 +538,18 @@ H        Toggle displaying this text
 	  (plist-put(fsm-get-state-data jc) :roster-ewoc ewoc)
 	  (dolist (group (plist-get (fsm-get-state-data jc) :roster-groups))
 	    (let* ((group-name (car group))
-		   (group-node (car (cdr group)))
 		   (buddies (jabber-roster-filter-display
 			    (gethash group-name
 				     (plist-get (fsm-get-state-data jc) :roster-hash)))))
 	      (when (or jabber-roster-show-empty-group
 			(> (length buddies) 0))
-		(setq group-node (ewoc-enter-last ewoc (list group nil)))
-		(setq new-groups (append new-groups (list (list group-name group-node))))
-		(if (not (find
+		(let ((group-node (ewoc-enter-last ewoc (list group nil))))
+		  (if (not (find
 			    group-name
 			    (plist-get (fsm-get-state-data jc) :roster-roll-groups)
 			    :test 'string=))
-		  (dolist (buddy (reverse buddies))
-		    (ewoc-enter-after ewoc group-node (list group buddy)))))))
-	  (plist-put (fsm-get-state-data jc) :roster-groups new-groups)
+		      (dolist (buddy (reverse buddies))
+			(ewoc-enter-after ewoc group-node (list group buddy))))))))
 	  (goto-char (point-max))
 	  (insert "\n")
 	  (put-text-property before-ewoc (point)
