@@ -154,6 +154,7 @@ configure a Google Talk account like this:
 (require 'jabber-xmessage)
 (require 'jabber-wmii)
 (require 'jabber-osd)
+(require 'jabber-awesome)
 
 (require 'jabber-autoloads)
 
