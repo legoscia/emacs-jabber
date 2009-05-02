@@ -3,7 +3,7 @@
 %define pkg_name jabber
 
 Version: 0.8
-Release: alt1.20090429
+Release: alt1.20090502
 Name: emacs-jabber
 License: %gpl2plus
 Group: Networking/Instant messaging
@@ -81,6 +81,9 @@ install -m 644 %SOURCE1 %buildroot%_emacs_sitestart_dir/%pkg_name.el
 %doc %pkg_name.texi
 
 %changelog
+* Sat May  2 2009 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt1.20090502
+- git-20090502
+
 * Wed Apr 29 2009 Terechkov Evgenii <evg@altlinux.ru> 0.8-alt1.20090429
 - git-20090429
 - Experimental support for roster groups introduced in upstream. Beware the ogres!
