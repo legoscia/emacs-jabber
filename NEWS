@@ -1,6 +1,9 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Support for automatic MUC nicks colorization
+See "Customizing the chat buffer" in the manual.
+
 ** XML Console
 Log all received/sending XML stanzas into special buffer. Also can be
 used to send custom XML stanzas manually.

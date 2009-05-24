@@ -21,6 +21,7 @@ jabber-si-common.el jabber-si-server.el jabber-socks5.el		\
 jabber-time.el jabber-truncate.el jabber-util.el			\
 jabber-vcard-avatars.el jabber-vcard.el jabber-version.el		\
 jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
+jabber-muc-nick-coloring.el						\
 jabber-xml.el jabber.el srv.el
 
 compat_lisp_sources =
@@ -30,8 +31,11 @@ endif
 if USE_OUR_HEX_UTIL
 compat_lisp_sources += compat/hex-util.el
 endif
+if USE_OUR_HEXRGB
+compat_lisp_sources += compat/hexrgb.el
+endif
 # automake gets confused and doesn't clean up these two compiled files.
-CLEANFILES=sha1.elc hex-util.elc
+CLEANFILES=sha1.elc hex-util.elc hexrgb.elc
 
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el jabber-ourversion.el
 MAINTAINERCLEANFILES=jabber-autoloads.el

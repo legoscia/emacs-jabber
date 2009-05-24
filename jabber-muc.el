@@ -23,6 +23,7 @@
 (require 'jabber-widget)
 (require 'jabber-newdisco)
 (require 'jabber-autoloads)
+(require 'jabber-muc-nick-coloring)
 
 (require 'cl)
 
@@ -847,8 +848,18 @@ Return nil if X-MUC is nil."
 			       (cons ?u nick)
 			       (cons ?r nick)
 			       (cons ?j (concat jabber-group "/" nick))))
-		 'face (if local 'jabber-chat-prompt-local
-                         'jabber-chat-prompt-foreign)
+		 'face (if local        ;Message from you.
+                           (if jabber-muc-colorize-local ;; If colorization enable...
+                               ;; ...colorize nick
+                               (list ':foreground (jabber-muc-nick-get-color nick))
+                             ;; otherwise, use default face.
+                             'jabber-chat-prompt-local)
+                         ;; Message from other participant.
+                         (if jabber-muc-colorize-foreign ;If colorization enable...
+                             ;; ... colorize nick
+                             (list ':foreground (jabber-muc-nick-get-color nick))
+                           ;; otherwise, use default face.
+                           'jabber-chat-prompt-foreign))
 		 'help-echo (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " nick " in " jabber-group)))
       (jabber-muc-system-prompt))))
 

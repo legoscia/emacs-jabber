@@ -1806,8 +1806,19 @@ determine the faces used for chat messages.
 
 @vindex jabber-chat-prompt-local
 @vindex jabber-chat-prompt-foreign
+@vindex jabber-muc-colorize-local
+@vindex jabber-muc-colorize-foreign
+@vindex jabber-muc-nick-saturation
+@vindex jabber-muc-nick-value
+@vindex jabber-muc-participant-colors
+@cindex Nick coloring
 @code{jabber-chat-prompt-local} and @code{jabber-chat-prompt-foreign}
-determine the faces used for the prompts.
+determine the faces used for the prompts. You can also turn on
+automatic colorization of local (@code{jabber-muc-colorize-local})
+and/or foreign (@code{jabber-muc-colorize-foreign}) prompts. By
+default it is off. You can correct and save for future use auto-generated colors by
+customizing @code{jabber-muc-participant-colors}, @code{jabber-muc-nick-saturation} and
+@code{jabber-muc-nick-value}, if you wish.
 
 @vindex jabber-chat-local-prompt-format
 @vindex jabber-chat-foreign-prompt-format

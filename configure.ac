@@ -9,9 +9,11 @@ AS_IF([test "$EMACS" = no], [AC_MSG_ERROR([cannot find Emacs])])
 AX_CHECK_EMACS_LIB([sha1], [HAVE_SHA1=yes], [HAVE_SHA1=no])
 AX_CHECK_EMACS_LIB([sha1-el], [HAVE_SHA1_EL=yes], [HAVE_SHA1_EL=no])
 AX_CHECK_EMACS_LIB([hex-util], [HAVE_HEX_UTIL=yes], [HAVE_HEX_UTIL=no])
+AX_CHECK_EMACS_LIB([hexrgb], [HAVE_HEXRGB=yes], [HAVE_HEXRGB=no])
 
 AM_CONDITIONAL([USE_OUR_SHA1], [test x$HAVE_SHA1 = xno -a x$HAVE_SHA1_EL = xno])
 AM_CONDITIONAL([USE_OUR_HEX_UTIL], [test x$HAVE_HEX_UTIL = xno])
+AM_CONDITIONAL([USE_OUR_HEXRGB], [test x$HAVE_HEXRGB = xno])
 
 dnl GConf schemas, for registering our URL handler
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)

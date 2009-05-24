@@ -18,6 +18,9 @@ xml.el, and some files from Gnus 5.10. If you don't have Gnus 5.10
 from the compat subdirectory.  (The configure script tries to detect
 this situation and include the files in the build)
 
+File hexrgb.el (http://www.emacswiki.org/emacs/hexrgb.el) needed for
+MUC nick coloring feature. It also placed in compat directory and used
+if nessesary.
 
 XEmacs
 ======
