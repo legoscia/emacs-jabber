@@ -1,0 +1,3 @@
+tar: v@version@-@release@:.
+diff: v@version@-@release@:. . name=@name@-@version@-alt.patch
+copy: jabber-emacs.el

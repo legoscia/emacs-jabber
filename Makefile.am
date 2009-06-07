@@ -55,11 +55,11 @@ info_TEXINFOS=jabber.texi
 dist_libexec_SCRIPTS = xmppuri.sh
 
 SUBDIRS = . tests
-if USE_GCONFTOOL
-if GCONF_SCHEMAS_INSTALL
-SUBDIRS += gconf
-endif
-endif
+# if USE_GCONFTOOL
+# if GCONF_SCHEMAS_INSTALL
+# SUBDIRS += gconf
+# endif
+# endif
 
 # Package everything in a form suitable for ELPA.  That is, use
 # "jabber" instead of "emacs-jabber" as base name.
