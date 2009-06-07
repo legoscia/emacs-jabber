@@ -13,9 +13,9 @@ AM_CONDITIONAL([USE_OUR_SHA1], [test x$HAVE_SHA1 = xno -a x$HAVE_SHA1_EL = xno])
 AM_CONDITIONAL([USE_OUR_HEX_UTIL], [test x$HAVE_HEX_UTIL = xno])
 
 dnl GConf schemas, for registering our URL handler
-dnl AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
-dnl AM_CONDITIONAL(USE_GCONFTOOL, test "x$GCONFTOOL" != "xno")
-dnl AM_GCONF_SOURCE_2
+AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
+AM_CONDITIONAL(USE_GCONFTOOL, test "x$GCONFTOOL" != "xno")
+AM_GCONF_SOURCE_2
 
 AC_CONFIG_FILES([Makefile tests/Makefile gconf/Makefile jabber-ourversion.el])
 AC_OUTPUT
