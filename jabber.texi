@@ -1943,6 +1943,12 @@ manager.
 The @code{wmii} alerts display a message through the wmii window
 manager.
 
+@cindex awesome window manager
+@cindex Window manager, awesome
+The @code{awesome} alerts display a message through the awesome window
+manager. However, to work it needs naughty (i.e.
+@code{require("naughty")} in rc.lua).
+
 @cindex xmessage
 @vindex jabber-xmessage-timeout
 The @code{xmessage} alerts send a message through the standard
