@@ -153,7 +153,14 @@ Trailing newlines are always removed, regardless of this variable."
 (defcustom jabber-roster-default-group-name "other"
   "Default group name for buddies without groups."
   :group 'jabber-roster
-  :type 'string)
+  :type 'string
+  :set #'(lambda (var val)
+           (if (stringp val)
+               (set-text-properties 0 (length val) nil val)
+             )
+           (custom-set-default var val)
+           )
+  )
 
 (defcustom jabber-roster-show-empty-group nil
   "Show empty groups in roster?"
