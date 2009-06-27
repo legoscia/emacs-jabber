@@ -21,9 +21,6 @@
 (require 'jabber-iq)
 (require 'jabber-util)
 
-(defvar jabber-ping-ns "urn:xmpp:ping"
-  "XEP-0199 ping namespace")
-
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Ping" 'jabber-ping))
 
@@ -33,7 +30,7 @@
   ON-SUCCESS and ON-ERROR is arg for this function depending on
   result."
   (jabber-send-iq jc to "get"
-                  '(ping ((xmlns . jabber-ping-ns)))
+                  '(ping ((xmlns . "urn:xmpp:ping")))
                   process-func on-success
                   process-func on-error))
 
@@ -49,8 +46,8 @@
   (let ((to (jabber-xml-get-attribute xml-data 'from)))
     (insert (format "%s is alive\n" to))))
 
-(add-to-list 'jabber-iq-get-xmlns-alist (cons jabber-ping-ns 'jabber-pong))
-(add-to-list 'jabber-advertised-features jabber-ping-ns)
+(add-to-list 'jabber-iq-get-xmlns-alist (cons "urn:xmpp:ping" 'jabber-pong))
+(add-to-list 'jabber-advertised-features "urn:xmpp:ping")
 (defun jabber-pong (jc xml-data)
   "Return pong as defined in XEP-0199. Sender and Id are
 determined from the incoming packet passed in XML-DATA."
