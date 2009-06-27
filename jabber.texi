@@ -1243,6 +1243,9 @@ You can customize the interval and the timeout with the variables
 @code{jabber-keepalive-interval} and @code{jabber-keepalive-timeout},
 respectively.
 
+@findex jabber-ping
+You can also manually ping some client/server by using @kbd{M-x jabber-ping}.
+
 @node Reconnecting, Tracking activity, Keepalive, Useful features
 @section Reconnecting
 
@@ -2613,6 +2616,7 @@ jabber.el.
 * XEP-0096::                    File Transfer
 * XEP-0146::                    Remote Controlling Clients
 * XEP-0153::                    vCard-Based Avatars
+* XEP-0199::                    XMPP Ping
 @end menu
 
 @node RFC 3920, RFC 3921, Protocol support, Protocol support
@@ -2835,11 +2839,17 @@ XEP-0096 requires them.
 
 The ``set-status'' command in XEP-0146 is supported.
 
-@node XEP-0153,  , XEP-0146, Protocol support
+@node XEP-0153, XEP-0199, XEP-0146, Protocol support
 @section XEP-0153 (vCard-Based Avatars)
 
 vCard-based avatars are supported, both publishing and displaying.  The
 pixel size limits on avatars are not enforced.
+
+@node XEP-0199,  , XEP-0153, Protocol support
+@section XEP-0199 (XMPP Ping)
+
+XEP-0199 is fully supported. You can manually ping some client/server
+by using @kbd{M-x jabber-ping}.
 
 @node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index
