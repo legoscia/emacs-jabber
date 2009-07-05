@@ -158,6 +158,10 @@ Trailing newlines are always removed, regardless of this variable."
           (if (stringp var)
            (set-text-properties 0 (length var) nil var)
            var))
+  :set '(lambda (var val)
+          (if (stringp val)
+              (set-text-properties 0 (length val) nil val))
+          (custom-set-default var val))
   )
 
 (defcustom jabber-roster-show-empty-group nil
