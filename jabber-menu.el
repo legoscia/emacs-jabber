@@ -98,9 +98,12 @@ With prefix argument, remove it."
   (force-mode-line-update))
 (make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead.")
 
+;; This used to be:
+;; (define-key-after global-map [menu-bar jabber-menu] ...)
+;; but that doesn't work in Emacs 21.
 ;;;###autoload
-(define-key-after global-map
-  [menu-bar jabber-menu]
+(define-key-after (lookup-key global-map [menu-bar])
+  [jabber-menu]
   (list 'menu-item "Jabber" jabber-menu
 	:visible '(or (eq jabber-display-menu t)
 		      (and (eq jabber-display-menu 'maybe)

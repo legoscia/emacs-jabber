@@ -218,7 +218,6 @@ Contents of process buffers might be useful for debugging."
    (nil . jabber-roster-user-offline))
  "Mapping from presence types to faces")
 
-;;;###autoload
 (defconst jabber-presence-strings
   `(("" . ,(jabber-propertize "Online" 'face 'jabber-roster-user-online))
     ("away" . ,(jabber-propertize "Away" 'face 'jabber-roster-user-away))

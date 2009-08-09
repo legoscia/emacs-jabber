@@ -596,10 +596,10 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 			   (car (jabber-xml-get-children x 'url)))))
 		(desc (car (jabber-xml-node-children
 			    (car (jabber-xml-get-children x 'desc))))))
-	    (insert (jabber-propertize
-		     "URL: " 'face 'jabber-chat-prompt-system))
-	    (insert (format "%s <%s>" desc url))
-	    (insert "\n")))))
+	    (insert "\n"
+                    (jabber-propertize
+		     "URL: " 'face 'jabber-chat-prompt-system)
+                    (format "%s <%s>" desc url))))))
     foundp))
 
 (defun jabber-chat-goto-address (xml-data who mode)

@@ -1,6 +1,6 @@
 ;; jabber-muc.el - advanced MUC functions
 
-;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2003, 2004, 2007, 2008, 2009 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -630,7 +630,10 @@ group, else it is a JID."
   "Invite JID to GROUP, stating REASON."
   (interactive
    (list (jabber-read-account)
-	 (jabber-read-jid-completing "Invite whom: ")
+	 (jabber-read-jid-completing
+          "Invite whom: "
+          ;; The current room is _not_ a good default for whom to invite.
+          (remq (jabber-jid-symbol jabber-group) (jabber-concat-rosters)))
 	 (jabber-muc-read-completing "To group: ")
 	 (jabber-read-with-input-method "Reason: ")))
   (jabber-send-sexp

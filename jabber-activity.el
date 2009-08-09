@@ -273,7 +273,7 @@ Optional PRESENCE mean personal presence request or alert."
 		  'local-map (when (fboundp 'make-mode-line-mouse-map)
 			       (make-mode-line-mouse-map
 				'mouse-1 `(lambda ()
-					    (interactive)
+					    (interactive "@")
 					    (jabber-activity-switch-to
 					     ,(car x)))))
 		  'help-echo (concat "Jump to "
