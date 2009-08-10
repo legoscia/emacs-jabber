@@ -23,6 +23,11 @@
 (require 'jabber-util)
 (require 'jabber-ourversion)
 
+(defcustom jabber-version-show t
+  "Show our client version to others. Acts on loading."
+  :type 'boolean
+  :group 'jabber)
+
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Request software version" 'jabber-get-version))
 (defun jabber-get-version (jc to)
@@ -46,8 +51,11 @@
 	(when data
 	  (insert (cdr x) data "\n"))))))
 
-(add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:version" 'jabber-return-version))
-(add-to-list 'jabber-advertised-features "jabber:iq:version")
+(if jabber-version-show
+    (and
+     (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:version" 'jabber-return-version))
+     (add-to-list 'jabber-advertised-features "jabber:iq:version")))
+
 (defun jabber-return-version (jc xml-data)
   "Return client version as defined in JEP-0092.  Sender and ID are
 determined from the incoming packet passed in XML-DATA."
