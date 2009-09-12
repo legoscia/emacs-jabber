@@ -17,7 +17,7 @@ Realized as alert. Can match regexp and answer with predefined string
 See section "Standard alerts" in manual.
 
 ** MUC nicks completion
-See sectin "Groupchat" in manual.
+See section "Groupchat" in manual.
 
 ** Automatic reconnection
 Not enabled by default; See "Reconnecting" section in manual.
@@ -52,7 +52,7 @@ subscription" section in manual.
 (Not documented nor autoloaded)
 
 ** GConf-based installation of URI handler
-(Not documented yet)
+See "XMPP URIs" in manual.
 
 * New features in jabber.el 0.7.1
 
