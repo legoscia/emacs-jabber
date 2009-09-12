@@ -1553,7 +1553,7 @@ gconftool --get /desktop/gnome/url-handlers/xmpp/command
 This should print something like:
 
 @example
-/usr/local/libexec/xmppuri.sh "%s"
+/usr/local/libexec/emacs-jabber-uri-handler "%s"
 @end example
 
 This setting is picked up by most GNOME or GTK based web browsers,
@@ -1568,12 +1568,12 @@ manually by following these steps:
 @enumerate
 
 @item
-Note the path of the @file{xmppuri.sh} file in the jabber.el
+Note the path of the @file{emacs-jabber-uri-handler} file in the jabber.el
 distribution, and make sure it is executable.
 
 @item
 Set the Mozilla preference @samp{network.protocol-handler.app.xmpp} to
-the path of @file{xmppuri.sh}.  There are two ways to do this:
+the path of @file{emacs-jabber-uri-handler}.  There are two ways to do this:
 
 @itemize
 @item
@@ -1587,7 +1587,7 @@ Open or create the file @file{user.js} in your Mozilla profile directory
 
 @example
 user_pref("network.protocol-handler.app.xmpp",
-  "@var{/path/to}/xmppuri.sh");
+  "@var{/path/to}/emacs-jabber-uri-handler");
 @end example
 
 Restart Mozilla for this change to take effect.

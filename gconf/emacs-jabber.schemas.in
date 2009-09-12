@@ -17,7 +17,7 @@
       <applyto>/desktop/gnome/url-handlers/xmpp/command</applyto>
       <owner>emacs-jabber</owner>
       <type>string</type>
-      <default>@libexecdir@/xmppuri.sh "%s"</default>
+      <default>@libexecdir@/emacs-jabber-uri-handler "%s"</default>
       <locale name="C">
         <short>The handler for "xmpp" URLs</short>
         <long>The command used to handle "xmpp" URLs, if enabled.</long>

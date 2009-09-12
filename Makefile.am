@@ -52,7 +52,7 @@ jabber-autoloads.el: $(my_lisp_sources)
 
 info_TEXINFOS=jabber.texi
 
-dist_libexec_SCRIPTS = xmppuri.sh
+dist_libexec_SCRIPTS = emacs-jabber-uri-handler
 
 SUBDIRS = . tests
 if USE_GCONFTOOL
