@@ -130,4 +130,6 @@ details.
 XMPP URIs
 =========
 It is possible to make various web browsers pass links starting with
-"xmpp:" to jabber.el.  See the manual, section "XMPP URIs".
+"xmpp:" to jabber.el.  In the ideal case, this works right after
+running "make install".  Otherwise, see the manual, section "XMPP
+URIs".

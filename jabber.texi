@@ -1533,15 +1533,39 @@ Your web browser could be made to pass such links to jabber.el, so that
 such links are actually useful and not just decoration.  How to do that
 depends on your operating system and web browser.
 
+For any of these methods, you need to make sure that you are running
+the Emacs server.  @xref{Emacs Server, , Using Emacs as a Server,
+emacs, GNU Emacs Manual}, though the simplest way to start it is to
+customize the variable @code{server-mode}.
+
+@section GNOME
+
+The jabber.el distribution contains a GConf schema which tries to set
+up handling of @samp{xmpp:} URIs.  It is installed by @samp{make
+install}.  This may or may not work, depending on your GConf
+configuration and other installed applications.  To check, try
+running:
+
+@example
+gconftool --get /desktop/gnome/url-handlers/xmpp/command
+@end example
+
+This should print something like:
+
+@example
+/usr/local/libexec/xmppuri.sh "%s"
+@end example
+
+This setting is picked up by most GNOME or GTK based web browsers,
+including Firefox.
+
 @section Mozilla and Unix
 
-If you use a Mozilla-based web browser on a Unix-like operating system,
-follow these steps.
+If you use a Mozilla-based web browser on a Unix-like operating
+system, and the GConf method above doesn't work, you can set it up
+manually by following these steps:
 
 @enumerate
-@item
-Make sure you are running the Emacs server.  @xref{Emacs Server, , Using
-Emacs as a Server, emacs, GNU Emacs Manual}.
 
 @item
 Note the path of the @file{xmppuri.sh} file in the jabber.el
