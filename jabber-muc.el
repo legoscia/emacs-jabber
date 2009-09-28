@@ -537,16 +537,41 @@ groupchat buffer."
 
 (defun jabber-muc-print-names (participants)
   "Format and return data in PARTICIPANTS."
-  (apply 'concat "Participants:\n"
-	 (format "%-15s %-15s %-11s %s\n" "Nickname" "Role" "Affiliation" "JID")
-	 (mapcar (lambda (x)
-		   (let ((plist (cdr x)))
-		     (format "%-15s %-15s %-11s %s\n"
-			     (car x)
-			     (plist-get plist 'role)
-			     (plist-get plist 'affiliation)
-			     (or (plist-get plist 'jid) ""))))
-		 participants)))
+  (let ((mlist) (plist) (vlist) (nlist)
+        (formatstr "  %-15s %-11s %s\n"))
+    (mapcar (lambda (x)
+              (let ((role (plist-get (cdr x) 'role)))
+                (cond ((string= role "moderator")
+                       (add-to-list 'mlist x))
+                      ((string= role "participant")
+                       (add-to-list 'plist x))
+                      ((string= role "visitor")
+                       (add-to-list 'vlist x))
+                      ((string= role "none")
+                       (add-to-list 'nlist x)))))
+            participants)
+    (concat
+     (apply 'concat
+            "Moderators:\n"
+            (mapcar (lambda (x)
+                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
+                    mlist))
+     (apply 'concat
+            "\nParticipants:\n"
+            (mapcar (lambda (x)
+                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
+                    plist))
+     (apply 'concat
+            "\nVisitors:\n"
+            (mapcar (lambda (x)
+                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
+                    vlist))
+     (apply 'concat
+            "\nNones:\n"
+            (mapcar (lambda (x)
+                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
+                    nlist)))
+    ))
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Set topic" 'jabber-muc-set-topic))
