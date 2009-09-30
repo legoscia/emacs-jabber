@@ -137,6 +137,17 @@ These fields are available:
   :type 'string
   :group 'jabber-chat)
 
+(defcustom jabber-muc-print-names-format "	%n	%a	%j\n"
+  "The format specification for MUC list lines.
+
+Fields available:
+
+%n  Nickname in room
+%a  Affiliation status
+%j  Full JID (room@server/nick)"
+  :type 'string
+  :group 'jabber-chat)
+
 (defcustom jabber-muc-private-header-line-format
   '(" " (:eval (jabber-jid-resource jabber-chatting-with))
     " in " (:eval (jabber-jid-displayname (jabber-jid-user jabber-chatting-with)))
@@ -535,10 +546,17 @@ groupchat buffer."
 					   (cdr (assoc jabber-group jabber-muc-participants)))
 					  :time (current-time))))
 
+(defun jabber-muc-format-names (participant)
+  "Format one participant name"
+  (format-spec jabber-muc-print-names-format
+               (list
+                (cons ?n (car participant))
+                (cons ?a (plist-get (cdr participant) 'affiliation))
+                (cons ?j (or (plist-get (cdr participant) 'jid) "")))))
+
 (defun jabber-muc-print-names (participants)
   "Format and return data in PARTICIPANTS."
-  (let ((mlist) (plist) (vlist) (nlist)
-        (formatstr "  %-15s %-11s %s\n"))
+  (let ((mlist) (plist) (vlist) (nlist))
     (mapcar (lambda (x)
               (let ((role (plist-get (cdr x) 'role)))
                 (cond ((string= role "moderator")
@@ -551,26 +569,10 @@ groupchat buffer."
                        (add-to-list 'nlist x)))))
             participants)
     (concat
-     (apply 'concat
-            "Moderators:\n"
-            (mapcar (lambda (x)
-                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
-                    mlist))
-     (apply 'concat
-            "\nParticipants:\n"
-            (mapcar (lambda (x)
-                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
-                    plist))
-     (apply 'concat
-            "\nVisitors:\n"
-            (mapcar (lambda (x)
-                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
-                    vlist))
-     (apply 'concat
-            "\nNones:\n"
-            (mapcar (lambda (x)
-                      (format formatstr (car x) (plist-get (cdr x) 'affiliation) (or (plist-get (cdr x) 'jid) "")))
-                    nlist)))
+     (apply 'concat "\nModerators:\n" (mapcar 'jabber-muc-format-names mlist))
+     (apply 'concat "\nParticipants:\n" (mapcar 'jabber-muc-format-names plist))
+     (apply 'concat "\nVisitors:\n" (mapcar 'jabber-muc-format-names vlist))
+     (apply 'concat "\nNones:\n" (mapcar 'jabber-muc-format-names nlist)))
     ))
 
 (add-to-list 'jabber-jid-muc-menu
