@@ -495,10 +495,11 @@ by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
 will be rendered in new buffer.
 
 @findex jabber-muc-names
+@vindex jabber-muc-print-names-format
 To see which people are in a groupchat, type @kbd{M-x
-jabber-muc-names}.  This gives a list of nicknames, ``roles'',
-``affiliations'', and possibly JIDs.  @xref{MUC Administration}, for
-the meaning of roles and affiliations.
+jabber-muc-names}.  This gives a list of nicknames,
+``affiliations'', and possibly JIDs according @code{jabber-muc-print-names-format}, sorted by ``roles''.
+@xref{MUC Administration}, for the meaning of roles and affiliations.
 
 
 @menu
