@@ -16,29 +16,47 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(eval-when-compile (require 'jabber-alert))
 
-(defvar jabber-libnotify-icon ""
-  "*Icon to be used on the notification pop-up. Default is empty")
+(defcustom jabber-libnotify-icon ""
+  "Icon to be used on the notification pop-up. Default is empty"
+  :type '(file :must-match t)
+  :group 'jabber-alerts)
 
 
-(defvar jabber-libnotify-timeout "2500"
-  "*Specifies the timeout of the pop up window in millisecond")
+(defcustom jabber-libnotify-timeout 2500
+  "Specifies the timeout of the pop up window in millisecond"
+  :type 'integer
+  :group 'jabber-alerts)
 
-(defvar jabber-libnotify-message-header "Jabber message"
-  "*Defines the header of the pop up")
+(defcustom jabber-libnotify-message-header "Jabber message"
+  "Defines the header of the pop up."
+  :type 'string
+  :group 'jabber-alerts)
 
+(defcustom jabber-libnotify-urgency "low"
+  "Urgency of libnotify message"
+  :type '(choice (const :tag "Low" "low")
+                 (const :tag "Normal" "normal")
+                 (const :tag "Critical" "critical"))
+  :group 'jabber-alerts)
 
 (defun jabber-libnotify-message (msg)
   "Show MSG using libnotify"
-  (let ((process-connection-type nil))
-    (start-process "notification" nil "notify-send" 
-		   "-t" jabber-libnotify-timeout 
-		   "-i" jabber-libnotify-icon 
-		   jabber-libnotify-message-header msg)))
+  ;; Possible errors include not finding the notify-send binary.
+  (condition-case e
+      (let ((process-connection-type nil))
+    (start-process "notification" nil "notify-send"
+		   "-t" (format "%s" jabber-libnotify-timeout)
+		   "-i" (or jabber-libnotify-icon "\"\"")
+                   "-u" jabber-libnotify-urgency
+		   (or jabber-libnotify-message-header " ") msg))
+    (error nil)))
 
-  
+
 (define-jabber-alert libnotify "Show a message through the libnotify interface"
   'jabber-libnotify-message)
+(define-personal-jabber-alert jabber-muc-libnotify)
 
 (provide 'jabber-libnotify)
 
