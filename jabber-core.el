@@ -824,7 +824,10 @@ DATA is any sexp."
     (with-current-buffer (get-buffer-create (format "*-jabber-xml-log-%s-*" (jabber-connection-bare-jid fsm)))
       (save-excursion
 	(goto-char (point-max))
-	(insert (format "%s %S\n\n" direction data))))))
+	(insert (format "%s %S\n\n" direction data)))))
+
+    (when jabber-console
+      (jabber-process-console fsm data)))
 
 (defun jabber-pre-filter (process string fsm)
   (with-current-buffer (process-buffer process)
