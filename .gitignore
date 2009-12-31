@@ -1,1 +1,15 @@
 *.elc
+*~
+Makefile
+Makefile.in
+aclocal.m4
+config.log
+config.status
+configure
+elc-stamp
+*.tar*
+*.zip
+jabber-autoloads.el
+jabber-ourversion.el
+jabber.info
+emacs-jabber.schemas
