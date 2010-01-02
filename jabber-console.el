@@ -71,7 +71,7 @@ what kind of chat buffer is being created.")
 		 ;; Handle manually entered commands
 		 (insert data))
 		;; Print replays from `jabber-log-xml'
-		(t (insert (jabber-sexp2xml data)))))
+		(t (xml-print (list data)))))
 
 (defun jabber-console-mode (jc ewoc-pp)
   "\\{jabber-console-mode-map}"
