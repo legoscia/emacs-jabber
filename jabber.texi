@@ -2642,6 +2642,7 @@ jabber.el.
 * XEP-0146::                    Remote Controlling Clients
 * XEP-0153::                    vCard-Based Avatars
 * XEP-0199::                    XMPP Ping
+* XEP-0245::                    The /me Command
 @end menu
 
 @node RFC 3920, RFC 3921, Protocol support, Protocol support
@@ -2870,11 +2871,16 @@ The ``set-status'' command in XEP-0146 is supported.
 vCard-based avatars are supported, both publishing and displaying.  The
 pixel size limits on avatars are not enforced.
 
-@node XEP-0199,  , XEP-0153, Protocol support
+@node XEP-0199, XEP-0245, XEP-0153, Protocol support
 @section XEP-0199 (XMPP Ping)
 
 XEP-0199 is fully supported. You can manually ping some client/server
 by using @kbd{M-x jabber-ping}.
+
+@node XEP-0245, ,XEP-0199, Protocol support
+@section XEP-0245 (/me Command)
+
+XEP-0245 is partially supported (except XHTML-IM).
 
 @node Concept index, Function index, Protocol support, Top
 @unnumbered Concept index

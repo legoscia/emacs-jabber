@@ -177,7 +177,7 @@ Activate it with M-x jabber-activity-mode.
 ** Receive an alert when a specific person goes online
 Use it with M-x jabber-watch-add.
 
-** Support for /me in chats
+** Support for /me in chats (xep-0245, except XHTML-IM)
 As in "/me laughs" etc.
 
 ** Message alerts for current buffer can be disabled
