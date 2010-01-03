@@ -120,7 +120,8 @@ window or at `fill-column', whichever is shorter."
     (let ((inhibit-read-only t)
 	  (width (window-width (get-buffer-window (current-buffer)))))
       (goto-char (point-min))
-      (let ((adaptive-fill-mode nil))	;Why?  -sm
+      (let ((fill-paragraph-handle-comment nil)	;Don't indent // as comment
+			(adaptive-fill-mode nil))	;Why?  -sm
 	(while (not (eobp))
 	  (end-of-line)
 	  (when (>= (current-column) (min fill-column width))
