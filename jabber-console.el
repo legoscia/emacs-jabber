@@ -31,6 +31,11 @@
   :type 'boolean
   :group 'jabber-debug)
 
+(defcustom jabber-console-name-format "*-jabber-console-%s-*"
+  "Format for console buffer name. %s mean connection jid."
+  :type 'string
+  :group 'jabber-debug)
+
 (defvar jabber-point-insert nil
   "Position where the message being composed starts")
 
@@ -53,7 +58,7 @@ what kind of chat buffer is being created.")
 
 (defun jabber-console-create-buffer (jc)
   (with-current-buffer
-	  (get-buffer-create (format "*-jabber-console-%s-*" (jabber-connection-bare-jid jc)))
+	  (get-buffer-create (format jabber-console-name-format (jabber-connection-bare-jid jc)))
     (unless (eq major-mode 'jabber-console-mode)
       (jabber-console-mode jc #'jabber-console-pp))
     ;; Make sure the connection variable is up to date.
