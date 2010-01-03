@@ -1014,8 +1014,9 @@ and other commands; @pxref{Ad-Hoc Commands}.
 The Jabber way of handling personal information (name, addresses, phone
 numbers, etc) is ``vCards'' encoded in XML.@footnote{@xref{XEP-0054}.}
 You can get information about a user by running @kbd{M-x
-jabber-vcard-get}, and you can edit your own information by running
-@kbd{M-x jabber-vcard-edit}.
+jabber-vcard-get}, @kbd{M-x jabber-muc-vcard-get} if you in MUC (also
+available in the MUC menu), and you can edit your own information by
+running @kbd{M-x jabber-vcard-edit}.
 
 The form for editing your information can be slightly confusing---you
 are allowed to enter any number of addresses, phone numbers and e-mail

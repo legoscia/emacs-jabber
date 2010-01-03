@@ -794,6 +794,18 @@ include groupchat invites."
     (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
   (switch-to-buffer (jabber-muc-private-create-buffer jabber-buffer-connection group nickname)))
 
+;;;###autoload
+(defun jabber-muc-vcard-get (jc group nickname)
+  "Request vcard from chat with NICKNAME in GROUP."
+  (interactive
+   (jabber-muc-argument-list
+    (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
+    (let ((muc-name (format "%s/%s" group nickname)))
+	(jabber-vcard-get jc muc-name)))
+
+(add-to-list 'jabber-jid-muc-menu
+             (cons "Request vcard" 'jabber-muc-vcard-get))
+
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
   (let ((from (jabber-xml-get-attribute presence 'from))
