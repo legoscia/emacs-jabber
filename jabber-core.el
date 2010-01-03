@@ -30,6 +30,7 @@
 (require 'fsm)
 
 (require 'jabber-sasl)
+(require 'jabber-console)
 
 (defvar jabber-connections nil
   "List of jabber-connection FSMs.")
