@@ -25,6 +25,7 @@
 (require 'jabber-keymap)
 (require 'jabber-core)
 (require 'ewoc)
+(require 'sgml-mode)
 
 (defcustom jabber-console nil
   "Use XML Console for debuging, sending raw XMPP code"
@@ -95,6 +96,14 @@ what kind of chat buffer is being created.")
       (put-text-property (point-min) (point) 'front-sticky t)
       (put-text-property (point-min) (point) 'rear-nonsticky t))
     (setq jabber-point-insert (point-marker)))
+
+  (set (make-local-variable 'font-lock-defaults)
+       '((sgml-font-lock-keywords
+          sgml-font-lock-keywords-1
+          sgml-font-lock-keywords-2)
+         nil t nil nil
+         (font-lock-syntactic-keywords
+          . sgml-font-lock-syntactic-keywords)))
 
   (setq major-mode 'jabber-console-mode
         mode-name "jabber-console")
