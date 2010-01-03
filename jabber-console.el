@@ -23,7 +23,6 @@
 ;;; Code:
 
 (require 'jabber-keymap)
-(require 'jabber-core)
 (require 'ewoc)
 (require 'sgml-mode)
 
