@@ -828,7 +828,7 @@ DATA is any sexp."
 	(insert (format "%s %S\n\n" direction data)))))
 
     (when jabber-console
-      (jabber-process-console fsm data)))
+      (jabber-process-console fsm direction data)))
 
 (defun jabber-pre-filter (process string fsm)
   (with-current-buffer (process-buffer process)
