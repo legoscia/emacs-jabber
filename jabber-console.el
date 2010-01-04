@@ -89,7 +89,7 @@ what kind of chat buffer is being created.")
 		(t (jabber-console-comment (car data))
 		 (xml-print (cdr data)))))
 
-(define-derived-mode jabber-console-mode xml-mode "Jabber Console"
+(define-derived-mode jabber-console-mode sgml-mode "Jabber Console"
   "Major mode for debug XMPP protocol"
   ;; Make sure to set this variable somewhere
   (make-local-variable 'jabber-send-function)
