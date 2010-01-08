@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'jabber-keymap)
+(require 'jabber-truncate)              ;we need jabber-truncate-top
 (require 'ewoc)
 (require 'sgml-mode)
 
@@ -114,10 +115,12 @@ what kind of chat buffer is being created.")
 (put 'jabber-console-mode 'mode-class 'special)
 
 (defun jabber-process-console (jc direction xml-data)
-	(with-current-buffer
-		(get-buffer-create (jabber-console-create-buffer jc))
-	  (let ((node
-			 (ewoc-enter-last jabber-console-ewoc (list direction xml-data)))))))
+  (let ((buffer (get-buffer-create (jabber-console-create-buffer jc))))
+    (with-current-buffer buffer
+      (progn
+        (ewoc-enter-last jabber-console-ewoc (list direction xml-data))
+        (jabber-truncate-top buffer jabber-console-ewoc))))
+  )
 
 (provide 'jabber-console)
 ;;; jabber-console.el ends here
