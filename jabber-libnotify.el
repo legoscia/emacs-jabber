@@ -75,22 +75,20 @@
       (error nil)))
    ((eq jabber-libnotify-method 'dbus)
     (condition-case e
-	(when (and (fboundp 'dbus-ping)
-		   (dbus-ping :session "org.freedesktop.Notifications"))
-	  (dbus-call-method
-	   :session                                 ; use the session (not system) bus
-	   "org.freedesktop.Notifications"          ; service name
-	   "/org/freedesktop/Notifications"         ; path name
-	   "org.freedesktop.Notifications" "Notify" ; Method
-	   jabber-libnotify-app
-	   (jabber-libnotify-next-id)
-	   jabber-libnotify-icon
-	   ':string (encode-coding-string
-		     jabber-libnotify-message-header 'utf-8)
-	   ':string (encode-coding-string msg 'utf-8)
-	   '(:array)
-	   '(:array :signature "{sv}")
-	   ':int32 jabber-libnotify-timeout))
+          (dbus-call-method
+           :session                                 ; use the session (not system) bus
+           "org.freedesktop.Notifications"          ; service name
+           "/org/freedesktop/Notifications"         ; path name
+           "org.freedesktop.Notifications" "Notify" ; Method
+           jabber-libnotify-app
+           (jabber-libnotify-next-id)
+           jabber-libnotify-icon
+           ':string (encode-coding-string
+                     jabber-libnotify-message-header 'utf-8)
+           ':string (encode-coding-string msg 'utf-8)
+           '(:array)
+           '(:array :signature "{sv}")
+           ':int32 jabber-libnotify-timeout)
       (error nil)))))
 
 (define-jabber-alert libnotify "Show a message through the libnotify interface"
