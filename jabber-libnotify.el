@@ -51,7 +51,7 @@
 (defcustom jabber-libnotify-method (if (featurep 'dbus) 'dbus 'shell)
   "Specifies the method for libnotify call. Dbus is more faster but require emacs23+"
   :type '(choice (const :tag "Shell" shell)
-		 (const :tag "D-Bus" dbus))
+                 (const :tag "D-Bus" dbus))
   :group 'jabber-alerts)
 
 (defvar jabber-libnotify-id 0)
@@ -62,21 +62,23 @@
 
 (defun jabber-libnotify-message (text &optional title)
   "Show MSG using libnotify"
-  (cond
-   ((eq jabber-libnotify-method 'shell)
+  (let
+      ((body (jabber-escape-xml text))
+       (head (jabber-escape-xml
+              (or title
+                  (or jabber-libnotify-message-header " ")
+                  text))))
     ;; Possible errors include not finding the notify-send binary.
     (condition-case e
-	(let ((process-connection-type nil))
-	  (start-process "notification" nil "notify-send"
-			 "-t" (format "%s" jabber-libnotify-timeout)
-			 "-i" (or jabber-libnotify-icon "\"\"")
-			 "-u" jabber-libnotify-urgency
-			 (or title
-			     (or jabber-libnotify-message-header " ")
-			     text))
-      (error nil))))
-   ((eq jabber-libnotify-method 'dbus)
-    (condition-case e
+        (cond
+         ((eq jabber-libnotify-method 'shell)
+          (let ((process-connection-type nil))
+            (start-process "notification" nil "notify-send"
+                           "-t" (format "%s" jabber-libnotify-timeout)
+                           "-i" (or jabber-libnotify-icon "\"\"")
+                           "-u" jabber-libnotify-urgency
+                           head body)))
+         ((eq jabber-libnotify-method 'dbus)
           (dbus-call-method
            :session                                 ; use the session (not system) bus
            "org.freedesktop.Notifications"          ; service name
@@ -85,14 +87,11 @@
            jabber-libnotify-app
            (jabber-libnotify-next-id)
            jabber-libnotify-icon
-           ':string (encode-coding-string
-		     (or title jabber-libnotify-message-header)
-		     'utf-8)
-           ':string (encode-coding-string text 'utf-8)
+           ':string (encode-coding-string head 'utf-8)
+           ':string (encode-coding-string body 'utf-8)
            '(:array)
            '(:array :signature "{sv}")
-           ':int32 jabber-libnotify-timeout)
-      (error nil)))))
+           ':int32 jabber-libnotify-timeout))))))
 
 (define-jabber-alert libnotify "Show a message through the libnotify interface"
   'jabber-libnotify-message)
