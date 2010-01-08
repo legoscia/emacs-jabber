@@ -20,9 +20,9 @@
 
 (eval-when-compile (require 'jabber-alert))
 
-(defun jabber-screen-message (msg)
+(defun jabber-screen-message (text &optional title)
   "Show MSG in screen"
-  (call-process "screen" nil nil nil "-X" "echo" msg))
+  (call-process "screen" nil nil nil "-X" "echo" (or title text)))
 
 (define-jabber-alert screen "Show a message through the Screen terminal manager"
   'jabber-screen-message)

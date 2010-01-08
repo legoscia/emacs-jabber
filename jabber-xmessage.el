@@ -28,12 +28,12 @@ Set this to nil to have no timeout."
 		 (const :tag "No timeout" nil))
   :group 'jabber-alerts)
 
-(defun jabber-xmessage-display-message (message)
+(defun jabber-xmessage-display-message (text &optional title)
   "Displays MESSAGE using the xmessage program."
   (let* ((process-connection-type nil)
 	 (timeout-args (when jabber-xmessage-timeout
 			 (list "-timeout" (number-to-string jabber-xmessage-timeout))))
-	 (args (append timeout-args (list message))))
+	 (args (append timeout-args (list (or title text)))))
     (apply 'start-process "xmessage" nil "xmessage" args)))
 
 (define-jabber-alert xmessage "Display a message using the xmessage program."

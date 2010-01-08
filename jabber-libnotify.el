@@ -60,7 +60,7 @@
   "Return the next notification id."
   (setq jabber-libnotify-id (+ jabber-libnotify-id 1)))
 
-(defun jabber-libnotify-message (msg)
+(defun jabber-libnotify-message (text &optional title)
   "Show MSG using libnotify"
   (cond
    ((eq jabber-libnotify-method 'shell)
@@ -71,8 +71,10 @@
 			 "-t" (format "%s" jabber-libnotify-timeout)
 			 "-i" (or jabber-libnotify-icon "\"\"")
 			 "-u" jabber-libnotify-urgency
-			 (or jabber-libnotify-message-header " ") msg))
-      (error nil)))
+			 (or title
+			     (or jabber-libnotify-message-header " ")
+			     text))
+      (error nil))))
    ((eq jabber-libnotify-method 'dbus)
     (condition-case e
           (dbus-call-method
@@ -84,8 +86,9 @@
            (jabber-libnotify-next-id)
            jabber-libnotify-icon
            ':string (encode-coding-string
-                     jabber-libnotify-message-header 'utf-8)
-           ':string (encode-coding-string msg 'utf-8)
+		     (or title jabber-libnotify-message-header)
+		     'utf-8)
+           ':string (encode-coding-string text 'utf-8)
            '(:array)
            '(:array :signature "{sv}")
            ':int32 jabber-libnotify-timeout)

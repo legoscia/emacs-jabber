@@ -95,7 +95,7 @@ Optional argument GROUP to look."
 	   (modify-alist group (modify-alist nick time room-activity)
 			 *jabber-muc-participant-last-speaking*)))))
 
-(defun jabber-muc-track-message-time (nick group buffer text proposed-alert)
+(defun jabber-muc-track-message-time (nick group buffer text &optional title)
   "Tracks time of NICK's last speaking in GROUP."
   (when nick
     (let ((time (float-time)))

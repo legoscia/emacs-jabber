@@ -26,13 +26,13 @@ Sawfish window manager."
   :type 'integer
   :group 'jabber-alerts)
 
-(defun jabber-sawfish-display-message (message)
+(defun jabber-sawfish-display-message (text &optional title)
   "Displays MESSAGE through the Sawfish window manager."
   (let ((process-connection-type nil))
     (start-process-shell-command 
      "jabber-sawfish" nil "echo" 
      (concat "'(progn (require (quote timers)) (display-message \""
-	     message
+	     (or title text)
 	     "\")(make-timer (lambda () (display-message nil)) "
 	     (number-to-string jabber-sawfish-display-time)
 	     "))' | sawfish-client - &> /dev/null"))))

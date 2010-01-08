@@ -19,15 +19,20 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-chat)
-(eval-when-compile (require 'cl))
+(require 'jabber-alert)
+
+(require 'cl)
 
 (defvar jabber-log-lines-to-keep 1000
   "Maximum number of lines in chat buffer")
 
 (defun jabber-truncate-top ()
   "Clean old history from a chat buffer.
-`jabber-log-lines-to-keep' specifies the number of lines to
-keep."
+`jabber-log-lines-to-keep' specifies the number of lines to keep.
+
+Note that this might interfer with
+`jabber-chat-display-more-backlog': you ask for more history, you
+get it, and then it just gets deleted."
   (interactive)
   (let ((inhibit-read-only t)
 	(delete-before 
@@ -60,9 +65,6 @@ Note that this might interfer with
 `jabber-chat-display-more-backlog': you ask for more history, you
 get it, and then it just gets deleted."
   (jabber-truncate-top))
-
-(pushnew 'jabber-truncate-muc (get 'jabber-alert-muc-hooks 'custom-options))
-(pushnew 'jabber-truncate-chat (get 'jabber-alert-message-hooks 'custom-options))
 
 (provide 'jabber-truncate)
 

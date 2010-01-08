@@ -25,12 +25,13 @@
   :type 'string
   :group 'jabber-alerts)
 
-(defun jabber-awesome-message (msg)
+(defun jabber-awesome-message (text &optional title)
   "Show MSG in Awesome"
   ;; Possible errors include not finding the awesome binary.
   (condition-case e
       (let ((process-connection-type))
-        (shell-command-to-string (format "echo 'naughty.notify({text = \"%s\" %s})' | awesome-client -" msg jabber-awesome-args))
+        (shell-command-to-string (format "echo 'naughty.notify({text = \"%s\" %s})' | awesome-client -"
+					 (or title text) jabber-awesome-args))
         )
     (error nil)))
 
