@@ -27,11 +27,6 @@
 (require 'ewoc)
 (require 'sgml-mode)
 
-(defcustom jabber-console nil
-  "Use XML Console for debuging, sending raw XMPP code"
-  :type 'boolean
-  :group 'jabber-debug)
-
 (defcustom jabber-console-name-format "*-jabber-console-%s-*"
   "Format for console buffer name. %s mean connection jid."
   :type 'string

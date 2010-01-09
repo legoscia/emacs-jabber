@@ -197,9 +197,11 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defcustom jabber-debug-log-xml nil
-  "log all XML i/o in *-jabber-xml-log-JID-*"
+  "log all XML i/o in *-jabber-console-JID-*.
+Use XML Console for debuging, sending raw XMPP code"
   :type 'boolean
-  :group 'jabber-debug)
+  :group 'jabber-debug
+  :require 'jabber-console)
 
 ;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
