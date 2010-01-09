@@ -372,6 +372,18 @@ JID; only provide completion as a guide."
     (completing-read prompt nicknames nil t nil 'jabber-muc-nickname-history)))
 
 (add-to-list 'jabber-jid-muc-menu
+             (cons "Request vcard" 'jabber-muc-vcard-get))
+
+;;;###autoload
+(defun jabber-muc-vcard-get (jc group nickname)
+  "Request vcard from chat with NICKNAME in GROUP."
+  (interactive
+   (jabber-muc-argument-list
+    (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
+    (let ((muc-name (format "%s/%s" group nickname)))
+	(jabber-vcard-get jc muc-name)))
+
+(add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-groupchat-get-config))
 (defun jabber-groupchat-get-config (jc group)
   "Ask for MUC configuration form"
@@ -793,18 +805,6 @@ include groupchat invites."
    (jabber-muc-argument-list
     (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
   (switch-to-buffer (jabber-muc-private-create-buffer jabber-buffer-connection group nickname)))
-
-;;;###autoload
-(defun jabber-muc-vcard-get (jc group nickname)
-  "Request vcard from chat with NICKNAME in GROUP."
-  (interactive
-   (jabber-muc-argument-list
-    (list (jabber-muc-read-nickname jabber-group "Nickname: "))))
-    (let ((muc-name (format "%s/%s" group nickname)))
-	(jabber-vcard-get jc muc-name)))
-
-(add-to-list 'jabber-jid-muc-menu
-             (cons "Request vcard" 'jabber-muc-vcard-get))
 
 (defun jabber-muc-presence-p (presence)
   "Return non-nil if PRESENCE is presence from groupchat."
