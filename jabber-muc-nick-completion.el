@@ -53,7 +53,7 @@
 (defvar *jabber-muc-participant-last-speaking* nil
   "Global alist in form (group . ((member . time-of-last-speaking) ...) ...).")
 
-(defun modify-alist (key val alist)
+(defun jabber-modify-alist (key val alist)
   "Update of ALIST's element (KEY . VAL), possibly destructive."
   (let ((entry (assoc key alist)))
     (if (not entry)
@@ -92,8 +92,8 @@ Optional argument GROUP to look."
 	 (old-time (or (cdr (assoc nick room-activity)) 0)))
     (when (> time old-time)
       (setq *jabber-muc-participant-last-speaking*
-	   (modify-alist group (modify-alist nick time room-activity)
-			 *jabber-muc-participant-last-speaking*)))))
+            (jabber-modify-alist group (jabber-modify-alist nick time room-activity)
+                                 *jabber-muc-participant-last-speaking*)))))
 
 (defun jabber-muc-track-message-time (nick group buffer text &optional title)
   "Tracks time of NICK's last speaking in GROUP."
