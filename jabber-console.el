@@ -25,7 +25,7 @@
 (require 'jabber-keymap)
 (require 'jabber-truncate)              ;we need jabber-truncate-top
 (require 'ewoc)
-(require 'sgml-mode)
+(require 'sgml-mode)					;we base on this mode to hightlight XML
 
 (defcustom jabber-console-name-format "*-jabber-console-%s-*"
   "Format for console buffer name. %s mean connection jid."
@@ -74,9 +74,11 @@ what kind of chat buffer is being created.")
   (jabber-send-string jc data))
 
 (defun jabber-console-comment (str)
+  "Insert comment into console buffer. Used to put sending/receive note"
   (insert comment-start str ":" comment-end "\n"))
 
 (defun jabber-console-pp (data)
+  "Pretty Printer for XML-sexp and raw data"
   (cond ((stringp (cadr data))
 		 ;; Handle manually entered commands
 		 (jabber-console-comment (car data))
@@ -110,6 +112,7 @@ what kind of chat buffer is being created.")
 (put 'jabber-console-mode 'mode-class 'special)
 
 (defun jabber-process-console (jc direction xml-data)
+  "Process XML i/o is special buffer"
   (let ((buffer (get-buffer-create (jabber-console-create-buffer jc))))
     (with-current-buffer buffer
       (progn
