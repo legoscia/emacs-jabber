@@ -23,7 +23,6 @@
 ;;; Code:
 
 (require 'jabber-keymap)
-(require 'jabber-truncate)              ;we need jabber-truncate-top
 (require 'ewoc)
 (require 'sgml-mode)
 
