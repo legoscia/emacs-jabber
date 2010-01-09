@@ -32,6 +32,11 @@
   :type 'string
   :group 'jabber-debug)
 
+(defcustom jabber-console-truncate-lines 100
+  "Maximum number of lines in console buffer
+Not truncate lines if `nil'"
+  :group 'jabber-debug)
+
 (defvar jabber-point-insert nil
   "Position where the message being composed starts")
 
@@ -117,8 +122,9 @@ what kind of chat buffer is being created.")
     (with-current-buffer buffer
       (progn
         (ewoc-enter-last jabber-console-ewoc (list direction xml-data))
-        (jabber-truncate-top buffer jabber-console-ewoc))))
-  )
+		(let ((jabber-log-lines-to-keep jabber-console-truncate-lines))
+		  (cond (jabber-log-lines-to-keep
+				 (jabber-truncate-top buffer jabber-console-ewoc))))))))
 
 (provide 'jabber-console)
 ;;; jabber-console.el ends here
