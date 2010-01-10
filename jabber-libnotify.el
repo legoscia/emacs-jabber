@@ -63,7 +63,7 @@
 (defun jabber-libnotify-message (text &optional title)
   "Show MSG using libnotify"
   (let
-      ((body (jabber-escape-xml text))
+      ((body (or (jabber-escape-xml text) " "))
        (head (jabber-escape-xml
               (or title
                   (or jabber-libnotify-message-header " ")
