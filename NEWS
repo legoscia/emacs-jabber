@@ -1,6 +1,9 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Autoaway
+Support for list of autoaway methods. See section "Autoaway" in manual.
+
 ** MUC
 MUC participants list format is now customizable: see
 jabber-muc-print-names-format in manual. Also, participants sorted by

@@ -1120,6 +1120,10 @@ interface and do other useful things.
 @cindex idle
 @cindex xprintidle
 @vindex jabber-autoaway-method
+@vindex jabber-autoaway-methods
+@findex jabber-current-idle-time
+@findex jabber-xprintidle-program
+@findex jabber-termatime-get-idle-time
 
 It is possible to automatically set your status to ``away'' when you
 haven't used your computer for a while.  This lets your contacts know
@@ -1132,37 +1136,34 @@ To activate this feature, add @code{jabber-autoaway-start} to
 @end example
 
 There are different methods to find how long you have been ``idle''.
-The method to use is specified by @code{jabber-autoaway-method}.  The
-value of this variable should be a function that returns the number of
-seconds you have been idle.  Three functions are provided.
+The method(s) to use is specified by @code{jabber-autoaway-methods}
+(obsoleted @code{jabber-autoaway--method} will also work). The value
+of this variable should be a list functions that returns the number of
+seconds you have been idle (or nil on error). Minimum of values,
+returned by these functions, is used as ``idle'' time, so default
+should works well. Three functions are provided (all used by default).
 
-If your Emacs has the @code{current-idle-time} function (which was
-introduced in Emacs 22), it is used by default.  Note that this method
-only measures the time since you last interacted with Emacs, and thus
-disregards activity in other programs.
+@itemize @bullet
+@item
+@code{jabber-current-idle-time} is used if your Emacs has the
+@code{current-idle-time} function (which was introduced in Emacs 22).
+Note that this method only measures the time since you last interacted
+with Emacs, and thus disregards activity in other programs.
 
-If you are using the X Window System, you can use the xprintidle
-program.@footnote{@uref{http://www.dtek.chalmers.se/~henoch/text/xprintidle.html}}
-Make sure that @code{jabber-xprintidle-program} is set to the correct
-file name.  This uses the same method as
+@item
+@code{jabber-xprintidle-get-idle-time} uses xprintidle
+@footnote{@uref{http://www.dtek.chalmers.se/~henoch/text/xprintidle.html}}
+program, if found. You can also manually set
+@code{jabber-xprintidle-program} to the correct file path. This method
+uses the same method as
 @uref{http://www.jwz.org/xscreensaver,XScreensaver} to find your idle
 time.
 
-If you use the xscreensaver program, you can use
-the @file{xscreensaver-emacs-jabber} Perl script to synchronize xscreensaver
-and jabber.el status. It is a simple Perl daemon that watches for
-xscreensaver status and sets jabber.el's presence when needed.  I.e.:
-it sets XA presence when the screen is blanked or locked (by hands or by
-idle timeout) and default presence when it's unlocked/unblanked. To use
-it, just run @file{xscreensaver-emacs-jabber} after xscreensaver and make
-sure that your Emacs run in server mode (that you run @code{(server-start)}
-in init files; @pxref{Emacs Server, , Using Emacs as a Server, emacs,
-GNU Emacs Manual}.  Alternatively, you can turn on and off server-mode
-by jabber.el's hooks).
+@item
+@code{jabber-termatime-get-idle-time} used on GNU/Linux terminals. It
+uses the access time of the terminal device as a measure of idle time.
 
-If you are using Emacs on a GNU/Linux terminal, the function
-@code{jabber-termatime-get-idle-time} is used by default.  It uses the
-access time of the terminal device as a measure of idle time.
+@end itemize
 
 @node Modeline status, Keepalive, Autoaway, Useful features
 @section Modeline status

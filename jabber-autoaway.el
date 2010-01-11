@@ -1,5 +1,7 @@
 ;;; jabber-autoaway.el --- change status to away after idleness
 
+;; Copyright (C) 2010 - Kirill A. Korinskiy - catap@catap.ru
+;; Copyright (C) 2010 - Terechkov Evgenii - evg@altlinux.org
 ;; Copyright (C) 2006, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
@@ -26,25 +28,19 @@
   "Change status to away after idleness"
   :group 'jabber)
 
-(defcustom jabber-autoaway-method (cond
-				   ((fboundp 'current-idle-time)
-				    'jabber-current-idle-time)
-				   ((getenv "DISPLAY")
-				    'jabber-xprintidle-get-idle-time)
-				   ((null window-system)
-				    'jabber-termatime-get-idle-time))
-  "Method used to keep track of idleness.
-This is a function that takes no arguments, and returns the
+(defcustom jabber-autoaway-methods
+  (if (fboundp 'jabber-autoaway-method)
+      (list jabber-autoaway-method)
+    (list 'jabber-current-idle-time
+          'jabber-xprintidle-get-idle-time
+          'jabber-termatime-get-idle-time))
+  "Methods used to keep track of idleness.
+This is a list of functions that takes no arguments, and returns the
 number of seconds since the user was active, or nil on error."
   :group 'jabber-autoaway
-  :type '(choice (const :tag "Use `current-idle-time' function"
-			jabber-current-idle-time)
-		 (const :tag "xprintidle" 
-			jabber-xprintidle-get-idle-time)
-		 (const :tag "Watch atime of terminal"
-			jabber-termatime-get-idle-time)
-		 function
-		 (const :tag "None" nil)))
+  :options '(jabber-current-idle-time
+             jabber-xprintidle-get-idle-time
+             jabber-termatime-get-idle-time))
 
 (defcustom jabber-autoaway-timeout 5
   "Minutes of inactivity before changing status to away"
@@ -105,9 +101,9 @@ The IGNORED argument is there so you can put this function in
     (jabber-autoaway-message "Autoaway timer stopped")))
 
 (defun jabber-autoaway-get-idle-time ()
-  "Get idle time in seconds according to chosen method.
+  "Get idle time in seconds according to jabber-autoaway-methods.
 Return nil on error."
-  (when jabber-autoaway-method (funcall jabber-autoaway-method)))
+  (car (sort (mapcar 'funcall jabber-autoaway-methods) (lambda (a b) (if a (if b (< a b) t) nil)))))
 
 (defun jabber-autoaway-timer ()
   ;; We use one-time timers, so reset the variable.
@@ -178,10 +174,11 @@ The method for finding the terminal only works on GNU/Linux."
 (defun jabber-current-idle-time ()
   "Get idle time through `current-idle-time'.
 `current-idle-time' was introduced in Emacs 22."
-  (let ((idle-time (current-idle-time)))
-    (if (null idle-time)
-	0
-      (float-time idle-time))))
+  (if (fboundp 'current-idle-time)
+      (let ((idle-time (current-idle-time)))
+        (if (null idle-time)
+            0
+          (float-time idle-time)))))
 
 (provide 'jabber-autoaway)
 ;; arch-tag: 5bcea14c-842d-11da-a120-000a95c2fcd0
