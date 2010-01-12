@@ -31,7 +31,7 @@
   :type 'string
   :group 'jabber-debug)
 
-(defcustom jabber-console-truncate-lines 100
+(defcustom jabber-console-truncate-lines 3000
   "Maximum number of lines in console buffer
 Not truncate lines if `nil'"
   :group 'jabber-debug)
