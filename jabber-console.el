@@ -122,8 +122,8 @@ what kind of chat buffer is being created.")
       (progn
         (ewoc-enter-last jabber-console-ewoc (list direction xml-data))
 		(let ((jabber-log-lines-to-keep jabber-console-truncate-lines))
-		  (cond (jabber-log-lines-to-keep
-				 (jabber-truncate-top buffer jabber-console-ewoc))))))))
+		  (when jabber-log-lines-to-keep
+				 (jabber-truncate-top buffer jabber-console-ewoc)))))))
 
 (provide 'jabber-console)
 ;;; jabber-console.el ends here
