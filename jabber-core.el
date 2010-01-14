@@ -229,7 +229,7 @@ With double prefix argument, specify more connection details."
 			      (cons (symbol-name (car type)) nil))
 			    jabber-connect-methods)
 		    nil t nil 'jabber-connection-type-history default)))))
-	 (setq registerp (yes-or-no-p "Register new account? ")))
+	 (setq registerp (or jabber-silent-mode (yes-or-no-p "Register new account? "))))
        (when (equal current-prefix-arg '(4))
 	 (setq registerp t))
 

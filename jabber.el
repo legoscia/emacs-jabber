@@ -208,6 +208,11 @@ Contents of process buffers might be useful for debugging."
   :type 'boolean
   :group 'jabber-debug)
 
+(defcustom jabber-silent-mode nil
+  "Silent mode switch. Not ask confirmanions for some operations. DANGEROUS!"
+  :type 'boolean
+  :group 'jabber)
+
 ;;;###autoload
 (defconst jabber-presence-faces
  '(("" . jabber-roster-user-online)

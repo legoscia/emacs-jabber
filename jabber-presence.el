@@ -516,7 +516,7 @@ Signal an error if there is no JID at point."
 					 'jabber-jid))
 	(account (get-text-property (point) 'jabber-account)))
     (if (and jid-at-point account
-	     (yes-or-no-p (format "Really delete %s from roster? " jid-at-point)))
+	     (or jabber-silent-mode (yes-or-no-p (format "Really delete %s from roster? " jid-at-point))))
 	(jabber-roster-delete account jid-at-point)
       (error "No contact at point"))))
 

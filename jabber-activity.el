@@ -320,8 +320,8 @@ when there are unread messages which otherwise would be lost, if
 `jabber-activity-query-unread' is t"
   (if (and jabber-activity-jids
 	   jabber-activity-query-unread)
-      (yes-or-no-p
-       "You have unread Jabber messages, are you sure you want to quit?")
+      (or jabber-silent-mode (yes-or-no-p
+       "You have unread Jabber messages, are you sure you want to quit?"))
     t))
 
 ;;; Interactive functions
