@@ -1124,10 +1124,21 @@ interface and do other useful things.
 @findex jabber-current-idle-time
 @findex jabber-xprintidle-program
 @findex jabber-termatime-get-idle-time
+@vindex jabber-autoaway-timeout
+@vindex jabber-autoaway-xa-timeout
+@vindex jabber-autoaway-status
+@vindex jabber-autoaway-xa-status
+@vindex jabber-autoaway-priority
+@vindex jabber-autoaway-xa-priority
 
-It is possible to automatically set your status to ``away'' when you
-haven't used your computer for a while.  This lets your contacts know
-that you might not answer immediately.
+It is possible to automatically set your status to ``away'' or ``xa''
+when you haven't used your computer for a while. This lets your
+contacts know that you might not answer immediately. You can customize
+timeouts (@code{jabber-autoaway-timeout},
+@code{jabber-autoaway-xa-timeout}), statuses
+(@code{jabber-autoaway-status}, @code{jabber-autoaway-xa-status}) and
+priorityes (@code{jabber-autoaway-priority},
+@code{jabber-autoaway-xa-priority}) to set.
 
 To activate this feature, add @code{jabber-autoaway-start} to
 @code{jabber-post-connect-hooks}, e.g:

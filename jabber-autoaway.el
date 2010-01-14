@@ -47,13 +47,32 @@ number of seconds since the user was active, or nil on error."
   :group 'jabber-autoaway
   :type 'number)
 
+(defcustom jabber-autoaway-xa-timeout 10
+  "Minutes of inactivity before changing status to xa. Set to 0 to disable."
+  :group 'jabber-autoaway
+  :type 'number)
+
 (defcustom jabber-autoaway-status "Idle"
   "Status string for autoaway"
   :group 'jabber-autoaway
   :type 'string)
 
+(defcustom jabber-autoaway-xa-status "Extended away"
+  "Status string for autoaway in xa state"
+  :group 'jabber-autoaway
+  :type 'string)
+
 (defcustom jabber-autoaway-priority nil
   "Priority for autoaway.
+If nil, don't change priority.  See the manual for more
+information about priority."
+  :group 'jabber-autoaway
+  :type '(choice (const :tag "Don't change")
+		 (integer :tag "Priority"))
+  :link '(info-link "(jabber)Presence"))
+
+(defcustom jabber-autoaway-xa-priority nil
+  "Priority for autoaway in xa state.
 If nil, don't change priority.  See the manual for more
 information about priority."
   :group 'jabber-autoaway
@@ -119,19 +138,20 @@ Return nil on error."
 	      (run-with-timer (- (* 60 jabber-autoaway-timeout) idle-time)
 			      nil #'jabber-autoaway-timer))))))
 
-(defun jabber-autoaway-set-idle ()
+(defun jabber-autoaway-set-idle (&optional xa)
   (jabber-autoaway-message "Autoaway triggered")
   ;; Send presence, unless the user has set a custom presence
-  (unless (member *jabber-current-show* '("away" "xa" "dnd"))
-    (jabber-send-presence 
-     "away" 
-     jabber-autoaway-status
-     (or jabber-autoaway-priority *jabber-current-priority*)))
-    
+  (unless (member *jabber-current-show* '("xa" "dnd"))
+    (jabber-send-presence
+     (if xa "xa" "away")
+     (if (string= *jabber-current-status* jabber-default-status) (if xa jabber-autoaway-xa-status jabber-autoaway-status) *jabber-current-status*)
+     (or (if xa jabber-autoaway-priority jabber-autoaway-xa-priority) *jabber-current-priority*)))
+
   (setq jabber-autoaway-last-idle-time (jabber-autoaway-get-idle-time))
-  ;; Run unidle timer every 10 seconds
-  (setq jabber-autoaway-timer (run-with-timer 10 10
-					      #'jabber-autoaway-maybe-unidle)))
+  ;; Run unidle timer every 10 seconds (if xa specified, timer already running)
+  (unless xa
+    (setq jabber-autoaway-timer (run-with-timer 10 10
+					      #'jabber-autoaway-maybe-unidle))))
 
 (defun jabber-autoaway-maybe-unidle ()
   (let ((idle-time (jabber-autoaway-get-idle-time)))
@@ -139,13 +159,19 @@ Return nil on error."
     ;; As long as idle time increases monotonically, stay idle.
     (if (> idle-time jabber-autoaway-last-idle-time)
 	(progn
+          ;; Has "Xa timeout" passed?
+          (if (and (> jabber-autoaway-xa-timeout 0) (> idle-time (* 60 jabber-autoaway-xa-timeout)))
+              ;; iIf so, mark ourselves xa.
+              (jabber-autoaway-set-idle t))
 	  (setq jabber-autoaway-last-idle-time idle-time))
       ;; But if it doesn't, go back to unidle state.
       (jabber-autoaway-message "Back to unidle")
       ;; But don't mess with the user's custom presence.
-      (if (string= *jabber-current-status* jabber-autoaway-status)
+      (if (or (string= *jabber-current-status* jabber-autoaway-status) (string= *jabber-current-status* jabber-autoaway-xa-status))
 	  (jabber-send-default-presence)
-	(jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status))
+	(progn
+          (jabber-send-presence jabber-default-show *jabber-current-status* jabber-default-priority)
+          (jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status)))
       (jabber-autoaway-stop)
       (jabber-autoaway-start))))
 

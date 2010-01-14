@@ -2,7 +2,7 @@
 
 * New features in jabber.el latest git
 ** Autoaway
-Support for list of autoaway methods. See section "Autoaway" in manual.
+Support for list of autoaway methods. Support for Xa. See section "Autoaway" in manual.
 
 ** MUC
 MUC participants list format is now customizable: see
