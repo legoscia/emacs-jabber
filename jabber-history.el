@@ -44,6 +44,12 @@ Jabber history files."
   :type 'boolean
   :group 'jabber-history)
 
+(defcustom jabber-history-muc-enabled nil
+  "Non-nil means MUC logging is enabled.
+Default is nil, cause MUC logging may be i/o-intensive."
+  :type 'boolean
+  :group 'jabber-history)
+
 (defcustom jabber-use-global-history t
   "Indicate whether Emacs Jabber should use a global file for
   store messages.  If non-nil, jabber-global-history-filename is
@@ -102,13 +108,17 @@ Jabber history files."
   (when (and (not jabber-use-global-history)
 	     (not (file-directory-p jabber-history-dir)))
     (make-directory jabber-history-dir))
-  (if (and jabber-history-enabled (not (jabber-muc-message-p xml-data)))
+  (let ((is-muc (jabber-muc-message-p xml-data)))
+    (if (and jabber-history-enabled
+           (or
+            (not is-muc)                ;chat message or private MUC message
+            (and jabber-history-muc-enabled is-muc))) ;muc message and muc logging active
       (let ((from (jabber-xml-get-attribute xml-data 'from))
 	    (text (car (jabber-xml-node-children
 			(car (jabber-xml-get-children xml-data 'body)))))
 	    (timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
 	(when (and from text)
-	  (jabber-history-log-message "in" from nil text timestamp)))))
+	  (jabber-history-log-message "in" from nil text timestamp))))))
 
 (add-hook 'jabber-chat-send-hooks 'jabber-history-send-hook)
 

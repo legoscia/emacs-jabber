@@ -1354,6 +1354,7 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @findex jabber-truncate-muc
 @findex jabber-truncate-chat
 @vindex jabber-history-enabled
+@vindex jabber-history-muc-enabled
 @vindex jabber-global-history-filename
 @vindex jabber-use-global-history
 @vindex jabber-history-dir
@@ -1364,7 +1365,8 @@ Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
 @vindex jabber-log-lines-to-keep
 
 If you want a record of messages sent and received, set
-@code{jabber-history-enabled} to t.  By default all messages will
+@code{jabber-history-enabled} to t.  If you also want record MUC groupchat
+messages, set @code{jabber-history-muc-enabled} to t. By default all messages will
 be saved to a global history file specified by
 @code{jabber-global-history-filename}
 (@file{~/.jabber_global_message_log} by default).  If you prefer to
