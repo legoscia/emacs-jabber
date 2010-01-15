@@ -38,16 +38,17 @@
   "Ping XMPP entity. TO is full JID. All connected JIDs is used."
   (interactive (list (jabber-read-jid-completing "Send ping to: " nil nil nil 'full)))
   (dolist (jc jabber-connections)
-    (jabber-ping-send jc to 'jabber-process-data 'jabber-process-ping "Ping is unsupported")))
+    (jabber-ping-send jc to 'jabber-silent-process-data 'jabber-process-ping "Ping is unsupported")))
 
 ;; called by jabber-process-data
 (defun jabber-process-ping (jc xml-data)
   "Handle results from ping requests."
   (let ((to (jabber-xml-get-attribute xml-data 'from)))
-    (insert (format "%s is alive\n" to))))
+    (format "%s is alive" to)))
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "urn:xmpp:ping" 'jabber-pong))
 (add-to-list 'jabber-advertised-features "urn:xmpp:ping")
+
 (defun jabber-pong (jc xml-data)
   "Return pong as defined in XEP-0199. Sender and Id are
 determined from the incoming packet passed in XML-DATA."
