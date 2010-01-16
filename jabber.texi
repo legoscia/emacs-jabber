@@ -1258,7 +1258,10 @@ You can customize the interval and the timeout with the variables
 respectively.
 
 @findex jabber-ping
-You can also manually ping some client/server by using @kbd{M-x jabber-ping}.
+You can also manually ping some client/server by using @kbd{M-x
+jabber-ping}. Note that pong will be displayed according
+@code{jabber-alerts-info-messages-hooks} (default is echo in
+minibuffer).
 
 @node Reconnecting, Tracking activity, Keepalive, Useful features
 @section Reconnecting
@@ -2889,8 +2892,7 @@ pixel size limits on avatars are not enforced.
 @node XEP-0199, XEP-0245, XEP-0153, Protocol support
 @section XEP-0199 (XMPP Ping)
 
-XEP-0199 is fully supported. You can manually ping some client/server
-by using @kbd{M-x jabber-ping}.
+XEP-0199 is fully supported.
 
 @node XEP-0245, ,XEP-0199, Protocol support
 @section XEP-0245 (/me Command)
