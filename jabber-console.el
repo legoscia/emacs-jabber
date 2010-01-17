@@ -24,7 +24,7 @@
 
 (require 'jabber-keymap)
 (require 'ewoc)
-(require 'sgml-mode)					;we base on this mode to hightlight XML
+(require 'sgml-mode) ;we base on this mode to hightlight XML
 
 (defcustom jabber-console-name-format "*-jabber-console-%s-*"
   "Format for console buffer name. %s mean connection jid."
@@ -121,9 +121,9 @@ what kind of chat buffer is being created.")
     (with-current-buffer buffer
       (progn
         (ewoc-enter-last jabber-console-ewoc (list direction xml-data))
-		(let ((jabber-log-lines-to-keep jabber-console-truncate-lines))
-		  (when jabber-log-lines-to-keep
-				 (jabber-truncate-top buffer jabber-console-ewoc)))))))
+		(when jabber-console-truncate-lines
+		  (let ((jabber-log-lines-to-keep jabber-console-truncate-lines))
+			(jabber-truncate-top buffer jabber-console-ewoc)))))))
 
 (provide 'jabber-console)
 ;;; jabber-console.el ends here
