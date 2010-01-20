@@ -144,7 +144,7 @@ Return nil on error."
   (unless (member *jabber-current-show* '("xa" "dnd"))
     (jabber-send-presence
      (if xa "xa" "away")
-     (if (string= *jabber-current-status* jabber-default-status) (if xa jabber-autoaway-xa-status jabber-autoaway-status) *jabber-current-status*)
+     (if (or (string= *jabber-current-status* jabber-default-status) (string= *jabber-current-status* jabber-autoaway-status)) (if xa jabber-autoaway-xa-status jabber-autoaway-status) *jabber-current-status*)
      (or (if xa jabber-autoaway-priority jabber-autoaway-xa-priority) *jabber-current-priority*)))
 
   (setq jabber-autoaway-last-idle-time (jabber-autoaway-get-idle-time))
