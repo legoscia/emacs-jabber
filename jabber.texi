@@ -2215,10 +2215,20 @@ These settings provide a lot of information which is usually not very
 interesting, but can be useful for debugging various things.
 
 @vindex jabber-debug-log-xml
-@cindex XML log
-@code{jabber-debug-log-xml} activates XML logging.  All XML stanzas
-sent and received are logged in the buffer @code{*-jabber-xml-log-@var{jid}-*}
-in list format.  @xref{XML representation}.
+@cindex XML console
+@code{jabber-debug-log-xml} activates XML console.  All XML stanzas
+sent and received are logged in the buffer @code{*-jabber-console-@var{jid}-*}.
+Also this buffer can be used to send XML stanzas manually.
+
+@vindex jabber-console-name-format
+Format for console buffer name. %s mean connection jid. Default value is
+@code{*-jabber-console-%s-*}.
+
+@vindex jabber-console-truncate-lines
+Maximum number of lines in console buffer. Use this option to prevent
+over bloating size of buffer.
+Set value to 0 if you want to keep all stanzas in buffer, but
+it's not recommended and may be unsafe.
 
 @vindex jabber-debug-keep-process-buffers
 Usually, the process buffers for Jabber connections are killed when the

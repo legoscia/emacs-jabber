@@ -487,11 +487,12 @@ text, if specified"
   ;; XXX: specify account
   (jabber-send-iq jc nil "set"
 		  (list 'query (list (cons 'xmlns "jabber:iq:roster"))
-			(list 'item (append
+				(append
+				 (list 'item (append
 				     (list (cons 'jid (symbol-name jid)))
 				     (if (and name (> (length name) 0))
-					 (list (cons 'name name))))
-			      (mapcar #'(lambda (x) `(group () ,x))
+					 (list (cons 'name name)))))
+				 (mapcar #'(lambda (x) `(group () ,x))
 				      groups)))
 		  #'jabber-report-success "Roster item change"
 		  #'jabber-report-success "Roster item change"))

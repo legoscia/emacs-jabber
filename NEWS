@@ -1,6 +1,10 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** XML Console
+Log all received/sending XML stanzas into special buffer. Also can be
+used to send custom XML stanzas manually.
+
 ** Autoaway
 Support for list of autoaway methods. Support for Xa. See section "Autoaway" in manual.
 
