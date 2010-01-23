@@ -248,10 +248,16 @@ chat-with-jid-at-point is no group at point"
   (let ((group-at-point (get-text-property (point)
 					   'jabber-group))
 	(account-at-point (get-text-property (point)
-					     'jabber-account)))
+					     'jabber-account))
+        (jid-at-point (get-text-property (point)
+					 'jabber-jid)))
     (if (and group-at-point account-at-point)
 	(jabber-roster-roll-group account-at-point group-at-point)
-      (jabber-chat-with-jid-at-point))))
+      (jabber-chat-with-jid-at-point)
+      (ignore-errors (jabber-groupchat-join
+                      account-at-point
+                      jid-at-point
+                      (jabber-muc-read-my-nickname account-at-point jid-at-point t) t)))))
 
 (defun jabber-roster-mouse-2-action-at-point (e)
   "Action for mouse-2. Before try to roll up/down group. Eval
