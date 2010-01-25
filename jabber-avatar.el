@@ -142,27 +142,17 @@ Return AVATAR."
 (defun jabber-avatar-find-cached (sha1-sum)
   "Return file name of cached image for avatar identified by SHA1-SUM.
 If there is no cached image, return nil."
-  ;; XXX: file-expand-wildcards doesn't exist in XEmacs
-  (car (file-expand-wildcards (concat (file-name-as-directory jabber-avatar-cache-directory)
-				      sha1-sum
-				      ".*"))))
+  (let ((filename (expand-file-name sha1-sum jabber-avatar-cache-directory)))
+    (if (file-exists-p filename)
+        filename
+      nil)))
 
 (defun jabber-avatar-cache (avatar)
   "Cache the AVATAR."
   (let* ((id (avatar-sha1-sum avatar))
 	 (base64-data (avatar-base64-data avatar))
 	 (mime-type (avatar-mime-type avatar))
-	 (extension
-	  (cond
-	   ((string= mime-type "image/png")
-	    ".png")
-	   ((string= mime-type "image/jpeg")
-	    ".jpg")
-	   ((string= mime-type "image/gif")
-	    ".gif")
-	   (t
-	    ".dat")))
-	 (filename (expand-file-name (concat id extension) jabber-avatar-cache-directory))
+	 (filename (expand-file-name id jabber-avatar-cache-directory))
 	 (buffer (create-file-buffer filename)))
     (unless (file-directory-p jabber-avatar-cache-directory)
       (make-directory jabber-avatar-cache-directory))
