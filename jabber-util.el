@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2008 - Terechkov Evgenii - evg@altlinux.org
+;; Copyright (C) 2008, 2010 - Terechkov Evgenii - evg@altlinux.org
 
 ;; This file is a part of jabber.el.
 
@@ -115,6 +115,19 @@ properties to add to the result."
 	    (plist-get (fsm-get-state-data jc) :roster))
 	  jabber-connections)))
 
+(defun jabber-concat-rosters-full ()
+  "Concatenate the rosters of all connected accounts. Show full jids (with resources)"
+  (let ((jids (apply #'append
+                     (mapcar
+                      (lambda (jc)
+                        (plist-get (fsm-get-state-data jc) :roster))
+                      jabber-connections))))
+    (apply #'append
+           (mapcar (lambda (jid)
+                     (mapcar (lambda (res) (intern (format "%s/%s" jid (car res))))
+                             (get (jabber-jid-symbol jid) 'resources)))
+                   jids))))
+
 (defun jabber-connection-jid (jc)
   "Return the full JID of the given connection."
   (let ((sd (fsm-get-state-data jc)))
@@ -192,7 +205,7 @@ Also return non-nil if JID matches JC, modulo resource."
 	  (jabber-connection-bare-jid jc))
    (member (jabber-jid-user jid) (mapcar (lambda (x) (jabber-jid-user (car x))) jabber-account-list))))
 
-(defun jabber-read-jid-completing (prompt &optional subset require-match default resource)
+(defun jabber-read-jid-completing (prompt &optional subset require-match default resource fulljids)
   "read a jid out of the current roster from the minibuffer.
 If SUBSET is non-nil, it should be a list of symbols from which
 the JID is to be selected, instead of using the entire roster.
@@ -203,7 +216,9 @@ RESOURCE is one of the following:
 
 nil         Accept full or bare JID, as entered
 full        Turn bare JIDs to full ones with highest-priority resource
-bare-or-muc Turn full JIDs to bare ones, except for in MUC"
+bare-or-muc Turn full JIDs to bare ones, except for in MUC
+
+If FULLJIDS is non-nil, complete jids with resources."
   (let ((jid-at-point (or 
 		       (and default
 			    ;; default can be either a symbol or a string
@@ -216,7 +231,9 @@ bare-or-muc Turn full JIDs to bare ones, except for in MUC"
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
-				      (or subset (jabber-concat-rosters))))
+				      (or subset (funcall (if fulljids
+                                                              'jabber-concat-rosters-full
+                                                            'jabber-concat-rosters)))))
 	chosen)
     (dolist (item (or subset (jabber-concat-rosters)))
       (if (get item 'name)
