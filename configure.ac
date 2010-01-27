@@ -18,6 +18,8 @@ AM_CONDITIONAL([USE_OUR_HEXRGB], [test x$HAVE_HEXRGB = xno])
 dnl GConf schemas, for registering our URL handler
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
 AM_CONDITIONAL(USE_GCONFTOOL, test "x$GCONFTOOL" != "xno")
+AM_CONDITIONAL(GCONF_SCHEMAS_INSTALL, false)
+m4_ifndef([AM_GCONF_SOURCE_2], [m4_defun([AM_GCONF_SOURCE_2])])
 AM_GCONF_SOURCE_2
 
 AC_CONFIG_FILES([Makefile tests/Makefile gconf/Makefile jabber-ourversion.el])
