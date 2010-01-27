@@ -35,7 +35,6 @@
   "Maximum number of lines in console buffer
 Not truncate if set to 0"
   :type 'integer
-  :risky 0
   :group 'jabber-debug)
 
 (defvar jabber-point-insert nil
