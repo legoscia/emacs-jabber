@@ -31,7 +31,7 @@
   "Request time"
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "Request time of: "
-						 nil nil nil 'full)))
+						 nil nil nil 'full t)))
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:time")))
@@ -81,7 +81,7 @@
   "Request idle time of user."
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "Get idle time for: " 
-						 nil nil nil 'full)))
+						 nil nil nil 'full t)))
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:last")))

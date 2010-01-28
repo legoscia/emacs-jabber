@@ -180,7 +180,7 @@ See JEP-0030."
 (defun jabber-get-disco-items (jc to &optional node)
   "Send a service discovery request for items"
   (interactive (list (jabber-read-account)
-		     (jabber-read-jid-completing "Send items disco request to: ")
+		     (jabber-read-jid-completing "Send items disco request to: " nil nil nil 'full t)
 		     (jabber-read-node "Node (or leave empty): ")))
   (jabber-send-iq jc to
 		  "get"
@@ -195,7 +195,7 @@ See JEP-0030."
 (defun jabber-get-disco-info (jc to &optional node)
   "Send a service discovery request for info"
   (interactive (list (jabber-read-account)
-		     (jabber-read-jid-completing "Send info disco request to: ")
+		     (jabber-read-jid-completing "Send info disco request to: " nil nil nil 'full t)
 		     (jabber-read-node "Node (or leave empty): ")))
   (jabber-send-iq jc to
 		  "get"

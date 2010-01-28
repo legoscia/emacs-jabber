@@ -225,7 +225,12 @@ If FULLJIDS is non-nil, complete jids with resources."
 			    (if (symbolp default)
 				(symbol-name default)
 			      default))
-		       (get-text-property (point) 'jabber-jid)
+                       (let* ((jid (get-text-property (point) 'jabber-jid))
+                              (res (get (jabber-jid-symbol jid) 'resource)))
+                         (when jid
+                           (if (and fulljids res (not (jabber-jid-resource jid)))
+                               (format "%s/%s" jid res)
+                             jid)))
 		       (bound-and-true-p jabber-chatting-with)
 		       (bound-and-true-p jabber-group)))
 	(completion-ignore-case t)
