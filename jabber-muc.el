@@ -479,22 +479,20 @@ groupchat buffer."
 	)
        ;; Maybe another error occurred.
        (condition
-	(error "Couldn't query groupchat: %s" (jabber-parse-error result)))
+	(error "Couldn't query groupchat: %s" (jabber-parse-error result))))
 
-       ;; Maybe it isn't a chat room.
-       ((not (find "conference" identities 
-		   :key (lambda (i) (aref i 1))
-		   :test #'string=))
-	(error "%s is not a groupchat" (jabber-jid-displayname group))))
-
-      (let ((password
+      ;; Continue only if it is really chat room
+      (unless (not (find "conference" identities 
+                         :key (lambda (i) (aref i 1))
+                         :test #'string=))
+        (let ((password
 	     ;; Is the room password-protected?
 	     (when (member "muc_passwordprotected" features)
 	       (or
 		(jabber-get-conference-data jc group nil :password)
 		(read-passwd (format "Password for %s: " (jabber-jid-displayname group)))))))
 
-	(jabber-groupchat-join-3 jc group nickname password popup)))))
+	(jabber-groupchat-join-3 jc group nickname password popup))))))
 
 (defun jabber-groupchat-join-3 (jc group nickname password popup)
 
