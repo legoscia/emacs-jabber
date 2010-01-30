@@ -1,6 +1,8 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Support for roster's groups roll state saving
+
 ** Full support for XEP-0012
 Response of idle time.
 

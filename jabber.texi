@@ -1111,6 +1111,7 @@ interface and do other useful things.
 * Tracking activity::           
 * Watch buddies::               
 * Spell checking::              
+* Saving groups roll state::
 @end menu
 
 @node Autoaway, Modeline status, Useful features, Useful features
@@ -1345,7 +1346,7 @@ online.  jabber.el will remember this for the rest of your Emacs
 session (it's not saved to disk, though), but if you want to get rid
 of it, type @kbd{M-x jabber-watch-remove}.
 
-@node Spell checking,  , Watch buddies, Useful features
+@node Spell checking, Saving groups roll state, Watch buddies, Useful features
 @section Spell checking
 
 @cindex flyspell
@@ -1358,6 +1359,23 @@ what you receive or what you have already sent.  You may want to add
 
 For more information about Emacs spell checking, @pxref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
+
+@node Saving groups roll state, , Spell Checking, Useful features
+@section Saving groups roll state
+
+@cindex Saving groups roll state
+
+You can save roster's groups rollup/rolldown state between sessions.
+To do this you need to add @code{jabber-roster-save-groups} to
+@code{jabber-pre-disconnect-hook} and
+@code{jabber-roster-restore-groups} to
+@code{jabber-post-connect-hooks}, respectively.
+
+State saved in private storage on server-side (for each account). Note
+that state restoring working by rolling up groups, rolled up at state
+saving (by default, all groups rolled down). Also note that at now,
+@code{jabber-pre-disconnect-hook} run only with
+@code{jabber-disconnect} (not with @code{jabber-disconnect-one}).
 
 @node Message history, Typing notifications, Useful features, Top
 @chapter Message history
