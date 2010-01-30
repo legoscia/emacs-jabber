@@ -218,10 +218,10 @@ Trailing newlines are always removed, regardless of this variable."
     (suppress-keymap map)
     (set-keymap-parent map jabber-common-keymap)
     (define-key map [mouse-2] 'jabber-roster-mouse-2-action-at-point)
-    (define-key map (kbd "TAB") 'jabber-go-to-next-jid)
-    (define-key map (kbd "S-TAB") 'jabber-go-to-previous-jid)
-    (define-key map (kbd "M-TAB") 'jabber-go-to-previous-jid)
-    (define-key map (kbd "<backtab>") 'jabber-go-to-previous-jid)
+    (define-key map (kbd "TAB") 'jabber-go-to-next-roster-item)
+    (define-key map (kbd "S-TAB") 'jabber-go-to-previous-roster-item)
+    (define-key map (kbd "M-TAB") 'jabber-go-to-previous-roster-item)
+    (define-key map (kbd "<backtab>") 'jabber-go-to-previous-roster-item)
     (define-key map (kbd "RET") 'jabber-roster-ret-action-at-point)
     (define-key map (kbd "C-k") 'jabber-roster-delete-at-point)
 
@@ -790,27 +790,44 @@ three being lists of JID symbols."
 ;;Its work is done in `jabber-process-presence'."
 (make-obsolete 'jabber-presence-update-roster 'ignore)
 
-(defun jabber-go-to-next-jid ()
-  "Move the cursor to the next jid in the buffer"
+(defun jabber-next-property (&optional prev)
+  "Return position of next property appearence or nil if there is none.
+If optional PREV is non-nil, return position of previous property appearence."
+  (let ((pos (point))
+        (found nil)
+        (nextprev (if prev 'previous-single-property-change
+                    'next-single-property-change)))
+    (while (not found)
+      (setq pos
+            (let ((jid (funcall nextprev pos 'jabber-jid))
+                  (group (funcall nextprev pos 'jabber-group)))
+              (cond
+               ((not jid) group)
+               ((not group) jid)
+               (t (funcall (if prev 'max 'min) jid group)))))
+      (if (not pos)
+          (setq found t)
+        (setq found (or (get-text-property pos 'jabber-jid)
+                        (get-text-property pos 'jabber-group)))))
+    pos))
+
+(defun jabber-go-to-next-roster-item ()
+  "Move the cursor to the next jid/group in the buffer"
   (interactive)
-  (let ((next (next-single-property-change (point) 'jabber-jid)))
-    (when (and next
-	       (not (get-text-property next 'jabber-jid)))
-      (setq next (next-single-property-change next 'jabber-jid)))
-    (unless next
-      (setq next (next-single-property-change (point-min) 'jabber-jid)))
-    (if next (goto-char (1+ next))
+  (let* ((next (jabber-next-property))
+         (next (if (not next)
+                   (progn (goto-char (point-min))
+                          (jabber-next-property)) next)))
+    (if next (goto-char next)
       (goto-char (point-min)))))
 
-(defun jabber-go-to-previous-jid ()
-  "Move the cursor to the previous jid in the buffer"
+(defun jabber-go-to-previous-roster-item ()
+  "Move the cursor to the previous jid/group in the buffer"
   (interactive)
-  (let ((previous (previous-single-property-change (point) 'jabber-jid)))
-    (when (and previous
-	       (not (get-text-property previous 'jabber-jid)))
-      (setq previous (previous-single-property-change previous 'jabber-jid)))
-    (unless previous
-      (setq previous (previous-single-property-change (point-max) 'jabber-jid)))
+  (let* ((previous (jabber-next-property 'prev))
+         (previous (if (not previous)
+                       (progn (goto-char (point-max))
+                              (jabber-next-property 'prev)) previous)))
     (if previous (goto-char previous)
       (goto-char (point-max)))))
 
