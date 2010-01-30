@@ -1,6 +1,12 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Full support for XEP-0012
+Response of idle time.
+
+** Support for XEP-0202
+Entity Time for request/response time as main method.
+
 ** Support for automatic MUC nicks colorization
 See "Customizing the chat buffer" in the manual.
 

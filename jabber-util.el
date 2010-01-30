@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 ;; Copyright (C) 2008, 2010 - Terechkov Evgenii - evg@altlinux.org
+;; Copyright (C) 2010 - Kirill A. Korinskiy - catap@catap.ru
 
 ;; This file is a part of jabber.el.
 
@@ -406,19 +407,26 @@ Return nil if no such data available."
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.
 TIME is in a format accepted by `format-time-string'."
+  (format-time-string "%Y-%m-%dT%H:%M:%SZ" nil t))
+
+(defun jabber-encode-timezone ()
   (let ((time-zone-offset (nth 0 (current-time-zone))))
     (if (null time-zone-offset)
-	;; no time zone information available; pretend it's UTC
-	(format-time-string "%Y-%m-%dT%H:%M:%SZ" time)
+        "Z"
       (let* ((positivep (>= time-zone-offset 0))
-	     (hours (/ (abs time-zone-offset) 3600))
-	     (minutes (/ (% (abs time-zone-offset) 3600) 60)))
-	(format "%s%s%02d:%02d" (format-time-string "%Y-%m-%dT%H:%M:%S" time)
-		(if positivep "+" "-") hours minutes)))))
+             (hours (/ (abs time-zone-offset) 3600))
+             (minutes (/ (% (abs time-zone-offset) 3600) 60)))
+        (format "%s%02d:%02d"(if positivep "+" "-") hours minutes)))))
 
-(defun jabber-parse-time (time)
+(defun jabber-parse-time (raw-time)
   "Parse the DateTime encoded in TIME according to JEP-0082."
-  (let* ((year (string-to-number (substring time 0 4)))
+  (let* ((time (if (string= (substring raw-time 4 5) "-")
+                   raw-time
+                 (concat
+                  (substring raw-time 0 4) "-"
+                  (substring raw-time 4 6) "-"
+                  (substring raw-time 6 (length raw-time)))))
+         (year (string-to-number (substring time 0 4)))
 	 (month (string-to-number (substring time 5 7)))
 	 (day (string-to-number (substring time 8 10)))
 	 (hour (string-to-number (substring time 11 13)))
