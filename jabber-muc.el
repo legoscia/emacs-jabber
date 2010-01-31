@@ -470,7 +470,9 @@ groupchat buffer."
       (cond
        ;; Maybe the room doesn't exist yet.
        ((eq condition 'item-not-found)
-	(unless (y-or-n-p (format "%s doesn't exist.  Create it? " (jabber-jid-displayname group)))
+	(unless (or jabber-silenmt-mode
+                    (y-or-n-p (format "%s doesn't exist.  Create it? "
+                                      (jabber-jid-displayname group))))
 	  (error "Non-existent groupchat")))
 
        ;; Maybe the room doesn't support disco.
