@@ -462,11 +462,11 @@ groupchat buffer."
 
 (defun jabber-groupchat-join-2 (jc closure result)
   (destructuring-bind (group nickname popup) closure
-    (let ( ;; Either success...
+    (let* ( ;; Either success...
 	  (identities (car result))
 	  (features (cadr result))
 	  ;; ...or error
-	  (condition (when (eq (car result) 'error) (jabber-error-condition result))))
+	  (condition (when (eq identities 'error) (jabber-error-condition result))))
       (cond
        ;; Maybe the room doesn't exist yet.
        ((eq condition 'item-not-found)
@@ -477,16 +477,16 @@ groupchat buffer."
 
        ;; Maybe the room doesn't support disco.
        ((eq condition 'feature-not-implemented)
-	t				;whatever...
+	t				;whatever... we will ignore it later
 	)
        ;; Maybe another error occurred.
        (condition
 	(error "Couldn't query groupchat: %s" (jabber-parse-error result))))
 
-      ;; Continue only if it is really chat room
-      (unless (not (find "conference" identities 
+      ;; Continue only if it is really chat room. Ignore errors
+      (unless (and (not (eq identities 'error)) (not (find "conference" identities 
                          :key (lambda (i) (aref i 1))
-                         :test #'string=))
+                         :test #'string=)))
         (let ((password
 	     ;; Is the room password-protected?
 	     (when (member "muc_passwordprotected" features)
