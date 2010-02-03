@@ -185,6 +185,15 @@ Return nil if none found."
 			   (symbol-name string)
 			 string))))
 
+(defun jabber-jid-bookmarkname (string)
+  "Return the conference name from boomarks or displayname from roster, or JID if none set"
+  (or (loop for conference in (first (loop for value being the hash-values of jabber-bookmarks
+                                           collect value))
+            do (let ((ls (cadr conference)))
+                 (if (string= (cdr (assoc 'jid ls)) string)
+                     (return (cdr (assoc 'name ls))))))
+      (jabber-jid-displayname string)))
+
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
   (when (string-match "^\\(\\([^/]*@\\)?[^/]*\\)/\\(.*\\)" string)

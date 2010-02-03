@@ -92,6 +92,7 @@ These fields are available (all are about the group you are chatting
 in):
 
 %n   Roster name of group, or JID if no nickname set
+%b   Name of group from bookmarks or roster name or JID if none set
 %j   Bare JID (without resource)"
   :type 'string
   :group 'jabber-chat)
@@ -173,6 +174,7 @@ Either a string or a buffer is returned, so use `get-buffer' or
   (format-spec jabber-groupchat-buffer-format
 	       (list
 		(cons ?n (jabber-jid-displayname group))
+                (cons ?b (jabber-jid-bookmarkname group))
 		(cons ?j (jabber-jid-user group)))))
 
 (defun jabber-muc-create-buffer (jc group)
