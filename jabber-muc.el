@@ -481,9 +481,9 @@ groupchat buffer."
        ((eq condition 'feature-not-implemented)
 	t				;whatever... we will ignore it later
 	)
-       ;; Maybe another error occurred.
+       ;; Maybe another error occurred. Report it to user
        (condition
-	(error "Couldn't query groupchat: %s" (jabber-parse-error result))))
+	(message "Couldn't query groupchat: %s" (jabber-parse-error result))))
 
       ;; Continue only if it is really chat room. Ignore errors
       (unless (and (not (eq identities 'error)) (not (find "conference" identities 
