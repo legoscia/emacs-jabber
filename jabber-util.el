@@ -660,7 +660,7 @@ See Info node `(jabber)XMPP URIs'."
      ;; Join an MUC.
      ((string= method "join")
       (let ((account (jabber-read-account)))
-	(jabber-groupchat-join
+	(jabber-muc-join
 	 account jid (jabber-muc-read-my-nickname account jid) t)))
      ;; Register with a service.
      ((string= method "register")

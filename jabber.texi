@@ -109,7 +109,7 @@ There is a mailing list:
 @item
 There is a chat room, @code{jabber.el@@conference.jabber.se}.  If you
 have successfully connected, you can join it by typing @kbd{M-x
-jabber-groupchat-join} and entering the address.
+jabber-muc-join} and entering the address.
 
 @end itemize
 
@@ -437,11 +437,11 @@ The groupchat menu can be accessed by typing @kbd{C-c C-m} in the
 roster buffer.  You can also type the commands directly, as will be
 shown here.
 
-@findex jabber-groupchat-join
+@findex jabber-muc-join
 @cindex Joining a groupchat
 @cindex Changing nickname
 @cindex Nickname, changing 
-To join a groupchat, type @kbd{M-x jabber-groupchat-join}.  You will
+To join a groupchat, type @kbd{M-x jabber-muc-join}.  You will
 be prompted for the groupchat to join, and your nickname in the
 groupchat.  This nickname doesn't need to have any correlation to your
 JID; in fact, groupchats are usually (but not always) configured such
@@ -486,12 +486,12 @@ want to change this, but... it is Emacs!
 To change the topic of a groupchat, type @kbd{M-x jabber-muc-set-topic}.
 The current topic is shown in the header line.
 
-@findex jabber-groupchat-leave
-To leave a groupchat, type @kbd{M-x jabber-groupchat-leave}.
+@findex jabber-muc-leave
+To leave a groupchat, type @kbd{M-x jabber-muc-leave}.
 
-@findex jabber-groupchat-get-config
+@findex jabber-muc-get-config
 If you are the owner of a groupchat, you can change its configuration
-by typing @kbd{M-x jabber-groupchat-get-config}.  A configuration form
+by typing @kbd{M-x jabber-muc-get-config}.  A configuration form
 will be rendered in new buffer.
 
 @findex jabber-muc-names

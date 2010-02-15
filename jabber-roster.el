@@ -229,7 +229,7 @@ Trailing newlines are always removed, regardless of this variable."
     (define-key map "s" 'jabber-send-subscription-request)
     (define-key map "q" 'bury-buffer)
     (define-key map "i" 'jabber-get-disco-items)
-    (define-key map "j" 'jabber-groupchat-join)
+    (define-key map "j" 'jabber-muc-join)
     (define-key map "I" 'jabber-get-disco-info)
     (define-key map "b" 'jabber-get-browse)
     (define-key map "v" 'jabber-get-version)
@@ -254,7 +254,7 @@ chat-with-jid-at-point is no group at point"
     (if (and group-at-point account-at-point)
 	(jabber-roster-roll-group account-at-point group-at-point)
       (jabber-chat-with-jid-at-point)
-      (ignore-errors (jabber-groupchat-join
+      (ignore-errors (jabber-muc-join
                       account-at-point
                       jid-at-point
                       (jabber-muc-read-my-nickname account-at-point jid-at-point t) t)))))

@@ -387,17 +387,21 @@ JID; only provide completion as a guide."
 	(jabber-vcard-get jc muc-name)))
 
 (add-to-list 'jabber-jid-muc-menu
-   (cons "Configure groupchat" 'jabber-groupchat-get-config))
-(defun jabber-groupchat-get-config (jc group)
+   (cons "Configure groupchat" 'jabber-muc-get-config))
+
+(defun jabber-muc-get-config (jc group)
   "Ask for MUC configuration form"
   (interactive (jabber-muc-argument-list))
   (jabber-send-iq jc group
 		  "get"
 		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner")))
-		  #'jabber-process-data #'jabber-groupchat-render-config
+		  #'jabber-process-data #'jabber-muc-render-config
 		  #'jabber-process-data "MUC configuration request failed"))
 
-(defun jabber-groupchat-render-config (jc xml-data)
+(defalias 'jabber-groupchat-get-config 'jabber-muc-get-config
+  "Deprecated. See `jabber-muc-get-config' instead.")
+
+(defun jabber-muc-render-config (jc xml-data)
   "Render MUC configuration form"
 
   (let ((query (jabber-iq-query xml-data))
@@ -413,15 +417,18 @@ JID; only provide completion as a guide."
 
     (jabber-render-xdata-form xdata)
 
-    (widget-create 'push-button :notify #'jabber-groupchat-submit-config "Submit")
+    (widget-create 'push-button :notify #'jabber-muc-submit-config "Submit")
     (widget-insert "\t")
-    (widget-create 'push-button :notify #'jabber-groupchat-cancel-config "Cancel")
+    (widget-create 'push-button :notify #'jabber-muc-cancel-config "Cancel")
     (widget-insert "\n")
 
     (widget-setup)
     (widget-minor-mode 1))))
 
-(defun jabber-groupchat-submit-config (&rest ignore)
+(defalias 'jabber-groupchat-render-config 'jabber-muc-render-config
+  "Deprecated. See `jabber-muc-render-config' instead.")
+
+(defun jabber-muc-submit-config (&rest ignore)
   "Submit MUC configuration form."
 
   (jabber-send-iq jabber-buffer-connection jabber-submit-to
@@ -431,7 +438,10 @@ JID; only provide completion as a guide."
 		  #'jabber-report-success "MUC configuration"
 		  #'jabber-report-success "MUC configuration"))
 
-(defun jabber-groupchat-cancel-config (&rest ignore)
+(defalias 'jabber-groupchat-submit-config 'jabber-muc-submit-config
+  "Deprecated. See `jabber-muc-submit-config' instead.")
+
+(defun jabber-muc-cancel-config (&rest ignore)
   "Cancel MUC configuration form."
 
   (jabber-send-iq jabber-buffer-connection jabber-submit-to
@@ -440,10 +450,13 @@ JID; only provide completion as a guide."
 			  (x ((xmlns . "jabber:x:data") (type . "cancel"))))
 		  nil nil nil nil))
 
-(add-to-list 'jabber-jid-muc-menu
-	     (cons "Join groupchat" 'jabber-groupchat-join))
+(defalias 'jabber-groupchat-cancel-config 'jabber-muc-cancel-config
+  "Deprecated. See `jabber-muc-cancel-config' instead.")
 
-(defun jabber-groupchat-join (jc group nickname &optional popup)
+(add-to-list 'jabber-jid-muc-menu
+	     (cons "Join groupchat" 'jabber-muc-join))
+
+(defun jabber-muc-join (jc group nickname &optional popup)
   "join a groupchat, or change nick.
 In interactive calls, or if POPUP is true, switch to the
 groupchat buffer."
@@ -456,13 +469,16 @@ groupchat buffer."
   (if (or (assoc group *jabber-active-groupchats*)
 	  ;; Or if the users asked us not to check disco info.
 	  jabber-muc-disable-disco-check)
-      (jabber-groupchat-join-3 jc group nickname nil popup)
+      (jabber-muc-join-3 jc group nickname nil popup)
     ;; Else, send a disco request to find out what we are connecting
     ;; to.
-    (jabber-disco-get-info jc group nil #'jabber-groupchat-join-2
+    (jabber-disco-get-info jc group nil #'jabber-muc-join-2
 			   (list group nickname popup))))
 
-(defun jabber-groupchat-join-2 (jc closure result)
+(defalias 'jabber-groupchat-join 'jabber-muc-join
+  "Deprecated. Use `jabber-muc-join' instead.")
+
+(defun jabber-muc-join-2 (jc closure result)
   (destructuring-bind (group nickname popup) closure
     (let* ( ;; Either success...
 	  (identities (car result))
@@ -496,9 +512,12 @@ groupchat buffer."
 		(jabber-get-conference-data jc group nil :password)
 		(read-passwd (format "Password for %s: " (jabber-jid-displayname group)))))))
 
-	(jabber-groupchat-join-3 jc group nickname password popup))))))
+	(jabber-muc-join-3 jc group nickname password popup))))))
 
-(defun jabber-groupchat-join-3 (jc group nickname password popup)
+(defalias 'jabber-groupchat-join-2 'jabber-muc-join-2
+  "Deprecated. See `jabber-muc-join-2' instead.")
+
+(defun jabber-muc-join-3 (jc group nickname password popup)
 
   ;; Remember that this is a groupchat _before_ sending the stanza.
   ;; The response might come quicker than you think.
@@ -523,6 +542,9 @@ groupchat buffer."
     (let ((buffer (jabber-muc-create-buffer jc group)))
       (switch-to-buffer buffer))))
 
+(defalias 'jabber-groupchat-join-3 'jabber-muc-join-3
+  "Deprecated. See `jabber-muc-join-3' instead.")
+
 (defun jabber-muc-read-my-nickname (jc group &optional default)
   "Read nickname for joining GROUP. If DEFAULT is non-nil, return default nick without prompting."
   (let ((default-nickname (or
@@ -538,12 +560,12 @@ groupchat buffer."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Change nickname" 'jabber-muc-nick))
 
-(defalias 'jabber-muc-nick 'jabber-groupchat-join)
+(defalias 'jabber-muc-nick 'jabber-muc-join)
 
 (add-to-list 'jabber-jid-muc-menu
-	     (cons "Leave groupchat" 'jabber-groupchat-leave))
+	     (cons "Leave groupchat" 'jabber-muc-leave))
 
-(defun jabber-groupchat-leave (jc group)
+(defun jabber-muc-leave (jc group)
   "leave a groupchat"
   (interactive (jabber-muc-argument-list))
   (let ((whichgroup (assoc group *jabber-active-groupchats*)))
@@ -551,6 +573,9 @@ groupchat buffer."
     (jabber-send-sexp jc
 		      `(presence ((to . ,(format "%s/%s" group (cdr whichgroup)))
 				  (type . "unavailable"))))))
+
+(defalias 'jabber-groupchat-leave 'jabber-muc-leave
+  "Deprecated. Use `jabber-muc-leave' instead.")
 
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "List participants" 'jabber-muc-names))
@@ -711,7 +736,7 @@ group, else it is a JID."
 
 	      (let ((action
 		     `(lambda (&rest ignore) (interactive)
-			(jabber-groupchat-join jabber-buffer-connection ,group
+			(jabber-muc-join jabber-buffer-connection ,group
 					       (jabber-muc-read-my-nickname jabber-buffer-connection ,group)))))
 		(if (fboundp 'insert-button)
 		    (insert-button "Accept"
@@ -757,7 +782,7 @@ group, else it is a JID."
   (let ((nickname (plist-get (fsm-get-state-data jc) :username)))
     (when (bound-and-true-p jabber-muc-autojoin)
       (dolist (group jabber-muc-autojoin)
-	(jabber-groupchat-join jc group (or
+	(jabber-muc-join jc group (or
 					 (cdr (assoc group jabber-muc-default-nicknames))
 					 (plist-get (fsm-get-state-data jc) :username)))))
     (jabber-get-bookmarks
@@ -766,7 +791,7 @@ group, else it is a JID."
        (dolist (bookmark bookmarks)
 	 (setq bookmark (jabber-parse-conference-bookmark bookmark))
 	 (when (and bookmark (plist-get bookmark :autojoin))
-	   (jabber-groupchat-join jc (plist-get bookmark :jid)
+	   (jabber-muc-join jc (plist-get bookmark :jid)
 				  (or (plist-get bookmark :nick)
 				      (plist-get (fsm-get-state-data jc) :username)))))))))
 

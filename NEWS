@@ -135,7 +135,7 @@ See jabber-muc-default-nicknames.
 *** Autojoin MUC rooms on connection
 See jabber-muc-autojoin.
 *** Change nickname
-Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
+Actually simply an alias from jabber-muc-nick to jabber-muc-join.
 *** Invitations
 Both sending and receiving invitiations is supported.
 *** Basic affiliation change support
