@@ -207,8 +207,9 @@ of the log file."
                 (let ((file (pop matched-files)))
                   (progn
                     (insert-file-contents file)
-                    (if (>= (count-lines (point-min) (point-max)) number)
-                        (setq lines-collected t)))))))))
+                    (when (numberp number)
+                      (if (>= (count-lines (point-min) (point-max)) number)
+                        (setq lines-collected t))))))))))
       (let (collected current-line)
 	(goto-char (point-max))
 	(catch 'beginning-of-file
