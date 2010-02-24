@@ -1,6 +1,7 @@
 ;; jabber-muc.el - advanced MUC functions
 
-;; Copyright (C) 2003, 2004, 2007, 2008, 2009 - Magnus Henoch - mange@freemail.hu
+;; Copyright (C) 2010 - Kirill A. Korinskiy - catap@catap.ru
+;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
 
 ;; This file is a part of jabber.el.
@@ -501,10 +502,13 @@ groupchat buffer."
        (condition
 	(message "Couldn't query groupchat: %s" (jabber-parse-error result))))
 
-      ;; Continue only if it is really chat room. Ignore errors
-      (unless (and (not (eq identities 'error)) (not (find "conference" identities 
-                         :key (lambda (i) (aref i 1))
-                         :test #'string=)))
+      ;; Continue only if it is really chat room.  If there was an
+      ;; error, give the chat room the benefit of the doubt.  (Needed
+      ;; for ejabberd's mod_irc, for example)
+      (when (or condition
+                (find "conference" identities 
+                      :key (lambda (i) (aref i 1))
+                      :test #'string=))
         (let ((password
 	     ;; Is the room password-protected?
 	     (when (member "muc_passwordprotected" features)
