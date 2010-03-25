@@ -2228,7 +2228,8 @@ interesting, but can be useful for debugging various things.
 @vindex jabber-debug-log-xml
 @cindex XML console
 @code{jabber-debug-log-xml} activates XML console.  All XML stanzas
-sent and received are logged in the buffer @code{*-jabber-console-@var{jid}-*}.
+sent and received are logged in the buffer @code{*-jabber-console-@var{jid}-*}
+(and to specified file if value is string).
 Also this buffer can be used to send XML stanzas manually.
 
 @vindex jabber-console-name-format

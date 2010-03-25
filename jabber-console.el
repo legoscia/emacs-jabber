@@ -32,7 +32,7 @@
   :group 'jabber-debug)
 
 (defcustom jabber-console-truncate-lines 3000
-  "Maximum number of lines in console buffer
+  "Maximum number of lines in console buffer.
 Not truncate if set to 0"
   :type 'integer
   :group 'jabber-debug)
@@ -79,18 +79,32 @@ what kind of chat buffer is being created.")
   (jabber-send-string jc data))
 
 (defun jabber-console-comment (str)
-  "Insert comment into console buffer. Used to put sending/receive note"
-  (insert comment-start str ":" comment-end "\n"))
+  "Insert comment into console buffer."
+  (let ((string (concat
+                 comment-start str "@" (jabber-encode-time (current-time)) ":"
+                 comment-end "\n")))
+    (when (stringp jabber-debug-log-xml)
+      (jabber-append-string-to-file string jabber-debug-log-xml))
+    (insert string)))
 
 (defun jabber-console-pp (data)
   "Pretty Printer for XML-sexp and raw data"
-  (cond ((stringp (cadr data))
-		 ;; Handle manually entered commands
-		 (jabber-console-comment (car data))
-		 (insert (cadr data)))
-		;; Print replays from `jabber-log-xml'
-		(t (jabber-console-comment (car data))
-		 (xml-print (cdr data)))))
+  (let ((direction (car data))
+        (xml-list (cdr data))
+        (raw (cadr data)))
+    (jabber-console-comment direction)
+    (if (stringp raw)
+        ;; raw code input
+        (progn
+          (insert raw)
+          (when (stringp jabber-debug-log-xml)
+            (jabber-append-string-to-file raw jabber-debug-log-xml)))
+      ;; receive/sending
+      (progn
+        (xml-print xml-list)
+        (when (stringp jabber-debug-log-xml)
+          (jabber-append-string-to-file
+           "\n" jabber-debug-log-xml 'xml-print xml-list))))))
 
 (define-derived-mode jabber-console-mode sgml-mode "Jabber Console"
   "Major mode for debug XMPP protocol"
@@ -114,7 +128,7 @@ what kind of chat buffer is being created.")
 (put 'jabber-console-mode 'mode-class 'special)
 
 (defun jabber-process-console (jc direction xml-data)
-  "Process XML i/o is special buffer"
+  "Log XML-DATA i/o as XML in \"*-jabber-console-JID-*\" buffer"
   (let ((buffer (get-buffer-create (jabber-console-create-buffer jc))))
     (with-current-buffer buffer
       (progn

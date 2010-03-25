@@ -816,7 +816,7 @@ Call this function after disconnection."
   (run-hooks 'jabber-post-disconnect-hook))
 
 (defun jabber-log-xml (fsm direction data)
-  "Print DATA to XML console.
+  "Print DATA to XML console (and, optionally, in file).
 If `jabber-debug-log-xml' is nil, do nothing.
 FSM is the connection that is sending/receiving.
 DIRECTION is a string, either \"sending\" or \"receive\".
