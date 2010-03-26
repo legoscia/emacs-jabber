@@ -35,7 +35,7 @@
                                                  nil nil nil 'full t)))
 
   (jabber-send-iq jc to "get"
-                  '(query ((xmlns . "urn:xmpp:time")))
+                  '(time ((xmlns . "urn:xmpp:time")))
                   'jabber-silent-process-data 'jabber-process-time
                   'jabber-silent-process-data
                   (lambda (jc xml-data)
