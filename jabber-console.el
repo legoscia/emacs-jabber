@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'jabber-keymap)
+(require 'jabber-util)
 (require 'ewoc)
 (require 'sgml-mode) ;we base on this mode to hightlight XML
 
@@ -127,12 +128,16 @@ what kind of chat buffer is being created.")
 
 (put 'jabber-console-mode 'mode-class 'special)
 
+(defun jabber-console-sanitize (xml-data)
+  "Sanitize XML-DATA for jabber-process-console"
+  (jabber-tree-map (lambda (x) (if (numberp x) (format "%s" x) x)) xml-data))
+
 (defun jabber-process-console (jc direction xml-data)
   "Log XML-DATA i/o as XML in \"*-jabber-console-JID-*\" buffer"
   (let ((buffer (get-buffer-create (jabber-console-create-buffer jc))))
     (with-current-buffer buffer
       (progn
-        (ewoc-enter-last jabber-console-ewoc (list direction xml-data))
+        (ewoc-enter-last jabber-console-ewoc (list direction (jabber-console-sanitize xml-data)))
 		(when (< 1  jabber-console-truncate-lines)
 		  (let ((jabber-log-lines-to-keep jabber-console-truncate-lines))
 			(jabber-truncate-top buffer jabber-console-ewoc)))))))
