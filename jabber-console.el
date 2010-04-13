@@ -130,7 +130,9 @@ what kind of chat buffer is being created.")
 
 (defun jabber-console-sanitize (xml-data)
   "Sanitize XML-DATA for jabber-process-console"
-  (jabber-tree-map (lambda (x) (if (numberp x) (format "%s" x) x)) xml-data))
+  (if (listp xml-data)
+      (jabber-tree-map (lambda (x) (if (numberp x) (format "%s" x) x)) xml-data)
+    xml-data))
 
 (defun jabber-process-console (jc direction xml-data)
   "Log XML-DATA i/o as XML in \"*-jabber-console-JID-*\" buffer"

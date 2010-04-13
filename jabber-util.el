@@ -708,7 +708,7 @@ applied to the node and not to the data itself."
 	 (end result (let* ((x (car tail))
 			    (val (if (atom x)
 				     (funcall fn x)
-                                   (tree-map fn x))))
+                                   (jabber-tree-map fn x))))
 		       (setf (car end) val (cdr end) (cons nil
                                                            nil)))))
 	((atom tail)
