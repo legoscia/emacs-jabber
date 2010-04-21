@@ -860,14 +860,14 @@ If optional PREV is non-nil, return position of previous property appearence."
   (dolist (jc jabber-connections)
     (let* ((groups (plist-get (fsm-get-state-data jc) :roster-roll-groups))
            (roll-groups
-            (when groups
-              (mapconcat (lambda (a) (substring-no-properties a)) groups "\n"))))
-      (when roll-groups
-        (jabber-private-set jc
-                            `(roster ((xmlns . "emacs-jabber"))
-                                     ,roll-groups)
-                            'jabber-report-success "Roster groups saved"
-                            'jabber-report-success "Failed to save roster groups")))))
+            (if groups
+                (mapconcat (lambda (a) (substring-no-properties a)) groups "\n")
+              "")))
+      (jabber-private-set jc
+                          `(roster ((xmlns . "emacs-jabber"))
+                                   ,roll-groups)
+                          'jabber-report-success "Roster groups saved"
+                          'jabber-report-success "Failed to save roster groups"))))
 
 (provide 'jabber-roster)
 
