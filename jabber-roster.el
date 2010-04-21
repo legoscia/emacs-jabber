@@ -849,7 +849,8 @@ If optional PREV is non-nil, return position of previous property appearence."
 (defun jabber-roster-restore-groups-1 (jc xml-data)
   "Parse roster groups and restore rolling state"
   (when (string= (jabber-xml-get-xmlns xml-data) "emacs-jabber")
-    (let ((groups (split-string (car (last xml-data)) "\n")))
+    (let* ((data (car (last xml-data)))
+           (groups (if (stringp data) (split-string data "\n") nil)))
       (dolist (group groups)
         (jabber-roster-roll-group jc group t)))))
 
