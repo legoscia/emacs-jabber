@@ -858,16 +858,16 @@ If optional PREV is non-nil, return position of previous property appearence."
   "Save roster's groups rolling state in private storage"
   (interactive)
   (dolist (jc jabber-connections)
-    (let ((roll-groups (reduce
-                        (lambda (a b) (format "%s\n%s"
-                                              (substring-no-properties a)
-                                              (substring-no-properties b)))
-                        (plist-get (fsm-get-state-data jc) :roster-roll-groups))))
-      (jabber-private-set jc
-                          `(roster ((xmlns . "emacs-jabber"))
-                                   ,roll-groups)
-                          'jabber-report-success "Roster groups saved"
-                          'jabber-report-success "Failed to save roster groups"))))
+    (let* ((groups (plist-get (fsm-get-state-data jc) :roster-roll-groups))
+           (roll-groups
+            (when groups
+              (mapconcat (lambda (a) (substring-no-properties a)) groups "\n"))))
+      (when roll-groups
+        (jabber-private-set jc
+                            `(roster ((xmlns . "emacs-jabber"))
+                                     ,roll-groups)
+                            'jabber-report-success "Roster groups saved"
+                            'jabber-report-success "Failed to save roster groups")))))
 
 (provide 'jabber-roster)
 
