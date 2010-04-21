@@ -2793,8 +2793,8 @@ lists is not yet supported.
 @node XEP-0049, XEP-0050, XEP-0045, Protocol support
 @section XEP-0049 (Private XML Storage)
 
-jabber.el contains an implementation of XEP-0049; however it is not used
-for anything right now.
+jabber.el contains an implementation of XEP-0049; It is used
+for bookmarks and roster's groups roll state saving.
 
 @node XEP-0050, XEP-0054, XEP-0049, Protocol support
 @section XEP-0050 (Ad-Hoc Commands)
