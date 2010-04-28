@@ -91,7 +91,8 @@
            ':string (encode-coding-string body 'utf-8)
            '(:array)
            '(:array :signature "{sv}")
-           ':int32 jabber-libnotify-timeout))))))
+           ':int32 jabber-libnotify-timeout)))
+      (error nil))))
 
 (define-jabber-alert libnotify "Show a message through the libnotify interface"
   'jabber-libnotify-message)
