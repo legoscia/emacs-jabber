@@ -31,6 +31,10 @@
       '("Connect" . jabber-connect-all))
 
     (define-key map
+      [jabber-menu-nextmsg]
+      '("Next unread message" . jabber-activity-switch-to))
+
+    (define-key map
       [jabber-menu-disconnect]
       '("Disconnect" . jabber-disconnect))
 
