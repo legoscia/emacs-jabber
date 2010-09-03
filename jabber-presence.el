@@ -323,8 +323,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		   (buffer-local-value 'jabber-buffer-connection buffer)))
 	     (subelements (cdr (assq jc subelements-map))))
 	(when jc
-	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car gc)))
-						       ,@subelements))))))
+	  (jabber-send-sexp-if-connected
+	   jc `(presence ((to . ,(concat (car gc) "/" (cdr gc))))
+			 ,@subelements))))))
 
   (jabber-display-roster))
 
