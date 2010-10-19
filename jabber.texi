@@ -42,26 +42,26 @@ this permission notice are preserved on all copies.
 @end ifnottex
 
 @menu
-* Introduction::                
-* Basic operation::             
-* Groupchat::                   
-* Composing messages::          
-* File transfer::               
-* Services::                    
-* Personal information::        
-* Avatars::                     
-* Time queries::                
-* Useful features::             
-* Message history::             
-* Typing notifications::        
-* Roster import and export::    
-* XMPP URIs::                   
-* Customization::               
-* Hacking and extending::       
-* Protocol support::            
-* Concept index::               
-* Function index::              
-* Variable index::              
+* Introduction::
+* Basic operation::
+* Groupchat::
+* Composing messages::
+* File transfer::
+* Services::
+* Personal information::
+* Avatars::
+* Time queries::
+* Useful features::
+* Message history::
+* Typing notifications::
+* Roster import and export::
+* XMPP URIs::
+* Customization::
+* Hacking and extending::
+* Protocol support::
+* Concept index::
+* Function index::
+* Variable index::
 @end menu
 
 
@@ -84,11 +84,11 @@ jabber.el does not yet support PGP encryption, sending and receiving
 roster items, and various other things.
 
 @menu
-* Contact::                     
+* Contacts::
 @end menu
 
-@node Contact,  , Introduction, Introduction
-@section Contact
+@node Contacts,  , , Introduction
+@section Contacts
 
 @itemize @bullet
 @item
@@ -131,16 +131,16 @@ start with @kbd{C-x C-j}, and you can get a list of them by typing
 @kbd{C-x C-j C-h}.
 
 @menu
-* Do you have a Jabber account?::  
-* Registering an account::      
-* Connecting::                  
-* Chatting::                    
-* Presence::                    
-* Presence subscription::       
-* Roster buffer::               
+* Do you have a Jabber account?::
+* Registering an account::
+* Connecting::
+* Chatting::
+* Presence::
+* Presence subscription::
+* Roster buffer::
 @end menu
 
-@node Do you have a Jabber account?, Registering an account, Basic operation, Basic operation
+@node Do you have a Jabber account?, Registering an account, , Basic operation
 @section Do you have a Jabber account?
 
 Jabber has become rather popular as an instant messaging technology.
@@ -293,11 +293,11 @@ presence that is sent, change the variables
 With jabber.el, you can set your presence remotely.  @xref{Ad-Hoc Commands}.
 
 @menu
-* Resources and priority::      
-* Directed presence::           
+* Resources and priority::
+* Directed presence::
 @end menu
 
-@node Resources and priority, Directed presence, Presence, Presence
+@node Resources and priority, Directed presence, , Presence
 @subsection Resources and priority
 
 @cindex Resource
@@ -440,13 +440,13 @@ shown here.
 @findex jabber-muc-join
 @cindex Joining a groupchat
 @cindex Changing nickname
-@cindex Nickname, changing 
+@cindex Nickname, changing
 To join a groupchat, type @kbd{M-x jabber-muc-join}.  You will
 be prompted for the groupchat to join, and your nickname in the
 groupchat.  This nickname doesn't need to have any correlation to your
 JID; in fact, groupchats are usually (but not always) configured such
 that only moderators can see your JID.  You can change your nickname
-with @kbd{M-x jabber-muc-nick}.  @xref{Configuration}, for setting default 
+with @kbd{M-x jabber-muc-nick}.  @xref{Configuration}, for setting default
 nicknames.
 
 @cindex Query groupchat
@@ -503,13 +503,13 @@ jabber-muc-names}.  This gives a list of nicknames,
 
 
 @menu
-* Configuration::               
-* Invitations::                 
-* Private messages::            
-* MUC Administration::          
+* Configuration::
+* Invitations::
+* Private messages::
+* MUC Administration::
 @end menu
 
-@node Configuration, Invitations, Groupchat, Groupchat
+@node Configuration, Invitations, , Groupchat
 @section Configuration
 
 @vindex jabber-muc-default-nicknames
@@ -686,11 +686,11 @@ client.  The Google Talk client uses a different file transfer protocol
 which, at the time of this release, has not been published.
 
 @menu
-* Receiving files::             
-* Sending files::               
+* Receiving files::
+* Sending files::
 @end menu
 
-@node Receiving files, Sending files, File transfer, File transfer
+@node Receiving files, Sending files, , File transfer
 @section Receiving files
 
 Receiving files requires no configuration.  When someone wants to send a
@@ -779,14 +779,14 @@ You can change the buffer name template by customizing
 the variable @code{jabber-browse-buffer-format}.
 
 @menu
-* Commands::                    
-* Your home server::            
-* Transports::                  
-* User directories::            
-* MUC services::                
+* Commands::
+* Your home server::
+* Transports::
+* User directories::
+* MUC services::
 @end menu
 
-@node Commands, Your home server, Services, Services
+@node Commands, Your home server, , Services
 @section Commands
 
 A small number of commands is used for almost all interaction with
@@ -798,14 +798,14 @@ opened by typing @kbd{C-c C-s}.  Service discovery is under the Info
 menu instead, which is available under @kbd{C-c C-i}.
 
 @menu
-* Registration::                
-* Search::                      
-* Ad-Hoc Commands::             
-* Service discovery::           
-* Browsing::                    
+* Registration::
+* Search::
+* Ad-Hoc Commands::
+* Service discovery::
+* Browsing::
 @end menu
 
-@node Registration, Search, Commands, Commands
+@node Registration, Search, , Commands
 @subsection Registration
 
 @cindex Registration
@@ -831,10 +831,6 @@ You can get a search form for a service by typing @kbd{M-x
 jabber-get-search}.  This gives you a single-stage form to fill in.
 After you press the ``Submit'' button at the bottom, the search results
 will be displayed in the same buffer.
-
-@menu
-* Ad-Hoc Commands::             
-@end menu
 
 @node Ad-Hoc Commands, Service discovery, Search, Commands
 @subsection Ad-Hoc Commands
@@ -1104,16 +1100,17 @@ jabber.el includes a number of features meant to improve the user
 interface and do other useful things.
 
 @menu
-* Autoaway::                    
-* Modeline status::             
-* Keepalive::                   
-* Reconnecting::                
-* Tracking activity::           
-* Watch buddies::               
-* Spell checking::              
+* Autoaway::
+* Modeline status::
+* Keepalive::
+* Reconnecting::
+* Tracking activity::
+* Watch buddies::
+* Spell checking::
+* Gmail notifications::
 @end menu
 
-@node Autoaway, Modeline status, Useful features, Useful features
+@node Autoaway, Modeline status, , Useful features
 @section Autoaway
 
 @cindex autoaway
@@ -1272,7 +1269,7 @@ minibuffer).
 
 jabber.el supports automatic reconnection to Jabber server(s) upon lost
 connection.  By default it is off.  To turn on, customize
-the @code{jabber-auto-reconnect} variable.  
+the @code{jabber-auto-reconnect} variable.
 
 This is of limited use if you have to type your password every time
 jabber.el reconnects.  There are two ways to save your password: you can
@@ -1345,7 +1342,7 @@ online.  jabber.el will remember this for the rest of your Emacs
 session (it's not saved to disk, though), but if you want to get rid
 of it, type @kbd{M-x jabber-watch-remove}.
 
-@node Spell checking,  , Watch buddies, Useful features
+@node Spell checking, Gmail notifications, Watch buddies, Useful features
 @section Spell checking
 
 @cindex flyspell
@@ -1358,6 +1355,52 @@ what you receive or what you have already sent.  You may want to add
 
 For more information about Emacs spell checking, @pxref{Spelling, ,
 Checking and Correcting Spelling, emacs, GNU Emacs Manual}.
+
+@node Gmail notifications, , Spell checking, Useful features
+@section Gmail notifications
+
+@cindex Gmail notifications
+
+If you are connected to a Google Talk account, you can receive
+notifications when a new Gmail message arrives. Gmail notifications
+are enabled by adding the following line to your @file{.emacs}:
+
+@example
+(add-hook 'jabber-post-connect-hooks 'jabber-gmail-subscribe)
+@end example
+
+Default behavior is to display a message that mentions the number of
+received gmails.  You can customize this behavior by providing your
+own @code{jabber-gmail-dothreads} function.
+
+Example:
+
+@example
+(eval-after-load "jabber-gmail"
+  '(defun jabber-gmail-dothreads (threads)
+     "Process <mail-thread-info/> elements.
+THREADS is a list of XML sexps corresponding to <mail-thread-info/>
+elements.
+See http://code.google.com/apis/talk/jep_extensions/gmail.html#response"
+     (osd "gmail: %d" (length threads))))
+
+;;; It's usually a good idea to have a shortcut for querying GTalk server.
+(global-set-key (kbd "<f9> g") 'jabber-gmail-query)
+
+;;; The definition of `osd' function used by `jabber-gmail-dothreads'.
+;;; `osd_cat' is shipped with the X OSD library
+;;; [http://www.ignavus.net/software.html].
+(if (and (display-graphic-p) (file-executable-p "/usr/bin/osd_cat"))
+    (defun osd (fmt &rest args)
+      "Display message on X screen."
+      (let ((opts "-p bottom -A center -l 1 \
+-f '-adobe-helvetica-bold-r-*-*-24-*-*-*-*-*-iso10646-1'")
+	    (msg (apply 'format (concat fmt "\n") args)))
+	(start-process "osd" nil shell-file-name shell-command-switch
+		       (format "echo %s | osd_cat %s"
+			       (shell-quote-argument msg) opts))))
+  (defalias 'osd 'message))
+@end example
 
 @node Message history, Typing notifications, Useful features, Top
 @chapter Message history
@@ -1633,16 +1676,16 @@ this is Emacs.  To open a customization buffer for jabber.el, type
 @kbd{M-x jabber-customize}.
 
 @menu
-* Account settings::            
-* Menu::                        
-* Customizing the roster buffer::  
-* Customizing the chat buffer::  
-* Customizing alerts::          
-* Hooks::                       
-* Debug options::               
+* Account settings::
+* Menu::
+* Customizing the roster buffer::
+* Customizing the chat buffer::
+* Customizing alerts::
+* Hooks::
+* Debug options::
 @end menu
 
-@node Account settings, Menu, Customization, Customization
+@node Account settings, Menu, , Customization
 @section Account settings
 
 @cindex Username
@@ -1696,6 +1739,8 @@ Google Talk just by specifying your Gmail address as JID.  Otherwise,
 you also need to set
 ``network server'' to @kbd{talk.google.com} and ``connection type'' to
 ``legacy SSL''.
+
+See also @ref{Gmail notifications}.
 
 @subsection Upgrade note
 
@@ -1921,7 +1966,7 @@ same arguments as the corresponding hooks, except for that last
 argument.
 
 Alert hook contributions are very welcome.  You can send them to the
-mailing list, or to the Sourceforge patch tracker.
+mailing list, or to the Sourceforge patch tracker. @xref{Contacts}.
 
 Alert hooks are meant for optional UI things, that are subject to
 varying user tastes, and that can be toggled by simply adding or
@@ -1933,14 +1978,14 @@ e.g. @code{jabber-message-hooks} vs @code{jabber-alert-message-hooks},
 etc.
 
 @menu
-* Standard alerts::             
-* Presence alerts::             
-* Message alerts::              
-* MUC alerts::                  
-* Info alerts::                 
+* Standard alerts::
+* Presence alerts::
+* Message alerts::
+* MUC alerts::
+* Info alerts::
 @end menu
 
-@node Standard alerts, Presence alerts, Customizing alerts, Customizing alerts
+@node Standard alerts, Presence alerts, , Customizing alerts
 @subsection Standard alerts
 
 @cindex Alerts
@@ -2258,17 +2303,17 @@ yourself and trying to figure it out, but as a guide on where to
 look.  Knowledge of Jabber protocols is assumed.
 
 @menu
-* Connection object::           
-* XML representation::          
-* JID symbols::                 
-* Listening for new requests::  
-* Sending new requests::        
-* Extending service discovery::  
-* Chat printers::               
-* Stanza chains::               
+* Connection object::
+* XML representation::
+* JID symbols::
+* Listening for new requests::
+* Sending new requests::
+* Extending service discovery::
+* Chat printers::
+* Stanza chains::
 @end menu
 
-@node Connection object, XML representation, Hacking and extending, Hacking and extending
+@node Connection object, XML representation, , Hacking and extending
 @section Connection object
 @cindex connection object
 @cindex account object
@@ -2500,11 +2545,11 @@ information.
 
 
 @menu
-* Providing info::              
-* Requesting info::             
+* Providing info::
+* Requesting info::
 @end menu
 
-@node Providing info, Requesting info, Extending service discovery, Extending service discovery
+@node Providing info, Requesting info, , Extending service discovery
 @subsection Providing info
 
 Your new IQ request handlers will likely want to advertise their
@@ -2685,7 +2730,7 @@ jabber.el.
 * XEP-0245::                    The /me Command
 @end menu
 
-@node RFC 3920, RFC 3921, Protocol support, Protocol support
+@node RFC 3920, RFC 3921, , Protocol support
 @section RFC 3920 (XMPP-CORE)
 
 Most of RFC 3920 is supported, with the following exceptions.
