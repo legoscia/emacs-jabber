@@ -500,13 +500,17 @@ groupchat buffer."
 	)
        ;; Maybe another error occurred. Report it to user
        (condition
-	(message "Couldn't query groupchat: %s" (jabber-parse-error result))))
+	(message "Couldn't query groupchat: %s" (jabber-parse-error result)))
+
+       ;; Bad stanza? Without NS, for example
+       ((and (eq identities 'error) (not condition))
+        (message "Bad error stanza received")))
 
       ;; Continue only if it is really chat room.  If there was an
       ;; error, give the chat room the benefit of the doubt.  (Needed
       ;; for ejabberd's mod_irc, for example)
       (when (or condition
-                (find "conference" identities 
+                (find "conference" (if (sequencep identities) identities nil)
                       :key (lambda (i) (aref i 1))
                       :test #'string=))
         (let ((password
