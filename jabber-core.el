@@ -911,7 +911,7 @@ DATA is any sexp."
 	  (sit-for 2)))
        (delete-region (point-min) (point))
 
-       (fsm-send fsm (list :stanza (car xml-data)))
+       (fsm-send fsm (list :stanza (jabber-xml-resolve-namespace-prefixes (car xml-data))))
        ;; XXX: move this logic elsewhere
        ;; We explicitly don't catch errors in jabber-process-input,
        ;; to facilitate debugging.
