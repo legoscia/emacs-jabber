@@ -1,4 +1,4 @@
-AC_INIT([jabber.el], [0.8.0], [emacs-jabber-general@lists.sourceforge.net], [emacs-jabber])
+AC_INIT([jabber.el], [0.8.90], [emacs-jabber-general@lists.sourceforge.net], [emacs-jabber])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-bzip2 dist-lzma dist-zip 1.9])
 AC_CONFIG_MACRO_DIR([m4])

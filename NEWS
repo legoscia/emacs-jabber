@@ -22,6 +22,11 @@ MUC participants list format is now customizable: see
 jabber-muc-print-names-format in manual. Also, participants sorted by
 role.
 
+** Treat XML namespace prefixes correctly
+A change in the Google Talk server has brought to light the fact that
+jabber.el didn't handle XML namespace prefixes correctly.  This should
+be fixed by the new jabber-xml-resolve-namespace-prefixes function.
+
 * New features in jabber.el 0.8
 ** Support for multiple accounts
 Configuration variables have changed.  See section "Account settings"
