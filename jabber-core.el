@@ -858,8 +858,7 @@ DATA is any sexp."
 	 ;; Let's pretend that the stream header is a closed tag,
 	 ;; and parse it as such.
 	 (replace-match "/>" t t nil 1)
-	 (let* (;; Thus we need to add one to the index...
-		(ending-at (1+ (match-end 0)))
+	 (let* ((ending-at (point))
 		(stream-header (car (xml-parse-region (point-min) ending-at)))
 		(session-id (jabber-xml-get-attribute stream-header 'id))
 		(stream-version (jabber-xml-get-attribute stream-header 'version)))
