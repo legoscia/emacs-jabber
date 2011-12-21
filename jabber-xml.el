@@ -226,22 +226,8 @@ any string   character data of this node"
 (defun jabber-xml-resolve-namespace-prefixes (xml-data &optional default-ns prefixes)
   (let ((node-name (jabber-xml-node-name xml-data))
 	(attrs (jabber-xml-node-attributes xml-data)))
-    ;; First find any foo:xmlns attributes..
-    (dolist (attr attrs)
-      (let ((attr-name (symbol-name (car attr))))
-	(when (string-match "xmlns:" attr-name)
-	  (let ((prefix (substring attr-name (match-end 0)))
-		(ns-uri (cdr attr)))
-	    ;; A slightly complicated dance to never change the
-	    ;; original value of prefixes (since the caller depends on
-	    ;; it), but also to avoid excessive copying (which remove
-	    ;; always does).  Might need to profile and tweak this for
-	    ;; performance.
-	    (setq prefixes
-		  (cons (cons prefix ns-uri)
-			(if (assoc prefix prefixes)
-			    (remove (assoc prefix prefixes) prefixes)
-			  prefixes)))))))
+    (setq prefixes (jabber-xml-merge-namespace-declarations attrs prefixes))
+
     ;; If there is an xmlns attribute, it is the new default
     ;; namespace.
     (let ((xmlns (jabber-xml-get-xmlns xml-data)))
@@ -266,6 +252,25 @@ any string   character data of this node"
 	      (jabber-xml-resolve-namespace-prefixes x default-ns prefixes)))
 	  (jabber-xml-node-children xml-data))
     xml-data))
+
+(defun jabber-xml-merge-namespace-declarations (attrs prefixes)
+  ;; First find any xmlns:foo attributes..
+  (dolist (attr attrs)
+    (let ((attr-name (symbol-name (car attr))))
+      (when (string-match "xmlns:" attr-name)
+	(let ((prefix (substring attr-name (match-end 0)))
+	      (ns-uri (cdr attr)))
+	  ;; A slightly complicated dance to never change the
+	  ;; original value of prefixes (since the caller depends on
+	  ;; it), but also to avoid excessive copying (which remove
+	  ;; always does).  Might need to profile and tweak this for
+	  ;; performance.
+	  (setq prefixes
+		(cons (cons prefix ns-uri)
+			(if (assoc prefix prefixes)
+			    (remove (assoc prefix prefixes) prefixes)
+			  prefixes)))))))
+  prefixes)  
 
 (provide 'jabber-xml)
 
