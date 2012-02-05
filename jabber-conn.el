@@ -181,14 +181,19 @@ connection fails."
 	   (error "Neither TLS nor SSL connect functions available")))))
     (let ((process-buffer (generate-new-buffer jabber-process-buffer))
 	  connection)
-      (unwind-protect
+      (setq network-server (or network-server server))
+      (setq port (or port 5223))
+      (condition-case e
 	  (setq connection (funcall connect-function
 				    "jabber"
 				    process-buffer
-				    (or network-server server)
-				    (or port 5223)))
-	(unless (or connection jabber-debug-keep-process-buffers)
-	  (kill-buffer process-buffer)))
+				    network-server
+				    port))
+	(error
+	 (message "Couldn't connect to %s:%d: %s" network-server port
+		  (error-message-string e))))
+      (unless (or connection jabber-debug-keep-process-buffers)
+	(kill-buffer process-buffer))
       (if connection
 	  (fsm-send fsm (list :connected connection))
 	(fsm-send fsm :connection-failed)))))
