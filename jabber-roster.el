@@ -25,6 +25,7 @@
 (require 'jabber-alert)
 (require 'jabber-keymap)
 (require 'format-spec)
+(require 'cl)				;for `find'
 
 (defgroup jabber-roster nil "roster display options"
   :group 'jabber)
@@ -254,11 +255,27 @@ chat-with-jid-at-point is no group at point"
 					 'jabber-jid)))
     (if (and group-at-point account-at-point)
 	(jabber-roster-roll-group account-at-point group-at-point)
-      (jabber-chat-with-jid-at-point)
-      (ignore-errors (jabber-muc-join
-                      account-at-point
-                      jid-at-point
-                      (jabber-muc-read-my-nickname account-at-point jid-at-point t) t)))))
+      ;; Is this a normal contact, or a groupchat?  Let's ask it.
+      (jabber-disco-get-info
+       account-at-point (jabber-jid-user jid-at-point) nil
+       #'jabber-roster-ret-action-at-point-1
+       jid-at-point))))
+
+(defun jabber-roster-ret-action-at-point-1 (jc jid result)
+  ;; If we get an error, assume it's a normal contact.
+  (if (eq (car result) 'error)
+      (jabber-chat-with jc jid)
+    ;; Otherwise, let's check whether it has a groupchat identity.
+    (let ((identities (car result)))
+      (if (find "conference" (if (sequencep identities) identities nil)
+		:key (lambda (i) (aref i 1))
+		:test #'string=)
+	  ;; Yes!  Let's join it.
+	  (jabber-muc-join jc jid
+			   (jabber-muc-read-my-nickname jc jid t)
+			   t)
+	;; No.  Let's open a normal chat buffer.
+	(jabber-chat-with jc jid)))))
 
 (defun jabber-roster-mouse-2-action-at-point (e)
   "Action for mouse-2. Before try to roll up/down group. Eval
