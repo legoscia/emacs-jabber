@@ -1,5 +1,7 @@
 ;;; jabber-autoaway.el --- change status to away after idleness
 
+;; Copyright (C) 2010 - Kirill A. Korinskiy - catap@catap.ru
+;; Copyright (C) 2010 - Terechkov Evgenii - evg@altlinux.org
 ;; Copyright (C) 2006, 2008  Magnus Henoch
 
 ;; Author: Magnus Henoch <mange@freemail.hu>
@@ -26,28 +28,27 @@
   "Change status to away after idleness"
   :group 'jabber)
 
-(defcustom jabber-autoaway-method (cond
-				   ((fboundp 'current-idle-time)
-				    'jabber-current-idle-time)
-				   ((getenv "DISPLAY")
-				    'jabber-xprintidle-get-idle-time)
-				   ((null window-system)
-				    'jabber-termatime-get-idle-time))
-  "Method used to keep track of idleness.
-This is a function that takes no arguments, and returns the
+(defcustom jabber-autoaway-methods
+  (if (fboundp 'jabber-autoaway-method)
+      (list jabber-autoaway-method)
+    (list 'jabber-current-idle-time
+          'jabber-xprintidle-get-idle-time
+          'jabber-termatime-get-idle-time))
+  "Methods used to keep track of idleness.
+This is a list of functions that takes no arguments, and returns the
 number of seconds since the user was active, or nil on error."
   :group 'jabber-autoaway
-  :type '(choice (const :tag "Use `current-idle-time' function"
-			jabber-current-idle-time)
-		 (const :tag "xprintidle" 
-			jabber-xprintidle-get-idle-time)
-		 (const :tag "Watch atime of terminal"
-			jabber-termatime-get-idle-time)
-		 function
-		 (const :tag "None" nil)))
+  :options '(jabber-current-idle-time
+             jabber-xprintidle-get-idle-time
+             jabber-termatime-get-idle-time))
 
 (defcustom jabber-autoaway-timeout 5
   "Minutes of inactivity before changing status to away"
+  :group 'jabber-autoaway
+  :type 'number)
+
+(defcustom jabber-autoaway-xa-timeout 10
+  "Minutes of inactivity before changing status to xa. Set to 0 to disable."
   :group 'jabber-autoaway
   :type 'number)
 
@@ -56,8 +57,22 @@ number of seconds since the user was active, or nil on error."
   :group 'jabber-autoaway
   :type 'string)
 
+(defcustom jabber-autoaway-xa-status "Extended away"
+  "Status string for autoaway in xa state"
+  :group 'jabber-autoaway
+  :type 'string)
+
 (defcustom jabber-autoaway-priority nil
   "Priority for autoaway.
+If nil, don't change priority.  See the manual for more
+information about priority."
+  :group 'jabber-autoaway
+  :type '(choice (const :tag "Don't change")
+		 (integer :tag "Priority"))
+  :link '(info-link "(jabber)Presence"))
+
+(defcustom jabber-autoaway-xa-priority nil
+  "Priority for autoaway in xa state.
 If nil, don't change priority.  See the manual for more
 information about priority."
   :group 'jabber-autoaway
@@ -105,9 +120,9 @@ The IGNORED argument is there so you can put this function in
     (jabber-autoaway-message "Autoaway timer stopped")))
 
 (defun jabber-autoaway-get-idle-time ()
-  "Get idle time in seconds according to chosen method.
+  "Get idle time in seconds according to jabber-autoaway-methods.
 Return nil on error."
-  (when jabber-autoaway-method (funcall jabber-autoaway-method)))
+  (car (sort (mapcar 'funcall jabber-autoaway-methods) (lambda (a b) (if a (if b (< a b) t) nil)))))
 
 (defun jabber-autoaway-timer ()
   ;; We use one-time timers, so reset the variable.
@@ -123,19 +138,20 @@ Return nil on error."
 	      (run-with-timer (- (* 60 jabber-autoaway-timeout) idle-time)
 			      nil #'jabber-autoaway-timer))))))
 
-(defun jabber-autoaway-set-idle ()
+(defun jabber-autoaway-set-idle (&optional xa)
   (jabber-autoaway-message "Autoaway triggered")
   ;; Send presence, unless the user has set a custom presence
-  (unless (member *jabber-current-show* '("away" "xa" "dnd"))
-    (jabber-send-presence 
-     "away" 
-     jabber-autoaway-status
-     (or jabber-autoaway-priority *jabber-current-priority*)))
-    
+  (unless (member *jabber-current-show* '("xa" "dnd"))
+    (jabber-send-presence
+     (if xa "xa" "away")
+     (if (or (string= *jabber-current-status* jabber-default-status) (string= *jabber-current-status* jabber-autoaway-status)) (if xa jabber-autoaway-xa-status jabber-autoaway-status) *jabber-current-status*)
+     (or (if xa jabber-autoaway-priority jabber-autoaway-xa-priority) *jabber-current-priority*)))
+
   (setq jabber-autoaway-last-idle-time (jabber-autoaway-get-idle-time))
-  ;; Run unidle timer every 10 seconds
-  (setq jabber-autoaway-timer (run-with-timer 10 10
-					      #'jabber-autoaway-maybe-unidle)))
+  ;; Run unidle timer every 10 seconds (if xa specified, timer already running)
+  (unless xa
+    (setq jabber-autoaway-timer (run-with-timer 10 10
+					      #'jabber-autoaway-maybe-unidle))))
 
 (defun jabber-autoaway-maybe-unidle ()
   (let ((idle-time (jabber-autoaway-get-idle-time)))
@@ -143,13 +159,19 @@ Return nil on error."
     ;; As long as idle time increases monotonically, stay idle.
     (if (> idle-time jabber-autoaway-last-idle-time)
 	(progn
+          ;; Has "Xa timeout" passed?
+          (if (and (> jabber-autoaway-xa-timeout 0) (> idle-time (* 60 jabber-autoaway-xa-timeout)))
+              ;; iIf so, mark ourselves xa.
+              (jabber-autoaway-set-idle t))
 	  (setq jabber-autoaway-last-idle-time idle-time))
       ;; But if it doesn't, go back to unidle state.
       (jabber-autoaway-message "Back to unidle")
       ;; But don't mess with the user's custom presence.
-      (if (string= *jabber-current-status* jabber-autoaway-status)
+      (if (or (string= *jabber-current-status* jabber-autoaway-status) (string= *jabber-current-status* jabber-autoaway-xa-status))
 	  (jabber-send-default-presence)
-	(jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status))
+	(progn
+          (jabber-send-presence jabber-default-show *jabber-current-status* jabber-default-priority)
+          (jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status)))
       (jabber-autoaway-stop)
       (jabber-autoaway-start))))
 
@@ -178,10 +200,11 @@ The method for finding the terminal only works on GNU/Linux."
 (defun jabber-current-idle-time ()
   "Get idle time through `current-idle-time'.
 `current-idle-time' was introduced in Emacs 22."
-  (let ((idle-time (current-idle-time)))
-    (if (null idle-time)
-	0
-      (float-time idle-time))))
+  (if (fboundp 'current-idle-time)
+      (let ((idle-time (current-idle-time)))
+        (if (null idle-time)
+            0
+          (float-time idle-time)))))
 
 (provide 'jabber-autoaway)
 ;; arch-tag: 5bcea14c-842d-11da-a120-000a95c2fcd0

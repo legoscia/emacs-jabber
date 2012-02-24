@@ -20,12 +20,12 @@
 
 (eval-when-compile (require 'jabber-alert))
 
-(defun jabber-ratpoison-message (msg)
+(defun jabber-ratpoison-message (text &optional title)
   "Show MSG in Ratpoison"
   ;; Possible errors include not finding the ratpoison binary.
   (condition-case e
       (let ((process-connection-type))
-	(call-process "ratpoison" nil 0 nil "-c" (concat "echo " msg)))
+	(call-process "ratpoison" nil 0 nil "-c" (concat "echo " (or title text))))
     (error nil)))
   
 (define-jabber-alert ratpoison "Show a message through the Ratpoison window manager"

@@ -34,7 +34,7 @@
   "Request software version"
   (interactive (list
 		(jabber-read-account)
-		(jabber-read-jid-completing "Request version of: " nil nil nil 'full)))
+		(jabber-read-jid-completing "Request version of: " nil nil nil 'full t)))
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:version")))

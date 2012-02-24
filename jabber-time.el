@@ -1,6 +1,6 @@
-;; jabber-time.el - time reporting by JEP-0090
+;; jabber-time.el - time reporting by XEP-0012, XEP-0090, XEP-0202
 
-;; Copyright (C) 2006 - Kirill A. Kroinskiy - catap@catap.ru
+;; Copyright (C) 2006, 2010 - Kirill A. Kroinskiy - catap@catap.ru
 ;; Copyright (C) 2006 - Magnus Henoch - mange@freemail.hu
 
 ;; This file is a part of jabber.el.
@@ -22,47 +22,78 @@
 
 (require 'jabber-iq)
 (require 'jabber-util)
+(require 'jabber-autoaway)
 
 (require 'time-date)
 
-(add-to-list 'jabber-jid-info-menu
-	     (cons "Request time" 'jabber-get-time))
+(add-to-list 'jabber-jid-info-menu (cons "Request time" 'jabber-get-time))
+
 (defun jabber-get-time (jc to)
   "Request time"
   (interactive (list (jabber-read-account)
-		     (jabber-read-jid-completing "Request time of: "
-						 nil nil nil 'full)))
+                     (jabber-read-jid-completing "Request time of: "
+                                                 nil nil nil 'full t)))
+
+  (jabber-send-iq jc to "get"
+                  '(query ((xmlns . "urn:xmpp:time")))
+                  'jabber-silent-process-data 'jabber-process-time
+                  'jabber-silent-process-data
+                  (lambda (jc xml-data)
+                    (let ((from (jabber-xml-get-attribute xml-data 'from)))
+                      (jabber-get-legacy-time jc from)))))
+
+(defun jabber-get-legacy-time (jc to)
+  "Request legacy time"
+  (interactive (list (jabber-read-account)
+                     (jabber-read-jid-completing "Request time of: "
+                                                 nil nil nil 'full t)))
+
   (jabber-send-iq jc to
-		  "get"
-		  '(query ((xmlns . "jabber:iq:time")))
-		  #'jabber-process-data #'jabber-process-time
-		  #'jabber-process-data "Time request failed"))
+                  "get"
+                  '(query ((xmlns . "jabber:iq:time")))
+                  'jabber-silent-process-data 'jabber-process-legacy-time
+                  'jabber-silent-process-data "Time request failed"))
+
 
 ;; called by jabber-process-data
 (defun jabber-process-time (jc xml-data)
+  "Handle results from urn:xmpp:time requests."
+  (let* ((from (jabber-xml-get-attribute xml-data 'from))
+         (time (or (car (jabber-xml-get-children xml-data 'time))
+                   ;; adium response of qeury
+                   (car (jabber-xml-get-children xml-data 'query))))
+         (tzo (car (jabber-xml-node-children
+                    (car (jabber-xml-get-children time 'tzo)))))
+         (utc (car (jabber-xml-node-children
+                    (car (jabber-xml-get-children time 'utc))))))
+    (when (and utc tzo)
+      (format "%s has time: %s %s"
+              from (format-time-string "%Y-%m-%d %T" (jabber-parse-time utc)) tzo))))
+
+(defun jabber-process-legacy-time (jc xml-data)
   "Handle results from jabber:iq:time requests."
-  (let ((query (jabber-iq-query xml-data)))
-    (let ((display 
-	   (car (jabber-xml-node-children
-		 (car (jabber-xml-get-children 
-		       query 'display)))))
-	  (utc
-	   (car (jabber-xml-node-children
-		 (car (jabber-xml-get-children 
-		       query 'utc)))))
-	  (tz
-	   (car (jabber-xml-node-children
-		 (car (jabber-xml-get-children 
-		       query 'tz))))))
-      (insert "Time:\t\t")
-      (cond
-       (display
-	(insert display))
-       (utc
-	(insert (format-time-string "%Y-%m-%d %T" (jabber-parse-legacy-time utc)))))
-      (insert "\n")
-      (when tz
-	(insert "Time zone:\t" tz "\n")))))
+  (let* ((from (jabber-xml-get-attribute xml-data 'from))
+         (query (jabber-iq-query xml-data))
+         (display
+          (car (jabber-xml-node-children
+                (car (jabber-xml-get-children
+                      query 'display)))))
+         (utc
+          (car (jabber-xml-node-children
+                (car (jabber-xml-get-children
+                      query 'utc)))))
+         (tz
+          (car (jabber-xml-node-children
+                (car (jabber-xml-get-children
+                      query 'tz))))))
+    (format "%s has time: %s" from
+           (cond
+            (display display)
+            (utc
+             (concat
+              (format-time-string "%Y-%m-%d %T" (jabber-parse-legacy-time utc))
+              (when tz
+                (concat " " tz))))))))
 
 ;; the only difference between these two functions is the
 ;; jabber-read-jid-completing call.
@@ -74,19 +105,19 @@
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:last")))
-		  #'jabber-process-data #'jabber-process-last
-		  #'jabber-process-data "Last online request failed"))
+		  #'jabber-silent-process-data #'jabber-process-last
+		  #'jabber-silent-process-data "Last online request failed"))
 
 (defun jabber-get-idle-time (jc to)
   "Request idle time of user."
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "Get idle time for: " 
-						 nil nil nil 'full)))
+						 nil nil nil 'full t)))
   (jabber-send-iq jc to
 		  "get"
 		  '(query ((xmlns . "jabber:iq:last")))
-		  #'jabber-process-data #'jabber-process-last
-		  #'jabber-process-data "Idle time request failed"))
+		  #'jabber-silent-process-data #'jabber-process-last
+		  #'jabber-silent-process-data "Idle time request failed"))
 
 (defun jabber-process-last (jc xml-data)
   "Handle resultts from jabber:iq:last requests."
@@ -97,27 +128,29 @@
     (cond
      ((jabber-jid-resource from)
       ;; Full JID: idle time
-      (insert (format "Idle for %s seconds" seconds) "\n"))
+      (format "%s idle for %s seconds" from seconds))
      ((jabber-jid-username from)
       ;; Bare JID with username: time since online
-      (insert (format "Last online %s seconds ago" seconds) "\n")
-      (let ((seconds (condition-case nil
-			 (string-to-number seconds)
-		       (error nil))))
-	(when (numberp seconds)
-	  (insert "That is, at "
-		  (format-time-string "%Y-%m-%d %T"
-				      (time-subtract (current-time)
-						     (seconds-to-time seconds)))
-		  "\n"))))
+      (concat
+       (format "%s last online %s seconds ago" from seconds)
+       (let ((seconds (condition-case nil
+                          (string-to-number seconds)
+                        (error nil))))
+         (when (numberp seconds)
+           "That is, at "
+           (format-time-string "%Y-%m-%d %T"
+                               (time-subtract (current-time)
+                                              (seconds-to-time seconds)))
+           "\n"))))
      (t
       ;; Only hostname: uptime
-      (insert (format "Uptime: %s seconds" seconds) "\n")))))
+      (format "%s uptime: %s seconds" from seconds)))))
 
-(add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:time" 'jabber-return-time))
+(add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:time" 'jabber-return-legacy-time))
 (add-to-list 'jabber-advertised-features "jabber:iq:time")
-(defun jabber-return-time (jc xml-data)
-  "Return client time as defined in JEP-0090.  Sender and ID are
+
+(defun jabber-return-legacy-time (jc xml-data)
+  "Return client time as defined in XEP-0090.  Sender and ID are
 determined from the incoming packet passed in XML-DATA."
   (let ((to (jabber-xml-get-attribute xml-data 'from))
 	(id (jabber-xml-get-attribute xml-data 'id)))
@@ -130,6 +163,36 @@ determined from the incoming packet passed in XML-DATA."
 			    (utc () ,(jabber-encode-legacy-time nil)))
 		    nil nil nil nil
 		    id)))
+
+(add-to-list 'jabber-iq-get-xmlns-alist (cons "urn:xmpp:time" 'jabber-return-time))
+(add-to-list 'jabber-advertised-features "urn:xmpp:time")
+
+(defun jabber-return-time (jc xml-data)
+  "Return client time as defined in XEP-0202.  Sender and ID are
+determined from the incoming packet passed in XML-DATA."
+  (let ((to (jabber-xml-get-attribute xml-data 'from))
+        (id (jabber-xml-get-attribute xml-data 'id)))
+    (jabber-send-iq jc to "result"
+                    `(time ((xmlns . "urn:xmpp:time"))
+                           (utc () ,(jabber-encode-time nil))
+                           (tzo () ,(jabber-encode-timezone)))
+                    nil nil nil nil
+                    id)))
+
+(add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:last" 'jabber-return-last))
+(add-to-list 'jabber-advertised-features "jabber:iq:last")
+
+(defun jabber-return-last (jc xml-data)
+  (let ((to (jabber-xml-get-attribute xml-data 'from))
+        (id (jabber-xml-get-attribute xml-data 'id)))
+    (jabber-send-iq jc to "result"
+                    `(time ((xmlns . "jabber:iq:last")
+			    ;; XEP-0012 specifies that this is an integer.
+                            (seconds . ,(number-to-string
+					 (floor (jabber-autoaway-get-idle-time))))))
+                    nil nil nil nil
+                    id)))
+
 
 (provide 'jabber-time)
 

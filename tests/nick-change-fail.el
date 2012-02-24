@@ -48,7 +48,7 @@ to enter the room named by `ncf-room-name' with the nick \"Romeo\"."
 (defun ncf-do (jc)
   (setq ncf-done t)
 
-  (jabber-groupchat-join jc ncf-room-name "Romeo")
+  (jabber-muc-join jc ncf-room-name "Romeo")
   ;; We need a delay here, so that the client can process the response
   ;; stanza.
   (sit-for 0.01)
@@ -57,7 +57,7 @@ to enter the room named by `ncf-room-name' with the nick \"Romeo\"."
     (ncf-assert *jabber-active-groupchats* "Entering room not recorded")
 
     ;; Now, do an unallowed nickname change.
-    (jabber-groupchat-join jc ncf-room-name "Mercutio")
+    (jabber-muc-join jc ncf-room-name "Mercutio")
     (sit-for 0.01)
 
     ;; We should still consider ourselves to be in the room as Romeo

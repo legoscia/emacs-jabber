@@ -323,8 +323,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		   (buffer-local-value 'jabber-buffer-connection buffer)))
 	     (subelements (cdr (assq jc subelements-map))))
 	(when jc
-	  (jabber-send-sexp-if-connected jc `(presence ((to . ,(car gc)))
-						       ,@subelements))))))
+	  (jabber-send-sexp-if-connected
+	   jc `(presence ((to . ,(concat (car gc) "/" (cdr gc))))
+			 ,@subelements))))))
 
   (jabber-display-roster))
 
@@ -487,11 +488,12 @@ text, if specified"
   ;; XXX: specify account
   (jabber-send-iq jc nil "set"
 		  (list 'query (list (cons 'xmlns "jabber:iq:roster"))
-			(list 'item (append
+				(append
+				 (list 'item (append
 				     (list (cons 'jid (symbol-name jid)))
 				     (if (and name (> (length name) 0))
-					 (list (cons 'name name))))
-			      (mapcar #'(lambda (x) `(group () ,x))
+					 (list (cons 'name name)))))
+				 (mapcar #'(lambda (x) `(group () ,x))
 				      groups)))
 		  #'jabber-report-success "Roster item change"
 		  #'jabber-report-success "Roster item change"))
@@ -516,7 +518,7 @@ Signal an error if there is no JID at point."
 					 'jabber-jid))
 	(account (get-text-property (point) 'jabber-account)))
     (if (and jid-at-point account
-	     (yes-or-no-p (format "Really delete %s from roster? " jid-at-point)))
+	     (or jabber-silent-mode (yes-or-no-p (format "Really delete %s from roster? " jid-at-point))))
 	(jabber-roster-delete account jid-at-point)
       (error "No contact at point"))))
 

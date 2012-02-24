@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = 1.9
 
 my_lisp_sources=fsm.el jabber-activity.el jabber-ahc-presence.el	\
 jabber-ahc.el jabber-alert.el jabber-autoaway.el jabber-avatar.el	\
-jabber-awesome.el jabber-ping.el jabber-libnotify.el			\
+jabber-awesome.el jabber-ping.el jabber-libnotify.el jabber-console.el	\
 jabber-bookmarks.el jabber-browse.el jabber-chat.el			\
 jabber-chatbuffer.el jabber-chatstates.el jabber-compose.el		\
 jabber-conn.el jabber-core.el jabber-disco.el jabber-events.el		\
@@ -21,6 +21,7 @@ jabber-si-common.el jabber-si-server.el jabber-socks5.el		\
 jabber-time.el jabber-truncate.el jabber-util.el			\
 jabber-vcard-avatars.el jabber-vcard.el jabber-version.el		\
 jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
+jabber-muc-nick-coloring.el						\
 jabber-xml.el jabber.el srv.el
 
 compat_lisp_sources =
@@ -30,8 +31,11 @@ endif
 if USE_OUR_HEX_UTIL
 compat_lisp_sources += compat/hex-util.el
 endif
+if USE_OUR_HEXRGB
+compat_lisp_sources += compat/hexrgb.el
+endif
 # automake gets confused and doesn't clean up these two compiled files.
-CLEANFILES=sha1.elc hex-util.elc
+CLEANFILES=sha1.elc hex-util.elc hexrgb.elc
 
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el jabber-ourversion.el
 MAINTAINERCLEANFILES=jabber-autoloads.el
@@ -70,6 +74,7 @@ elpa: dist
 	mv emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
 	cd jabber-$(PACKAGE_VERSION) ; install-info jabber.info dir
 	sed "s/@""PACKAGE_VERSION@""/$(PACKAGE_VERSION)/" < $(srcdir)/jabber-pkg.el.in > jabber-$(PACKAGE_VERSION)/jabber-pkg.el
+	mv jabber-$(PACKAGE_VERSION)/compat/*.el jabber-$(PACKAGE_VERSION)/
 	$(AMTAR) chf jabber-$(PACKAGE_VERSION).tar jabber-$(PACKAGE_VERSION)
 	rm -rf jabber-$(PACKAGE_VERSION)
 	@echo "Created jabber-$(PACKAGE_VERSION).tar"

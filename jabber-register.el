@@ -131,7 +131,7 @@ CLOSURE-DATA is either 'success or 'error."
 (defun jabber-remove-register (&rest ignore)
   "Cancel registration.  See `jabber-process-register-or-search'."
 
-  (if (yes-or-no-p (concat "Are you sure that you want to cancel your registration to " jabber-submit-to "? "))
+  (if (or jabber-silent-mode (yes-or-no-p (concat "Are you sure that you want to cancel your registration to " jabber-submit-to "? ")))
       (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		      "set"
 		      '(query ((xmlns . "jabber:iq:register"))

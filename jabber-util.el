@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2003, 2004, 2007, 2008 - Magnus Henoch - mange@freemail.hu
 ;; Copyright (C) 2002, 2003, 2004 - tom berger - object@intelectronica.net
-;; Copyright (C) 2008 - Terechkov Evgenii - evg@altlinux.org
+;; Copyright (C) 2008, 2010 - Terechkov Evgenii - evg@altlinux.org
+;; Copyright (C) 2010 - Kirill A. Korinskiy - catap@catap.ru
 
 ;; This file is a part of jabber.el.
 
@@ -115,6 +116,19 @@ properties to add to the result."
 	    (plist-get (fsm-get-state-data jc) :roster))
 	  jabber-connections)))
 
+(defun jabber-concat-rosters-full ()
+  "Concatenate the rosters of all connected accounts. Show full jids (with resources)"
+  (let ((jids (apply #'append
+                     (mapcar
+                      (lambda (jc)
+                        (plist-get (fsm-get-state-data jc) :roster))
+                      jabber-connections))))
+    (apply #'append
+           (mapcar (lambda (jid)
+                     (mapcar (lambda (res) (intern (format "%s/%s" jid (car res))))
+                             (get (jabber-jid-symbol jid) 'resources)))
+                   jids))))
+
 (defun jabber-connection-jid (jc)
   "Return the full JID of the given connection."
   (let ((sd (fsm-get-state-data jc)))
@@ -171,6 +185,15 @@ Return nil if none found."
 			   (symbol-name string)
 			 string))))
 
+(defun jabber-jid-bookmarkname (string)
+  "Return the conference name from boomarks or displayname from roster, or JID if none set"
+  (or (loop for conference in (first (loop for value being the hash-values of jabber-bookmarks
+                                           collect value))
+            do (let ((ls (cadr conference)))
+                 (if (string= (cdr (assoc 'jid ls)) string)
+                     (return (cdr (assoc 'name ls))))))
+      (jabber-jid-displayname string)))
+
 (defun jabber-jid-resource (string)
   "return the resource portion of a JID, or nil if there is none."
   (when (string-match "^\\(\\([^/]*@\\)?[^/]*\\)/\\(.*\\)" string)
@@ -192,7 +215,7 @@ Also return non-nil if JID matches JC, modulo resource."
 	  (jabber-connection-bare-jid jc))
    (member (jabber-jid-user jid) (mapcar (lambda (x) (jabber-jid-user (car x))) jabber-account-list))))
 
-(defun jabber-read-jid-completing (prompt &optional subset require-match default resource)
+(defun jabber-read-jid-completing (prompt &optional subset require-match default resource fulljids)
   "read a jid out of the current roster from the minibuffer.
 If SUBSET is non-nil, it should be a list of symbols from which
 the JID is to be selected, instead of using the entire roster.
@@ -203,20 +226,29 @@ RESOURCE is one of the following:
 
 nil         Accept full or bare JID, as entered
 full        Turn bare JIDs to full ones with highest-priority resource
-bare-or-muc Turn full JIDs to bare ones, except for in MUC"
+bare-or-muc Turn full JIDs to bare ones, except for in MUC
+
+If FULLJIDS is non-nil, complete jids with resources."
   (let ((jid-at-point (or 
 		       (and default
 			    ;; default can be either a symbol or a string
 			    (if (symbolp default)
 				(symbol-name default)
 			      default))
-		       (get-text-property (point) 'jabber-jid)
+                       (let* ((jid (get-text-property (point) 'jabber-jid))
+                              (res (get (jabber-jid-symbol jid) 'resource)))
+                         (when jid
+                           (if (and fulljids res (not (jabber-jid-resource jid)))
+                               (format "%s/%s" jid res)
+                             jid)))
 		       (bound-and-true-p jabber-chatting-with)
 		       (bound-and-true-p jabber-group)))
 	(completion-ignore-case t)
 	(jid-completion-table (mapcar #'(lambda (item)
 					  (cons (symbol-name item) item))
-				      (or subset (jabber-concat-rosters))))
+				      (or subset (funcall (if fulljids
+                                                              'jabber-concat-rosters-full
+                                                            'jabber-concat-rosters)))))
 	chosen)
     (dolist (item (or subset (jabber-concat-rosters)))
       (if (get item 'name)
@@ -384,19 +416,26 @@ Return nil if no such data available."
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.
 TIME is in a format accepted by `format-time-string'."
+  (format-time-string "%Y-%m-%dT%H:%M:%SZ" nil t))
+
+(defun jabber-encode-timezone ()
   (let ((time-zone-offset (nth 0 (current-time-zone))))
     (if (null time-zone-offset)
-	;; no time zone information available; pretend it's UTC
-	(format-time-string "%Y-%m-%dT%H:%M:%SZ" time)
+        "Z"
       (let* ((positivep (>= time-zone-offset 0))
-	     (hours (/ (abs time-zone-offset) 3600))
-	     (minutes (/ (% (abs time-zone-offset) 3600) 60)))
-	(format "%s%s%02d:%02d" (format-time-string "%Y-%m-%dT%H:%M:%S" time)
-		(if positivep "+" "-") hours minutes)))))
+             (hours (/ (abs time-zone-offset) 3600))
+             (minutes (/ (% (abs time-zone-offset) 3600) 60)))
+        (format "%s%02d:%02d"(if positivep "+" "-") hours minutes)))))
 
-(defun jabber-parse-time (time)
+(defun jabber-parse-time (raw-time)
   "Parse the DateTime encoded in TIME according to JEP-0082."
-  (let* ((year (string-to-number (substring time 0 4)))
+  (let* ((time (if (string= (substring raw-time 4 5) "-")
+                   raw-time
+                 (concat
+                  (substring raw-time 0 4) "-"
+                  (substring raw-time 4 6) "-"
+                  (substring raw-time 6 (length raw-time)))))
+         (year (string-to-number (substring time 0 4)))
 	 (month (string-to-number (substring time 5 7)))
 	 (day (string-to-number (substring time 8 10)))
 	 (hour (string-to-number (substring time 11 13)))
@@ -621,7 +660,7 @@ See Info node `(jabber)XMPP URIs'."
      ;; Join an MUC.
      ((string= method "join")
       (let ((account (jabber-read-account)))
-	(jabber-groupchat-join
+	(jabber-muc-join
 	 account jid (jabber-muc-read-my-nickname account jid) t)))
      ;; Register with a service.
      ((string= method "register")
@@ -649,6 +688,33 @@ See Info node `(jabber)XMPP URIs'."
 	((< (string-to-number (substring s1 0 1)) (string-to-number (substring s2 0 1))) nil)
 	((> (string-to-number (substring s1 0 1)) (string-to-number (substring s2 0 1))) t)
 	(t (string>-numerical (substring s1 1) (substring s2 1)))))
+
+(defun jabber-append-string-to-file (string file &optional func &rest args)
+  "Append STRING (may be nil) to FILE. Create FILE if needed.
+If FUNC is non-nil, then call FUNC with ARGS at beginning of
+temporaly buffer _before_ inserting STRING."
+  (when (or (stringp string) (functionp func))
+    (with-temp-buffer
+      (when (functionp func) (apply func args))
+      (when (stringp string) (insert string))
+      (write-region (point-min) (point-max) file t (list t)))))
+
+(defun jabber-tree-map (fn tree)
+  "Apply FN to all nodes in the TREE starting with root. FN is
+applied to the node and not to the data itself."
+  (let ((result (cons nil nil)))
+    (do ((tail tree (cdr tail))
+	 (prev result end)
+	 (end result (let* ((x (car tail))
+			    (val (if (atom x)
+				     (funcall fn x)
+                                   (jabber-tree-map fn x))))
+		       (setf (car end) val (cdr end) (cons nil
+                                                           nil)))))
+	((atom tail)
+	 (progn
+	   (setf (cdr prev) (if tail (funcall fn tail) nil))
+	   result)))))
 
 (provide 'jabber-util)
 

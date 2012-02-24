@@ -52,14 +52,15 @@ window or at `fill-column', whichever is shorter."
   (kill-all-local-variables)
   ;; Make sure to set this variable somewhere
   (make-local-variable 'jabber-send-function)
-
-  (setq jabber-buffer-connection jc)
-
   (make-local-variable 'scroll-conservatively)
-  (setq scroll-conservatively 5)
-
   (make-local-variable 'jabber-point-insert)
   (make-local-variable 'jabber-chat-ewoc)
+  (make-local-variable 'buffer-undo-list)
+  
+  (setq jabber-buffer-connection jc
+        scroll-conservatively 5
+        buffer-undo-list t)             ;dont keep undo list for chatbuffer
+  
   (unless jabber-chat-ewoc
     (setq jabber-chat-ewoc
 	  (ewoc-create ewoc-pp nil "---"))

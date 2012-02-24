@@ -30,7 +30,7 @@
 (defun jabber-get-browse (jc to)
   "send a browse infoquery request to someone"
   (interactive (list (jabber-read-account)
-		     (jabber-read-jid-completing "browse: ")))
+		     (jabber-read-jid-completing "browse: " nil nil nil nil t)))
   (jabber-send-iq jc to 
                   "get"
                   '(query ((xmlns . "jabber:iq:browse")))

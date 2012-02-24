@@ -1,10 +1,31 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Full support for XEP-0012
+Response of idle time.
+
+** Support for XEP-0202
+Entity Time for request/response time as main method.
+
+** Support for automatic MUC nicks colorization
+See "Customizing the chat buffer" in the manual.
+
+** XML Console
+Log all received/sending XML stanzas into special buffer. Also can be
+used to send custom XML stanzas manually.
+
+** Autoaway
+Support for list of autoaway methods. Support for Xa. See section "Autoaway" in manual.
+
 ** MUC
 MUC participants list format is now customizable: see
 jabber-muc-print-names-format in manual. Also, participants sorted by
 role.
+
+** Treat XML namespace prefixes correctly
+A change in the Google Talk server has brought to light the fact that
+jabber.el didn't handle XML namespace prefixes correctly.  This should
+be fixed by the new jabber-xml-resolve-namespace-prefixes function.
 
 * New features in jabber.el 0.8
 ** Support for multiple accounts
@@ -119,7 +140,7 @@ See jabber-muc-default-nicknames.
 *** Autojoin MUC rooms on connection
 See jabber-muc-autojoin.
 *** Change nickname
-Actually simply an alias from jabber-muc-nick to jabber-groupchat-join.
+Actually simply an alias from jabber-muc-nick to jabber-muc-join.
 *** Invitations
 Both sending and receiving invitiations is supported.
 *** Basic affiliation change support

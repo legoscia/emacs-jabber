@@ -1,7 +1,7 @@
 ;;; jabber-muc-nick-completion.el --- Add nick completion abilyty to emacs-jabber
 
 ;; Copyright (C) 2008 - Terechkov Evgenii - evg@altlinux.org
-;; Copyright (C) 2007, 2008 - Kirill A. Korinskiy - catap@catap.ru
+;; Copyright (C) 2007, 2008, 2010 - Kirill A. Korinskiy - catap@catap.ru
 ;; Copyright (C) 2007 - Serguei Jidkov - jsv@e-mail.ru
 
 ;; This file is a part of jabber.el.
@@ -53,14 +53,6 @@
 (defvar *jabber-muc-participant-last-speaking* nil
   "Global alist in form (group . ((member . time-of-last-speaking) ...) ...).")
 
-(defun modify-alist (key val alist)
-  "Update of ALIST's element (KEY . VAL), possibly destructive."
-  (let ((entry (assoc key alist)))
-    (if (not entry)
-	(acons key val alist)
-      (setf (cdr entry) val)
-      alist)))
-
 (defun jabber-my-nick (&optional group)
   "Return my jabber nick in GROUP."
   (let ((room (or group jabber-group)))
@@ -85,17 +77,24 @@ Optional argument GROUP to look."
 		 (string= nick (jabber-my-nick)))
 	     (append (mapcar 'car (cdr (assoc jabber-group jabber-muc-participants))) (list jabber-muc-all-string))))
 
-;; TODO: optimize this function
 (defun jabber-muc-participant-update-activity (group nick time)
   "Updates NICK's time of last speaking in GROUP to TIME."
-  (let* ((room-activity (cdr (assoc group *jabber-muc-participant-last-speaking*)))
-	 (old-time (or (cdr (assoc nick room-activity)) 0)))
+  (let* ((room (assoc group *jabber-muc-participant-last-speaking*))
+         (room-activity (cdr room))
+         (entry (assoc nick room-activity))
+         (old-time (or (cdr entry) 0)))
     (when (> time old-time)
-      (setq *jabber-muc-participant-last-speaking*
-	   (modify-alist group (modify-alist nick time room-activity)
-			 *jabber-muc-participant-last-speaking*)))))
+      ;; don't use put-alist for speed
+      (progn
+        (if entry (setcdr entry time)
+          (setq room-activity
+                (cons (cons nick time) room-activity)))
+        (if room (setcdr room room-activity)
+          (setq *jabber-muc-participant-last-speaking*
+                (cons (cons group room-activity)
+                      *jabber-muc-participant-last-speaking*)))))))
 
-(defun jabber-muc-track-message-time (nick group buffer text proposed-alert)
+(defun jabber-muc-track-message-time (nick group buffer text &optional title)
   "Tracks time of NICK's last speaking in GROUP."
   (when nick
     (let ((time (float-time)))

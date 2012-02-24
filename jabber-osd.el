@@ -25,9 +25,9 @@
     (progn
       ;; Most people don't have osd.el, so this will often fail
       (require 'osd)
-      (define-jabber-alert osd "Display a message in osd" 'osd-show-string)
-      (define-personal-jabber-alert jabber-muc-osd)
-      )
+      (define-jabber-alert osd "Display a message in osd"
+	(lambda (text &optional title) (osd-show-string (or title text))))
+      (define-personal-jabber-alert jabber-muc-osd))
   (error nil))
 
 (provide 'jabber-osd)

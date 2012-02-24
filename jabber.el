@@ -197,9 +197,12 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defcustom jabber-debug-log-xml nil
-  "log all XML i/o in *-jabber-xml-log-JID-*"
-  :type 'boolean
-  :group 'jabber-debug)
+  "Set to non-nil to log all XML i/o in *-jabber-console-JID-* buffer. Set to string to also dump XML i/o in specified file."
+  :type '(choice (const :tag "Do not dump XML i/o" nil)
+                 (const :tag "Dump XML i/o in console" t)
+                 (string :tag "Dump XML i/o in console and this file"))
+  :group 'jabber-debug
+  :require 'jabber-console)
 
 ;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
@@ -207,6 +210,11 @@ configure a Google Talk account like this:
 Contents of process buffers might be useful for debugging."
   :type 'boolean
   :group 'jabber-debug)
+
+(defcustom jabber-silent-mode nil
+  "Silent mode switch. Not ask confirmanions for some operations. DANGEROUS!"
+  :type 'boolean
+  :group 'jabber)
 
 ;;;###autoload
 (defconst jabber-presence-faces

@@ -43,7 +43,7 @@
 		      (jabber-xml-get-children mechanism-elements 'mechanism)))
 	 (mechanism
 	  (if (and (member "ANONYMOUS" mechanisms)
-		   (yes-or-no-p "Use anonymous authentication? "))
+		   (or jabber-silent-mode (yes-or-no-p "Use anonymous authentication? ")))
 	      (sasl-find-mechanism '("ANONYMOUS"))
 	    (sasl-find-mechanism mechanisms))))
 
