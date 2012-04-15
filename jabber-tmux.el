@@ -1,4 +1,4 @@
-;; jabber-screen.el - emacs-jabber interface to screen
+;; jabber-tmux.el - emacs-jabber interface to tmux
 
 ;; Copyright (C) 2012 - Michael Cardell Widerkrantz <mc@hack.org>
 
