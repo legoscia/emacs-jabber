@@ -2027,6 +2027,10 @@ The @code{screen} alerts send a message through the Screen terminal
 manager@footnote{See @uref{http://www.gnu.org/software/screen/}.}.  They do no
 harm if called when you don't use Screen.
 
+@cindex Tmux terminal manager
+The @code{tmux} alerts send a message through the tmux terminal
+manager@footnote{See @uref{http://tmux.sourceforge.net/}.}.
+
 @cindex Ratpoison window manager
 @cindex Window manager, Ratpoison
 The @code{ratpoison} alerts send a message through the Ratpoison
