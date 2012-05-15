@@ -755,10 +755,10 @@ three being lists of JID symbols."
       (dolist (delete-this (append deleted-items changed-items))
 	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
-	    (message (concat "delete jid: " jid)))
+	    (message (concat "delete JID: " jid)))
 	  (dolist (group (mapcar (lambda (g) (car g)) all-groups))
 	    (when jabber-roster-debug
-	      (message (concat "try to delete jid: " jid " from group " group)))
+	      (message (concat "try to delete JID: " jid " from group " group)))
 	    (puthash group
 		     (delq delete-this (gethash group hash))
 		     hash))))
@@ -767,11 +767,11 @@ three being lists of JID symbols."
       (dolist (insert-this (append changed-items new-items))
 	(let ((jid (symbol-name insert-this)))
 	  (when jabber-roster-debug
-	    (message (concat "insert jid: " jid)))
+	    (message (concat "insert JID: " jid)))
 	  (dolist (group (or (get insert-this 'groups)
 			     (list jabber-roster-default-group-name)))
 	    (when jabber-roster-debug
-	      (message (concat "insert jid: " jid " to group " group)))
+	      (message (concat "insert JID: " jid " to group " group)))
 	    (puthash group
 		     (append (gethash group hash)
 			     (list insert-this))
@@ -780,7 +780,7 @@ three being lists of JID symbols."
 
       
       (when jabber-roster-debug
-	(message "remove duplicates from new group"))
+	(message "Remove duplicates from new group"))
       (setq all-groups (sort
 			(remove-duplicates all-groups
 					   :test (lambda (g1 g2)
@@ -798,7 +798,7 @@ three being lists of JID symbols."
 
 
     (when jabber-roster-debug
-      (message "re display roster"))
+      (message "Redisplay roster"))
 
     ;; recreate roster buffer
     (jabber-display-roster)))
