@@ -24,7 +24,7 @@
 
 (require 'cl)
 
-(defgroup jabber-alerts nil "auditory and visual alerts for jabber events"
+(defgroup jabber-alerts nil "Auditory and visual alerts for jabber events"
   :group 'jabber)
 
 (defcustom jabber-alert-message-hooks '(jabber-message-echo
@@ -199,12 +199,12 @@ files."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-muc-wave ""
-  "a sound file to play when a MUC message arrived"
+  "A sound file to play when a MUC message arrived"
   :type 'file
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-presence-wave ""
-  "a sound file to play when a presence arrived"
+  "A sound file to play when a presence arrived"
   :type 'file
   :group 'jabber-alerts)
 
@@ -216,12 +216,12 @@ files."
   :group 'jabber-alerts)
 
 (defcustom jabber-alert-info-wave ""
-  "a sound file to play when an info query result arrived"
+  "A sound file to play when an info query result arrived"
   :type 'file
   :group 'jabber-alerts)
 
 (defcustom jabber-play-sound-file 'play-sound-file
-  "a function to call to play alert sound files"
+  "A function to call to play alert sound files"
   :type 'function
   :group 'jabber-alerts)
 

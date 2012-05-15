@@ -90,7 +90,7 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defcustom jabber-default-show ""
-  "default show state"
+  "Default show state"
   :type '(choice (const :tag "Online" "")
 		 (const :tag "Chatty" "chat")
 		 (const :tag "Away" "away")
@@ -100,13 +100,13 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defcustom jabber-default-status ""
-  "default status string"
+  "Default status string"
   :type 'string
   :group 'jabber)
 
 ;;;###autoload
 (defcustom jabber-default-priority 10
-  "default priority"
+  "Default priority"
   :type 'integer
   :group 'jabber)
 
@@ -161,38 +161,38 @@ configure a Google Talk account like this:
 
 ;;;###autoload
 (defvar *jabber-current-status* nil
-  "the users current presence status")
+  "The users current presence status")
 
 ;;;###autoload
 (defvar *jabber-current-show* nil
-  "the users current presence show")
+  "The users current presence show")
 
 ;;;###autoload
 (defvar *jabber-current-priority* nil
-  "the user's current priority")
+  "The user's current priority")
 
 (defvar *jabber-status-history* nil
-  "history of status messages")
+  "History of status messages")
 
-(defgroup jabber-faces nil "faces for displaying jabber instant messaging"
+(defgroup jabber-faces nil "Faces for displaying jabber instant messaging"
   :group 'jabber)
 
 (defface jabber-title-small
   '((t (:weight bold :width semi-expanded :height 1.0 :inherit variable-pitch)))
-  "face for small titles"
+  "Face for small titles"
   :group 'jabber-faces)
 
 (defface jabber-title-medium
   '((t (:weight bold :width expanded :height 2.0 :inherit variable-pitch)))
-  "face for medium titles"
+  "Face for medium titles"
   :group 'jabber-faces)
 
 (defface jabber-title-large
   '((t (:weight bold :width ultra-expanded :height 3.0 :inherit variable-pitch)))
-  "face for large titles"
+  "Face for large titles"
   :group 'jabber-faces)
 
-(defgroup jabber-debug nil "debugging options"
+(defgroup jabber-debug nil "Debugging options"
   :group 'jabber)
 
 ;;;###autoload
@@ -239,13 +239,13 @@ Contents of process buffers might be useful for debugging."
 
 ;;;###autoload
 (defun jabber-customize ()
-  "customize jabber options"
+  "Customize Jabber options"
   (interactive)
   (customize-group 'jabber))
 
 ;;;###autoload
 (defun jabber-info ()
-  "open jabber.el manual"
+  "Open jabber.el manual"
   (interactive)
   (info "jabber"))
 

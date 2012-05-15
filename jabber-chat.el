@@ -26,7 +26,7 @@
 (require 'ewoc)
 (eval-when-compile (require 'cl))
 
-(defgroup jabber-chat nil "chat display options"
+(defgroup jabber-chat nil "Chat display options"
   :group 'jabber)
 
 (defcustom jabber-chat-buffer-format "*-jabber-chat-%n-*"
@@ -104,7 +104,7 @@ rare time printed."
 
 (defface jabber-rare-time-face
   '((t (:foreground "darkgreen" :underline t)))
-  "face for displaying the rare time info"
+  "Face for displaying the rare time info"
   :group 'jabber-chat)
 
 (defcustom jabber-chat-local-prompt-format "[%t] %n> "
@@ -142,17 +142,17 @@ These fields are available:
 
 (defface jabber-chat-prompt-local
   '((t (:foreground "blue" :weight bold)))
-  "face for displaying the chat prompt for what you type in"
+  "Face for displaying the chat prompt for what you type in"
   :group 'jabber-chat)
 
 (defface jabber-chat-prompt-foreign
   '((t (:foreground "red" :weight bold)))
-  "face for displaying the chat prompt for what they send"
+  "Face for displaying the chat prompt for what they send"
   :group 'jabber-chat)
 
 (defface jabber-chat-prompt-system
   '((t (:foreground "green" :weight bold)))
-  "face used for system and special messages"
+  "Face used for system and special messages"
   :group 'jabber-chat)
 
 (defface jabber-chat-text-local '((t ()))
@@ -614,7 +614,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	     (cons "Compose message" 'jabber-compose))
 
 (defun jabber-send-message (jc to subject body type)
-  "send a message tag to the server"
+  "Send a message tag to the server"
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "to: ")
 		     (jabber-read-with-input-method "subject: ")
@@ -639,7 +639,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 With a prefix argument, open buffer in other window.
 Returns the chat buffer."
   (interactive (let ((jid
-		      (jabber-read-jid-completing "chat with:"))
+		      (jabber-read-jid-completing "Chat with: "))
 		     (account
 		      (jabber-read-account)))
 		 (list 

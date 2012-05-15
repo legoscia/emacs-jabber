@@ -24,7 +24,7 @@
 (require 'jabber-keymap)
 
 (defvar *jabber-open-info-queries* nil
-  "an alist of open query id and their callback functions")
+  "An alist of open query id and their callback functions")
 
 (defvar jabber-iq-get-xmlns-alist nil
   "Mapping from XML namespace to handler for IQ GET requests.")
@@ -43,7 +43,7 @@
   :group 'jabber
   :type 'hook)
 
-(defgroup jabber-browse nil "browse display options"
+(defgroup jabber-browse nil "Browse display options"
   :group 'jabber)
 
 (defcustom jabber-browse-buffer-format "*-jabber-browse:-%n-*"
@@ -70,7 +70,7 @@ These fields are available at this moment:
 
 (add-to-list 'jabber-iq-chain 'jabber-process-iq)
 (defun jabber-process-iq (jc xml-data)
-  "process an incoming iq stanza"
+  "Process an incoming iq stanza"
   (let* ((id (jabber-xml-get-attribute xml-data 'id))
          (type (jabber-xml-get-attribute xml-data 'type))
          (from (jabber-xml-get-attribute xml-data 'from))

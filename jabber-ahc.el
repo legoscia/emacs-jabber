@@ -24,10 +24,10 @@
 (require 'jabber-autoloads)
 
 (defvar jabber-ahc-sessionid nil
-  "session id of Ad-Hoc Command session")
+  "Session ID of ad-hoc command session")
 
 (defvar jabber-ahc-node nil
-  "node to send commands to")
+  "Node to send commands to")
 
 (defvar jabber-ahc-commands nil
   "Commands provided
@@ -51,7 +51,7 @@ Use the function `jabber-ahc-add' to add a command to this list.")
 	     (list "http://jabber.org/protocol/commands"
 		   '((identity ((category . "automation")
 				(type . "command-list")
-				(name . "Ad-Hoc Command list")))
+				(name . "Ad-hoc command list")))
 		     (feature ((var . "http://jabber.org/protocol/commands")))
 		     (feature ((var . "http://jabber.org/protocol/disco#items")))
 		     (feature
@@ -212,7 +212,7 @@ access allowed.  nil means open for everyone."
       (widget-minor-mode 1))))
 
 (defun jabber-ahc-submit (action)
-  "Submit Ad-Hoc Command."
+  "Submit ad-hoc command."
 
   (jabber-send-iq jabber-buffer-connection jabber-submit-to
 		  "set"

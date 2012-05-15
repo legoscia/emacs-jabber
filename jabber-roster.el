@@ -178,42 +178,42 @@ Trailing newlines are always removed, regardless of this variable."
 
 (defface jabber-roster-user-online
   '((t (:foreground "blue" :weight bold :slant normal)))
-  "face for displaying online users"
+  "Face for displaying online users"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-xa
   '((((background dark)) (:foreground "magenta" :weight normal :slant italic))
     (t (:foreground "black" :weight normal :slant italic)))
-  "face for displaying extended away users"
+  "Face for displaying extended away users"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-dnd
   '((t (:foreground "red" :weight normal :slant italic)))
-  "face for displaying do not disturb users"
+  "Face for displaying do not disturb users"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-away
   '((t (:foreground "dark green" :weight normal :slant italic)))
-  "face for displaying away users"
+  "Face for displaying away users"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-chatty
   '((t (:foreground "dark orange" :weight bold :slant normal)))
-  "face for displaying chatty users"
+  "Face for displaying chatty users"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-error
   '((t (:foreground "red" :weight light :slant italic)))
-  "face for displaying users sending presence errors"
+  "Face for displaying users sending presence errors"
   :group 'jabber-roster)
 
 (defface jabber-roster-user-offline
   '((t (:foreground "dark grey" :weight light :slant italic)))
-  "face for displaying offline users"
+  "Face for displaying offline users"
   :group 'jabber-roster)
 
 (defvar jabber-roster-debug nil
-  "debug roster draw")
+  "Debug roster draw")
 
 (defvar jabber-roster-mode-map
   (let ((map (make-sparse-keymap)))
@@ -372,7 +372,7 @@ be used in `jabber-post-connection-hooks'."
     (switch-to-buffer jabber-roster-buffer)))
 
 (defun jabber-sort-roster (jc)
-  "sort roster according to online status"
+  "Sort roster according to online status"
   (let ((state-data (fsm-get-state-data jc)))
     (dolist (group (plist-get state-data :roster-groups))
       (let ((group-name (car group)))
@@ -384,7 +384,7 @@ be used in `jabber-post-connection-hooks'."
 		 (plist-get state-data :roster-hash))))))
 
 (defun jabber-roster-prepare-roster (jc)
-  "make a hash based roster"
+  "Make a hash based roster"
   (let* ((state-data (fsm-get-state-data jc))
 	 (hash (make-hash-table :test 'equal))
 	 (buddies (plist-get state-data :roster))
@@ -503,7 +503,7 @@ such.")
   (jabber-display-roster))
 
 (defun jabber-display-roster ()
-  "switch to the main jabber buffer and refresh the roster display to reflect the current information"
+  "Switch to the main jabber buffer and refresh the roster display to reflect the current information"
   (interactive)
   (with-current-buffer (get-buffer-create jabber-roster-buffer)
     (if (not (eq major-mode 'jabber-roster-mode))
@@ -755,10 +755,10 @@ three being lists of JID symbols."
       (dolist (delete-this (append deleted-items changed-items))
 	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
-	    (message (concat "delete jid: " jid)))
+	    (message (concat "delete JID: " jid)))
 	  (dolist (group (mapcar (lambda (g) (car g)) all-groups))
 	    (when jabber-roster-debug
-	      (message (concat "try to delete jid: " jid " from group " group)))
+	      (message (concat "try to delete JID: " jid " from group " group)))
 	    (puthash group
 		     (delq delete-this (gethash group hash))
 		     hash))))
@@ -767,11 +767,11 @@ three being lists of JID symbols."
       (dolist (insert-this (append changed-items new-items))
 	(let ((jid (symbol-name insert-this)))
 	  (when jabber-roster-debug
-	    (message (concat "insert jid: " jid)))
+	    (message (concat "insert JID: " jid)))
 	  (dolist (group (or (get insert-this 'groups)
 			     (list jabber-roster-default-group-name)))
 	    (when jabber-roster-debug
-	      (message (concat "insert jid: " jid " to group " group)))
+	      (message (concat "insert JID: " jid " to group " group)))
 	    (puthash group
 		     (append (gethash group hash)
 			     (list insert-this))
@@ -780,7 +780,7 @@ three being lists of JID symbols."
 
       
       (when jabber-roster-debug
-	(message "remove duplicates from new group"))
+	(message "Remove duplicates from new group"))
       (setq all-groups (sort
 			(remove-duplicates all-groups
 					   :test (lambda (g1 g2)
@@ -798,7 +798,7 @@ three being lists of JID symbols."
 
 
     (when jabber-roster-debug
-      (message "re display roster"))
+      (message "Redisplay roster"))
 
     ;; recreate roster buffer
     (jabber-display-roster)))

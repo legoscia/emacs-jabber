@@ -38,7 +38,7 @@
 ;; This variable holds the connection, which is used for further
 ;; input/output to the server
 (defvar *jabber-connection* nil
-  "the process that does the actual connection")
+  "The process that does the actual connection")
 
 (defgroup jabber-conn nil "Jabber Connection Settings"
   :group 'jabber)
@@ -148,7 +148,7 @@ connection fails."
 ;; of the link
 ;; TODO: make this configurable
 (defun jabber-ssl-connect (fsm server network-server port)
-  "connect via OpenSSL or GnuTLS to a Jabber Server
+  "Connect via OpenSSL or GnuTLS to a Jabber Server
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
 connection fails."
