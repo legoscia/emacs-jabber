@@ -28,7 +28,7 @@
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Send browse query" 'jabber-get-browse))
 (defun jabber-get-browse (jc to)
-  "send a browse infoquery request to someone"
+  "Send a browse infoquery request to someone"
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "browse: " nil nil nil nil t)))
   (jabber-send-iq jc to 

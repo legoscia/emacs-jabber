@@ -41,7 +41,7 @@ stanza.")
 (add-to-list 'jabber-iq-set-xmlns-alist
 	     (cons "jabber:iq:roster" (function (lambda (jc x) (jabber-process-roster jc x nil)))))
 (defun jabber-process-roster (jc xml-data closure-data)
-  "process an incoming roster infoquery result
+  "Process an incoming roster infoquery result
 CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (let ((roster (plist-get (fsm-get-state-data jc) :roster))
 	(from (jabber-xml-get-attribute xml-data 'from))
@@ -119,7 +119,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
 (add-to-list 'jabber-presence-chain 'jabber-process-presence)
 (defun jabber-process-presence (jc xml-data)
-  "process incoming presence tags"
+  "Process incoming presence tags"
   ;; XXX: use JC argument
   (let ((roster (plist-get (fsm-get-state-data jc) :roster))
 	(from (jabber-xml-get-attribute xml-data 'from))
@@ -224,7 +224,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 					     (plist-get resource-plist 'status)))))))))))
 
 (defun jabber-process-subscription-request (jc from presence-status)
-  "process an incoming subscription request"
+  "Process an incoming subscription request"
   (with-current-buffer (jabber-chat-create-buffer jc from)
     (ewoc-enter-last jabber-chat-ewoc (list :subscription-request presence-status :time (current-time)))
 
@@ -437,7 +437,7 @@ otherwise send defaults (see `jabber-send-default-presence')."
 (add-to-list 'jabber-jid-roster-menu (cons "Send subscription request"
 					   'jabber-send-subscription-request))
 (defun jabber-send-subscription-request (jc to &optional request)
-  "send a subscription request to jid, showing him your request
+  "Send a subscription request to jid, showing him your request
 text, if specified"
   (interactive (list (jabber-read-account)
 		     (jabber-read-jid-completing "to: ")

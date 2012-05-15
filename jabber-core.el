@@ -36,19 +36,19 @@
   "List of jabber-connection FSMs.")
 
 (defvar *jabber-roster* nil
-  "the roster list")
+  "The roster list")
 
 (defvar jabber-jid-obarray (make-vector 127 0)
-  "obarray for keeping JIDs")
+  "Obarray for keeping JIDs")
 
 (defvar *jabber-connected* nil
-  "boolean - are we connected")
+  "Boolean - are we connected")
 
 (defvar *jabber-authenticated* nil
-  "boolean - are we authenticated")
+  "Boolean - are we authenticated")
 
 (defvar *jabber-disconnecting* nil
-  "boolean - are we in the process of disconnecting by free will")
+  "Boolean - are we in the process of disconnecting by free will")
 
 (defvar jabber-message-chain nil
   "Incoming messages are sent to these functions, in order.")
@@ -68,7 +68,7 @@
   "XML namespace prefixes used for the current connection.")
 (make-variable-buffer-local 'jabber-namespace-prefixes)
 
-(defgroup jabber-core nil "customize core functionality"
+(defgroup jabber-core nil "Customize core functionality"
   :group 'jabber)
 
 (defcustom jabber-post-connect-hooks '(jabber-send-current-presence
@@ -839,7 +839,7 @@ DATA is any sexp."
 	(jabber-filter process fsm)))))
 
 (defun jabber-filter (process fsm)
-  "the filter function for the jabber process"
+  "The filter function for the jabber process"
   (with-current-buffer (process-buffer process)
     ;; Start from the beginning
     (goto-char (point-min))
@@ -958,7 +958,7 @@ submit a bug report, including the information below.
   (jabber-disconnect))
 
 (defun jabber-process-input (jc xml-data)
-  "process an incoming parsed tag"
+  "Process an incoming parsed tag"
   (let* ((tag (jabber-xml-node-name xml-data))
 	 (functions (eval (cdr (assq tag '((iq . jabber-iq-chain)
 					   (presence . jabber-presence-chain)

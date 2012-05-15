@@ -36,7 +36,7 @@
 		  #'jabber-report-success "Impossible error - auth field request"))
 
 (defun jabber-do-logon (jc xml-data session-id)
-  "send username and password in logon attempt"
+  "Send username and password in logon attempt"
   (let* ((digest-allowed (jabber-xml-get-children (jabber-iq-query xml-data) 'digest))
 	 (passwd (when
 		     (or digest-allowed
@@ -66,7 +66,7 @@
 		      #'jabber-process-logon nil))))
 
 (defun jabber-process-logon (jc xml-data closure-data)
-  "receive login success or failure, and request roster.
+  "Receive login success or failure, and request roster.
 CLOSURE-DATA should be the password on success and nil on failure."
   (if closure-data
       ;; Logon success

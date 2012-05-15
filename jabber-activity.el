@@ -47,7 +47,7 @@
 (require 'cl)
 
 (defgroup jabber-activity nil
-  "activity tracking options"
+  "Activity tracking options"
   :group 'jabber)
 
 ;; All the (featurep 'jabber-activity) is so we don't call a function

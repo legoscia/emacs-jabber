@@ -43,7 +43,7 @@
     str))
 
 (defun jabber-unescape-xml (str)
-  "unescape xml strings"
+  "Unescape xml strings"
   ;; Eventually this can be done with `xml-substitute-special', but the
   ;; version in xml.el of GNU Emacs 21.3 is buggy.
   (if (stringp str)
@@ -57,7 +57,7 @@
     str))
 
 (defun jabber-sexp2xml (sexp)
-  "converts an SEXP in the format (tagname ((attribute-name . attribute-value)...) children...) and converts it to well-formatted xml."
+  "Converts an SEXP in the format (tagname ((attribute-name . attribute-value)...) children...) and converts it to well-formatted xml."
   (cond
    ((stringp sexp)
     (jabber-escape-xml sexp))

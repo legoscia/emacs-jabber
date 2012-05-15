@@ -30,7 +30,7 @@
 
 ;;;###autoload
 (defvar *jabber-active-groupchats* nil
-  "alist of groupchats and nicknames
+  "Alist of groupchats and nicknames
 Keys are strings, the bare JID of the room.
 Values are strings.")
 
@@ -41,12 +41,12 @@ This table records the last nickname used to join the particular
 chat room.  Items are thus never removed.")
 
 (defvar jabber-muc-participants nil
-  "alist of groupchats and participants
+  "Alist of groupchats and participants
 Keys are strings, the bare JID of the room.
 Values are lists of nickname strings.")
 
 (defvar jabber-group nil
-  "the groupchat you are participating in")
+  "The groupchat you are participating in")
 
 (defvar jabber-muc-topic ""
   "The topic of the current MUC room.")
@@ -458,12 +458,12 @@ JID; only provide completion as a guide."
 	     (cons "Join groupchat" 'jabber-muc-join))
 
 (defun jabber-muc-join (jc group nickname &optional popup)
-  "join a groupchat, or change nick.
+  "Join a groupchat, or change nick.
 In interactive calls, or if POPUP is true, switch to the
 groupchat buffer."
   (interactive 
    (let ((account (jabber-read-account))
-	 (group (jabber-read-jid-completing "group: ")))
+	 (group (jabber-read-jid-completing "Group: ")))
      (list account group (jabber-muc-read-my-nickname account group) t)))
 
   ;; If the user is already in the room, we don't need as many checks.
