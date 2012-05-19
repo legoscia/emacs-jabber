@@ -252,7 +252,7 @@ connection fails."
 
 (defun jabber-starttls-process-input (fsm xml-data)
   "Process result of starttls request.
-Return non-nil on success, nil on failure."
+On failure, signal error."
   (cond
    ((eq (car xml-data) 'proceed)
     (let* ((state-data (fsm-get-state-data fsm))
@@ -263,6 +263,8 @@ Return non-nil on success, nil on failure."
 	(network
 	 (let* ((hostname (plist-get state-data :server))
 		(verifyp (not (member hostname jabber-invalid-certificate-servers))))
+	   ;; gnutls-negotiate might signal an error, which is caught
+	   ;; by our caller
 	   (gnutls-negotiate
 	    :process connection
 	    ;; This is the hostname that the certificate should be valid for:
@@ -270,9 +272,11 @@ Return non-nil on success, nil on failure."
 	    :verify-hostname-error verifyp
 	    :verify-error verifyp)))
 	(real
-	 (starttls-negotiate connection)))))
+	 (or
+	  (starttls-negotiate connection)
+	  (error "Negotiation failure"))))))
    ((eq (car xml-data) 'failure)
-    nil)))
+    (error "Command rejected by server"))))
 
 (defvar *jabber-virtual-server-function* nil
   "Function to use for sending stanzas on a virtual connection.

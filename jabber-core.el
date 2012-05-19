@@ -483,11 +483,16 @@ With double prefix argument, specify more connection details."
      (jabber-fsm-handle-sentinel state-data event))
 
     (:stanza
-     (if (jabber-starttls-process-input fsm (cadr event))
-	 ;; Connection is encrypted.  Send a stream tag again.
-	 (list :connected (plist-put state-data :encrypted t))
-       (message "STARTTLS negotiation failed")
-       (list nil state-data)))
+     (condition-case e
+	 (progn
+	   (jabber-starttls-process-input fsm (cadr event))
+	   ;; Connection is encrypted.  Send a stream tag again.
+	   (list :connected (plist-put state-data :encrypted t)))
+       (error
+	(let* ((msg (concat "STARTTLS negotiation failed: "
+			    (error-message-string e)))
+	       (new-state-data (plist-put state-data :disconnection-reason msg)))
+	  (list nil new-state-data)))))
 
     (:do-disconnect
      (jabber-send-string fsm "</stream:stream>")
