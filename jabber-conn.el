@@ -89,7 +89,7 @@ or later."
 
 (defvar jabber-connect-methods
   '((network jabber-network-connect jabber-network-send)
-    (starttls jabber-starttls-connect jabber-ssl-send)
+    (starttls jabber-starttls-connect jabber-network-send)
     (ssl jabber-ssl-connect jabber-ssl-send)
     (virtual jabber-virtual-connect jabber-virtual-send))
   "Alist of connection methods and functions.
