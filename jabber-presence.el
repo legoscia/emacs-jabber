@@ -76,7 +76,8 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	    (if roster-item
 		(push roster-item changed-items)
 	      ;; If not found, create a new roster item.
-	      (message "%s added to roster" jid)
+	      (unless (eq closure-data 'initial)
+		(message "%s added to roster" jid))
 	      (setq roster-item jid)
 	      (push roster-item new-items))
 
