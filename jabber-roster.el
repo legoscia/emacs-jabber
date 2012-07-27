@@ -157,12 +157,12 @@ Trailing newlines are always removed, regardless of this variable."
   :type 'string
   :get '(lambda (var)
 	  (let ((val (symbol-value var)))
-	    (if (stringp val)
-		(set-text-properties 0 (length val) nil val)
-	      val)))
+	    (when (stringp val)
+	      (set-text-properties 0 (length val) nil val))
+	    val))
   :set '(lambda (var val)
-          (if (stringp val)
-              (set-text-properties 0 (length val) nil val))
+          (when (stringp val)
+	    (set-text-properties 0 (length val) nil val))
           (custom-set-default var val))
   )
 
