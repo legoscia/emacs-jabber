@@ -186,7 +186,10 @@ With many prefix arguments, one less is passed to `jabber-connect'."
 	       (jabber-jid-server jid)
 	       (jabber-jid-resource jid)
 	       nil password network-server
-	       port connection-type))))))))
+	       port connection-type)
+	      (setq connected-one t))))
+	(unless connected-one
+	  (message "All configured Jabber accounts are already connected"))))))
 
 ;;;###autoload (autoload 'jabber-connect "jabber" "Connect to the Jabber server and start a Jabber XML stream.\nWith prefix argument, register a new account.\nWith double prefix argument, specify more connection details." t)
 (defun jabber-connect (username server resource &optional
