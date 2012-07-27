@@ -187,6 +187,7 @@ Return nil if none found."
 
 (defun jabber-jid-bookmarkname (string)
   "Return the conference name from boomarks or displayname from roster, or JID if none set"
+  (require 'jabber-bookmarks)
   (or (loop for conference in (first (loop for value being the hash-values of jabber-bookmarks
                                            collect value))
             do (let ((ls (cadr conference)))
