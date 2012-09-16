@@ -498,7 +498,8 @@ such.")
 		 buddies))
 
 (defun jabber-roster-toggle-offline-display ()
-  "Toggle display of offline contacts."
+  "Toggle display of offline contacts.
+To change this permanently, customize the `jabber-show-offline-contacts'."
   (interactive)
   (setq jabber-show-offline-contacts
 	(not jabber-show-offline-contacts))
