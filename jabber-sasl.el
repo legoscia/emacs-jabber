@@ -127,7 +127,7 @@ Call REMEMBER with the password.  REMEMBER is expected to return it as well."
       (fsm-send jc :authentication-failure))
 
      ((eq (car xml-data) 'success)
-      (message "Authentication succeeded")
+      (message "Authentication succeeded for %s" (jabber-connection-bare-jid jc))
       (fsm-send jc (cons :authentication-success passphrase))))
     (list client step passphrase)))
 
