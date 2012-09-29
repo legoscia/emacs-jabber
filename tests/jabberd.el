@@ -73,8 +73,8 @@ arguments, the client FSM and the stanza.")
 	;; If so, send <stream:features>.
 	(when (string-match "version=[\"']" stanza)
 	  (jabberd-send fsm
-			'(stream:features
-			  ()
+			'(features
+			  ((xmlns . "http://etherx.jabber.org/streams"))
 			  ;; Interesting implementation details
 			  ;; of jabber.el permit us to send all
 			  ;; features at once, without caring about

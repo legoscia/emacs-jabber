@@ -148,6 +148,7 @@ configure a Google Talk account like this:
 
 ;; External notifiers
 (require 'jabber-screen)
+(require 'jabber-tmux)
 (require 'jabber-ratpoison)
 (require 'jabber-sawfish)
 (require 'jabber-festival)

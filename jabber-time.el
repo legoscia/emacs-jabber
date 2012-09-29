@@ -187,7 +187,9 @@ determined from the incoming packet passed in XML-DATA."
         (id (jabber-xml-get-attribute xml-data 'id)))
     (jabber-send-iq jc to "result"
                     `(time ((xmlns . "jabber:iq:last")
-                            (seconds . ,(int-to-string (jabber-autoaway-get-idle-time)))))
+			    ;; XEP-0012 specifies that this is an integer.
+                            (seconds . ,(number-to-string
+					 (floor (jabber-autoaway-get-idle-time))))))
                     nil nil nil nil
                     id)))
 

@@ -105,7 +105,7 @@ for all accounts regardless of the argument."
 	     (current-time-string)
 	     (plist-get (fsm-get-state-data jc) :server)))
   (setq jabber-keepalive-pending (remq jc jabber-keepalive-pending))
-  (when (null jabber-keepalive-pending)
+  (when (and (null jabber-keepalive-pending) (timerp jabber-keepalive-timeout-timer))
     (jabber-cancel-timer jabber-keepalive-timeout-timer)
     (setq jabber-keepalive-timeout-timer nil)))
 

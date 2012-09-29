@@ -167,6 +167,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (eval-and-compile
  (defun hexrgb-canonicalize-defined-colors (list)
    "Copy of LIST with color names canonicalized.

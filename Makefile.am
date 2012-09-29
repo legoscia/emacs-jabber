@@ -22,7 +22,7 @@ jabber-time.el jabber-truncate.el jabber-util.el			\
 jabber-vcard-avatars.el jabber-vcard.el jabber-version.el		\
 jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
 jabber-muc-nick-coloring.el						\
-jabber-xml.el jabber.el srv.el
+jabber-xml.el jabber.el srv.el jabber-tmux.el
 
 compat_lisp_sources =
 if USE_OUR_SHA1
@@ -74,6 +74,7 @@ elpa: dist
 	mv emacs-jabber-$(PACKAGE_VERSION) jabber-$(PACKAGE_VERSION)
 	cd jabber-$(PACKAGE_VERSION) ; install-info jabber.info dir
 	sed "s/@""PACKAGE_VERSION@""/$(PACKAGE_VERSION)/" < $(srcdir)/jabber-pkg.el.in > jabber-$(PACKAGE_VERSION)/jabber-pkg.el
+	mv jabber-$(PACKAGE_VERSION)/compat/*.el jabber-$(PACKAGE_VERSION)/
 	$(AMTAR) chf jabber-$(PACKAGE_VERSION).tar jabber-$(PACKAGE_VERSION)
 	rm -rf jabber-$(PACKAGE_VERSION)
 	@echo "Created jabber-$(PACKAGE_VERSION).tar"

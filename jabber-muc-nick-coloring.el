@@ -1,6 +1,6 @@
 ;;; jabber-muc-nick-coloring.el --- Add nick coloring abilyty to emacs-jabber
 
-;; Copyright 2009, 2010 Terechkov Evgenii - evg@altlinux.org
+;; Copyright 2009, 2010, 2012 Terechkov Evgenii - evg@altlinux.org
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@
 
 (defun jabber-muc-nick-gen-color (nick)
   "Return good enough color from available pool"
-  (let ((hue (/ (mod (string-to-number (md5 nick) 16) 360) 360.0)))
+  (let ((hue (/ (mod (string-to-number (substring (md5 nick) 0 6) 16) 360) 360.0)))
     (hexrgb-hsv-to-hex hue jabber-muc-nick-saturation jabber-muc-nick-value)))
 
 (defun jabber-muc-nick-get-color (nick)

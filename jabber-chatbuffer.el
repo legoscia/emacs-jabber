@@ -55,7 +55,8 @@ window or at `fill-column', whichever is shorter."
   (make-local-variable 'scroll-conservatively)
   (make-local-variable 'jabber-point-insert)
   (make-local-variable 'jabber-chat-ewoc)
-
+  (make-local-variable 'buffer-undo-list)
+  
   (setq jabber-buffer-connection jc
         scroll-conservatively 5
         buffer-undo-list t)             ;dont keep undo list for chatbuffer
