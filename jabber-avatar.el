@@ -95,7 +95,9 @@ If MIME-TYPE is not specified, try to find it from the image data."
 	 (sha1-sum (sha1 data))
 	 (base64-data (or base64-string (base64-encode-string raw-data)))
 	 (type (or mime-type
-		   (cdr (assq (get :type (cdr (create-image data nil t)))
+		   (cdr (assq (get :type (cdr (condition-case nil
+						  (create-image data nil t)
+						(error nil))))
 			      '((png "image/png")
 				(jpeg "image/jpeg")
 				(gif "image/gif")))))))
@@ -114,13 +116,15 @@ If MIME-TYPE is not specified, try to find it from the image data."
 (defun jabber-avatar-image (avatar)
   "Create an image from AVATAR.
 Return nil if images of this type are not supported."
-  (create-image (with-temp-buffer
-		  (set-buffer-multibyte nil)
-		  (insert (avatar-base64-data avatar))
-		  (base64-decode-region (point-min) (point-max))
-		  (buffer-string))
-		nil
-		t))
+  (condition-case nil
+      (create-image (with-temp-buffer
+		      (set-buffer-multibyte nil)
+		      (insert (avatar-base64-data avatar))
+		      (base64-decode-region (point-min) (point-max))
+		      (buffer-string))
+		    nil
+		    t)
+      (error nil)))
 
 (defun jabber-avatar-compute-size (avatar)
   "Compute and set the width and height fields of AVATAR.
@@ -190,7 +194,10 @@ AVATAR may be one of:
       (setq image (lambda () (jabber-avatar-image avatar))))
      ((stringp avatar)
       (setq hash avatar)
-      (setq image (lambda () (create-image (jabber-avatar-find-cached avatar)))))
+      (setq image (lambda ()
+		    (condition-case nil
+			(create-image (jabber-avatar-find-cached avatar))
+		      (error nil)))))
      (t
       (setq hash nil)
       (setq image #'ignore)))
