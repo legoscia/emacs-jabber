@@ -20,6 +20,7 @@
 
 (require 'jabber-iq)
 (require 'jabber-util)
+(require 'jabber-menu)
 
 (add-to-list 'jabber-jid-info-menu
 	     (cons "Ping" 'jabber-ping))
