@@ -24,23 +24,20 @@ jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
 jabber-muc-nick-coloring.el						\
 jabber-xml.el jabber.el srv.el jabber-tmux.el
 
+EXTRA_DIST=compat/hexrgb.el
 compat_lisp_sources =
-if USE_OUR_SHA1
-compat_lisp_sources += compat/sha1.el
-endif
-if USE_OUR_HEX_UTIL
-compat_lisp_sources += compat/hex-util.el
-endif
 if USE_OUR_HEXRGB
-compat_lisp_sources += compat/hexrgb.el
+compat_lisp_sources += hexrgb.el
 endif
-# automake gets confused and doesn't clean up these two compiled files.
-CLEANFILES=sha1.elc hex-util.elc hexrgb.elc
+CLEANFILES=hexrgb.el
+
+hexrgb.el: compat/hexrgb.el
+	cp $< $@
 
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el jabber-ourversion.el
 MAINTAINERCLEANFILES=jabber-autoloads.el
 
-EXTRA_DIST = jabber-pkg.el.in
+EXTRA_DIST += jabber-pkg.el.in
 
 # The autoload file will cause Lisp sources to be rebuilt _twice_: the
 # timestamp of the Lisp compilation is set _before_ the autoloads are
