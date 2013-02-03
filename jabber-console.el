@@ -52,12 +52,6 @@ what kind of chat buffer is being created.")
 (defvar jabber-console-ewoc nil
   "The ewoc showing the XML elements of this stream buffer.")
 
-;;;###autoload
-(defvar jabber-buffer-connection nil
-  "The connection used by this buffer.")
-;;;###autoload
-(make-variable-buffer-local 'jabber-buffer-connection)
-
 (defvar jabber-console-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map jabber-common-keymap)
@@ -134,6 +128,7 @@ what kind of chat buffer is being created.")
       (jabber-tree-map (lambda (x) (if (numberp x) (format "%s" x) x)) xml-data)
     xml-data))
 
+;;;###autoload
 (defun jabber-process-console (jc direction xml-data)
   "Log XML-DATA i/o as XML in \"*-jabber-console-JID-*\" buffer"
   (let ((buffer (get-buffer-create (jabber-console-create-buffer jc))))

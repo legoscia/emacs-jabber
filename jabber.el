@@ -202,8 +202,7 @@ configure a Google Talk account like this:
   :type '(choice (const :tag "Do not dump XML i/o" nil)
                  (const :tag "Dump XML i/o in console" t)
                  (string :tag "Dump XML i/o in console and this file"))
-  :group 'jabber-debug
-  :require 'jabber-console)
+  :group 'jabber-debug)
 
 ;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
