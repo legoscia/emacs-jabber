@@ -49,7 +49,7 @@ invalidate cache and get fresh data."
       (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#info")
-			       ,(when node `(node . ,node))))
+			       ,@(when node `((node . ,node)))))
 		      #'jabber-disco-got-info (cons callback closure-data)
 		      (lambda (jc xml-data callback-data)
 			(when (car callback-data)
@@ -104,7 +104,7 @@ invalidate cache and get fresh data."
       (jabber-send-iq jc jid
 		      "get"
 		      `(query ((xmlns . "http://jabber.org/protocol/disco#items")
-			       ,(when node `(node . ,node))))
+			       ,@(when node `((node . ,node)))))
 		      #'jabber-disco-got-items (cons callback closure-data)
 		      (lambda (jc xml-data callback-data)
 			(when (car callback-data)
@@ -137,13 +137,13 @@ invalidate cache and get fresh data."
   (jabber-send-iq jc nil
 		  "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/disco#items")
-			   ,(when node `(node . ,node)))
+			   ,@(when node `((node . ,node))))
 			  (item ((action . "update")
 				 (jid . ,item-jid)
-				 ,(when item-name
-				    `(name . ,item-name))
-				 ,(when item-node
-				    `(node . ,item-node)))))
+				 ,@(when item-name
+				     `((name . ,item-name)))
+				 ,@(when item-node
+				     `((node . ,item-node))))))
 		  'jabber-report-success "Disco publish"
 		  'jabber-report-success "Disco publish"))
 
@@ -152,11 +152,11 @@ invalidate cache and get fresh data."
   (jabber-send-iq jc nil
 		  "set"
 		  `(query ((xmlns . "http://jabber.org/protocol/disco#items")
-			   ,(when node `(node . ,node)))
+			   ,@(when node `((node . ,node))))
 			  (item ((action . "remove")
 				 (jid . ,item-jid)
-				 ,(when item-node
-				    `(node . ,item-node)))))
+				 ,@(when item-node
+				     `((node . ,item-node))))))
 		  'jabber-report-success "Disco removal"
 		  'jabber-report-success "Disco removal"))
 
