@@ -20,7 +20,19 @@
 
 ;;; Code:
 
-(require 'hexrgb)                       ;we need hexrgb-hsv-to-hex
+(eval-when-compile (require 'cl))	;for ignore-errors
+;; we need hexrgb-hsv-to-hex:
+(eval-and-compile
+  (or (ignore-errors (require 'hexrgb))
+      ;; jabber-fallback-lib/ from jabber/lisp/jabber-fallback-lib
+      (ignore-errors
+        (let ((load-path (cons (expand-file-name
+                                "jabber-fallback-lib"
+                                (file-name-directory (locate-library "jabber")))
+                               load-path)))
+          (require 'hexrgb)))
+      (error
+       "hexrgb not found in `load-path' or jabber-fallback-lib/ directory.")))
 (require 'assoc)                        ;we need aget/aput
 
 ;;;;##########################################################################

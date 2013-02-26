@@ -6,10 +6,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_PATH_LISPDIR
 AS_IF([test "$EMACS" = no], [AC_MSG_ERROR([cannot find Emacs])])
 
-AX_CHECK_EMACS_LIB([hexrgb], [HAVE_HEXRGB=yes], [HAVE_HEXRGB=no])
-
-AM_CONDITIONAL([USE_OUR_HEXRGB], [test x$HAVE_HEXRGB = xno])
-
 dnl GConf schemas, for registering our URL handler
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
 AM_CONDITIONAL(USE_GCONFTOOL, test "x$GCONFTOOL" != "xno")
