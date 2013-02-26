@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 # The following line needs to be here since automake 1.4 doesn't look
 # for options in configure.ac.
-AUTOMAKE_OPTIONS = 1.9
+AUTOMAKE_OPTIONS = 1.11
 
 my_lisp_sources=fsm.el jabber-activity.el jabber-ahc-presence.el	\
 jabber-ahc.el jabber-alert.el jabber-autoaway.el jabber-avatar.el	\
