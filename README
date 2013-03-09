@@ -27,24 +27,37 @@ net-utils and mule-ucs packages.  jabber.el basically works on XEmacs,
 but some features are missing (in particular mouse support).  Testing
 and patches are very welcome.
 
-TLS/SSL
-=======
-To get an encrypted connection, the most convenient option is to use
-starttls.el (from Emacs 22 or Gnus 5.10).  This requires GnuTLS (in
-particular the command line tool gnutls-cli) to be installed, but
-requires no configuration at all.
+Encrypted connections
+=====================
+Many Jabber servers require encrypted connections, and even if yours
+doesn't it may be good idea.  To get an encrypted connection, the most
+convenient option is to use GNU Emacs 24 with GnuTLS support compiled
+in.  You can check whether you have that by typing:
 
-You can also use either tls.el (from Emacs 22 or Gnus 5.10) or ssl.el.
-These are interfaces to GnuTLS and OpenSSL, respectively; use the
-appropriate one.  Recent versions of tls.el support both programs,
-though.  The version of ssl.el distributed with Gnus is outdated; use
-the one from W3 CVS instead:
-http://cvs.savannah.gnu.org/viewcvs/w3/lisp/ssl.el?root=w3
+M-: (gnutls-available-p)
+
+If that commands shows `t' in the echo area, then you have working
+GnuTLS support.  If it shows `nil' or signals an error, then you
+don't.
+
+Failing that, jabber.el will use the starttls.el library, which
+requires that the GnuTLS command line tool "gnutls-cli" is installed.
+In Debian-based distributions, "gnutls-cli" is in the "gnutls-bin"
+package.
+
+The above applies to STARTTLS connections, the most common way to
+encrypt a Jabber connection and the only one specified in the
+standards.  STARTTLS connections start out unencrypted, but switch to
+encrypted after negotiation.  jabber.el also supports connections that
+are encrypted from start.  For this it uses the tls.el library, which
+requires either "gnutls-cli" or the OpenSSL command line tool
+"openssl" to be installed.
 
 To use the latter form of encryption, customize jabber-account-list.
 
 Note that only the connection from you to the server is encrypted;
-there is no guarantee of other connections being encrypted.
+there is no guarantee of connections from your server to your
+contacts' server being encrypted.
 
 Installation
 ============
