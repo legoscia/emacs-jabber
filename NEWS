@@ -1,6 +1,9 @@
 -*- mode: outline -*-
 
 * New features in jabber.el latest git
+** Support for reading passwords from netrc/authinfo files
+Use "machine example.com login username password s3cret port xmpp".
+
 ** Support for roster's groups roll state saving
 
 ** Full support for XEP-0012
