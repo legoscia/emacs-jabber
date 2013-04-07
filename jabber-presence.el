@@ -27,8 +27,6 @@
 (require 'jabber-muc)
 (require 'jabber-autoloads)
 
-(require 'assoc)
-
 (defvar jabber-presence-element-functions nil
   "List of functions returning extra elements for <presence/> stanzas.
 Each function takes one argument, the connection, and returns a
@@ -314,7 +312,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
     ;; Ordinary presence, with no specified recipient
     (dolist (jc jabber-connections)
       (let ((subelements (jabber-presence-children jc)))
-	(aput 'subelements-map jc subelements)
+        (push (cons jc subelements) subelements-map)
 	(jabber-send-sexp-if-connected jc `(presence () ,@subelements))))
 
     ;; Then send presence to groupchats

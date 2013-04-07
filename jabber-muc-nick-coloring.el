@@ -1,6 +1,6 @@
 ;;; jabber-muc-nick-coloring.el --- Add nick coloring abilyty to emacs-jabber
 
-;; Copyright 2009, 2010, 2012 Terechkov Evgenii - evg@altlinux.org
+;; Copyright 2009, 2010, 2012, 2013 Terechkov Evgenii - evg@altlinux.org
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
           (require 'hexrgb)))
       (error
        "hexrgb not found in `load-path' or jabber-fallback-lib/ directory.")))
-(require 'assoc)                        ;we need aget/aput
 
 ;;;;##########################################################################
 ;;;;  User Options, Variables
@@ -73,13 +72,13 @@
 
 (defun jabber-muc-nick-get-color (nick)
   "Get NICKs color"
-  (let ((color (aget jabber-muc-participant-colors nick)))
+  (let ((color (cdr (assoc nick jabber-muc-participant-colors))))
     (if color
         color
       (progn
         (unless jabber-muc-participant-colors )
-        (aput 'jabber-muc-participant-colors nick (jabber-muc-nick-gen-color nick))
-        (aget jabber-muc-participant-colors nick)))))
+        (push (cons nick (jabber-muc-nick-gen-color nick)) jabber-muc-participant-colors)
+        (cdr (assoc nick jabber-muc-participant-colors))))))
 
 (provide 'jabber-muc-nick-coloring)
 
