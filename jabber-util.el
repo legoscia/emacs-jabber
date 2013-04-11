@@ -317,9 +317,10 @@ If FULLJIDS is non-nil, complete jids with resources."
 		      :require '(:secret))))))
     (if found
 	(let ((secret (plist-get found :secret)))
-	  (if (functionp secret)
-	      (funcall secret)
-	    secret))
+	  (copy-sequence
+	   (if (functionp secret)
+	       (funcall secret)
+	     secret)))
       (let ((prompt (format "Jabber password for %s: " bare-jid)))
 	(if (require 'password-cache nil t)
 	    ;; Need to copy the password, as sasl.el wants to erase it.
