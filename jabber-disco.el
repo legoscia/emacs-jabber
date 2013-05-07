@@ -167,7 +167,7 @@ See JEP-0030."
     (identity ((category . "client")
 	       (name . "Emacs Jabber client")
 	       (type . ,(if (memq window-system
-				  '(x w32 mac))
+				  '(x w32 mac ns))
 			    "pc"
 			  "console"))))
     ,@(mapcar
