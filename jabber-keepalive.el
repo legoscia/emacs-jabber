@@ -33,13 +33,11 @@
   "Keepalive functions try to detect lost connection"
   :group 'jabber)
 
-;;;###autoload
 (defcustom jabber-keepalive-interval 600
   "Interval in seconds between connection checks."
   :type 'integer
   :group 'jabber-keepalive)
 
-;;;###autoload
 (defcustom jabber-keepalive-timeout 20
   "Seconds to wait for response from server."
   :type 'integer
@@ -127,7 +125,6 @@ for all accounts regardless of the argument."
 ;;; enable keepalive by default... Whitespace pings are light and
 ;;; unobtrusive.
 
-;;;###autoload
 (defcustom jabber-whitespace-ping-interval 30
   "Send a space character to the server with this interval, in seconds.
 

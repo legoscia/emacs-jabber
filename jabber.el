@@ -88,7 +88,6 @@ configure a Google Talk account like this:
 				   (const :tag "Legacy SSL/TLS" ssl))))))
   :group 'jabber)
 
-;;;###autoload
 (defcustom jabber-default-show ""
   "default show state"
   :type '(choice (const :tag "Online" "")
@@ -98,13 +97,11 @@ configure a Google Talk account like this:
 		 (const :tag "Do not disturb" "dnd"))
   :group 'jabber)
 
-;;;###autoload
 (defcustom jabber-default-status ""
   "default status string"
   :type 'string
   :group 'jabber)
 
-;;;###autoload
 (defcustom jabber-default-priority 10
   "default priority"
   :type 'integer
@@ -196,7 +193,6 @@ configure a Google Talk account like this:
 (defgroup jabber-debug nil "debugging options"
   :group 'jabber)
 
-;;;###autoload
 (defcustom jabber-debug-log-xml nil
   "Set to non-nil to log all XML i/o in *-jabber-console-JID-* buffer. Set to string to also dump XML i/o in specified file."
   :type '(choice (const :tag "Do not dump XML i/o" nil)
@@ -204,7 +200,6 @@ configure a Google Talk account like this:
                  (string :tag "Dump XML i/o in console and this file"))
   :group 'jabber-debug)
 
-;;;###autoload
 (defcustom jabber-debug-keep-process-buffers nil
   "If nil, kill process buffers when the process dies.
 Contents of process buffers might be useful for debugging."

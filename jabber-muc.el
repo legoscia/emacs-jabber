@@ -60,7 +60,6 @@ Values are lists of nickname strings.")
 (defvar jabber-muc-nickname-history ()
   "Keeps track of previously referred-to nicknames")
 
-;;;###autoload
 (defcustom jabber-muc-default-nicknames nil
   "Default nickname for specific MUC rooms."
   :group 'jabber-chat
@@ -69,7 +68,6 @@ Values are lists of nickname strings.")
 		(string :tag "JID of room")
 		(string :tag "Nickname"))))
 
-;;;###autoload
 (defcustom jabber-muc-autojoin nil
   "List of MUC rooms to automatically join on connection.
 This list is saved in your Emacs customizations.  You can also store
