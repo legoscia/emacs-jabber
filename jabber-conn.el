@@ -88,8 +88,14 @@ or later."
   :group 'jabber-conn)
 
 (defvar jabber-connect-methods
-  '((network jabber-network-connect jabber-network-send)
-    (starttls jabber-starttls-connect jabber-network-send)
+  `((network jabber-network-connect jabber-network-send)
+    (starttls
+     ,(if (and (fboundp 'gnutls-available-p)
+	       (gnutls-available-p))
+	  ;; With "native" TLS, we can use a normal connection.
+	  'jabber-network-connect
+	'jabber-starttls-connect)
+     jabber-network-send)
     (ssl jabber-ssl-connect jabber-ssl-send)
     (virtual jabber-virtual-connect jabber-virtual-send))
   "Alist of connection methods and functions.
@@ -128,7 +134,60 @@ If we can't find SRV records, use standard defaults."
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
 connection fails."
-  ;; XXX: asynchronous connection
+  (cond
+   ((featurep 'make-network-process '(:nowait t))
+    ;; We can connect asynchronously!
+    (jabber-network-connect-async fsm server network-server port))
+   (t
+    ;; Connecting to the server will block Emacs.
+    (jabber-network-connect-sync fsm server network-server port))))
+
+(defun jabber-network-connect-async (fsm server network-server port)
+  ;; Get all potential targets...
+  (lexical-let ((targets (jabber-srv-targets server network-server port))
+		(fsm fsm))
+    ;; ...and connect to them one after another, asynchronously, until
+    ;; connection succeeds.
+    (labels
+	((connect
+	  (target remaining-targets)
+	  (make-network-process
+	   :name "jabber"
+	   :buffer (generate-new-buffer jabber-process-buffer)
+	   :host (car target) :service (cdr target)
+	   :coding 'utf-8
+	   :nowait t
+	   :sentinel
+	   (lexical-let ((target target) (remaining-targets remaining-targets))
+	     (lambda (connection status)
+	       (cond
+		((string-match "^open" status)
+		 ;; This mustn't be `fsm-send-sync', because the FSM
+		 ;; needs to change the sentinel, which cannot be done
+		 ;; from inside the sentinel.
+		 (fsm-send fsm (list :connected connection)))
+		((string-match "^failed" status)
+		 (message "Couldn't connect to %s:%s" (car target) (cdr target))
+		 (delete-process connection)
+		 (if remaining-targets
+		     (progn
+		       (message
+			"Connecting to %s:%s..."
+			(caar remaining-targets) (cdar remaining-targets))
+		       (connect (car remaining-targets) (cdr remaining-targets)))
+		   (fsm-send fsm :connection-failed)))
+		((string-match "^deleted" status)
+		 ;; This happens when we delete a process in the
+		 ;; "failed" case above.
+		 nil)
+		(t
+		 (message "Unknown sentinel status `%s'" status))))))))
+      (message "Connecting to %s:%s..." (caar targets) (cdar targets))
+      (connect (car targets) (cdr targets)))))
+
+(defun jabber-network-connect-sync (fsm server network-server port)
+  ;; This code will AFAIK only be used on Windows.  Apologies in
+  ;; advance for any bit rot...
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
 	(targets (jabber-srv-targets server network-server port)))
@@ -205,25 +264,15 @@ connection fails."
   (process-send-string connection "\n"))
 
 (defun jabber-starttls-connect (fsm server network-server port)
-  "Connect via GnuTLS to a Jabber Server.
+  "Connect via an external GnuTLS process to a Jabber Server.
 Send a message of the form (:connected CONNECTION) to FSM if
 connection succeeds.  Send a message :connection-failed if
 connection fails."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets server network-server port))
-	(connect-function
-	 (cond
-	  ((and (fboundp 'gnutls-available-p)
-		(gnutls-available-p))
-	   (lambda (buffer host port)
-	     (open-network-stream "jabber" buffer host port)))
-	  ((fboundp 'starttls-open-stream)
-	   (lambda (buffer host port)
-	     (starttls-open-stream "jabber" buffer host port)))
-	  (t
-	   (error "Neither native GnuTLS nor starttls.el available")))))
-    
+	(targets (jabber-srv-targets server network-server port)))
+    (unless (fboundp 'starttls-open-stream)
+      (error "starttls.el not available"))
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
@@ -231,10 +280,11 @@ connection fails."
 		  connection)
 	      (unwind-protect
 		  (setq connection
-			(funcall connect-function
-				 process-buffer
-				 (car target)
-				 (cdr target)))
+			(starttls-open-stream
+			 "jabber"
+			 process-buffer
+			 (car target)
+			 (cdr target)))
 		(unless (or connection jabber-debug-keep-process-buffers)
 		  (kill-buffer process-buffer)))
 	      (when connection
