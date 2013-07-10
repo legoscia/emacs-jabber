@@ -156,24 +156,25 @@ Return nil on error."
 (defun jabber-autoaway-maybe-unidle ()
   (let ((idle-time (jabber-autoaway-get-idle-time)))
     (jabber-autoaway-message "Idle for %d seconds" idle-time)
-    ;; As long as idle time increases monotonically, stay idle.
-    (if (> idle-time jabber-autoaway-last-idle-time)
-	(progn
-          ;; Has "Xa timeout" passed?
-          (if (and (> jabber-autoaway-xa-timeout 0) (> idle-time (* 60 jabber-autoaway-xa-timeout)))
-              ;; iIf so, mark ourselves xa.
-              (jabber-autoaway-set-idle t))
-	  (setq jabber-autoaway-last-idle-time idle-time))
-      ;; But if it doesn't, go back to unidle state.
-      (jabber-autoaway-message "Back to unidle")
-      ;; But don't mess with the user's custom presence.
-      (if (or (string= *jabber-current-status* jabber-autoaway-status) (string= *jabber-current-status* jabber-autoaway-xa-status))
-	  (jabber-send-default-presence)
-	(progn
-          (jabber-send-presence jabber-default-show *jabber-current-status* jabber-default-priority)
-          (jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status)))
-      (jabber-autoaway-stop)
-      (jabber-autoaway-start))))
+    (if (member *jabber-current-show* '("xa" "away"))
+        ;; As long as idle time increases monotonically, stay idle.
+        (if (> idle-time jabber-autoaway-last-idle-time)
+            (progn
+              ;; Has "Xa timeout" passed?
+              (if (and (> jabber-autoaway-xa-timeout 0) (> idle-time (* 60 jabber-autoaway-xa-timeout)))
+                  ;; iIf so, mark ourselves xa.
+                  (jabber-autoaway-set-idle t))
+              (setq jabber-autoaway-last-idle-time idle-time))
+          ;; But if it doesn't, go back to unidle state.
+          (jabber-autoaway-message "Back to unidle")
+          ;; But don't mess with the user's custom presence.
+          (if (or (string= *jabber-current-status* jabber-autoaway-status) (string= *jabber-current-status* jabber-autoaway-xa-status))
+              (jabber-send-default-presence)
+            (progn
+              (jabber-send-presence jabber-default-show *jabber-current-status* jabber-default-priority)
+              (jabber-autoaway-message "%S /= %S - not resetting presence" *jabber-current-status* jabber-autoaway-status)))
+          (jabber-autoaway-stop)
+          (jabber-autoaway-start)))))
 
 (defun jabber-xprintidle-get-idle-time ()
   "Get idle time through the xprintidle program."
