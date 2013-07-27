@@ -169,7 +169,7 @@ accounts."
 
 (defun jabber-whitespace-ping-do ()
   (dolist (c jabber-connections)
-    (jabber-send-string c " ")))
+    (ignore-errors (jabber-send-string c " "))))
 
 (provide 'jabber-keepalive)
 
