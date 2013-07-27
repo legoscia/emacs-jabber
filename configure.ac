@@ -1,8 +1,13 @@
-AC_INIT([jabber.el], [0.8.92], [emacs-jabber-general@lists.sourceforge.net], [emacs-jabber])
+AC_INIT([jabber.el],
+    m4_esyscmd_s([sed -ne 's/^(defconst jabber-version "\(.*\)"$/\1/p' jabber-ourversion.el]),
+    [emacs-jabber-general@lists.sourceforge.net],
+    [emacs-jabber])
 AC_CONFIG_AUX_DIR([build-aux])
 dnl Need automake 1.11 for dist-xz option
 AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign dist-bzip2 dist-xz dist-zip])
 AC_CONFIG_MACRO_DIR([m4])
+
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/jabber-ourversion.el'])
 
 AM_PATH_LISPDIR
 AS_IF([test "$EMACS" = no], [AC_MSG_ERROR([cannot find Emacs])])
@@ -14,5 +19,5 @@ AM_CONDITIONAL(GCONF_SCHEMAS_INSTALL, false)
 m4_ifndef([AM_GCONF_SOURCE_2], [m4_defun([AM_GCONF_SOURCE_2])])
 AM_GCONF_SOURCE_2
 
-AC_CONFIG_FILES([Makefile tests/Makefile gconf/Makefile jabber-ourversion.el])
+AC_CONFIG_FILES([Makefile tests/Makefile gconf/Makefile])
 AC_OUTPUT
