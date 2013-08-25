@@ -26,31 +26,23 @@
 ;;;###autoload
 (defvar jabber-menu
   (let ((map (make-sparse-keymap "jabber-menu")))
-    (define-key map
+    (define-key-after map
       [jabber-menu-connect]
       '("Connect" . jabber-connect-all))
 
-    (define-key map
+    (define-key-after map
       [jabber-menu-nextmsg]
       '("Next unread message" . jabber-activity-switch-to))
 
-    (define-key map
+    (define-key-after map
       [jabber-menu-disconnect]
       '("Disconnect" . jabber-disconnect))
 
-    (define-key map
+    (define-key-after map
       [jabber-menu-roster]
       '("Switch to roster" . jabber-switch-to-roster-buffer))
 
-    (define-key map
-      [jabber-menu-customize]
-      '("Customize" . jabber-customize))
-
-    (define-key map
-      [jabber-menu-info]
-      '("Help" . jabber-info))
-
-    (define-key map
+    (define-key-after map
       [jabber-menu-status]
       (cons "Set Status" (make-sparse-keymap "set-status")))
     
@@ -79,6 +71,18 @@
     (define-key map
       [jabber-menu-status jabber-menu-status-online]
       '("Online" . jabber-send-default-presence))
+
+    (define-key-after map
+      [separator]
+      '(menu-item "--"))
+
+    (define-key-after map
+      [jabber-menu-customize]
+      '("Customize" . jabber-customize))
+
+    (define-key-after map
+      [jabber-menu-info]
+      '("Help" . jabber-info))
 
     map))
 
