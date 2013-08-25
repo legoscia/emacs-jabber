@@ -32,11 +32,13 @@
 
     (define-key-after map
       [jabber-menu-nextmsg]
-      '("Next unread message" . jabber-activity-switch-to))
+      '(menu-item "Next unread message" jabber-activity-switch-to
+		  :enable (bound-and-true-p jabber-activity-jids)))
 
     (define-key-after map
       [jabber-menu-disconnect]
-      '("Disconnect" . jabber-disconnect))
+      '(menu-item "Disconnect" jabber-disconnect
+		  :enable (bound-and-true-p jabber-connections)))
 
     (define-key-after map
       [jabber-menu-roster]
@@ -44,8 +46,9 @@
 
     (define-key-after map
       [jabber-menu-status]
-      (cons "Set Status" (make-sparse-keymap "set-status")))
-    
+      `(menu-item "Set Status" ,(make-sparse-keymap "set-status")
+		  :enable (bound-and-true-p jabber-connections)))
+
     (define-key map
       [jabber-menu-status jabber-menu-status-chat]
       '("Chatty" .
