@@ -33,7 +33,6 @@
 
 (require 'jabber-core)
 (require 'jabber-util)
-(require 'jabber-autoloads)
 
 (defgroup jabber-history nil "Customization options for Emacs
 Jabber history files."

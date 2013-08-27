@@ -42,7 +42,6 @@
 (require 'jabber-core)
 (require 'jabber-alert)
 (require 'jabber-util)
-(require 'jabber-autoloads)
 (require 'jabber-muc-nick-completion)   ;we need jabber-muc-looks-like-personal-p
 (require 'cl)
 

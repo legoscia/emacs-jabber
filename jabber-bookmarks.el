@@ -20,7 +20,6 @@
 
 (require 'jabber-private)
 (require 'jabber-widget)
-(require 'jabber-autoloads)
 
 (require 'cl)
 

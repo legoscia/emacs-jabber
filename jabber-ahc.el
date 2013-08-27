@@ -21,7 +21,6 @@
 
 (require 'jabber-disco)
 (require 'jabber-widget)
-(require 'jabber-autoloads)
 
 (defvar jabber-ahc-sessionid nil
   "session id of Ad-Hoc Command session")

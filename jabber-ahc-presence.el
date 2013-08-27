@@ -20,7 +20,6 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'jabber-ahc)
-(require 'jabber-autoloads)
 
 (defconst jabber-ahc-presence-node "http://jabber.org/protocol/rc#set-status"
   "Node used by jabber-ahc-presence")

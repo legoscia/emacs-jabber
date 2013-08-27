@@ -22,7 +22,6 @@
 ;; - Currently only active/composing notifications are /sent/ though all 5
 ;;   notifications are handled on receipt.
 
-(require 'jabber-autoloads)
 (require 'cl)
 
 (defgroup jabber-chatstates nil

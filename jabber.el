@@ -155,8 +155,6 @@ configure a Google Talk account like this:
 (require 'jabber-awesome)
 (require 'jabber-libnotify)
 
-(require 'jabber-autoloads)
-
 ;;;###autoload
 (defvar *jabber-current-status* nil
   "the users current presence status")
