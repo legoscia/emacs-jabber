@@ -49,13 +49,15 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	(resource (plist-get (fsm-get-state-data jc) :resource))
 	new-items changed-items deleted-items)
     ;; Perform sanity check on "from" attribute: it should be either absent
-    ;; or match our own JID.
+    ;; match our own JID, or match the server's JID (the latter is what
+    ;; Facebook does).
     (if (not (or (null from)
+		 (string= from server)
 		 (string= from (concat username "@" server))
 		 (string= from (concat username "@" server "/" resource))))
-	(message "Roster push with invalid \"from\": \"%s\" (expected \"%s@%s\" or \"%s@%s/%s\")"
+	(message "Roster push with invalid \"from\": \"%s\" (expected \"%s\", \"%s@%s\" or \"%s@%s/%s\")"
 		 from
-		 username server username server resource)
+		 server username server username server resource)
 
       (dolist (item (jabber-xml-get-children (car (jabber-xml-get-children xml-data 'query)) 'item))
 	(let (roster-item
