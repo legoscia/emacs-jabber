@@ -1443,16 +1443,18 @@ saving (by default, all groups rolled down). Also note that at now,
 @vindex jabber-log-lines-to-keep
 
 If you want a record of messages sent and received, set
-@code{jabber-history-enabled} to t.  If you also want record MUC groupchat
-messages, set @code{jabber-history-muc-enabled} to t. By default all messages will
-be saved to a global history file specified by
-@code{jabber-global-history-filename}
-(@file{~/.jabber_global_message_log} by default).  If you prefer to
-store your chats' history in per-contact files, you can set
-@code{jabber-use-global-history} to @code{nil}.  When using
-per-contact history, files are named by the contact JID and saved
-under the directory specified by the variable
-@code{jabber-history-dir} (default is @file{~/.emacs-jabber}).
+@code{jabber-history-enabled} to t.  If you also want record MUC
+groupchat messages, set @code{jabber-history-muc-enabled} to t.
+Messages will be saved in one file per contact in the directory
+specified by the variable @code{jabber-history-dir} (the default is
+@file{~/.emacs.d/jabber-history}).  If you prefer to store messages
+for all contacts in a single file, set
+@code{jabber-use-global-history} to @code{t} and set
+@code{jabber-global-history-filename} as required.@footnote{Using a
+global history file used to be the default.  If the file specified by
+@code{jabber-global-history-filename} exists,
+@code{jabber-use-global-history} will default to @code{t} to support
+existing installations.}
 
 When you open a new chat buffer and have entries in your history file,
 the last few messages you recently exchanged with the contact in

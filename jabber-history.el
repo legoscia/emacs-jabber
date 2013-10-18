@@ -49,40 +49,46 @@ Default is nil, cause MUC logging may be i/o-intensive."
   :type 'boolean
   :group 'jabber-history)
 
-(defcustom jabber-use-global-history t
-  "Indicate whether Emacs Jabber should use a global file for
-  store messages.  If non-nil, jabber-global-history-filename is
-  used, otherwise, messages are stored in per-user files under
-  the jabber-history-dir directory."
-  :type 'boolean
-  :group 'jabber-history)
-
-(defcustom jabber-history-dir "~/.emacs-jabber"
+(defcustom jabber-history-dir
+  (locate-user-emacs-file "jabber-history" ".emacs-jabber")
   "Base directory where per-contact history files are stored.
-  Used only when jabber-use-global-history is not true."
+Used only when `jabber-use-global-history' is nil."
   :type 'directory
   :group 'jabber-history)
 
-(defcustom jabber-global-history-filename "~/.jabber_global_message_log"
-  "Global file where all messages are logged.  Used when
-  jabber-use-global-history is non-nil."
+(defcustom jabber-global-history-filename
+  (locate-user-emacs-file "jabber-global-message-log" ".jabber_global_message_log")
+  "Global file where all messages are logged.
+Used when `jabber-use-global-history' is non-nil."
   :type 'file
+  :group 'jabber-history)
+
+(defcustom jabber-use-global-history
+  ;; Using a global history file by default was a bad idea.  Let's
+  ;; default to per-user files unless the global history file already
+  ;; exists, to avoid breaking existing installations.
+  (file-exists-p jabber-global-history-filename)
+  "Whether to use a global file for message history.
+If non-nil, `jabber-global-history-filename' is used, otherwise,
+messages are stored in per-user files under the
+`jabber-history-dir' directory."
+  :type 'boolean
   :group 'jabber-history)
 
 (defcustom jabber-history-enable-rotation nil
   "Whether history files should be renamed when reach
-  jabber-history-size-limit kilobytes.  If nil, history files
-  will grow indefinitely, otherwise they'll be renamed to
-  <history-file>-<number>, where <number> is 1 or the smallest
-  number after the last rotation."
+`jabber-history-size-limit' kilobytes.  If nil, history files
+will grow indefinitely, otherwise they'll be renamed to
+<history-file>-<number>, where <number> is 1 or the smallest
+number after the last rotation."
   :type 'boolean
   :group 'jabber-history)
 
 (defcustom jabber-history-size-limit 1024
-  "Maximum history file size in kilobytes.  When history file
-  reaches this limit, it is renamed to <history-file>-<number>,
-  where <number> is 1 or the smallest number after the last
-  rotation."
+  "Maximum history file size in kilobytes.
+When history file reaches this limit, it is renamed to
+<history-file>-<number>, where <number> is 1 or the smallest
+number after the last rotation."
   :type 'integer
   :group 'jabber-history)
 
