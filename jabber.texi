@@ -1063,7 +1063,9 @@ behave incorrectly if the image is not in a format supported by Emacs.)
 
 Avatars are cached in the directory specified by
 @code{jabber-avatar-cache-directory}, by default
-@file{~/.jabber-avatars/}.  The cache is never cleaned, so you might
+@file{~/.emacs.d/jabber-avatar-cache/}.@footnote{The default directory
+used to be @file{~/.jabber-avatars}.  If this directory already
+exists, it will be used.}  The cache is never cleaned, so you might
 want to do that yourself from time to time.
 
 @node Time queries, Useful features, Avatars, Top

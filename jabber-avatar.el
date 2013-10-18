@@ -41,7 +41,8 @@
   "Avatar related settings"
   :group 'jabber)
 
-(defcustom jabber-avatar-cache-directory "~/.jabber-avatars/"
+(defcustom jabber-avatar-cache-directory
+  (locate-user-emacs-file "jabber-avatar-cache" ".jabber-avatars")
   "Directory to use for cached avatars"
   :group 'jabber-avatar
   :type 'directory)
@@ -159,7 +160,7 @@ If there is no cached image, return nil."
 	 (filename (expand-file-name id jabber-avatar-cache-directory))
 	 (buffer (create-file-buffer filename)))
     (unless (file-directory-p jabber-avatar-cache-directory)
-      (make-directory jabber-avatar-cache-directory))
+      (make-directory jabber-avatar-cache-directory t))
 
     (if (file-exists-p filename)
 	(when jabber-avatar-verbose
