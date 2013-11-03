@@ -151,37 +151,46 @@ connection fails."
     (labels
 	((connect
 	  (target remaining-targets)
-	  (make-network-process
-	   :name "jabber"
-	   :buffer (generate-new-buffer jabber-process-buffer)
-	   :host (car target) :service (cdr target)
-	   :coding 'utf-8
-	   :nowait t
-	   :sentinel
-	   (lexical-let ((target target) (remaining-targets remaining-targets))
-	     (lambda (connection status)
-	       (cond
-		((string-match "^open" status)
-		 ;; This mustn't be `fsm-send-sync', because the FSM
-		 ;; needs to change the sentinel, which cannot be done
-		 ;; from inside the sentinel.
-		 (fsm-send fsm (list :connected connection)))
-		((string-match "^failed" status)
-		 (message "Couldn't connect to %s:%s" (car target) (cdr target))
-		 (delete-process connection)
-		 (if remaining-targets
-		     (progn
-		       (message
-			"Connecting to %s:%s..."
-			(caar remaining-targets) (cdar remaining-targets))
-		       (connect (car remaining-targets) (cdr remaining-targets)))
-		   (fsm-send fsm :connection-failed)))
-		((string-match "^deleted" status)
-		 ;; This happens when we delete a process in the
-		 ;; "failed" case above.
-		 nil)
-		(t
-		 (message "Unknown sentinel status `%s'" status))))))))
+	  (labels ((connection-successful
+		    (c)
+		    ;; This mustn't be `fsm-send-sync', because the FSM
+		    ;; needs to change the sentinel, which cannot be done
+		    ;; from inside the sentinel.
+		    (fsm-send fsm (list :connected c)))
+		   (connection-failed
+		    (c)
+		    (message "Couldn't connect to %s:%s" (car target) (cdr target))
+		    (when c (delete-process c))
+		    (if remaining-targets
+			(progn
+			  (message
+			   "Connecting to %s:%s..."
+			   (caar remaining-targets) (cdar remaining-targets))
+			  (connect (car remaining-targets) (cdr remaining-targets)))
+		      (fsm-send fsm :connection-failed))))
+	    (condition-case nil
+		(make-network-process
+		 :name "jabber"
+		 :buffer (generate-new-buffer jabber-process-buffer)
+		 :host (car target) :service (cdr target)
+		 :coding 'utf-8
+		 :nowait t
+		 :sentinel
+		 (lexical-let ((target target) (remaining-targets remaining-targets))
+		   (lambda (connection status)
+		     (cond
+		      ((string-match "^open" status)
+		       (connection-successful connection))
+		      ((string-match "^failed" status)
+		       (connection-failed connection))
+		      ((string-match "^deleted" status)
+		       ;; This happens when we delete a process in the
+		       ;; "failed" case above.
+		       nil)
+		      (t
+		       (message "Unknown sentinel status `%s'" status))))))
+	      (error
+	       (connection-failed nil))))))
       (message "Connecting to %s:%s..." (caar targets) (cdar targets))
       (connect (car targets) (cdr targets)))))
 
