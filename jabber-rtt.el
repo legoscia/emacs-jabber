@@ -35,6 +35,9 @@
 (defvar jabber-rtt-pending-events nil)
 (make-variable-buffer-local 'jabber-rtt-pending-events)
 
+(defvar jabber-rtt-timer nil)
+(make-variable-buffer-local 'jabber-rtt-timer)
+
 ;; Add function last in chain, so a chat buffer is already created.
 ;;;###autoload
 (add-to-list 'jabber-message-chain #'jabber-rtt-handle-message t)
@@ -54,21 +57,15 @@
 	(cond
 	 ((or body (string= event "cancel"))
 	  ;; A <body/> element supersedes real time text.
-	  (when jabber-rtt-ewoc-node
-	    (ewoc-delete jabber-chat-ewoc jabber-rtt-ewoc-node))
-	  (setq jabber-rtt-ewoc-node nil
-		jabber-rtt-last-seq nil
-		jabber-rtt-message nil
-		jabber-rtt-pending-events nil))
+	  (jabber-rtt--reset))
 	 ((member event '("new" "reset"))
-	  (when jabber-rtt-ewoc-node
-	    (ewoc-delete jabber-chat-ewoc jabber-rtt-ewoc-node))
+	  (jabber-rtt--reset)
 	  (setq jabber-rtt-ewoc-node
 		(ewoc-enter-last jabber-chat-ewoc (list :notice "[typing...]"))
 		jabber-rtt-last-seq (string-to-number seq)
 		jabber-rtt-message ""
 		jabber-rtt-pending-events nil)
-	  (jabber-rtt--process-actions actions))
+	  (jabber-rtt--enqueue-actions actions))
 	 ((string= event "edit")
 	  ;; TODO: check whether this works properly in 32-bit Emacs
 	  (cond
@@ -77,7 +74,7 @@
 			(string-to-number seq)))
 	    ;; We are in sync.
 	    (setq jabber-rtt-last-seq (string-to-number seq))
-	    (jabber-rtt--process-actions actions))
+	    (jabber-rtt--enqueue-actions actions))
 	   (t
 	    ;; TODO: show warning when not in sync
 	    (message "out of sync! %s vs %s"
@@ -86,41 +83,92 @@
 	 ;; TODO: handle event="init"
 	 )))))
 
-(defun jabber-rtt--process-actions (actions)
-  (dolist (action actions)
-    (case (jabber-xml-node-name action)
-      ((t)
-       ;; insert text
-       (let* ((p (jabber-xml-get-attribute action 'p))
-	      (position (if p (string-to-number p) (length jabber-rtt-message))))
-	 (setq position (max position 0))
-	 (setq position (min position (length jabber-rtt-message)))
-	 (setf (substring jabber-rtt-message position position)
-	       (car (jabber-xml-node-children action)))
+(defun jabber-rtt--reset ()
+  (when jabber-rtt-ewoc-node
+    (ewoc-delete jabber-chat-ewoc jabber-rtt-ewoc-node))
+  (when (timerp jabber-rtt-timer)
+    (cancel-timer jabber-rtt-timer))
+  (setq jabber-rtt-ewoc-node nil
+	jabber-rtt-last-seq nil
+	jabber-rtt-message nil
+	jabber-rtt-pending-events nil
+	jabber-rtt-timer nil))
 
-	 (ewoc-set-data jabber-rtt-ewoc-node (list :notice (concat "[typing...] " jabber-rtt-message)))
-	 (let ((inhibit-read-only t))
-	   (ewoc-invalidate jabber-chat-ewoc jabber-rtt-ewoc-node))))
-      ((e)
-       ;; erase text
-       (let* ((p (jabber-xml-get-attribute action 'p))
-	      (position (if p (string-to-number p) (length jabber-rtt-message)))
-	      (n (jabber-xml-get-attribute action 'n))
-	      (number (if n (string-to-number n) 1)))
-	 (setq position (max position 0))
-	 (setq position (min position (length jabber-rtt-message)))
-	 (setq number (max number 0))
-	 (setq number (min number position))
-	 ;; Now erase the NUMBER characters before POSITION.
-	 (setf (substring jabber-rtt-message (- position number) position)
-	       "")
+(defun jabber-rtt--enqueue-actions (new-actions)
+  (setq jabber-rtt-pending-events
+	;; Ensure that the queue never contains more than 700 ms worth
+	;; of wait events.
+	(jabber-rtt--fix-waits (append jabber-rtt-pending-events new-actions)))
+  (unless jabber-rtt-timer
+    (jabber-rtt--process-actions (current-buffer))))
 
-	 (ewoc-set-data jabber-rtt-ewoc-node (list :notice jabber-rtt-message))
-	 (let ((inhibit-read-only t))
-	   (ewoc-invalidate jabber-chat-ewoc jabber-rtt-ewoc-node))))
-      ((w)
-       ;; TODO: handle <w/>
-       ))))
+(defun jabber-rtt--process-actions (buffer)
+  (with-current-buffer buffer
+    (setq jabber-rtt-timer nil)
+    (catch 'wait
+      (while jabber-rtt-pending-events
+	(let ((action (pop jabber-rtt-pending-events)))
+	  (case (jabber-xml-node-name action)
+	    ((t)
+	     ;; insert text
+	     (let* ((p (jabber-xml-get-attribute action 'p))
+		    (position (if p (string-to-number p) (length jabber-rtt-message))))
+	       (setq position (max position 0))
+	       (setq position (min position (length jabber-rtt-message)))
+	       (setf (substring jabber-rtt-message position position)
+		     (car (jabber-xml-node-children action)))
+
+	       (ewoc-set-data jabber-rtt-ewoc-node (list :notice (concat "[typing...] " jabber-rtt-message)))
+	       (let ((inhibit-read-only t))
+		 (ewoc-invalidate jabber-chat-ewoc jabber-rtt-ewoc-node))))
+	    ((e)
+	     ;; erase text
+	     (let* ((p (jabber-xml-get-attribute action 'p))
+		    (position (if p (string-to-number p) (length jabber-rtt-message)))
+		    (n (jabber-xml-get-attribute action 'n))
+		    (number (if n (string-to-number n) 1)))
+	       (setq position (max position 0))
+	       (setq position (min position (length jabber-rtt-message)))
+	       (setq number (max number 0))
+	       (setq number (min number position))
+	       ;; Now erase the NUMBER characters before POSITION.
+	       (setf (substring jabber-rtt-message (- position number) position)
+		     "")
+
+	       (ewoc-set-data jabber-rtt-ewoc-node (list :notice (concat "[typing...] " jabber-rtt-message)))
+	       (let ((inhibit-read-only t))
+		 (ewoc-invalidate jabber-chat-ewoc jabber-rtt-ewoc-node))))
+	    ((w)
+	     (setq jabber-rtt-timer
+		   (run-with-timer
+		    (/ (string-to-number (jabber-xml-get-attribute action 'n)) 1000.0)
+		    nil
+		    #'jabber-rtt--process-actions
+		    buffer))
+	     (throw 'wait nil))))))))
+
+(defun jabber-rtt--fix-waits (actions)
+  ;; Ensure that the sum of all wait events is no more than 700 ms.
+  (let ((sum 0))
+    (dolist (action actions)
+      (when (eq (jabber-xml-node-name action) 'w)
+	(let ((n (jabber-xml-get-attribute action 'n)))
+	  (setq n (string-to-number n))
+	  (when (>= n 0)
+	    (setq sum (+ sum n))))))
+
+    (if (<= sum 700)
+	actions
+      (let ((scale (/ 700.0 sum)))
+	(mapcar
+	 (lambda (action)
+	   (if (eq (jabber-xml-node-name action) 'w)
+	       (let ((n (jabber-xml-get-attribute action 'n)))
+		 (setq n (string-to-number n))
+		 (setq n (max n 0))
+		 `(w ((n . ,(number-to-string (* scale n)))) nil))
+	     action))
+	 actions)))))
 
 (provide 'jabber-rtt)
 ;;; jabber-rtt.el ends here
