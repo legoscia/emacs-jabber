@@ -13,7 +13,7 @@ jabber-export.el jabber-feature-neg.el jabber-festival.el		\
 jabber-ft-client.el jabber-ft-common.el jabber-ft-server.el		\
 jabber-gmail.el jabber-history.el jabber-iq.el jabber-keepalive.el	\
 jabber-keymap.el jabber-logon.el jabber-menu.el jabber-modeline.el	\
-jabber-muc-nick-completion.el jabber-muc.el jabber-newdisco.el		\
+jabber-muc-nick-completion.el jabber-muc.el				\
 jabber-osd.el jabber-presence.el jabber-private.el jabber-ratpoison.el	\
 jabber-register.el jabber-roster.el jabber-sasl.el jabber-sawfish.el	\
 jabber-screen.el jabber-search.el jabber-si-client.el			\

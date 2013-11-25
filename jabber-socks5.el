@@ -23,7 +23,6 @@
 (require 'jabber-disco)
 (require 'jabber-si-server)
 (require 'jabber-si-client)
-(require 'jabber-newdisco)
 
 (require 'fsm)
 (eval-when-compile (require 'cl))

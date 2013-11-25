@@ -22,7 +22,7 @@
 
 (require 'jabber-chat)
 (require 'jabber-widget)
-(require 'jabber-newdisco)
+(require 'jabber-disco)
 (require 'jabber-muc-nick-coloring)
 
 (require 'cl)
