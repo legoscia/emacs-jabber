@@ -386,8 +386,9 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
 (defun jabber-process-caps (jc xml-data)
   "Look for entity capabilities in presence stanzas."
   (let* ((from (jabber-xml-get-attribute xml-data 'from))
+	 (type (jabber-xml-get-attribute xml-data 'type))
 	 (c (jabber-xml-path xml-data '(("http://jabber.org/protocol/caps" . "c")))))
-    (when c
+    (when (and (null type) c)
       (jabber-xml-let-attributes
 	  (ext hash node ver) c
 	(cond
