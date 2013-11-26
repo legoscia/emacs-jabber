@@ -25,6 +25,10 @@
 
 ;;;; Handling incoming events
 
+;;;###autoload
+(eval-after-load "jabber-disco"
+  '(jabber-disco-advertise-feature "urn:xmpp:rtt:0"))
+
 (defvar jabber-rtt-ewoc-node nil)
 (make-variable-buffer-local 'jabber-rtt-ewoc-node)
 
