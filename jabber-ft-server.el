@@ -31,7 +31,7 @@
 (defvar jabber-ft-md5-hash nil
   "MD5 hash of the file that is being downloaded")
 
-(add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si/profile/file-transfer")
+(jabber-disco-advertise-feature "http://jabber.org/protocol/si/profile/file-transfer")
 
 (add-to-list 'jabber-si-profiles
 	     (list "http://jabber.org/protocol/si/profile/file-transfer"

@@ -25,7 +25,7 @@
 
 (require 'jabber-si-common)
 
-(add-to-list 'jabber-advertised-features "http://jabber.org/protocol/si")
+(jabber-disco-advertise-feature "http://jabber.org/protocol/si")
 
 ;; Now, stream methods push data to profiles.  It could be the other
 ;; way around; not sure which is better.

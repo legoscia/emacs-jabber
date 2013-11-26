@@ -25,10 +25,12 @@
 
 ;;; Respond to disco requests
 
-;; Advertise your features here.  Add the namespace to this list.
 (defvar jabber-advertised-features
   (list "http://jabber.org/protocol/disco#info")
-  "Features advertised on service discovery requests")
+  "Features advertised on service discovery requests
+
+Don't add your feature to this list directly.  Instead, call
+`jabber-disco-advertise-feature'.")
 
 (defvar jabber-disco-items-nodes
   (list
@@ -109,7 +111,7 @@ See JEP-0030."
       ;; No such node
       (jabber-signal-error "cancel" 'item-not-found))))
 
-(defun jabber-disco-return-client-info (jc xml-data)
+(defun jabber-disco-return-client-info (&optional jc xml-data)
   `(
     ;; If running under a window system, this is
     ;; a GUI client.  If not, it is a console client.
@@ -482,6 +484,8 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
 	  ;; No, forget about it for now.
 	  (remhash key jabber-caps-cache))))))
 
+;;; Entity Capabilities utility functions
+
 (defun jabber-caps-ver-string (query hash)
   ;; XEP-0115, section 5.1
   ;; 1. Initialize an empty string S.
@@ -573,6 +577,58 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
 			      (b-xml:lang (jabber-xml-get-attribute b 'xml:lang)))
 			  (string< a-xml:lang b-xml:lang)))))))))
 
+;;; Sending Entity Capabilities
+
+(defvar jabber-caps-default-hash-function "sha-1"
+  "Hash function to use when sending caps in presence stanzas.
+The value should be a key in `jabber-caps-hash-names'.")
+
+(defvar jabber-caps-current-hash nil
+  "The current disco hash we're sending out in presence stanzas.")
+
+(defconst jabber-caps-node "http://emacs-jabber.sourceforge.net")
+
+;;;###autoload
+(defun jabber-disco-advertise-feature (feature)
+  (push feature jabber-advertised-features)
+  (when jabber-caps-current-hash
+    (jabber-caps-recalculate-hash)
+    ;; If we're already connected, we need to send updated presence
+    ;; for the new feature.
+    (mapc #'jabber-send-current-presence jabber-connections)))
+
+(defun jabber-caps-recalculate-hash ()
+  "Update `jabber-caps-current-hash' for feature list change.
+Also update `jabber-disco-info-nodes', so we return results for
+the right node."
+  (let* ((old-hash jabber-caps-current-hash)
+	 (old-node (and old-hash (concat jabber-caps-node "#" old-hash)))
+	 (new-hash
+	  (jabber-caps-ver-string `(query () ,@(jabber-disco-return-client-info))
+				  jabber-caps-default-hash-function))
+	 (new-node (concat jabber-caps-node "#" new-hash)))
+    (when old-node
+      (let ((old-entry (assoc old-node jabber-disco-info-nodes)))
+	(when old-entry
+	  (setq jabber-disco-info-nodes (delq old-entry jabber-disco-info-nodes)))))
+    (push (list new-node #'jabber-disco-return-client-info nil)
+	  jabber-disco-info-nodes)
+    (setq jabber-caps-current-hash new-hash)))
+
+;;;###autoload
+(defun jabber-caps-presence-element (_jc)
+  (unless jabber-caps-current-hash
+    (jabber-caps-recalculate-hash))
+
+  (list
+   `(c ((xmlns . "http://jabber.org/protocol/caps")
+	(hash . ,jabber-caps-default-hash-function)
+	(node . ,jabber-caps-node)
+	(ver . ,jabber-caps-current-hash)))))
+
+;;;###autoload
+(eval-after-load "jabber-presence"
+  '(add-to-list 'jabber-presence-element-functions #'jabber-caps-presence-element))
 
 (provide 'jabber-disco)
 

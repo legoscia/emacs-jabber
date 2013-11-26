@@ -57,7 +57,7 @@ Put preferred ones first."
 Keys of the alist are strings, the JIDs of the proxies.
 Values are \"streamhost\" XML nodes.")
 
-(add-to-list 'jabber-advertised-features "http://jabber.org/protocol/bytestreams")
+(jabber-disco-advertise-feature "http://jabber.org/protocol/bytestreams")
 
 (add-to-list 'jabber-si-stream-methods
 	     (list "http://jabber.org/protocol/bytestreams"
