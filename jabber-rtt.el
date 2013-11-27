@@ -46,7 +46,8 @@
 
 ;; Add function last in chain, so a chat buffer is already created.
 ;;;###autoload
-(add-to-list 'jabber-message-chain #'jabber-rtt-handle-message t)
+(eval-after-load "jabber-core"
+  '(add-to-list 'jabber-message-chain #'jabber-rtt-handle-message t))
 
 ;;;###autoload
 (defun jabber-rtt-handle-message (jc xml-data)
@@ -190,6 +191,7 @@
 (defvar jabber-rtt-send-last-timestamp nil)
 (make-variable-buffer-local 'jabber-rtt-send-last-timestamp)
 
+;;;###autoload
 (define-minor-mode jabber-rtt-send-mode
   "Show text to recipient as it is being typed.
 This lets the recipient see every change made to the message up
