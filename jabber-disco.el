@@ -590,12 +590,13 @@ The value should be a key in `jabber-caps-hash-names'.")
 
 ;;;###autoload
 (defun jabber-disco-advertise-feature (feature)
-  (push feature jabber-advertised-features)
-  (when jabber-caps-current-hash
-    (jabber-caps-recalculate-hash)
-    ;; If we're already connected, we need to send updated presence
-    ;; for the new feature.
-    (mapc #'jabber-send-current-presence jabber-connections)))
+  (unless (member feature jabber-advertised-features)
+    (push feature jabber-advertised-features)
+    (when jabber-caps-current-hash
+      (jabber-caps-recalculate-hash)
+      ;; If we're already connected, we need to send updated presence
+      ;; for the new feature.
+      (mapc #'jabber-send-current-presence jabber-connections))))
 
 (defun jabber-caps-recalculate-hash ()
   "Update `jabber-caps-current-hash' for feature list change.
