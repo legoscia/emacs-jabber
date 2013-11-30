@@ -72,6 +72,7 @@ nil - don't send states")
       ;; don't send more notifications until we know that the other
       ;; side wants them.
       (setq jabber-chatstates-requested nil))
+    (setq jabber-chatstates-composing-sent nil)
     `((active ((xmlns . ,jabber-chatstates-xmlns))))))
 
 ;;; OUTGOING
