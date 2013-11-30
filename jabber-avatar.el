@@ -157,24 +157,21 @@ If there is no cached image, return nil."
   (let* ((id (avatar-sha1-sum avatar))
 	 (base64-data (avatar-base64-data avatar))
 	 (mime-type (avatar-mime-type avatar))
-	 (filename (expand-file-name id jabber-avatar-cache-directory))
-	 (buffer (create-file-buffer filename)))
+	 (filename (expand-file-name id jabber-avatar-cache-directory)))
     (unless (file-directory-p jabber-avatar-cache-directory)
       (make-directory jabber-avatar-cache-directory t))
 
     (if (file-exists-p filename)
 	(when jabber-avatar-verbose
 	  (message "Caching avatar, but %s already exists" filename))
-      (with-current-buffer buffer
-	(let ((require-final-newline nil))
-	  (setq buffer-file-coding-system 'binary)
+      (with-temp-buffer
+	(let ((require-final-newline nil)
+	      (coding-system-for-write 'binary))
 	  (if (fboundp 'set-buffer-multibyte)
 	      (set-buffer-multibyte nil))
-	  (set-visited-file-name filename t)
 	  (insert base64-data)
 	  (base64-decode-region (point-min) (point-max))
-	  (basic-save-buffer))))
-    (kill-buffer buffer)))
+	  (write-region (point-min) (point-max) filename nil 'silent))))))
 
 ;;;; Set avatar for contact
 
