@@ -47,9 +47,7 @@ of the list.  The list is empty if no SRV records were found."
   (unless (assq 'SRV dns-query-types)
     (error "dns.el doesn't support SRV lookups"))
   ;; `dns-query' used to be `query-dns'.  Try both names for now.
-  (let* ((result (if (fboundp 'query-dns)
-		     (query-dns target 'SRV t)
-		   (dns-query target 'SRV t)))
+  (let* ((result (srv--dns-query target))
 	 (answers (mapcar #'(lambda (a)
 			      (cadr (assq 'data a)))
 			  (cadr (assq 'answers result))))
@@ -96,6 +94,37 @@ of the list.  The list is empty if no SRV records were found."
       (mapcar #'(lambda (a) (cons (cadr (assq 'target a))
 			     (cadr (assq 'port a))))
 	      (nreverse weighted-result)))))
+
+(defun srv--dns-query (target)
+  ;; dns-query uses UDP, but that is not supported on Windows...
+  (if (featurep 'make-network-process '(:type datagram))
+      (if (fboundp 'query-dns)
+          (query-dns target 'SRV t)
+        (dns-query target 'SRV t))
+    ;; ...so let's call nslookup instead.
+    (srv--nslookup target)))
+
+(defun srv--nslookup (target)
+  (with-temp-buffer
+    (call-process "nslookup" nil t nil "-type=srv" target)
+    (goto-char (point-min))
+    (let (results)
+      (while (search-forward-regexp
+              (concat "[\s\t]*priority += \\(.*\\)\r?\n"
+                      "[\s\t]*weight += \\(.*\\)\r?\n"
+                      "[\s\t]*port += \\(.*\\)\r?\n"
+                      "[\s\t]*svr hostname += \\(.*\\)\r?\n")
+              nil t)
+        (push
+         (list
+          (list 'data
+                (list
+                 (list 'priority (string-to-number (match-string 1)))
+                 (list 'weight (string-to-number (match-string 2)))
+                 (list 'port (string-to-number (match-string 3)))
+                 (list 'target (match-string 4)))))
+         results))
+      (list (list 'answers results)))))
 
 (provide 'srv)
 ;; arch-tag: b43358f2-d241-11da-836e-000a95c2fcd0
