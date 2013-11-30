@@ -122,7 +122,8 @@ Call REMEMBER with the password.  REMEMBER is expected to return it as well."
 		     (base64-encode-string (sasl-step-data step) t)))))
 
      ((eq (car xml-data) 'failure)
-      (message "SASL authentication failure: %s"
+      (message "%s: authentication failure: %s"
+	       (jabber-connection-bare-jid jc)
 	       (jabber-xml-node-name (car (jabber-xml-node-children xml-data))))
       (fsm-send jc :authentication-failure))
 
