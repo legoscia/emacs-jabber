@@ -35,7 +35,7 @@
 (defvar jabber-submit-to nil
   "JID of the entity to which form data is to be sent")
 
-(add-to-list 'jabber-advertised-features "jabber:x:data")
+(jabber-disco-advertise-feature "jabber:x:data")
 
 (define-widget 'jid 'string
   "JID widget."

@@ -75,7 +75,7 @@ access allowed.  nil means open for everyone."
 			    (feature ((var . "http://jabber.org/protocol/disco#info")))
 			    (feature ((var . "jabber:x:data")))))))
 
-(add-to-list 'jabber-advertised-features "http://jabber.org/protocol/commands")
+(jabber-disco-advertise-feature "http://jabber.org/protocol/commands")
 (add-to-list 'jabber-disco-items-nodes
 	     (list "http://jabber.org/protocol/commands" #'jabber-ahc-disco-items nil))
 (defun jabber-ahc-disco-items (jc xml-data)

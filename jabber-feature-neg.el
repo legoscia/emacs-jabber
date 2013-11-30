@@ -22,7 +22,7 @@
 (require 'jabber-disco)
 (require 'cl)
 
-(add-to-list 'jabber-advertised-features "http://jabber.org/protocol/feature-neg")
+(jabber-disco-advertise-feature "http://jabber.org/protocol/feature-neg")
 
 (defun jabber-fn-parse (xml-data type)
   "Parse a Feature Negotiation request, return alist representation.

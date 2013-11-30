@@ -337,8 +337,16 @@ This function is idempotent."
 			    (id . ,id))
 			   (body () ,body))))
     ;; ...add additional elements...
+    ;; TODO: Once we require Emacs 24.1, use `run-hook-wrapped' instead.
+    ;; That way we don't need to eliminate the "local hook" functionality
+    ;; here.
     (dolist (hook jabber-chat-send-hooks)
-      (nconc stanza-to-send (funcall hook body id)))
+      (if (eq hook t)
+	  ;; Local hook referring to global...
+	  (when (local-variable-p 'jabber-chat-send-hooks)
+	    (dolist (global-hook (default-value 'jabber-chat-send-hooks))
+	      (nconc stanza-to-send (funcall global-hook body id))))
+      (nconc stanza-to-send (funcall hook body id))))
     ;; ...display it, if it would be displayed.
     (when (run-hook-with-args-until-success 'jabber-chat-printers stanza-to-send :local :printp)
       (jabber-maybe-print-rare-time

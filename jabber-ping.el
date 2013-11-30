@@ -49,7 +49,7 @@
     (format "%s is alive" to)))
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "urn:xmpp:ping" 'jabber-pong))
-(add-to-list 'jabber-advertised-features "urn:xmpp:ping")
+(jabber-disco-advertise-feature "urn:xmpp:ping")
 
 (defun jabber-pong (jc xml-data)
   "Return pong as defined in XEP-0199. Sender and Id are

@@ -147,7 +147,7 @@
       (format "%s uptime: %s seconds" from seconds)))))
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:time" 'jabber-return-legacy-time))
-(add-to-list 'jabber-advertised-features "jabber:iq:time")
+(jabber-disco-advertise-feature "jabber:iq:time")
 
 (defun jabber-return-legacy-time (jc xml-data)
   "Return client time as defined in XEP-0090.  Sender and ID are
@@ -165,7 +165,7 @@ determined from the incoming packet passed in XML-DATA."
 		    id)))
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "urn:xmpp:time" 'jabber-return-time))
-(add-to-list 'jabber-advertised-features "urn:xmpp:time")
+(jabber-disco-advertise-feature "urn:xmpp:time")
 
 (defun jabber-return-time (jc xml-data)
   "Return client time as defined in XEP-0202.  Sender and ID are
@@ -180,7 +180,7 @@ determined from the incoming packet passed in XML-DATA."
                     id)))
 
 (add-to-list 'jabber-iq-get-xmlns-alist (cons "jabber:iq:last" 'jabber-return-last))
-(add-to-list 'jabber-advertised-features "jabber:iq:last")
+(jabber-disco-advertise-feature "jabber:iq:last")
 
 (defun jabber-return-last (jc xml-data)
   (let ((to (jabber-xml-get-attribute xml-data 'from))
