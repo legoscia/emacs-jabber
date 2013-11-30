@@ -145,6 +145,13 @@ properties to add to the result."
     (concat (plist-get sd :username) "@"
 	    (plist-get sd :server))))
 
+(defun jabber-connection-original-jid (jc)
+  "Return the original JID of the given connection.
+The \"original JID\" is the JID we authenticated with.  The
+server might subsequently assign us a different JID at resource
+binding."
+  (plist-get (fsm-get-state-data jc) :original-jid))
+
 (defun jabber-find-connection (bare-jid)
   "Find the connection to the account named by BARE-JID.
 Return nil if none found."

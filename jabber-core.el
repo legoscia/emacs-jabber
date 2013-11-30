@@ -171,7 +171,7 @@ With many prefix arguments, one less is passed to `jabber-connect'."
 		 arg))))
 	  (call-interactively 'jabber-connect))
       ;; Only connect those accounts that are not yet connected.
-      (let ((already-connected (mapcar #'jabber-connection-bare-jid jabber-connections))
+      (let ((already-connected (mapcar #'jabber-connection-original-jid jabber-connections))
 	    (connected-one nil))
 	(dolist (account accounts)
 	  (unless (member (jabber-jid-user (car account)) already-connected)
@@ -277,6 +277,8 @@ With double prefix argument, specify more connection details."
 
 	    (list :connecting 
 		  (list :send-function send-function
+			;; Save the JID we originally connected with.
+			:original-jid (concat username "@" server)
 			:username username
 			:server server
 			:resource resource
