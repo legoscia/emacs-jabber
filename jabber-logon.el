@@ -21,7 +21,12 @@
 
 (require 'jabber-xml)
 (require 'jabber-util)
-(require 'sha1)
+;; In Emacs 24, sha1 is built in, so this require is only needed for
+;; earlier versions.  It's supposed to be a noop in Emacs 24, but
+;; sometimes, for some people, it isn't, and fails with
+;; (file-error "Cannot open load file" "sha1").
+(unless (fboundp 'sha1)
+  (require 'sha1))
 
 (defun jabber-get-auth (jc to session-id)
   "Send IQ get request in namespace \"jabber:iq:auth\"."
