@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;;;; Handling incoming events
 
 ;;;###autoload
