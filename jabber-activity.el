@@ -416,12 +416,14 @@ With a numeric arg, enable this display if arg is positive."
 ;; 		   'jabber-activity-make-name-alist)
       (setq global-mode-string (delete '(t jabber-activity-mode-string)
 				       global-mode-string))
-      (setq frame-title-format
-	    (delete jabber-activity-count-in-title-format
-		    frame-title-format))
-      (setq icon-title-format
-	    (delete jabber-activity-count-in-title-format
-		    icon-title-format)))))
+      (when (listp frame-title-format)
+	(setq frame-title-format
+	      (delete jabber-activity-count-in-title-format
+		      frame-title-format)))
+      (when (listp icon-title-format)
+	(setq icon-title-format
+	      (delete jabber-activity-count-in-title-format
+		      icon-title-format))))))
 
 ;; XXX: define-minor-mode should probably do this for us, but it doesn't.
 (if jabber-activity-mode (jabber-activity-mode 1))
