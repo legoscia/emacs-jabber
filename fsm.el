@@ -103,7 +103,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+;; We require cl at runtime, since we insert `destructuring-bind' into
+;; modules that use fsm.el.
+(require 'cl)
 
 (defvar fsm-debug "*fsm-debug*"
   "*Name of buffer for fsm debug messages.
