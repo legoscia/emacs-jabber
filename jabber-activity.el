@@ -387,13 +387,13 @@ With a numeric arg, enable this display if arg is positive."
 	  ;; included twice in the title.  I'm not sure exactly why,
 	  ;; but it would be nice to replace the code below with
 	  ;; something cleaner.
-	  (if (equal (car frame-title-format) "")
+	  (if (equal (car-safe frame-title-format) "")
 	      (add-to-list 'frame-title-format
 			   jabber-activity-count-in-title-format)
 	    (setq frame-title-format (list ""
 					   jabber-activity-count-in-title-format
 					   frame-title-format)))
-	  (if (equal (car icon-title-format) "")
+	  (if (equal (car-safe icon-title-format) "")
 	      (add-to-list 'icon-title-format
 			 jabber-activity-count-in-title-format)
 	    (setq icon-title-format (list ""
