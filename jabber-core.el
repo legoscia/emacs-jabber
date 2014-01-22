@@ -721,7 +721,7 @@ With double prefix argument, specify more connection details."
 		  "get" 
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
-		  #'jabber-report-success "Roster retrieval")
+		  #'jabber-initial-roster-failure nil)
   (list (plist-put state-data :ever-session-established t) nil))
 
 (defvar jabber-pending-presence-timeout 0.5

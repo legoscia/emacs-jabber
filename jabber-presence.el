@@ -117,6 +117,13 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
   (when (eq closure-data 'initial)
     (run-hook-with-args 'jabber-post-connect-hooks jc)))
 
+(defun jabber-initial-roster-failure (jc xml-data _closure-data)
+  ;; If the initial roster request fails, let's report it, but run
+  ;; jabber-post-connect-hooks anyway.  According to the spec, there
+  ;; is nothing exceptional about the server not returning a roster.
+  (jabber-report-success jc xml-data "Initial roster retrieval")
+  (run-hook-with-args 'jabber-post-connect-hooks jc))
+
 (add-to-list 'jabber-presence-chain 'jabber-process-presence)
 (defun jabber-process-presence (jc xml-data)
   "process incoming presence tags"
