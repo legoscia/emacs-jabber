@@ -361,7 +361,7 @@ This function is idempotent."
 This function is used as an ewoc prettyprinter."
   (let* ((beg (point))
 	 (original-timestamp (when (listp (cadr data))
-			       (jabber-xml-path (cadr data) '(("jabber:x:delay" . "x")))))
+			       (jabber-message-timestamp (cadr data))))
 	 (internal-time
 	  (plist-get (cddr data) :time))
 	 (body (ignore-errors (car
@@ -376,20 +376,17 @@ This function is used as an ewoc prettyprinter."
     (let ((delayed (or original-timestamp (plist-get (cddr data) :delayed))))
       (case (car data)
 	(:local
-	 (jabber-chat-self-prompt (or (jabber-x-delay original-timestamp)
-				      internal-time)
+	 (jabber-chat-self-prompt (or original-timestamp internal-time)
 				  delayed
 				  /me-p))
 	(:foreign
 	 ;; For :error and :notice, this might be a string... beware
 	 (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data)) 
-				   (or (jabber-x-delay original-timestamp)
-				       internal-time)
+				   (or original-timestamp internal-time)
 				   delayed
 				   /me-p))
 	((:error :notice :subscription-request)
-	 (jabber-chat-system-prompt (or (jabber-x-delay original-timestamp)
-					internal-time)))
+	 (jabber-chat-system-prompt (or original-timestamp internal-time)))
 	(:muc-local
 	 (jabber-muc-print-prompt (cadr data) t /me-p))
         (:muc-foreign
@@ -445,22 +442,21 @@ This function is used as an ewoc prettyprinter."
   (not (string= (format-time-string jabber-rare-time-format time1)
 		(format-time-string jabber-rare-time-format time2))))
 
-(defun jabber-message-time (entry)
-  "Return time of ENTRY, a message in internal format."
-  (or (when (listp (cadr entry))
-	(jabber-x-delay (jabber-xml-path (cadr entry) '(("jabber:x:delay" . "x")))))
-      (plist-get (cddr entry) :time)))
-
 (defun jabber-maybe-print-rare-time (node)
   "Print rare time before NODE, if appropriate."
   (let* ((prev (ewoc-prev jabber-chat-ewoc node))
 	 (data (ewoc-data node))
 	 (prev-data (when prev (ewoc-data prev))))
-    (when (and jabber-print-rare-time
-	       (or (null prev)
-		   (jabber-rare-time-needed (jabber-message-time prev-data)
-					    (jabber-message-time data))))
-      (ewoc-enter-before jabber-chat-ewoc node (list :rare-time (jabber-message-time data))))))
+    (flet ((entry-time (entry)
+		       (or (when (listp (cadr entry))
+			     (jabber-message-timestamp (cadr entry))
+			     (plist-get (cddr entry) :time)))))
+      (when (and jabber-print-rare-time
+		 (or (null prev)
+		     (jabber-rare-time-needed (entry-time prev-data)
+					      (entry-time data))))
+	(ewoc-enter-before jabber-chat-ewoc node
+			   (list :rare-time (entry-time data)))))))
 
 (defun jabber-chat-print-prompt (xml-data timestamp delayed dont-print-nick-p)
   "Print prompt for received message in XML-DATA.
@@ -471,8 +467,7 @@ If DELAYED is true, print long timestamp
 `jabber-chat-time-format').
 If DONT-PRINT-NICK-P is true, don't include nickname."
   (let ((from (jabber-xml-get-attribute xml-data 'from))
-	(timestamp (or timestamp
-		       (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x)))))))
+	(timestamp (or timestamp (jabber-message-timestamp xml-data))))
     (insert (jabber-propertize 
 	     (format-spec jabber-chat-foreign-prompt-format
 			  (list

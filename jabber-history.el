@@ -121,7 +121,7 @@ number after the last rotation."
       (let ((from (jabber-xml-get-attribute xml-data 'from))
 	    (text (car (jabber-xml-node-children
 			(car (jabber-xml-get-children xml-data 'body)))))
-	    (timestamp (car (delq nil (mapcar 'jabber-x-delay (jabber-xml-get-children xml-data 'x))))))
+	    (timestamp (jabber-message-timestamp xml-data)))
 	(when (and from text)
 	  (jabber-history-log-message "in" from nil text timestamp))))))
 
