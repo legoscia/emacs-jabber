@@ -141,6 +141,9 @@ there are unread messages which otherwise would be lost."
 (defvar jabber-activity-jids nil
   "A list of JIDs which have caused activity")
 
+(defvar jabber-activity-personal-jids nil
+  "Subset of `jabber-activity-jids' for JIDs with \"personal\" activity.")
+
 (defvar jabber-activity-name-alist nil
   "Alist of mode line names for bare JIDs")
 
@@ -248,7 +251,7 @@ if needed, and returns a (jid . string) pair suitable for the mode line"
 		       (cons jid (mapcar #'car jabber-activity-name-alist))))
 	(jabber-activity-lookup-name jid)))))
 
-(defun jabber-activity-mode-line-update (&optional group text presence)
+(defun jabber-activity-mode-line-update ()
   "Update the string shown in the mode line using `jabber-activity-make-string'
 on JIDs where `jabber-activity-show-p'. Optional not-nil GROUP mean that message come from MUC.
 Optional TEXT used with one-to-one or MUC chats and may be used to identify personal MUC message.
@@ -260,13 +263,9 @@ Optional PRESENCE mean personal presence request or alert."
 	       (let ((jump-to-jid (car x)))
 		 (jabber-propertize
 		  (cdr x)
-		  'face (if (or
-                             (and group text (jabber-muc-looks-like-personal-p text group)) ;MUC message
-                             (and (not group) text) ;one-to-one chat message
-                             presence               ;presence request/alert
-                             )
-                            'jabber-activity-personal-face
-                          'jabber-activity-face)
+		  'face (if (member jump-to-jid jabber-activity-personal-jids)
+			    'jabber-activity-personal-face
+			  'jabber-activity-face)
 		  ;; XXX: XEmacs doesn't have make-mode-line-mouse-map.
 		  ;; Is there another way to make this work?
 		  'local-map (when (fboundp 'make-mode-line-mouse-map)
@@ -293,25 +292,32 @@ Optional PRESENCE mean personal presence request or alert."
   "Remove JIDs where `jabber-activity-show-p' no longer is true"
   (setq jabber-activity-jids (delete-if-not jabber-activity-show-p
 					    jabber-activity-jids))
+  (setq jabber-activity-personal-jids
+	(delete-if-not jabber-activity-show-p
+		       jabber-activity-personal-jids))
   (jabber-activity-mode-line-update))
 
 (defun jabber-activity-add (from buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p from)
     (add-to-list 'jabber-activity-jids from)
-    (jabber-activity-mode-line-update nil text)))
+    (add-to-list 'jabber-activity-personal-jids from)
+    (jabber-activity-mode-line-update)))
 
 (defun jabber-activity-add-muc (nick group buffer text proposed-alert)
   "Add a JID to mode line when `jabber-activity-show-p'"
   (when (funcall jabber-activity-show-p group)
     (add-to-list 'jabber-activity-jids group)
+    (when (jabber-muc-looks-like-personal-p text group)
+      (add-to-list 'jabber-activity-personal-jids group))
     (jabber-activity-mode-line-update group text)))
 
 (defun jabber-activity-presence (who oldstatus newstatus statustext proposed-alert)
   "Add a JID to mode line on subscription requests."
   (when (string= newstatus "subscribe")
     (add-to-list 'jabber-activity-jids (symbol-name who))
-    (jabber-activity-mode-line-update nil nil t)))
+    (add-to-list 'jabber-activity-personal-jids (symbol-name who))
+    (jabber-activity-mode-line-update)))
 
 (defun jabber-activity-kill-hook ()
   "Query the user as to whether killing Emacs should be cancelled
