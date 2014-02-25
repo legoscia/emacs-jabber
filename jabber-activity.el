@@ -310,7 +310,7 @@ Optional PRESENCE mean personal presence request or alert."
     (add-to-list 'jabber-activity-jids group)
     (when (jabber-muc-looks-like-personal-p text group)
       (add-to-list 'jabber-activity-personal-jids group))
-    (jabber-activity-mode-line-update group text)))
+    (jabber-activity-mode-line-update)))
 
 (defun jabber-activity-presence (who oldstatus newstatus statustext proposed-alert)
   "Add a JID to mode line on subscription requests."
