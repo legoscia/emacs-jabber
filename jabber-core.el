@@ -309,10 +309,12 @@ With double prefix argument, specify more connection details."
 	(ever-session-established (plist-get state-data :ever-session-established)))
     (unless expected
       (run-hook-with-args 'jabber-lost-connection-hooks fsm)
-      (message "%s@%s/%s: connection lost: `%s'"
+      (message "%s@%s%s: connection lost: `%s'"
 	       (plist-get state-data :username)
 	       (plist-get state-data :server)
-	       (plist-get state-data :resource)
+	       (if (plist-get state-data :resource)
+		   (concat "/" (plist-get state-data :resource))
+		 "")
 	       reason))
 
     (if (and jabber-auto-reconnect (not expected) ever-session-established)
