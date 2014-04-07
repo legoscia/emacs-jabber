@@ -63,14 +63,19 @@ determined from the incoming packet passed in XML-DATA."
   ;; exactly one child, namely query with xmlns='jabber:iq:version'?
   ;; Then again, jabber-process-iq should take care of that.
   (let ((to (jabber-xml-get-attribute xml-data 'from))
-	(id (jabber-xml-get-attribute xml-data 'id)))
+	(id (jabber-xml-get-attribute xml-data 'id))
+	(os (format "%s %d.%d (%s)"
+	     (cond ((featurep 'xemacs) "XEmacs")
+		   (t "Emacs"))
+	     emacs-major-version emacs-minor-version
+	     system-type)))
     (jabber-send-iq jc to "result"
 		    `(query ((xmlns . "jabber:iq:version"))
 			    (name () "jabber.el")
 			    (version () ,jabber-version)
 			    ;; Booting... /vmemacs.el
 			    ;; Shamelessly stolen from someone's sig.
-			    (os () ,(emacs-version)))
+			    (os () ,os))
 		    nil nil nil nil
 		    id)))
 
