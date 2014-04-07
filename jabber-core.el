@@ -373,6 +373,8 @@ With double prefix argument, specify more connection details."
 
     (:connection-failed
      (message "Jabber connection failed")
+     (plist-put state-data :disconnection-reason
+		(mapconcat #'identity (cadr event) "; "))
      (list nil state-data))
 
     (:do-disconnect

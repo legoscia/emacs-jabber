@@ -132,7 +132,7 @@ If we can't find SRV records, use standard defaults."
 (defun jabber-network-connect (fsm server network-server port)
   "Connect to a Jabber server with a plain network connection.
 Send a message of the form (:connected CONNECTION) to FSM if
-connection succeeds.  Send a message :connection-failed if
+connection succeeds.  Send a message (:connection-failed ERRORS) if
 connection fails."
   (cond
    ((featurep 'make-network-process '(:nowait t))
@@ -145,6 +145,7 @@ connection fails."
 (defun jabber-network-connect-async (fsm server network-server port)
   ;; Get all potential targets...
   (lexical-let ((targets (jabber-srv-targets server network-server port))
+		errors
 		(fsm fsm))
     ;; ...and connect to them one after another, asynchronously, until
     ;; connection succeeds.
@@ -159,8 +160,15 @@ connection fails."
 		      ;; from inside the sentinel.
 		      (fsm-send fsm (list :connected c)))
 		     (connection-failed
-		      (c)
-		      (message "Couldn't connect to %s:%s" (car target) (cdr target))
+		      (c status)
+		      (when (and (> (length status) 0)
+				 (eq (aref status (1- (length status))) ?\n))
+			(setq status (substring status 0 -1)))
+		      (let ((err
+			     (format "Couldn't connect to %s:%s: %s"
+				     (car target) (cdr target) status)))
+			(message "%s" err)
+			(push err errors))
 		      (when c (delete-process c))
 		      (if remaining-targets
 			  (progn
@@ -168,7 +176,7 @@ connection fails."
 			     "Connecting to %s:%s..."
 			     (caar remaining-targets) (cdar remaining-targets))
 			    (connect (car remaining-targets) (cdr remaining-targets)))
-			(fsm-send fsm :connection-failed))))
+			(fsm-send fsm (list :connection-failed (nreverse errors))))))
 	      (condition-case nil
 		  (make-network-process
 		   :name "jabber"
@@ -183,7 +191,7 @@ connection fails."
 			((string-match "^open" status)
 			 (connection-successful connection))
 			((string-match "^failed" status)
-			 (connection-failed connection))
+			 (connection-failed connection status))
 			((string-match "^deleted" status)
 			 ;; This happens when we delete a process in the
 			 ;; "failed" case above.
@@ -200,7 +208,8 @@ connection fails."
   ;; advance for any bit rot...
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets server network-server port)))
+	(targets (jabber-srv-targets server network-server port))
+	errors)
     (catch 'connected
       (dolist (target targets)
 	(condition-case e
@@ -219,10 +228,23 @@ connection fails."
 	      (when connection
 		(fsm-send fsm (list :connected connection))
 		(throw 'connected connection)))
+	  (file-error
+	   ;; A file-error has the error message in the third list
+	   ;; element.
+	   (let ((err (format "Couldn't connect to %s:%s: %s"
+			      (car target) (cdr target)
+			      (car (cddr e)))))
+	     (message "%s" err)
+	     (push err errors)))
 	  (error
-	   (message "Couldn't connect to %s: %s" target
-		    (error-message-string e)))))
-      (fsm-send fsm :connection-failed))))
+	   ;; Not sure if we ever get anything but file-errors,
+	   ;; but let's make sure we report them:
+	   (let ((err (format "Couldn't connect to %s:%s: %s"
+			      (car target) (cdr target)
+			      (error-message-string e))))
+	     (message "%s" err)
+	     (push err errors)))))
+      (fsm-send fsm (list :connection-failed (nreverse errors))))))
 
 (defun jabber-network-send (connection string)
   "Send a string via a plain TCP/IP connection to the Jabber Server."
@@ -234,7 +256,7 @@ connection fails."
 (defun jabber-ssl-connect (fsm server network-server port)
   "connect via OpenSSL or GnuTLS to a Jabber Server
 Send a message of the form (:connected CONNECTION) to FSM if
-connection succeeds.  Send a message :connection-failed if
+connection succeeds.  Send a message (:connection-failed ERRORS) if
 connection fails."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
@@ -247,7 +269,8 @@ connection fails."
 		(fboundp 'open-ssl-stream))
 	   'open-ssl-stream)
 	  (t
-	   (error "Neither TLS nor SSL connect functions available")))))
+	   (error "Neither TLS nor SSL connect functions available"))))
+	error-msg)
     (let ((process-buffer (generate-new-buffer jabber-process-buffer))
 	  connection)
       (setq network-server (or network-server server))
@@ -259,13 +282,16 @@ connection fails."
 				    network-server
 				    port))
 	(error
-	 (message "Couldn't connect to %s:%d: %s" network-server port
-		  (error-message-string e))))
+	 (setq error-msg
+	       (format "Couldn't connect to %s:%d: %s" network-server port
+		       (error-message-string e)))
+	 (message "%s" error-msg)))
       (unless (or connection jabber-debug-keep-process-buffers)
 	(kill-buffer process-buffer))
       (if connection
 	  (fsm-send fsm (list :connected connection))
-	(fsm-send fsm :connection-failed)))))
+	(fsm-send fsm (list :connection-failed
+			    (when error-msg (list error-msg))))))))
 
 (defun jabber-ssl-send (connection string)
   "Send a string via an SSL-encrypted connection to the Jabber Server."
@@ -276,11 +302,12 @@ connection fails."
 (defun jabber-starttls-connect (fsm server network-server port)
   "Connect via an external GnuTLS process to a Jabber Server.
 Send a message of the form (:connected CONNECTION) to FSM if
-connection succeeds.  Send a message :connection-failed if
+connection succeeds.  Send a message (:connection-failed ERRORS) if
 connection fails."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
-	(targets (jabber-srv-targets server network-server port)))
+	(targets (jabber-srv-targets server network-server port))
+	errors)
     (unless (fboundp 'starttls-open-stream)
       (error "starttls.el not available"))
     (catch 'connected
@@ -297,13 +324,22 @@ connection fails."
 			 (cdr target)))
 		(unless (or connection jabber-debug-keep-process-buffers)
 		  (kill-buffer process-buffer)))
-	      (when connection
+	      (if (null connection)
+		  ;; It seems we don't actually get an error if we
+		  ;; can't connect.  Let's try to convey some useful
+		  ;; information to the user at least.
+		  (let ((err (format "Couldn't connect to %s:%s"
+				     (car target) (cdr target))))
+		    (message "%s" err)
+		    (push err errors))
 		(fsm-send fsm (list :connected connection))
 		(throw 'connected connection)))
 	  (error
-	   (message "Couldn't connect to %s: %s" target
-		    (error-message-string e))))
-	(fsm-send fsm :connection-failed)))))
+	   (let ((err (format "Couldn't connect to %s: %s" target
+			      (error-message-string e))))
+	     (message "%s" err)
+	     (push err errors)))))
+	(fsm-send fsm (list :connection-failed (nreverse errors))))))
 
 (defun jabber-starttls-initiate (fsm)
   "Initiate a starttls connection"
