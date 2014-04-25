@@ -177,7 +177,7 @@ connection fails."
 			     (caar remaining-targets) (cdar remaining-targets))
 			    (connect (car remaining-targets) (cdr remaining-targets)))
 			(fsm-send fsm (list :connection-failed (nreverse errors))))))
-	      (condition-case nil
+	      (condition-case e
 		  (make-network-process
 		   :name "jabber"
 		   :buffer (generate-new-buffer jabber-process-buffer)
@@ -198,8 +198,14 @@ connection fails."
 			 nil)
 			(t
 			 (message "Unknown sentinel status `%s'" status))))))
+		(file-error
+		 ;; A file-error has the error message in the third list
+		 ;; element.
+		 (connection-failed nil (car (cddr e))))
 		(error
-		 (connection-failed nil)))))))
+		 ;; Not sure if we ever get anything but file-errors,
+		 ;; but let's make sure we report them:
+		 (connection-failed nil (error-message-string e))))))))
       (message "Connecting to %s:%s..." (caar targets) (cdar targets))
       (connect (car targets) (cdr targets)))))
 
