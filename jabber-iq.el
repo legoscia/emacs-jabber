@@ -195,7 +195,7 @@ See section 9.3 of XMPP Core."
 	(dolist (hook '(jabber-info-message-hooks jabber-alert-info-message-hooks))
 	  (run-hook-with-args hook 'browse (current-buffer) (funcall jabber-alert-info-message-function 'browse (current-buffer))))))))
 
-(defun jabber-silent-process-data (js xml-data closure-data)
+(defun jabber-silent-process-data (jc xml-data closure-data)
   "Process random results from various requests to only alert hooks."
   (let ((text (cond
                ((functionp closure-data)
