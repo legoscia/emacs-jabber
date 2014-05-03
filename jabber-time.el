@@ -137,11 +137,12 @@
                           (string-to-number seconds)
                         (error nil))))
          (when (numberp seconds)
-           "That is, at "
-           (format-time-string "%Y-%m-%d %T"
-                               (time-subtract (current-time)
-                                              (seconds-to-time seconds)))
-           "\n"))))
+	   (concat
+	    " - that is, at "
+	    (format-time-string "%Y-%m-%d %T"
+				(time-subtract (current-time)
+					       (seconds-to-time seconds)))
+	    "\n")))))
      (t
       ;; Only hostname: uptime
       (format "%s uptime: %s seconds" from seconds)))))
