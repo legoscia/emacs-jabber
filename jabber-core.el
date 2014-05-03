@@ -995,7 +995,8 @@ submit a bug report, including the information below.
   "Process an incoming stream error.
 Return nil if XML-DATA is not a stream:error stanza.
 Return an fsm result list if it is."
-  (when (eq (jabber-xml-node-name xml-data) 'stream:error)
+  (when (and (eq (jabber-xml-node-name xml-data) 'error)
+	     (equal (jabber-xml-get-xmlns xml-data) "http://etherx.jabber.org/streams"))
     (let ((condition (jabber-stream-error-condition xml-data))
 	  (text (jabber-parse-stream-error xml-data)))
       (setq state-data (plist-put state-data :disconnection-reason 
