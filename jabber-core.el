@@ -387,13 +387,19 @@ With double prefix argument, specify more connection details."
   "Handle sentinel event for jabber fsm."
   ;; We do the same thing for every state, so avoid code duplication.
   (let* ((string (car (cddr event)))
+	 ;; The event string sometimes (always?) has a trailing
+	 ;; newline, that we don't care for.
+	 (trimmed-string
+	  (if (eq ?\n (aref string (1- (length string))))
+	      (substring string 0 -1)
+	    string))
 	 (new-state-data
 	  ;; If we already know the reason (e.g. a stream error), don't
 	  ;; overwrite it.
 	  (if (plist-get state-data :disconnection-reason)
 	      state-data
-	    (plist-put state-data :disconnection-reason string))))
-    (list nil new-state-data)))  
+	    (plist-put state-data :disconnection-reason trimmed-string))))
+    (list nil new-state-data)))
 
 (define-enter-state jabber-connection :connected
   (fsm state-data)
