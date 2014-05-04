@@ -30,6 +30,11 @@
       '("Connect" . jabber-connect-all))
 
     (define-key-after map
+      [jabber-menu-chat-with]
+      '(menu-item "Chat with..." jabber-chat-with
+		  :enable (bound-and-true-p jabber-connections)))
+
+    (define-key-after map
       [jabber-menu-nextmsg]
       '(menu-item "Next unread message" jabber-activity-switch-to
 		  :enable (bound-and-true-p jabber-activity-jids)))
