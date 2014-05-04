@@ -50,29 +50,41 @@
 
     (define-key map
       [jabber-menu-status jabber-menu-status-chat]
-      '("Chatty" .
+      '(menu-item
+	"Chatty"
 	(lambda ()
 	  (interactive)
 	  (jabber-send-presence "chat"
 				(jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-				*jabber-current-priority*))))
+				*jabber-current-priority*))
+	:button (:radio . (and (boundp '*jabber-current-show*)
+			       (equal *jabber-current-show* "chat")))))
     (define-key map
       [jabber-menu-status jabber-menu-status-dnd]
-      '("Do not Disturb" .
+      '(menu-item
+	"Do not Disturb"
 	(lambda ()
 	  (interactive)
 	  (jabber-send-presence "dnd"
 				(jabber-read-with-input-method "status message: " *jabber-current-status* '*jabber-status-history*)
-				*jabber-current-priority*))))
+				*jabber-current-priority*))
+	:button (:radio . (and (boundp '*jabber-current-show*)
+			       (equal *jabber-current-show* "dnd")))))
     (define-key map
       [jabber-menu-status jabber-menu-status-xa]
-      '("Extended Away" . jabber-send-xa-presence))
+      '(menu-item "Extended Away" jabber-send-xa-presence
+		  :button (:radio . (and (boundp '*jabber-current-show*)
+					 (equal *jabber-current-show* "xa")))))
     (define-key map
       [jabber-menu-status jabber-menu-status-away]
-      '("Away" . jabber-send-away-presence))
+      '(menu-item "Away" jabber-send-away-presence
+		  :button (:radio . (and (boundp '*jabber-current-show*)
+					 (equal *jabber-current-show* "away")))))
     (define-key map
       [jabber-menu-status jabber-menu-status-online]
-      '("Online" . jabber-send-default-presence))
+      '(menu-item "Online" jabber-send-default-presence
+		  :button (:radio . (and (boundp '*jabber-current-show*)
+					 (equal *jabber-current-show* "")))))
 
     (define-key-after map
       [separator]
