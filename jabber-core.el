@@ -657,6 +657,8 @@ With double prefix argument, specify more connection details."
      (let ((stanza (cadr event)))
        (cond
 	((eq (jabber-xml-node-name stanza) 'features)
+	 ;; Record stream features, discarding earlier data:
+	 (setq state-data (plist-put state-data :stream-features stanza))
 	 (if (and (jabber-xml-get-children stanza 'bind)
 		  (jabber-xml-get-children stanza 'session))
 	     (labels
