@@ -116,7 +116,7 @@ for all accounts regardless of the argument."
 	     (current-time-string)
 	     (plist-get (fsm-get-state-data c) :server))
 
-    (run-hooks jabber-lost-connection-hooks c)
+    (run-hook-with-args 'jabber-lost-connection-hooks c)
     (jabber-disconnect-one c nil)))
 
 ;;;; Whitespace pings - less traffic, no error checking on our side
