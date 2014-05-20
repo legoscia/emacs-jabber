@@ -41,9 +41,6 @@
 (defvar jabber-jid-obarray (make-vector 127 0)
   "obarray for keeping JIDs")
 
-(defvar *jabber-authenticated* nil
-  "boolean - are we authenticated")
-
 (defvar *jabber-disconnecting* nil
   "boolean - are we in the process of disconnecting by free will")
 
@@ -80,7 +77,7 @@ The functions should accept one argument, the connection object."
 
 (defcustom jabber-pre-disconnect-hook nil
   "*Hooks run just before voluntary disconnection
-This might be due to failed authentication.  Check `*jabber-authenticated*'."
+This might be due to failed authentication."
   :type 'hook
   :group 'jabber-core)
 
@@ -250,7 +247,6 @@ With double prefix argument, specify more connection details."
 	       jabber-connections))
       (message "Already connected to %s@%s"
 	       username server)
-    (setq *jabber-authenticated* nil)
     ;;(jabber-clear-roster)
 
     (push (start-jabber-connection username server resource
@@ -816,7 +812,6 @@ Call this function after disconnection."
 	(erase-buffer))))
 
   (jabber-clear-roster)
-  (setq *jabber-authenticated* nil)
   (setq *jabber-active-groupchats* nil)
   (run-hooks 'jabber-post-disconnect-hook))
 
