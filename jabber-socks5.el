@@ -68,7 +68,7 @@ Values are \"streamhost\" XML nodes.")
   "Set `jabber-socks5-proxies' and query proxies.
 This is the set function of `jabber-socks5-proxies-data'."
   (set-default symbol value)
-  (when *jabber-connected*
+  (when jabber-connections
     (jabber-socks5-query-all-proxies)))
 
 (defun jabber-socks5-query-all-proxies (jc &optional callback)

@@ -41,9 +41,6 @@
 (defvar jabber-jid-obarray (make-vector 127 0)
   "obarray for keeping JIDs")
 
-(defvar *jabber-connected* nil
-  "boolean - are we connected")
-
 (defvar *jabber-authenticated* nil
   "boolean - are we authenticated")
 
@@ -405,7 +402,6 @@ With double prefix argument, specify more connection details."
 
   ;; Next thing happening is the server sending its own <stream:stream> start tag.
   
-  (setq *jabber-connected* t)
   (list state-data nil))
 
 (define-state jabber-connection :connected
@@ -825,7 +821,6 @@ Call this function after disconnection."
   (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *jabber-authenticated* nil)
-  (setq *jabber-connected* nil)
   (setq *jabber-active-groupchats* nil)
   (run-hooks 'jabber-post-disconnect-hook))
 
