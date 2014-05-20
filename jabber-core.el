@@ -397,9 +397,6 @@ With double prefix argument, specify more connection details."
 
   (jabber-send-stream-header fsm)
   
-  ;;XXX: why is this here?  I'll try commenting it out...
-  ;;(accept-process-output *jabber-connection*)
-
   ;; Next thing happening is the server sending its own <stream:stream> start tag.
   
   (list state-data nil))
@@ -818,7 +815,6 @@ Call this function after disconnection."
       (let ((inhibit-read-only t))
 	(erase-buffer))))
 
-  (setq *jabber-connection* nil)
   (jabber-clear-roster)
   (setq *jabber-authenticated* nil)
   (setq *jabber-active-groupchats* nil)

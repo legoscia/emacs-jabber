@@ -38,11 +38,6 @@
 
 (require 'srv)
 
-;; This variable holds the connection, which is used for further
-;; input/output to the server
-(defvar *jabber-connection* nil
-  "the process that does the actual connection")
-
 (defgroup jabber-conn nil "Jabber Connection Settings"
   :group 'jabber)
 
