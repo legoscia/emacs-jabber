@@ -128,8 +128,29 @@ Call REMEMBER with the password.  REMEMBER is expected to return it as well."
       (fsm-send jc :authentication-failure))
 
      ((eq (car xml-data) 'success)
-      (message "Authentication succeeded for %s" (jabber-connection-bare-jid jc))
-      (fsm-send jc (cons :authentication-success passphrase))))
+      ;; The server might, depending on the mechanism, send
+      ;; "additional data" (see RFC 4422) with the <success/> element.
+      ;; Since some SASL mechanisms perform mutual authentication, we
+      ;; need to pass this data to sasl.el - we're not necessarily
+      ;; done just because the server says we're done.
+      (let* ((data (car (jabber-xml-node-children xml-data)))
+	     (decoded (if data
+			  (base64-decode-string data)
+			"")))
+	(sasl-step-set-data step decoded)
+	(condition-case e
+	    (progn
+	      ;; Check that sasl-next-step doesn't signal an error.
+	      ;; TODO: once sasl.el allows it, check that all steps have
+	      ;; been completed.
+	      (sasl-next-step client step)
+	      (message "Authentication succeeded for %s" (jabber-connection-bare-jid jc))
+	      (fsm-send jc (cons :authentication-success passphrase)))
+	  (sasl-error
+	   (message "%s: authentication failure: %s"
+		    (jabber-connection-bare-jid jc)
+		    (error-message-string e))
+	   (fsm-send jc :authentication-failure))))))
     (list client step passphrase)))
 
 (provide 'jabber-sasl)
