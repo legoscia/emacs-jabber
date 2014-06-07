@@ -154,6 +154,7 @@ configure a Google Talk account like this:
 (require 'jabber-osd)
 (require 'jabber-awesome)
 (require 'jabber-libnotify)
+(require 'jabber-notifications)
 
 ;;;###autoload
 (defvar *jabber-current-status* nil

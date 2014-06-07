@@ -2090,6 +2090,11 @@ XOSD.@footnote{XOSD can be found at
 @uref{http://www.ignavus.net/software.html}.  You also need
 @file{osd.el} from @uref{http://www.brockman.se/software/osd.el}.}
 
+@cindex notifications.el
+The @code{notifications} alerts send a message using Emacs built-in
+package @file{notifications.el}. Note that @file{notifications.el} first appear in
+Emacs 24.1, so they are disabled by default.
+
 @cindex libnotify
 @cindex notification-daemon
 The @code{libnotify} alerts send a message onto your screen using
