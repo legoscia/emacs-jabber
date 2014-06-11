@@ -226,27 +226,28 @@ Either a string or a buffer is returned, so use `get-buffer' or
 This function is idempotent."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (unless (eq major-mode 'jabber-chat-mode)
-      (jabber-chat-mode jc #'jabber-chat-pp))
+      (jabber-chat-mode jc #'jabber-chat-pp)
+
+      (make-local-variable 'jabber-chatting-with)
+      (setq jabber-chatting-with chat-with)
+      (setq jabber-send-function 'jabber-chat-send)
+      (setq header-line-format jabber-chat-header-line-format)
+
+      (make-local-variable 'jabber-chat-earliest-backlog)
+
+      ;; insert backlog
+      (when (null jabber-chat-earliest-backlog)
+	(let ((backlog-entries (jabber-history-backlog chat-with)))
+	  (if (null backlog-entries)
+	      (setq jabber-chat-earliest-backlog (jabber-float-time))
+	    (setq jabber-chat-earliest-backlog
+		  (jabber-float-time (jabber-parse-time
+				      (aref (car backlog-entries) 0))))
+	    (mapc 'jabber-chat-insert-backlog-entry (nreverse backlog-entries))))))
+
     ;; Make sure the connection variable is up to date.
     (setq jabber-buffer-connection jc)
 
-    (make-local-variable 'jabber-chatting-with)
-    (setq jabber-chatting-with chat-with)
-    (setq jabber-send-function 'jabber-chat-send)
-    (setq header-line-format jabber-chat-header-line-format)
-    
-    (make-local-variable 'jabber-chat-earliest-backlog)
-    
-    ;; insert backlog
-    (when (null jabber-chat-earliest-backlog)
-      (let ((backlog-entries (jabber-history-backlog chat-with)))
-	(if (null backlog-entries)
-	    (setq jabber-chat-earliest-backlog (jabber-float-time))
-	  (setq jabber-chat-earliest-backlog 
-		(jabber-float-time (jabber-parse-time
-				    (aref (car backlog-entries) 0))))
-	  (mapc 'jabber-chat-insert-backlog-entry (nreverse backlog-entries)))))
-    
     (current-buffer)))
 
 (defun jabber-chat-insert-backlog-entry (msg)
