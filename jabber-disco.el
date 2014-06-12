@@ -479,8 +479,8 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
 	       "get"
 	       `(query ((xmlns . "http://jabber.org/protocol/disco#info")
 			(node . ,(concat node "#" ver))))
-	       #'jabber-process-caps-info-result key
-	       #'jabber-process-caps-info-error key))
+	       #'jabber-process-caps-info-result (list hash node ver)
+	       #'jabber-process-caps-info-error (list hash node ver)))
 	  ;; No, forget about it for now.
 	  (remhash key jabber-caps-cache))))))
 
