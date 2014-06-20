@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = 1.11
 my_lisp_sources=fsm.el jabber-activity.el jabber-ahc-presence.el	\
 jabber-ahc.el jabber-alert.el jabber-autoaway.el jabber-avatar.el	\
 jabber-awesome.el jabber-ping.el jabber-libnotify.el jabber-console.el	\
-jabber-notifications							\
+jabber-notifications.el							\
 jabber-bookmarks.el jabber-browse.el jabber-chat.el			\
 jabber-chatbuffer.el jabber-chatstates.el jabber-compose.el		\
 jabber-conn.el jabber-core.el jabber-disco.el jabber-events.el		\
