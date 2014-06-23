@@ -375,9 +375,15 @@ CALLBACK with the response as only argument."
 	  (fsm-debug-output "Error in %s/%s: %s"
 			    fsm-name state
 			    (error-message-string (cdr result))))
-	 (t
+	 ((and (listp result)
+	       (<= 2 (length result))
+	       (<= (length result) 3))
 	  (destructuring-bind (new-state new-state-data &optional timeout) result
-	    (fsm-update fsm new-state new-state-data timeout))))))))
+	    (fsm-update fsm new-state new-state-data timeout)))
+	 (t
+	  (fsm-debug-output "Incorrect return value in %s/%s: %S"
+			    fsm-name state
+			    result)))))))
 
 (defun fsm-call (fsm event)
   "Send EVENT to FSM synchronously, and wait for a reply.
