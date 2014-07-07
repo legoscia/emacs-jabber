@@ -106,7 +106,8 @@ It can be sent and cancelled several times.")
     (jabber-send-sexp
      jabber-buffer-connection
      `(message
-       ((to . ,jabber-chatting-with))
+       ((to . ,jabber-chatting-with)
+        (type . "chat"))
        (paused ((xmlns . ,jabber-chatstates-xmlns)))))))
 
 (defun jabber-chatstates-after-change ()
@@ -119,7 +120,8 @@ It can be sent and cancelled several times.")
       (jabber-send-sexp
        jabber-buffer-connection
        `(message
-         ((to . ,jabber-chatting-with))
+         ((to . ,jabber-chatting-with)
+          (type . "chat"))
          (,state ((xmlns . ,jabber-chatstates-xmlns)))))
       (when (setq jabber-chatstates-composing-sent composing-now)
         (jabber-chatstates-kick-timer)))))
