@@ -330,7 +330,7 @@ CALLBACK with the response as only argument."
       (fsm-debug-output "%s enters %s" fsm-name new-state)
       (let ((enter-fn (gethash new-state (get fsm-name :fsm-enter))))
 	(when (functionp enter-fn)
-	  (fsm-debug-output "Found enter function for %S: %S" new-state enter-fn)
+	  (fsm-debug-output "Found enter function for %S" new-state)
 	  (condition-case e
 	      (destructuring-bind (newer-state-data newer-timeout)
 		  (funcall enter-fn fsm new-state-data)
