@@ -382,11 +382,14 @@ This function is used as an ewoc prettyprinter."
 				  delayed
 				  /me-p))
 	(:foreign
-	 ;; For :error and :notice, this might be a string... beware
-	 (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data)) 
-				   (or original-timestamp internal-time)
-				   delayed
-				   /me-p))
+	 (if (and (listp (cadr data))
+		  (jabber-muc-private-message-p (cadr data)))
+	     (jabber-muc-private-print-prompt (cadr data))
+	   ;; For :error and :notice, this might be a string... beware
+	   (jabber-chat-print-prompt (when (listp (cadr data)) (cadr data))
+				     (or original-timestamp internal-time)
+				     delayed
+				     /me-p)))
 	((:error :notice :subscription-request)
 	 (jabber-chat-system-prompt (or original-timestamp internal-time)))
 	(:muc-local
@@ -573,7 +576,8 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 		  (nick (cond
 			 ((eq who :local)
 			  (plist-get (fsm-get-state-data jabber-buffer-connection) :username))
-			 ((jabber-muc-message-p xml-data)
+			 ((or (jabber-muc-message-p xml-data)
+			      (jabber-muc-private-message-p xml-data))
 			  (jabber-jid-resource (jabber-xml-get-attribute xml-data 'from)))
 			 (t
 			  (jabber-jid-displayname (jabber-xml-get-attribute xml-data 'from))))))
