@@ -374,7 +374,8 @@ This function is used as an ewoc prettyprinter."
 	       (string= (substring body 0 4) "/me "))))
 
     ;; Print prompt...
-    (let ((delayed (or original-timestamp (plist-get (cddr data) :delayed))))
+    (let ((delayed (or original-timestamp (plist-get (cddr data) :delayed)))
+	  (prompt-start (point)))
       (case (car data)
 	(:local
 	 (jabber-chat-self-prompt (or original-timestamp internal-time)
@@ -393,7 +394,8 @@ This function is used as an ewoc prettyprinter."
         (:muc-foreign
          (jabber-muc-print-prompt (cadr data) nil /me-p))
 	((:muc-notice :muc-error)
-	 (jabber-muc-system-prompt))))
+	 (jabber-muc-system-prompt)))
+      (put-text-property prompt-start (point) 'field 'jabber-prompt))
     
     ;; ...and body
     (case (car data)
@@ -609,8 +611,13 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 (defun jabber-chat-goto-address (xml-data who mode)
   "Call `goto-address' on the newly written text."
   (when (eq mode :insert)
-    (ignore-errors 
-      (goto-address))))
+    (ignore-errors
+      (let ((end (point))
+	    (limit (max (- (point) 1000) (1+ (point-min)))))
+	;; We only need to fontify the text written since the last
+	;; prompt.  The prompt has a field property, so we can find it
+	;; using `field-beginning'.
+	(goto-address-fontify (field-beginning nil nil limit) end)))))
 
 ;; jabber-compose is autoloaded in jabber.el
 (add-to-list 'jabber-jid-chat-menu
