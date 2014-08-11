@@ -1110,7 +1110,18 @@ Return nil if X-MUC is nil."
 	       (ewoc-enter-last
 		jabber-chat-ewoc
 		(list :muc-notice report
-		      :time (current-time))))))))))))
+		      :time (current-time))))
+	      ;; Was this room just created?  If so, it's a locked
+	      ;; room.  Notify the user.
+	      (when (member "201" status-codes)
+		;; TODO: suggest instant configuration, and add
+		;; clickable buttons.
+		(ewoc-enter-last
+		 jabber-chat-ewoc
+		 (list :muc-notice
+		       (concat "This room was just created, and is locked to other participants.\n"
+			       "To unlock it, configure the room.")
+		       :time (current-time))))))))))))
 	      
 (provide 'jabber-muc)
 
