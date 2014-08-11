@@ -289,6 +289,8 @@ With double prefix argument, specify more connection details."
 		   (not jabber-debug-keep-process-buffers))
 	  (kill-buffer process-buffer)))))
   (setq state-data (plist-put state-data :connection nil))
+  ;; Clear MUC data
+  (jabber-muc-connection-closed (jabber-connection-bare-jid fsm))
   ;; Remove lost connections from the roster buffer.
   (jabber-display-roster)
   (let ((expected (plist-get state-data :disconnection-expected))
@@ -812,7 +814,6 @@ Call this function after disconnection."
 	(erase-buffer))))
 
   (jabber-clear-roster)
-  (setq *jabber-active-groupchats* nil)
   (run-hooks 'jabber-post-disconnect-hook))
 
 (defun jabber-log-xml (fsm direction data)

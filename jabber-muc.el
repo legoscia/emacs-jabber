@@ -243,6 +243,23 @@ This function is idempotent."
     (setq jabber-muc-participants
 	  (delq whichparticipants jabber-muc-participants))))
 
+(defun jabber-muc-connection-closed (bare-jid)
+  "Remove MUC data for BARE-JID.
+Forget all information about rooms that had been entered with
+this JID.  Suitable to call when the connection is closed."
+  (dolist (room-entry jabber-muc-participants)
+    (let* ((room (car room-entry))
+	   (buffer (get-buffer (jabber-muc-get-buffer room))))
+      (when (bufferp buffer)
+	(with-current-buffer buffer
+	  (when (string= bare-jid
+			 (jabber-connection-bare-jid jabber-buffer-connection))
+	    (setq *jabber-active-groupchats*
+		  (delete* room *jabber-active-groupchats*
+			   :key #'car :test #'string=))
+	    (setq jabber-muc-participants
+		  (delq room-entry jabber-muc-participants))))))))
+
 (defun jabber-muc-participant-plist (group nickname)
   "Return plist associated with NICKNAME in GROUP.
 Return nil if nothing known about that combination."
