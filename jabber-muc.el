@@ -998,6 +998,7 @@ Return nil if X-MUC is nil."
 	 (group (jabber-jid-user from))
 	 (nickname (jabber-jid-resource from))
 	 (symbol (jabber-jid-symbol from))
+	 (our-nickname (gethash symbol jabber-pending-groupchats))
 	 (item (car (jabber-xml-get-children x-muc 'item)))
 	 (actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
 	 (reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
@@ -1013,7 +1014,8 @@ Return nil if X-MUC is nil."
      ((or (string= type "unavailable") (string= type "error"))
       ;; error from room itself? or are we leaving?
       (if (or (null nickname)
-	      (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats)))
+	      (member "110" status-codes)
+	      (string= nickname our-nickname))
 	  ;; Assume that an error means that we were thrown out of the
 	  ;; room...
 	  (let* ((leavingp t)
@@ -1088,12 +1090,14 @@ Return nil if X-MUC is nil."
      (t 
       ;; someone is entering
 
-      (when (string= nickname (gethash (jabber-jid-symbol group) jabber-pending-groupchats))
-	;; Our own nick?  We just succeeded in entering the room.
+      (when (member "110" status-codes)
+	;; This is us.  We just succeeded in entering the room.
 	(let ((whichgroup (assoc group *jabber-active-groupchats*)))
 	  (if whichgroup
 	      (setcdr whichgroup nickname)
-	    (add-to-list '*jabber-active-groupchats* (cons group nickname)))))	
+	    (add-to-list '*jabber-active-groupchats* (cons group nickname))))
+	;; The server may have changed our nick.  Record the new one.
+	(puthash symbol nickname jabber-pending-groupchats))
 
       ;; Whoever enters, we create a buffer (if it didn't already
       ;; exist), and print a notice.  This is where autojoined MUC
@@ -1111,6 +1115,13 @@ Return nil if X-MUC is nil."
 		jabber-chat-ewoc
 		(list :muc-notice report
 		      :time (current-time))))
+	      ;; Did the server change our nick?
+	      (when (member "210" status-codes)
+		(ewoc-enter-last
+		 jabber-chat-ewoc
+		 (list :muc-notice
+		       (concat "Your nick was changed to " nickname " by the server")
+		       :time (current-time))))
 	      ;; Was this room just created?  If so, it's a locked
 	      ;; room.  Notify the user.
 	      (when (member "201" status-codes)
