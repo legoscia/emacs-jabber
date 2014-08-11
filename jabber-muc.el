@@ -1002,9 +1002,12 @@ Return nil if X-MUC is nil."
 	 (actor (jabber-xml-get-attribute (car (jabber-xml-get-children item 'actor)) 'jid))
 	 (reason (car (jabber-xml-node-children (car (jabber-xml-get-children item 'reason)))))
 	 (error-node (car (jabber-xml-get-children presence 'error)))
-	 (status-code (if error-node
-			  (jabber-xml-get-attribute error-node 'code)
-			(jabber-xml-get-attribute (car (jabber-xml-get-children x-muc 'status)) 'code))))
+	 (status-codes (if error-node
+			   (list (jabber-xml-get-attribute error-node 'code))
+			 (mapcar
+			  (lambda (status-element)
+			    (jabber-xml-get-attribute status-element 'code))
+			  (jabber-xml-get-children x-muc 'status)))))
     ;; handle leaving a room
     (cond 
      ((or (string= type "unavailable") (string= type "error"))
@@ -1018,8 +1021,8 @@ Return nil if X-MUC is nil."
 			   ((string= type "error")
 			    (cond
 			     ;; ...except for certain cases.
-			     ((or (equal status-code "406")
-				  (equal status-code "409"))
+			     ((or (member "406" status-codes)
+				  (member "409" status-codes))
 			      (setq leavingp nil)
 			      (concat "Nickname change not allowed"
 				      (when error-node
@@ -1028,11 +1031,11 @@ Return nil if X-MUC is nil."
 			      (concat "Error entering room"
 				      (when error-node
 					(concat ": " (jabber-parse-error error-node)))))))
-			   ((equal status-code "301")
+			   ((member "301" status-codes)
 			    (concat "You have been banned"
 				    (when actor (concat " by " actor))
 				    (when reason (concat " - '" reason "'"))))
-			   ((equal status-code "307")
+			   ((member "307" status-codes)
 			    (concat "You have been kicked"
 				    (when actor (concat " by " actor))
 				    (when reason (concat " - '" reason "'"))))
@@ -1068,15 +1071,15 @@ Return nil if X-MUC is nil."
 	      jabber-chat-ewoc
 	      (list :muc-notice
 		    (cond
-		     ((equal status-code "301")
+		     ((member "301" status-codes)
 		      (concat name " has been banned"
 			      (when actor (concat " by " actor))
 			      (when reason (concat " - '" reason "'"))))
-		     ((equal status-code "307")
+		     ((member "307" status-codes)
 		      (concat name " has been kicked"
 			      (when actor (concat " by " actor))
 			      (when reason (concat " - '" reason "'"))))
-		     ((equal status-code "303")
+		     ((member "303" status-codes)
 		      (concat name " changes nickname to "
 			      (jabber-xml-get-attribute item 'nick)))
 		     (t
