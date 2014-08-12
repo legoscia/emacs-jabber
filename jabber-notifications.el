@@ -59,11 +59,12 @@
                 (or title
                     (or jabber-notifications-message-header " ")
                     text)))
-         (avatar (get (jabber-jid-symbol from) 'avatar)))
+         (avatar-hash (get (jabber-jid-symbol from) 'avatar-hash)))
       (notifications-notify
        :title title
        :body body
-       :app-icon (or (and avatar (plist-get (cdr avatar) ':file)) jabber-notifications-icon)
+       :app-icon (or (and avatar-hash (jabber-avatar-find-cached avatar-hash))
+                     jabber-notifications-icon)
        :app-name jabber-notifications-app
        :category "jabber.message"
        :timeout jabber-notifications-timeout)))
