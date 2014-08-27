@@ -1090,8 +1090,18 @@ Return nil if X-MUC is nil."
      (t 
       ;; someone is entering
 
-      (when (member "110" status-codes)
+      (when (or (member "110" status-codes) (string= nickname our-nickname))
 	;; This is us.  We just succeeded in entering the room.
+	;;
+	;; The MUC server is supposed to send a 110 code whenever this
+	;; is our presence ("self-presence"), but at least one
+	;; (ejabberd's mod_irc) doesn't, so check the nickname as well.
+	;;
+	;; This check might give incorrect results if the server
+	;; changed our nickname to avoid collision with an existing
+	;; participant, but even in this case the window where we have
+	;; incorrect information should be very small, as we should be
+	;; getting our own 110+210 presence shortly.
 	(let ((whichgroup (assoc group *jabber-active-groupchats*)))
 	  (if whichgroup
 	      (setcdr whichgroup nickname)
