@@ -405,6 +405,20 @@ JID; only provide completion as a guide."
     (let ((muc-name (format "%s/%s" group nickname)))
 	(jabber-vcard-get jc muc-name)))
 
+(defun jabber-muc-instant-config (jc group)
+  "Accept default configuration for GROUP.
+This can be used for a newly created room, as an alternative to
+filling out the configuration form with `jabber-muc-get-config'.
+Both of these methods unlock the room, so that other users can
+enter it."
+  (interactive (jabber-muc-argument-list))
+  (jabber-send-iq jc group
+		  "set"
+		  '(query ((xmlns . "http://jabber.org/protocol/muc#owner"))
+			  (x ((xmlns . "jabber:x:data") (type . "submit"))))
+		  #'jabber-report-success "MUC instant configuration"
+		  #'jabber-report-success "MUC instant configuration"))
+
 (add-to-list 'jabber-jid-muc-menu
    (cons "Configure groupchat" 'jabber-muc-get-config))
 
@@ -1135,7 +1149,6 @@ Return nil if X-MUC is nil."
 	      ;; Was this room just created?  If so, it's a locked
 	      ;; room.  Notify the user.
 	      (when (member "201" status-codes)
-		;; TODO: suggest instant configuration
 		(ewoc-enter-last
 		 jabber-chat-ewoc
 		 (list :muc-notice
@@ -1145,6 +1158,10 @@ Return nil if X-MUC is nil."
 			 (insert-text-button
 			  "configure the room"
 			  'action (apply-partially 'call-interactively 'jabber-muc-get-config))
+			 (insert " or ")
+			 (insert-text-button
+			  "accept the default configuration"
+			  'action (apply-partially 'call-interactively 'jabber-muc-instant-config))
 			 (insert ".")
 			 (buffer-string))
 		       :time (current-time))))))))))))
