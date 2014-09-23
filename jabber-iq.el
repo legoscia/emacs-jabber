@@ -152,9 +152,9 @@ APP-SPECIFIC is a list of extra XML tags.
 See section 9.3 of XMPP Core."
   (jabber-send-sexp 
    jc
-   `(iq ((to . ,to)
+   `(iq (,@(when to `((to . ,to)))
 	 (type . "error")
-	 (id . ,id))
+	 (id . ,(or id "")))
 	,original-query
 	(error ((type . ,error-type))
 	       (,condition ((xmlns . "urn:ietf:params:xml:ns:xmpp-stanzas")))
