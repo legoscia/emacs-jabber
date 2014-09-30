@@ -66,7 +66,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	  ;; If subscripton="remove", contact is to be removed from roster
 	  (if (string= (jabber-xml-get-attribute item 'subscription) "remove")
 	      (progn
-		(message "%s removed from roster" jid)
+		(if (jabber-jid-rostername jid)
+		    (message "%s (%s) removed from roster" (jabber-jid-rostername jid) jid)
+		  (message "%s removed from roster" jid))
 		(push jid deleted-items))
 
 	    ;; Find contact if already in roster
@@ -76,7 +78,9 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 		(push roster-item changed-items)
 	      ;; If not found, create a new roster item.
 	      (unless (eq closure-data 'initial)
-		(message "%s added to roster" jid))
+		(if (jabber-xml-get-attribute item 'name)
+		    (message "%s (%s) added to roster" (jabber-xml-get-attribute item 'name) jid)
+		  (message "%s added to roster" jid)))
 	      (setq roster-item jid)
 	      (push roster-item new-items))
 
