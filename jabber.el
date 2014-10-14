@@ -85,7 +85,13 @@ configure a Google Talk account like this:
 				   ;; for enforcing encryption?
 				   (const :tag "STARTTLS" starttls)
 				   (const :tag "Unencrypted" network)
-				   (const :tag "Legacy SSL/TLS" ssl))))))
+				   (const :tag "Legacy SSL/TLS" ssl)))
+		     (cons :format "%v"
+			   (const :format "" :accept-anonymous-auth)
+			   (choice :tag "Accept ANONYMOUS authentication mechanism"
+				   (const :tag "Ask" nil)
+				   (const :tag "Always" always)
+				   (const :tag "Never" never))))))
   :group 'jabber)
 
 (defcustom jabber-default-show ""

@@ -41,9 +41,12 @@
 		      (lambda (tag)
 			(car (jabber-xml-node-children tag)))
 		      (jabber-xml-get-children mechanism-elements 'mechanism)))
+	 (accept-anonymous-auth (plist-get (fsm-get-state-data jc) :accept-anonymous-auth))
 	 (mechanism
 	  (if (and (member "ANONYMOUS" mechanisms)
-		   (or jabber-silent-mode (yes-or-no-p "Use anonymous authentication? ")))
+		   (or jabber-silent-mode
+		       (eq accept-anonymous-auth 'always)
+		       (and (eq accept-anonymous-auth nil) (yes-or-no-p "Use anonymous authentication? "))))
 	      (sasl-find-mechanism '("ANONYMOUS"))
 	    (sasl-find-mechanism mechanisms))))
 

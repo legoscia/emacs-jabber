@@ -169,13 +169,14 @@ With many prefix arguments, one less is passed to `jabber-connect'."
 		   (password (cdr (assq :password alist)))
 		   (network-server (cdr (assq :network-server alist)))
 		   (port (cdr (assq :port alist)))
-		   (connection-type (cdr (assq :connection-type alist))))
+		   (connection-type (cdr (assq :connection-type alist)))
+		   (accept-anonymous-auth (cdr (assq :accept-anonymous-auth alist))))
 	      (jabber-connect
 	       (jabber-jid-username jid)
 	       (jabber-jid-server jid)
 	       (jabber-jid-resource jid)
 	       nil password network-server
-	       port connection-type)
+	       port connection-type accept-anonymous-auth)
 	      (setq connected-one t))))
 	(unless connected-one
 	  (message "All configured Jabber accounts are already connected"))))))
@@ -183,7 +184,7 @@ With many prefix arguments, one less is passed to `jabber-connect'."
 ;;;###autoload (autoload 'jabber-connect "jabber" "Connect to the Jabber server and start a Jabber XML stream.\nWith prefix argument, register a new account.\nWith double prefix argument, specify more connection details." t)
 (defun jabber-connect (username server resource &optional
 				registerp password network-server
-				port connection-type)
+				port connection-type accept-anonymous-auth)
   "Connect to the Jabber server and start a Jabber XML stream.
 With prefix argument, register a new account.
 With double prefix argument, specify more connection details."
@@ -201,7 +202,8 @@ With double prefix argument, specify more connection details."
 	 (setq password (cdr (assq :password alist)))
 	 (setq network-server (cdr (assq :network-server alist)))
 	 (setq port (cdr (assq :port alist)))
-	 (setq connection-type (cdr (assq :connection-type alist))))
+	 (setq connection-type (cdr (assq :connection-type alist)))
+	 (setq accept-anonymous-auth (cdr (assq :accept-anonymous-auth alist))))
        (when (equal current-prefix-arg '(16))
 	 ;; Double prefix arg: ask about everything.
 	 ;; (except password, which is asked about later anyway)
@@ -233,7 +235,7 @@ With double prefix argument, specify more connection details."
        (list (jabber-jid-username jid)
 	     (jabber-jid-server jid)
 	     (jabber-jid-resource jid)
-	     registerp password network-server port connection-type))))
+	     registerp password network-server port connection-type accept-anonymous-auth))))
 
   (require 'jabber)
 
@@ -251,11 +253,11 @@ With double prefix argument, specify more connection details."
 
     (push (start-jabber-connection username server resource
 				   registerp password 
-				   network-server port connection-type)
+				   network-server port connection-type accept-anonymous-auth)
 	  jabber-connections)))
 
 (define-state-machine jabber-connection
-  :start ((username server resource registerp password network-server port connection-type)
+  :start ((username server resource registerp password network-server port connection-type accept-anonymous-auth)
 	  "Start a Jabber connection."
 	  (let* ((connection-type
 		  (or connection-type jabber-default-connection-type))
@@ -274,7 +276,8 @@ With double prefix argument, specify more connection details."
 			:connection-type connection-type
 			:encrypted (eq connection-type 'ssl)
 			:network-server network-server
-			:port port)))))
+			:port port
+			:accept-anonymous-auth accept-anonymous-auth)))))
 
 (define-enter-state jabber-connection nil
   (fsm state-data)
