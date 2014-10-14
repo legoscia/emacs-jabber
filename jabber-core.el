@@ -192,7 +192,7 @@ With double prefix argument, specify more connection details."
    (let* ((jid (completing-read "Enter your JID: " jabber-account-list nil nil nil 'jabber-account-history))
 	  (entry (assoc jid jabber-account-list))
 	  (alist (cdr entry))
-	  password network-server port connection-type registerp)
+	  password network-server port connection-type registerp accept-anonymous-auth)
      (flet ((nonempty
 	     (s)
 	     (unless (zerop (length s)) s)))
