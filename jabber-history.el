@@ -92,6 +92,12 @@ number after the last rotation."
   :type 'integer
   :group 'jabber-history)
 
+(defvar jabber-history-inhibit-received-message-functions nil
+  "Functions determining whether to log an incoming message stanza.
+The functions in this list are called with two arguments,
+the connection and the full message stanza.
+If any of the functions returns non-nil, the stanza is not logged
+in the message history.")
 
 (defun jabber-rotate-history-p (history-file)
   "Return true if HISTORY-FILE should be rotated."
@@ -114,16 +120,19 @@ number after the last rotation."
 	     (not (file-directory-p jabber-history-dir)))
     (make-directory jabber-history-dir))
   (let ((is-muc (jabber-muc-message-p xml-data)))
-    (if (and jabber-history-enabled
-           (or
-            (not is-muc)                ;chat message or private MUC message
-            (and jabber-history-muc-enabled is-muc))) ;muc message and muc logging active
-      (let ((from (jabber-xml-get-attribute xml-data 'from))
-	    (text (car (jabber-xml-node-children
-			(car (jabber-xml-get-children xml-data 'body)))))
-	    (timestamp (jabber-message-timestamp xml-data)))
-	(when (and from text)
-	  (jabber-history-log-message "in" from nil text timestamp))))))
+    (when (and jabber-history-enabled
+	       (or
+		(not is-muc)                ;chat message or private MUC message
+		(and jabber-history-muc-enabled is-muc))) ;muc message and muc logging active
+      (unless (run-hook-with-args-until-success
+	       'jabber-history-inhibit-received-message-functions
+	       jc xml-data)
+	(let ((from (jabber-xml-get-attribute xml-data 'from))
+	      (text (car (jabber-xml-node-children
+			  (car (jabber-xml-get-children xml-data 'body)))))
+	      (timestamp (jabber-message-timestamp xml-data)))
+	  (when (and from text)
+	    (jabber-history-log-message "in" from nil text timestamp)))))))
 
 (add-hook 'jabber-chat-send-hooks 'jabber-history-send-hook)
 
