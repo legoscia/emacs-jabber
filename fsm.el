@@ -117,7 +117,7 @@ Default format is whatever `current-time-string' returns
 followed by a colon and a space.")
 
 (defun fsm-debug-output (format &rest args)
-  "Append debug output to buffer named by `fsm-debug'.
+  "Append debug output to buffer named by the variable `fsm-debug'.
 FORMAT and ARGS are passed to `format'."
   (when fsm-debug
     (with-current-buffer (get-buffer-create fsm-debug)
