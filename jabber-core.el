@@ -657,7 +657,7 @@ With double prefix argument, specify more connection details."
 				 #'handle-bind t
 				 #'handle-bind nil))
 	       (list :bind state-data))
-	   (message "Server doesn't permit resource binding and session establishing")
+	   (message "Server doesn't permit resource binding")
 	   (list nil state-data)))
 	(t
 	 (or
