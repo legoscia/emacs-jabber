@@ -6,7 +6,7 @@
 
 @dircategory Emacs
 @direntry
-* jabber.el: (jabber).             Emacs Jabber client
+* jabber.el: (jabber).             Emacs XMPP (Jabber) client
 @end direntry
 
 @copying
@@ -23,7 +23,7 @@ this permission notice are preserved on all copies.
 
 @titlepage
 @title jabber.el
-@subtitle instant messaging for Jabber
+@subtitle instant messaging for XMPP (Jabber)
 @author by Magnus Henoch and Tom Berger
 
 @page
@@ -68,11 +68,11 @@ this permission notice are preserved on all copies.
 @node Introduction, Basic operation, Top, Top
 @chapter Introduction
 
-jabber.el is a Jabber client running under Emacs.  For more
-information on the open-protocol instant messaging network Jabber,
-please visit @uref{http://www.jabber.org}.
+jabber.el is an XMPP (Jabber) client running under Emacs.  For more
+information on the open instant messaging protocol,
+please visit @uref{http://xmpp.org}.
 
-As a Jabber client, jabber.el is mostly just a face in the crowd,
+As a XMPP client, jabber.el is mostly just a face in the crowd,
 except that it uses buffers where GUI clients have windows.  There is
 a roster buffer, and to chat with someone you open a chat buffer, and
 there are buffers for
@@ -117,7 +117,7 @@ jabber-muc-join} and entering the address.
 @chapter Basic operation
 
 This chapter is intended as an introduction to basic usage of
-jabber.el.  If you have used Jabber before and are familiar with the
+jabber.el.  If you have used XMPP before and are familiar with the
 terminology, you might find it a bit too basic---in that case, just
 skim it, making sure to pick up the commands mentioned.
 

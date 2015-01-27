@@ -9,9 +9,9 @@ Package: emacs-jabber
 Architecture: all
 Depends: gnus (>= 5.10.6-1.NO.20050713-1) | flim | emacs-snapshot | emacs22
 Description: Jabber client for Emacs/XEmacs
- jabber.el (emacs-jabber) is a Jabber client for Emacs and XEmacs.
+ jabber.el (emacs-jabber) is an XMPP (Jabber) client for Emacs and XEmacs.
  .
- Jabber is an open instant messaging system.  For more information on
- Jabber, see http://www.jabber.org/.
+ XMPP is an open instant messaging system.  For more information on
+ XMPP, see http://xmpp.org/.
  .
  Homepage: http://emacs-jabber.sourceforge.net/
