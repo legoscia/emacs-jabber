@@ -1,6 +1,6 @@
-This is jabber.el 0.8.92, a Jabber client for Emacs.  Jabber (also known
-as XMPP) is an instant messaging system; see http://www.jabber.org for
-more information.
+This is jabber.el 0.8.92, an XMPP client for Emacs.  XMPP (also
+known as 'Jabber') is an instant messaging system; see
+http://xmpp.org for more information.
 
 Home page:    http://emacs-jabber.sourceforge.net
 Project page: http://sourceforge.net/projects/emacs-jabber
