@@ -1750,6 +1750,14 @@ is activated on connection.
 If the Jabber server uses a nonstandard port, specify it here.  The
 default is 5222 for STARTTLS and unencrypted connections, and 5223 for
 legacy SSL connections.
+
+@item Accept ANONYMOUS authentication mechanism
+This option specifies what to do if the Jabber server offers the ANONYMOUS
+authentication mechanism.  When this option is not set, or set to ``Ask''
+(@code{nil}) a prompt will be displayed. When set to ``Never'' (@code{never})
+the ANONYMOUS ahtentication mechanism will never be used when offered by the
+server, and when set to ``Always'' (@code{always}) this mechanism will be
+preferred over any other.
 @end table
 
 @subsection For Google Talk
