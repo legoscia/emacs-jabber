@@ -21,6 +21,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+(require 's)
+
 (eval-when-compile (require 'cl))
 (condition-case nil
     (require 'password)
@@ -484,8 +486,11 @@ TIME is in a format accepted by `format-time-string'."
 	 ;; fractions are optional
 	 (fraction (if (eq (aref time 19) ?.)
 		       (string-to-number (substring time 20 23))))
-	 (timezone (substring time (if fraction 23 19))))
-    ;; timezone is either Z (UTC) or [+-]HH:MM
+         (timezone (if (> (length time) 17)
+                       (if (setq tz (car (cdr (s-slice-at "[Z+-]" (substring "2015-02-07T15:56:17.12Z" 19)))))
+                           tz
+                         "Z")
+                     "Z")))
     (let ((timezone-seconds
 	   (if (string= timezone "Z")
 	       0
