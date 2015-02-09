@@ -21,7 +21,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 (condition-case nil
     (require 'password)
   (error nil))
@@ -348,10 +348,12 @@ Useful if the password proved to be wrong."
   (when (fboundp 'password-cache-remove)
     (password-cache-remove (jabber-password-key bare-jid))))
 
-(defun jabber-read-account (&optional always-ask)
+(defun jabber-read-account (&optional always-ask contact-hint)
   "Ask for which connected account to use.
 If ALWAYS-ASK is nil and there is only one account, return that
-account."
+account.
+If CONTACT-HINT is a string or a JID symbol, default to an account
+that has that contact in its roster."
   (let ((completions
          (mapcar (lambda (c)
                    (cons
@@ -374,6 +376,15 @@ account."
                        (jabber-connection-bare-jid at-point))) completions))
        (let* ((default 
                 (or
+		 (and contact-hint
+		      (setq contact-hint (jabber-jid-symbol contact-hint))
+		      (let ((matching
+			     (find-if
+			      (lambda (jc)
+				(memq contact-hint (plist-get (fsm-get-state-data jc) :roster)))
+			      jabber-connections)))
+			(when matching
+			  (jabber-connection-bare-jid matching))))
                  ;; if the buffer is associated with a connection, use it
                  (when (and jabber-buffer-connection
                             (memq jabber-buffer-connection jabber-connections))
