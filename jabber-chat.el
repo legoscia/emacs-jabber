@@ -654,10 +654,10 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
   "Open an empty chat window for chatting with JID.
 With a prefix argument, open buffer in other window.
 Returns the chat buffer."
-  (interactive (let ((jid
+  (interactive (let* ((jid
 		      (jabber-read-jid-completing "chat with:"))
-		     (account
-		      (jabber-read-account)))
+		      (account
+		       (jabber-read-account nil jid)))
 		 (list 
 		  account jid current-prefix-arg)))
   (let ((buffer (jabber-chat-create-buffer jc jid)))
