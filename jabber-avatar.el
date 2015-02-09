@@ -52,6 +52,16 @@
   :group 'jabber-avatar
   :type 'boolean)
 
+(defcustom jabber-avatar-max-width 96
+  "Maximum width of avatars."
+  :group 'jabber-avatar
+  :type 'integer)
+
+(defcustom jabber-avatar-max-height 96
+  "Maximum height of avatars."
+  :group 'jabber-avatar
+  :type 'integer)
+
 ;;;; Avatar data handling
 
 (defstruct avatar sha1-sum mime-type url base64-data height width bytes)
@@ -97,7 +107,7 @@ If MIME-TYPE is not specified, try to find it from the image data."
 	 (base64-data (or base64-string (base64-encode-string raw-data)))
 	 (type (or mime-type
 		   (cdr (assq (get :type (cdr (condition-case nil
-						  (create-image data nil t)
+						  (jabber-create-image data nil t)
 						(error nil))))
 			      '((png "image/png")
 				(jpeg "image/jpeg")
@@ -118,7 +128,7 @@ If MIME-TYPE is not specified, try to find it from the image data."
   "Create an image from AVATAR.
 Return nil if images of this type are not supported."
   (condition-case nil
-      (create-image (with-temp-buffer
+      (jabber-create-image (with-temp-buffer
 		      (set-buffer-multibyte nil)
 		      (insert (avatar-base64-data avatar))
 		      (base64-decode-region (point-min) (point-max))
@@ -194,7 +204,7 @@ AVATAR may be one of:
       (setq hash avatar)
       (setq image (lambda ()
 		    (condition-case nil
-			(create-image (jabber-avatar-find-cached avatar))
+			(jabber-create-image (jabber-avatar-find-cached avatar))
 		      (error nil)))))
      (t
       (setq hash nil)
@@ -204,6 +214,21 @@ AVATAR may be one of:
       (put jid-symbol 'avatar (funcall image))
       (put jid-symbol 'avatar-hash hash)
       (jabber-presence-update-roster jid-symbol))))
+
+(defun jabber-create-image (file-or-data &optional type data-p)
+  "Create image, scaled down to jabber-avatar-max-width/height,
+if width/height exceeds either of those, and ImageMagick is
+available."
+  (let* ((image (create-image file-or-data type data-p))
+         (size (image-size image t))
+         (spec (cdr image)))
+    (when (and (functionp 'imagemagick-types)
+               (or (> (car size) jabber-avatar-max-width)
+                   (> (cdr size) jabber-avatar-max-height)))
+      (plist-put spec :type 'imagemagick)
+      (plist-put spec :width jabber-avatar-max-width)
+      (plist-put spec :height jabber-avatar-max-height))
+    image))
 
 (provide 'jabber-avatar)
 ;; arch-tag: 2405c3f8-8eaa-11da-826c-000a95c2fcd0

@@ -396,7 +396,7 @@ The top node should be the `vCard' node."
       (when (and photo-type photo-binval)
 	(condition-case nil
 	    ;; ignore the type, let create-image figure it out.
-	    (let ((image (create-image (base64-decode-string photo-binval) nil t)))
+	    (let ((image (jabber-create-image (base64-decode-string photo-binval) nil t)))
 	      (insert-image image "[Photo]")
 	      (insert "\n"))
 	  (error (insert "Couldn't display photo\n")))))))
