@@ -994,13 +994,14 @@ Return nil if X-MUC is nil."
 	  ;; case we don't want an alert.
 	  (let ((children-namespaces (mapcar (lambda (x) (when (listp x) (jabber-xml-get-attribute x 'xmlns)))
 					     (jabber-xml-node-children xml-data))))
-	    (unless (or (member "urn:xmpp:delay" children-namespaces)
-			(member "jabber:x:delay" children-namespaces))
+            ;; MR: Commented as mam is adding delay, so we cannot rely purely on that to detect history
+            ;;	    (unless (or (member "urn:xmpp:delay" children-namespaces)
+            ;;      		(member "jabber:x:delay" children-namespaces))
 	      (dolist (hook '(jabber-muc-hooks jabber-alert-muc-hooks))
 		(run-hook-with-args hook
 				    nick group (current-buffer) body-text
 				    (funcall jabber-alert-muc-function
-					     nick group (current-buffer) body-text))))))))))
+					     nick group (current-buffer) body-text)))))))))
 
 (defun jabber-muc-process-presence (jc presence)
   (let* ((from (jabber-xml-get-attribute presence 'from))
