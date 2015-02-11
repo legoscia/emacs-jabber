@@ -641,21 +641,20 @@ With double prefix argument, specify more connection details."
 	 ;; Record stream features, discarding earlier data:
 	 (setq state-data (plist-put state-data :stream-features stanza))
 	 (if (jabber-xml-get-children stanza 'bind)
-	     (labels
-		 ((handle-bind 
-		   (jc xml-data success)
-		   (fsm-send jc (list
-				 (if success :bind-success :bind-failure)
-				 xml-data))))
-	       ;; So let's bind a resource.  We can either pick a resource ourselves,
-	       ;; or have the server pick one for us.
-	       (let ((resource (plist-get state-data :resource)))
-		 (jabber-send-iq fsm nil "set"
-				 `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
-					,@(when resource
-					    `((resource () ,resource))))
-				 #'handle-bind t
-				 #'handle-bind nil))
+	     (let ((handle-bind
+		    (lambda (jc xml-data success)
+		      (fsm-send jc (list
+				    (if success :bind-success :bind-failure)
+				    xml-data))))
+		   ;; So let's bind a resource.  We can either pick a resource ourselves,
+		   ;; or have the server pick one for us.
+		   (resource (plist-get state-data :resource)))
+	       (jabber-send-iq fsm nil "set"
+			       `(bind ((xmlns . "urn:ietf:params:xml:ns:xmpp-bind"))
+				      ,@(when resource
+					  `((resource () ,resource))))
+			       handle-bind t
+			       handle-bind nil)
 	       (list :bind state-data))
 	   (message "Server doesn't permit resource binding")
 	   (list nil state-data)))
@@ -677,16 +676,15 @@ With double prefix argument, specify more connection details."
      ;; offer session initiation here.  If it follows RFCs 6120 and
      ;; 6121, it might not offer it, and we should just skip it.
      (if (jabber-xml-get-children (plist-get state-data :stream-features) 'session)
-	 (labels
-	     ((handle-session
-	       (jc xml-data success)
-	       (fsm-send jc (list
-			     (if success :session-success :session-failure)
-			     xml-data))))
+	 (let ((handle-session
+		(lambda (jc xml-data success)
+		  (fsm-send jc (list
+				(if success :session-success :session-failure)
+				xml-data)))))
 	   (jabber-send-iq fsm nil "set"
 			   '(session ((xmlns . "urn:ietf:params:xml:ns:xmpp-session")))
-			   #'handle-session t
-			   #'handle-session nil)
+			   handle-session t
+			   handle-session nil)
 	   (list :bind state-data))
        ;; Session establishment not offered - assume not necessary.
        (list :session-established state-data)))
