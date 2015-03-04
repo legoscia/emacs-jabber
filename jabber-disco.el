@@ -360,11 +360,16 @@ invalidate cache and get fresh data."
 (defvar jabber-caps-cache (make-hash-table :test 'equal))
 
 (defconst jabber-caps-hash-names
-  '(("sha-1" . sha1)
-    ("sha-224" . sha224)
-    ("sha-256" . sha256)
-    ("sha-384" . sha384)
-    ("sha-512" . sha512))
+  (if (fboundp 'secure-hash)
+      '(("sha-1" . sha1)
+	("sha-224" . sha224)
+	("sha-256" . sha256)
+	("sha-384" . sha384)
+	("sha-512" . sha512))
+    ;; `secure-hash' was introduced in Emacs 24.  For Emacs 23, fall
+    ;; back to the `sha1' function, handled specially in
+    ;; `jabber-caps--secure-hash'.
+    '(("sha-1" . sha1)))
   "Hash function name map.
 Maps names defined in http://www.iana.org/assignments/hash-function-text-names
 to symbols accepted by `secure-hash'.
@@ -562,7 +567,18 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
       ;; with binary output and encoded using Base64 as specified in
       ;; Section 4 of RFC 4648 [20] (note: the Base64 output MUST NOT
       ;; include whitespace and MUST set padding bits to zero). [21]
-      (base64-encode-string (secure-hash algorithm s nil nil t) t))))
+      (base64-encode-string (jabber-caps--secure-hash algorithm s) t))))
+
+(defun jabber-caps--secure-hash (algorithm string)
+  (cond
+   ;; `secure-hash' was introduced in Emacs 24
+   ((fboundp 'secure-hash)
+    (secure-hash algorithm string nil nil t))
+   ((eq algorithm 'sha1)
+    ;; For SHA-1, we can use the `sha1' function.
+    (sha1 string nil nil t))
+   (t
+    (error "Cannot use hash algorithm %s!" algorithm))))
 
 (defun jabber-caps-identity-< (a b)
   (let ((a-category (jabber-xml-get-attribute a 'category))
