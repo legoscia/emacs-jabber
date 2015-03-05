@@ -155,7 +155,7 @@ With prefix argument, remove it."
 	  `(or (eq jabber-display-menu t)
 	       (and (eq jabber-display-menu 'maybe)
 		    (or ,user-installed-package
-			jabber-account-list
+			(bound-and-true-p jabber-account-list)
 			(bound-and-true-p jabber-connections)))))))
 
 (defvar jabber-jid-chat-menu nil
