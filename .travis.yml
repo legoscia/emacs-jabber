@@ -6,4 +6,5 @@ before_install:
   - sudo apt-get install -qq -yy ${EMACS}-nox
 script:
   - emacs --version
+  - autoreconf -i
   - make distcheck
