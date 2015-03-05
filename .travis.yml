@@ -9,4 +9,5 @@ before_install:
 script:
   - emacs --version
   - autoreconf -i
+  - ./configure
   - make distcheck
