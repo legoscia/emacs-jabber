@@ -496,7 +496,7 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
   ;; 1. Initialize an empty string S.
   (with-temp-buffer
     (let* ((identities (jabber-xml-get-children query 'identity))
-	   (features (mapcar (lambda (feature) (jabber-xml-get-attribute feature 'var))
+	   (disco-features (mapcar (lambda (f) (jabber-xml-get-attribute f 'var))
 			     (jabber-xml-get-children query 'feature)))
 	   (maybe-forms (jabber-xml-get-children query 'x))
 	   (forms (remove-if-not
@@ -521,11 +521,11 @@ Return (IDENTITIES FEATURES), or nil if not in cache."
 	  ;; `insert', since `concat' tolerates nil values.
 	  (insert (concat category "/" type "/" xml:lang "/" name "<"))))
       ;; 4. Sort the supported service discovery features. [17]
-      (setq features (sort features #'string<))
+      (setq disco-features (sort disco-features #'string<))
       ;; 5. For each feature, append the feature to S, followed by the
       ;; '<' character.
-      (dolist (feature features)
-	(insert feature "<"))
+      (dolist (f disco-features)
+	(insert f "<"))
       ;; 6. If the service discovery information response includes
       ;; XEP-0128 data forms, sort the forms by the FORM_TYPE (i.e.,
       ;; by the XML character data of the <value/> element).
