@@ -10,4 +10,4 @@ script:
   - emacs --version
   - autoreconf -i
   - ./configure
-  - make distcheck
+  - make all check
