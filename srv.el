@@ -46,7 +46,6 @@ of the list.  The list is empty if no SRV records were found."
     (error "No dns.el available"))
   (unless (assq 'SRV dns-query-types)
     (error "dns.el doesn't support SRV lookups"))
-  ;; `dns-query' used to be `query-dns'.  Try both names for now.
   (let* ((result (srv--dns-query target))
 	 (answers (mapcar #'(lambda (a)
 			      (cadr (assq 'data a)))
@@ -98,9 +97,7 @@ of the list.  The list is empty if no SRV records were found."
 (defun srv--dns-query (target)
   ;; dns-query uses UDP, but that is not supported on Windows...
   (if (featurep 'make-network-process '(:type datagram))
-      (if (fboundp 'query-dns)
-          (query-dns target 'SRV t)
-        (dns-query target 'SRV t))
+      (dns-query target 'SRV t)
     ;; ...so let's call nslookup instead.
     (srv--nslookup target)))
 
