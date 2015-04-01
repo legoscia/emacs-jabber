@@ -12,18 +12,6 @@
 
 (defvar rd-roster-string nil)
 
-(defconst rd-expected-roster
-  (concat
-   "Jabber roster\n"
-   "__________________________________\n"
-   "\n"
-   " - Online -\n"
-   "romeo@montague.net\n"
-   "__________________________________\n"
-   "\n"
-   "__________________________________\n"
-   "\n"))
-
 (defun rd-check-roster-buffer (&optional _jc)
   (with-current-buffer jabber-roster-buffer
     (let ((contents (buffer-string)))
@@ -52,4 +40,38 @@
   (while (not (and rd-roster-string (equal "" *jabber-current-show*)))
     (sit-for 0.1)))
 
-(rd-compare "Empty roster" rd-expected-roster)
+(rd-compare
+ "Empty roster"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "One contact"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "other\n"
+  "     juliet@capulet.com            Offline   \n"
+  "__________________________________\n"
+  "\n"))
