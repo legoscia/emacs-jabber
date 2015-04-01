@@ -3,6 +3,7 @@
 ;;; actual tests.
 
 (require 'jabber)
+(require 'jabber-autoloads)
 (require 'cl)
 
 (defvar jabberd-stanza-handlers '(jabberd-sasl jabberd-iq)
