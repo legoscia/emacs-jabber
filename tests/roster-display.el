@@ -75,3 +75,126 @@
   "     juliet@capulet.com            Offline   \n"
   "__________________________________\n"
   "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Capulets")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "One contact in one group"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "     juliet@capulet.com            Offline   \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Capulets")
+		   (group () "Lovers")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "One contact in two groups"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "     juliet@capulet.com            Offline   \n"
+  "Lovers\n"
+  "     juliet@capulet.com            Offline   \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(presence ((from . "juliet@capulet.com/balcony"))))
+
+;; Roster updates are batched.  Force a timeout.
+(fsm-send-sync (car jabber-connections) :timeout)
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact goes online"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "   * juliet@capulet.com            Online    \n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Lovers")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact moved to one group"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com")
+		    (subscription . "remove"))))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact deleted"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "__________________________________\n"
+  "\n"))
