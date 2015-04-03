@@ -766,7 +766,7 @@ three being lists of JID symbols."
 	(let ((jid (symbol-name delete-this)))
 	  (when jabber-roster-debug
 	    (message (concat "delete jid: " jid)))
-	  (dolist (group (mapcar (lambda (g) (car g)) all-groups))
+	  (dolist (group (mapcar #'car all-groups))
 	    (when jabber-roster-debug
 	      (message (concat "try to delete jid: " jid " from group " group)))
 	    (puthash group
@@ -880,7 +880,7 @@ If optional PREV is non-nil, return position of previous property appearence."
     (let* ((groups (plist-get (fsm-get-state-data jc) :roster-roll-groups))
            (roll-groups
             (if groups
-                (mapconcat (lambda (a) (substring-no-properties a)) groups "\n")
+                (mapconcat #'substring-no-properties groups "\n")
               "")))
       (jabber-private-set jc
                           `(roster ((xmlns . "emacs-jabber"))
