@@ -791,18 +791,11 @@ three being lists of JID symbols."
       
       (when jabber-roster-debug
 	(message "remove duplicates from new group"))
-      (setq all-groups (sort
+      (setq all-groups (sort*
 			(remove-duplicates all-groups
-					   :test (lambda (g1 g2)
-						   (let ((g1-name (car g1))
-							 (g2-name (car g2)))
-						     (string= g1-name
-							      g2-name))))
-			(lambda (g1 g2)
-			  (let ((g1-name (car g1))
-				(g2-name (car g2)))
-			    (string< g1-name
-				     g2-name)))))
+					   :test #'string=
+					   :key #'car)
+			#'string< :key #'car))
 
       (plist-put (fsm-get-state-data jc) :roster-groups all-groups))
 
