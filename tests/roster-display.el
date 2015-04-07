@@ -13,6 +13,13 @@
 (defvar rd-roster-string nil)
 
 (defun rd-check-roster-buffer (&optional _jc)
+  ;; The presence stanza causes an asynchronous :roster-update message
+  ;; to be sent.  Let's wait for that.
+  (accept-process-output nil 0.1)
+
+  ;; Roster updates are batched.  Force a timeout.
+  (fsm-send-sync (car jabber-connections) :timeout)
+
   (with-current-buffer jabber-roster-buffer
     (let ((contents (buffer-string)))
       (set-text-properties 0 (length contents) () contents)
@@ -130,9 +137,6 @@
 (jabber-process-input
  (car jabber-connections)
  '(presence ((from . "juliet@capulet.com/balcony"))))
-
-;; Roster updates are batched.  Force a timeout.
-(fsm-send-sync (car jabber-connections) :timeout)
 
 (rd-check-roster-buffer)
 
