@@ -581,7 +581,11 @@ H        Toggle displaying this text
 					 'face 'jabber-title-medium)
 		      "\n__________________________________\n")
 		     "__________________________________"))
-	      (new-groups '()))
+	      (new-groups '())
+	      (buddy-ewoc-node-hash (make-hash-table :test 'equal))
+	      (group-ewoc-node-hash (make-hash-table :test 'equal)))
+	  (plist-put (fsm-get-state-data jc) :buddy-ewoc-node-hash buddy-ewoc-node-hash)
+	  (plist-put (fsm-get-state-data jc) :group-ewoc-node-hash group-ewoc-node-hash)
 	  (plist-put(fsm-get-state-data jc) :roster-ewoc ewoc)
 	  (dolist (group (plist-get (fsm-get-state-data jc) :roster-groups))
 	    (let* ((group-name (car group))
@@ -591,12 +595,16 @@ H        Toggle displaying this text
 	      (when (or jabber-roster-show-empty-group
 			(> (length buddies) 0))
 		(let ((group-node (ewoc-enter-last ewoc (list group nil))))
+		  (puthash group group-node group-ewoc-node-hash)
 		  (if (not (find
 			    group-name
 			    (plist-get (fsm-get-state-data jc) :roster-roll-groups)
 			    :test 'string=))
 		      (dolist (buddy (reverse buddies))
-			(ewoc-enter-after ewoc group-node (list group buddy))))))))
+			(let ((new-node
+			       (ewoc-enter-after ewoc group-node (list group buddy)))
+			      (entry (gethash buddy buddy-ewoc-node-hash)))
+			  (puthash buddy (cons new-node entry) buddy-ewoc-node-hash))))))))
 	  (goto-char (point-max))
 	  (insert "\n")
 	  (put-text-property before-ewoc (point)
@@ -730,24 +738,10 @@ three being lists of JID symbols."
 	 (hash (plist-get (fsm-get-state-data jc) :roster-hash))
 	 (ewoc (plist-get (fsm-get-state-data jc) :roster-ewoc))
 	 (all-groups (plist-get (fsm-get-state-data jc) :roster-groups))
-	 (terminator
-	  (lambda (deleted-items)
-	    (dolist (delete-this deleted-items)
-	      (let ((groups (get delete-this 'groups))
-		    (terminator
-		     (lambda (g)
-		       (let*
-			   ((group (or g jabber-roster-default-group-name))
-			    (buddies (gethash group hash)))
-			 (when (not buddies)
-			   (setq new-groups (append new-groups (list group))))
-			 (puthash group
-				  (delq delete-this buddies)
-				  hash)))))
-		(if groups
-		    (dolist (group groups)
-		      (terminator group))
-		  (terminator groups)))))))
+	 (buddy-ewoc-node-hash (plist-get (fsm-get-state-data jc) :buddy-ewoc-node-hash))
+	 (group-ewoc-node-hash (plist-get (fsm-get-state-data jc) :group-ewoc-node-hash))
+	 ;; Currently we need to redraw the roster when items are added.
+	 (need-redraw (not (null new-items))))
 
     ;; fix a old-roster
     (dolist (delete-this deleted-items)
@@ -776,11 +770,19 @@ three being lists of JID symbols."
 
       ;; insert changed-items
       (dolist (insert-this (append changed-items new-items))
-	(let ((jid (symbol-name insert-this)))
+	(let* ((jid (symbol-name insert-this))
+	       (existing-ewoc-data (mapcar #'ewoc-data (gethash insert-this buddy-ewoc-node-hash)))
+	       (old-groups (mapcar #'caar existing-ewoc-data))
+	       (new-groups (or (get insert-this 'groups)
+			       (list jabber-roster-default-group-name))))
+	  ;; If a contact is added to a group, we currently need to
+	  ;; redraw the entire roster buffer.
+	  (setq need-redraw
+		(or need-redraw
+		    (not (null (set-difference new-groups old-groups :test #'string=)))))
 	  (when jabber-roster-debug
 	    (message (concat "insert jid: " jid)))
-	  (dolist (group (or (get insert-this 'groups)
-			     (list jabber-roster-default-group-name)))
+	  (dolist (group new-groups)
 	    (when jabber-roster-debug
 	      (message (concat "insert jid: " jid " to group " group)))
 	    (puthash group
@@ -804,8 +806,71 @@ three being lists of JID symbols."
     (when jabber-roster-debug
       (message "re display roster"))
 
-    ;; recreate roster buffer
-    (jabber-display-roster)))
+    (if (or (null ewoc) need-redraw)
+	;; Recreate roster buffer if there is no ewoc, or if items
+	;; have been added.
+	;; TODO: handle added items more gracefully.
+	(jabber-display-roster)
+      ;; If we're not showing offline contacts, figure out which items
+      ;; should be added/removed.
+      (unless jabber-show-offline-contacts
+	(let* ((actually-added
+		(cl-remove-if-not
+		 (lambda (buddy)
+		   (and (jabber-roster--display-item-p buddy)
+			(not (gethash buddy buddy-ewoc-node-hash))))
+		 changed-items))
+	       (actually-removed
+		(cl-remove-if-not
+		 (lambda (buddy)
+		   (and (not (jabber-roster--display-item-p buddy))
+			(gethash buddy buddy-ewoc-node-hash)))
+		 changed-items)))
+	  (setq changed-items (set-difference changed-items actually-added))
+	  (setq changed-items (set-difference changed-items actually-removed))
+	  (setq new-items (append actually-added new-items))
+	  (setq deleted-items (append actually-removed deleted-items))))
+
+      (let ((delete-roster-item
+	     (lambda (node)
+	       (let ((previous (ewoc-prev ewoc node))
+		     (next (ewoc-next ewoc node)))
+		 (ewoc-delete ewoc node)
+		 (when (and
+			;; Was the previous ewoc node a group node?
+			(null (cadr (ewoc-data previous)))
+			;; And is the following node also a group node,
+			;; or the end of the ewoc?
+			(or (null next) (null (cadr (ewoc-data next)))))
+		   ;; That means that we just emptied a group.  Let's
+		   ;; remove the preceding group heading.
+		   (ewoc-delete ewoc previous))))))
+      ;; changed-items and deleted-items are lists of symbols.  Let's
+      ;; look them up in buddy-ewoc-node-hash.
+      (dolist (buddy deleted-items)
+	;; Because a contact can be in multiple groups, there might be
+	;; several ewoc items.
+	(let ((inhibit-read-only t)
+	      (entry (gethash buddy buddy-ewoc-node-hash)))
+	  (mapc delete-roster-item entry)
+	  (remhash buddy buddy-ewoc-node-hash)))
+      ;; Hm, what is the ewoc data exactly?  It's a list, (GROUP BUDDY).
+      ;; BUDDY is a symbol, so it already contains all relevant data.
+      (dolist (buddy changed-items)
+	(let* ((inhibit-read-only t)
+	       (entry (gethash buddy buddy-ewoc-node-hash))
+	       (current-groups (or (get buddy 'groups)
+				   (list jabber-roster-default-group-name)))
+	       (to-be-removed
+		(remove-if
+		 (lambda (node)
+		   (member (caar (ewoc-data node)) current-groups))
+		 entry))
+	       (to-be-updated
+		(set-difference entry to-be-removed)))
+	  (mapc delete-roster-item to-be-removed)
+	  (apply #'ewoc-invalidate ewoc to-be-updated)
+	  (puthash buddy to-be-updated buddy-ewoc-node-hash)))))))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
