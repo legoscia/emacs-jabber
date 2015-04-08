@@ -491,11 +491,12 @@ See `jabber-sort-order' for order used."
 There is only one; we don't rely on buffer-local variables or
 such.")
 
+(defun jabber-roster--display-item-p (buddy)
+  (or jabber-show-offline-contacts (get buddy 'connected)))
+
 (defun jabber-roster-filter-display (buddies)
   "Filter BUDDIES for items to be displayed in the roster"
-  (remove-if-not (lambda (buddy) (or jabber-show-offline-contacts
-				     (get buddy 'connected)))
-		 buddies))
+  (remove-if-not #'jabber-roster--display-item-p buddies))
 
 (defun jabber-roster-toggle-offline-display ()
   "Toggle display of offline contacts.
