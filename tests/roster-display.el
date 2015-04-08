@@ -2,6 +2,20 @@
 (require 'cl)
 
 (setq jabber-roster-show-bindings nil)
+(setq jabber-roster-debug t)
+
+;; Ensure that errors are logged
+(advice-add 'jabber-roster-update :around
+	    (lambda (oldfun &rest r)
+	      (condition-case e
+		  (apply oldfun r)
+		(error
+		 (princ "error in jabber-roster-update!\n")
+		 (princ (error-message-string e))
+		 (signal (car e) (cdr e))))))
+
+(trace-function-background 'jabber-roster-update "*trace*")
+(trace-function-background 'fsm-send-sync "*trace*")
 
 ;; jabber-post-connect-hooks is run after the roster has been drawn
 ;; for the first time - but jabber-send-presence will redraw the
@@ -37,6 +51,8 @@
       (prin1 (substring rd-roster-string 0 result))
       (princ " ***mismatch here*** ")
       (prin1 (substring rd-roster-string result))
+      (princ (with-current-buffer "*fsm-debug*" (buffer-string)))
+      (princ (with-current-buffer "*trace*" (buffer-string)))
       (error "Mismatch"))))
 
 (jabberd-connect)
