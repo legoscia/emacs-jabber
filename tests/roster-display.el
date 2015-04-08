@@ -224,3 +224,141 @@
   "\n"
   "__________________________________\n"
   "\n"))
+
+;;; Hiding offline contacts
+
+(setq jabber-show-offline-contacts nil)
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "One contact (offline)"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(presence ((from . "juliet@capulet.com/balcony"))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact goes online"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "other\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Capulets")
+		   (group () "Lovers")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact in two groups"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "   * juliet@capulet.com            Online    \n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Lovers")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact moved to one group"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(presence ((from . "juliet@capulet.com/balcony")
+	     (type . "unavailable"))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact goes offline (offline contacts hidden)"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(presence ((from . "juliet@capulet.com/balcony"))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact goes online again"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
