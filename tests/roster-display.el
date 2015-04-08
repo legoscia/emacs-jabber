@@ -183,6 +183,28 @@
 
 (jabber-process-input
  (car jabber-connections)
+ '(presence ((from . "juliet@capulet.com/balcony")
+	     (type . "unavailable"))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Contact goes offline"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Lovers\n"
+  "     juliet@capulet.com            Offline   \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
  '(iq ((type . "set"))
       (query ((xmlns . "jabber:iq:roster"))
 	     (item ((jid . "juliet@capulet.com")
