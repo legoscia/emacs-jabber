@@ -13,4 +13,5 @@ script:
   - automake --version
   - autoreconf -i
   - ./configure
-  - make all check
+  - make all
+  - make check VERBOSE=yes
