@@ -861,16 +861,46 @@ three being lists of JID symbols."
 	       (entry (gethash buddy buddy-ewoc-node-hash))
 	       (current-groups (or (get buddy 'groups)
 				   (list jabber-roster-default-group-name)))
-	       (to-be-removed
-		(remove-if
-		 (lambda (node)
-		   (member (caar (ewoc-data node)) current-groups))
-		 entry))
-	       (to-be-updated
-		(set-difference entry to-be-removed)))
-	  (mapc delete-roster-item to-be-removed)
-	  (apply #'ewoc-invalidate ewoc to-be-updated)
-	  (puthash buddy to-be-updated buddy-ewoc-node-hash)))))))
+	       new-entry)
+	  (dolist (node entry)
+	    (if (not (member (caar (ewoc-data node)) current-groups))
+		;; If the contact has been removed from a roster group,
+		;; just remove from display under that roster group.
+		(funcall delete-roster-item node)
+	      ;; Check if the sort order has changed.
+	      (cond
+	       ;; Should the item move up?
+	       ((let ((previous (ewoc-prev ewoc node))
+		      insert-before)
+		  (while (let ((previous-buddy (and previous (cadr (ewoc-data previous)))))
+			   (when (and previous-buddy
+				      (jabber-roster-sort-items buddy previous-buddy))
+			     (setq insert-before previous)
+			     (setq previous (ewoc-prev ewoc previous))
+			     t)))
+		  (when insert-before
+		    (let ((data (ewoc-data node)))
+		      (ewoc-delete ewoc node)
+		      (push (ewoc-enter-before ewoc insert-before data) new-entry)))))
+	       ;; Should the item move down?
+	       ((let ((next (ewoc-next ewoc node))
+		      insert-after)
+		  (while (let ((next-buddy (and next (cadr (ewoc-data next)))))
+			   (when (and next-buddy
+				      (jabber-roster-sort-items next-buddy buddy))
+			     (setq insert-after next)
+			     (setq next (ewoc-next ewoc next))
+			     t)))
+		  (when insert-after
+		    (let ((data (ewoc-data node)))
+		      (ewoc-delete ewoc node)
+		      (push (ewoc-enter-after ewoc insert-after data) new-entry)))))
+	       ;; Or should it be updated in place?
+	       (t
+		(ewoc-invalidate ewoc node)
+		(push node new-entry)))))
+	  ;; Update hash table with new ewoc node list.
+	  (puthash buddy new-entry buddy-ewoc-node-hash)))))))
 
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.

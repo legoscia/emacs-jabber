@@ -377,3 +377,88 @@
   "   * juliet@capulet.com            Online    \n"
   "__________________________________\n"
   "\n"))
+
+;;; More than one contact
+
+(setq jabber-show-offline-contacts t)
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "mercutio@capulet.com"))
+		   (group () "Capulets")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Two contacts in separate groups"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "     mercutio@capulet.com          Offline   \n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(jabber-process-input
+ (car jabber-connections)
+ '(iq ((type . "set"))
+      (query ((xmlns . "jabber:iq:roster"))
+	     (item ((jid . "juliet@capulet.com"))
+		   (group () "Capulets")
+		   (group () "Lovers")))))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "One contact in both groups"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "   * juliet@capulet.com            Online    \n"
+  "     mercutio@capulet.com          Offline   \n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
+
+(trace-function-background 'jabber-roster-sort-items "*trace*")
+
+(jabber-process-input
+ (car jabber-connections)
+ '(presence ((from . "mercutio@capulet.com/balcony"))
+	    (show () "chat")))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Chatty contact ordered first"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "Capulets\n"
+  "   * mercutio@capulet.com          Chatty    \n"
+  "   * juliet@capulet.com            Online    \n"
+  "Lovers\n"
+  "   * juliet@capulet.com            Online    \n"
+  "__________________________________\n"
+  "\n"))
