@@ -5,14 +5,13 @@
 (setq jabber-roster-debug t)
 
 ;; Ensure that errors are logged
-(advice-add 'jabber-roster-update :around
-	    (lambda (oldfun &rest r)
-	      (condition-case e
-		  (apply oldfun r)
-		(error
-		 (princ "error in jabber-roster-update!\n")
-		 (princ (error-message-string e))
-		 (signal (car e) (cdr e))))))
+(defadvice jabber-roster-update (around log-errors activate)
+  (condition-case e
+      ad-do-it
+    (error
+     (princ "error in jabber-roster-update!\n")
+     (princ (error-message-string e))
+     (signal (car e) (cdr e)))))
 
 (trace-function-background 'jabber-roster-update "*trace*")
 (trace-function-background 'fsm-send-sync "*trace*")
