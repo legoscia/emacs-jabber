@@ -815,13 +815,13 @@ three being lists of JID symbols."
       ;; should be added/removed.
       (unless jabber-show-offline-contacts
 	(let* ((actually-added
-		(cl-remove-if-not
+		(remove-if-not
 		 (lambda (buddy)
 		   (and (jabber-roster--display-item-p buddy)
 			(not (gethash buddy buddy-ewoc-node-hash))))
 		 changed-items))
 	       (actually-removed
-		(cl-remove-if-not
+		(remove-if-not
 		 (lambda (buddy)
 		   (and (not (jabber-roster--display-item-p buddy))
 			(gethash buddy buddy-ewoc-node-hash)))
