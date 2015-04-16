@@ -25,6 +25,13 @@
 
 (defvar rd-roster-string nil)
 
+(defun rd-clear-roster ()
+  (let ((state-data (fsm-get-state-data (car jabber-connections))))
+    ;; First unintern everything:
+    (jabber-clear-roster)
+    (plist-put state-data :roster nil)
+    (plist-put state-data :roster-hash nil)))
+
 (defun rd-check-roster-buffer (&optional _jc)
   ;; The presence stanza causes an asynchronous :roster-update message
   ;; to be sent.  Let's wait for that.
@@ -462,3 +469,117 @@
   "   * juliet@capulet.com            Online    \n"
   "__________________________________\n"
   "\n"))
+
+(rd-clear-roster)
+
+;; This test case was found through a Quickcheck property.
+(dolist (input '((iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "c@example.com")) (group () "d") )))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "d@example.com")) (group () "d") )))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "e@example.com")) (group () "d") )))
+		 (presence ((from . "e@example.com"))
+			   (show () "dnd"))
+		 (presence ((from . "d@example.com")))))
+  (jabber-process-input (car jabber-connections) input))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Something wrong with ordering"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "d\n"
+  "   * d@example.com                 Online    \n"
+  "   * e@example.com                 Do not Disturb  \n"
+  "     c@example.com                 Offline   \n"
+  "__________________________________\n"
+  "\n"
+  ))
+
+(rd-clear-roster)
+
+;; More Quickcheck test cases.
+(dolist (input '((iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "b@example.com")) (group () "b") )))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "c@example.com")) (group () "b") )))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "a@example.com"))  )))
+		 (presence ((from . "b@example.com"))   (show () "away"))
+		 (presence ((from . "c@example.com") (type . "unavailable")))
+		 (presence ((from . "a@example.com"))   (show () "dnd"))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "a@example.com")) (group () "b") )))))
+  (jabber-process-input (car jabber-connections) input))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "More ordering issues"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "b\n"
+  "   * b@example.com                 Away      \n"
+  "   * a@example.com                 Do not Disturb  \n"
+  "     c@example.com                 Offline   \n"
+  "__________________________________\n"
+  "\n"
+  ))
+
+(rd-clear-roster)
+
+(dolist (input '((iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "c@example.com")) (group () "b"))))
+		 (presence ((from . "c@example.com"))   (show () "away"))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "e@example.com")) (group () "b"))))
+		 (presence ((from . "e@example.com")))
+		 (iq ((type . "set"))
+		     (query ((xmlns . "jabber:iq:roster"))
+			    (item ((jid . "a@example.com")) (group () "b"))))
+		 (presence ((from . "c@example.com") (type . "unavailable")))
+		 ))
+  (jabber-process-input (car jabber-connections) input))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Yet another ordering issue"
+ (concat
+  "Jabber roster\n"
+  "__________________________________\n"
+  "\n"
+  " - Online -\n"
+  "romeo@montague.net\n"
+  "__________________________________\n"
+  "\n"
+  "b\n"
+  "   * e@example.com                 Online    \n"
+  "     a@example.com                 Offline   \n"
+  "     c@example.com                 Offline   \n"
+  "__________________________________\n"
+  "\n"
+  ))
