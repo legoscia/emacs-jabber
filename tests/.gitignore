@@ -1,2 +1,5 @@
 *.log
 *.trs
+roster-display
+roster-display.hi
+roster-display.o
