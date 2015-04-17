@@ -9,6 +9,7 @@ import Data.Char (toLower)
 import Control.Monad (liftM, mfilter)
 
 data RosterEvent = IqRoster JID [Group] (Maybe String) |
+                   IqRosterDelete JID |
                    Presence JID PresenceType |
                    Noop
                    deriving (Show, Eq)
@@ -18,6 +19,7 @@ instance Arbitrary RosterEvent where
                    [ do groups <- arbitrary
                         maybeName <- arbitraryName
                         return $ IqRoster jid (nub groups) maybeName,
+                     return $ IqRosterDelete jid,
                      do presenceType <- arbitrary
                         return $ Presence jid presenceType]
     where arbitraryName :: Gen (Maybe String)
@@ -79,6 +81,10 @@ toLisp (IqRoster (JID jid) groups maybeName) =
   ") "++
   concat ["(group () \""++group++"\")" | (Group group) <- groups] ++
   " )))"
+toLisp (IqRosterDelete (JID jid)) =
+  "(iq ((type . \"set\"))"++
+  "  (query ((xmlns . \"jabber:iq:roster\"))" ++
+  "    (item ((jid . \""++jid++"\") (subscription . \"remove\")))))"
 toLisp (Presence (JID jid) Unavailable) =
   "(presence ((from . \""++jid++"\") (type . \"unavailable\")))"
 toLisp (Presence (JID jid) Online) =
