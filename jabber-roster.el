@@ -740,8 +740,7 @@ three being lists of JID symbols."
 	 (all-groups (plist-get (fsm-get-state-data jc) :roster-groups))
 	 (buddy-ewoc-node-hash (plist-get (fsm-get-state-data jc) :buddy-ewoc-node-hash))
 	 (group-ewoc-node-hash (plist-get (fsm-get-state-data jc) :group-ewoc-node-hash))
-	 ;; Currently we need to redraw the roster when items are added.
-	 (need-redraw (not (null new-items))))
+	 (need-redraw nil))
 
     ;; fix a old-roster
     (dolist (delete-this deleted-items)
