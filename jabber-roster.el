@@ -774,11 +774,13 @@ three being lists of JID symbols."
 	       (old-groups (mapcar #'caar existing-ewoc-data))
 	       (new-groups (or (get insert-this 'groups)
 			       (list jabber-roster-default-group-name))))
-	  ;; If a contact is added to a group, we currently need to
-	  ;; redraw the entire roster buffer.
+	  ;; If a contact is added to a group that's currently not
+	  ;; displayed, we currently need to redraw the entire roster
+	  ;; buffer.
 	  (setq need-redraw
 		(or need-redraw
-		    (not (null (set-difference new-groups old-groups :test #'string=)))))
+		    (some (lambda (group) (null (gethash group group-ewoc-node-hash)))
+			  new-groups)))
 	  (when jabber-roster-debug
 	    (message (concat "insert jid: " jid)))
 	  (dolist (group new-groups)
