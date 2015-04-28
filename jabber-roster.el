@@ -595,7 +595,7 @@ H        Toggle displaying this text
 	      (when (or jabber-roster-show-empty-group
 			(> (length buddies) 0))
 		(let ((group-node (ewoc-enter-last ewoc (list group nil))))
-		  (puthash group group-node group-ewoc-node-hash)
+		  (puthash group-name group-node group-ewoc-node-hash)
 		  (if (not (find
 			    group-name
 			    (plist-get (fsm-get-state-data jc) :roster-roll-groups)
@@ -774,13 +774,11 @@ three being lists of JID symbols."
 	       (old-groups (mapcar #'caar existing-ewoc-data))
 	       (new-groups (or (get insert-this 'groups)
 			       (list jabber-roster-default-group-name))))
-	  ;; If a contact is added to a group that's currently not
-	  ;; displayed, we currently need to redraw the entire roster
-	  ;; buffer.
+	  ;; If a contact is added to a group, we currently need to
+	  ;; redraw the entire roster buffer.
 	  (setq need-redraw
 		(or need-redraw
-		    (some (lambda (group) (null (gethash group group-ewoc-node-hash)))
-			  new-groups)))
+		    (not (null (set-difference new-groups old-groups :test #'string=)))))
 	  (when jabber-roster-debug
 	    (message (concat "insert jid: " jid)))
 	  (dolist (group new-groups)
@@ -845,6 +843,7 @@ three being lists of JID symbols."
 			(or (null next) (null (cadr (ewoc-data next)))))
 		   ;; That means that we just emptied a group.  Let's
 		   ;; remove the preceding group heading.
+		   (remhash (caar (ewoc-data previous)) group-ewoc-node-hash)
 		   (ewoc-delete ewoc previous))))))
       ;; changed-items and deleted-items are lists of symbols.  Let's
       ;; look them up in buddy-ewoc-node-hash.
