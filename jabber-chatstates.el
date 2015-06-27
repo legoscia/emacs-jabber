@@ -103,7 +103,7 @@ It can be sent and cancelled several times.")
   "Send an 'paused state notification."
   (when (and jabber-chatstates-requested jabber-chatting-with)
     (setq jabber-chatstates-composing-sent nil)
-    (jabber-send-sexp
+    (jabber-send-sexp-if-connected
      jabber-buffer-connection
      `(message
        ((to . ,jabber-chatting-with)
@@ -117,7 +117,7 @@ It can be sent and cancelled several times.")
                jabber-chatting-with
 	       jabber-chatstates-requested
                (not (eq composing-now jabber-chatstates-composing-sent)))
-      (jabber-send-sexp
+      (jabber-send-sexp-if-connected
        jabber-buffer-connection
        `(message
          ((to . ,jabber-chatting-with)
