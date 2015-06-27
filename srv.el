@@ -106,6 +106,9 @@ of the list.  The list is empty if no SRV records were found."
     (call-process "nslookup" nil t nil "-type=srv" target)
     (goto-char (point-min))
     (let (results)
+      ;; This matches what nslookup prints on Windows.  It's unlikely
+      ;; to work for other systems, but on those systems we use DNS
+      ;; directly.
       (while (search-forward-regexp
               (concat "[\s\t]*priority += \\(.*\\)\r?\n"
                       "[\s\t]*weight += \\(.*\\)\r?\n"
