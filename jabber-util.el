@@ -467,7 +467,7 @@ Return nil if no such data available."
 (defun jabber-encode-time (time)
   "Convert TIME to a string by JEP-0082.
 TIME is in a format accepted by `format-time-string'."
-  (format-time-string "%Y-%m-%dT%H:%M:%SZ" nil t))
+  (format-time-string "%Y-%m-%dT%H:%M:%SZ" time t))
 
 (defun jabber-encode-timezone ()
   (let ((time-zone-offset (nth 0 (current-time-zone))))
