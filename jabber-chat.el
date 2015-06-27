@@ -455,8 +455,8 @@ This function is used as an ewoc prettyprinter."
 	 (prev-data (when prev (ewoc-data prev))))
     (flet ((entry-time (entry)
 		       (or (when (listp (cadr entry))
-			     (jabber-message-timestamp (cadr entry))
-			     (plist-get (cddr entry) :time)))))
+			     (jabber-message-timestamp (cadr entry)))
+			   (plist-get (cddr entry) :time))))
       (when (and jabber-print-rare-time
 		 (or (null prev)
 		     (jabber-rare-time-needed (entry-time prev-data)
