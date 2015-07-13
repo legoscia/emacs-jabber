@@ -39,13 +39,18 @@ where the car is a JID and the CDR is an alist.
 JID is a full Jabber ID string (e.g. foo@bar.tld). You can also
 specify the resource (e.g. foo@bar.tld/emacs).
 The following keys can be present in the alist:
-:password is a string to authenticate ourself against the server.
-It can be empty.
-:network-server is a string identifying the address to connect to,
-if it's different from the server part of the JID.
-:port is the port to use (default depends on connection type).
-:connection-type is a symbol. Valid symbols are `starttls',
-`network' and `ssl'.
+
+  :password is a string to authenticate ourself against the server.
+  It can be empty.  If you don't want to store your password in your
+  Emacs configuration, try auth-source (info node `(auth)Top').
+
+  :network-server is a string identifying the address to connect to,
+  if it's different from the server part of the JID.
+
+  :port is the port to use (default depends on connection type).
+
+  :connection-type is a symbol. Valid symbols are `starttls',
+  `network' and `ssl'.
 
 Only JID is mandatory.  The rest can be guessed at run-time.
 
