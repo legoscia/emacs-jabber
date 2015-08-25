@@ -46,6 +46,8 @@ if it's different from the server part of the JID.
 :port is the port to use (default depends on connection type).
 :connection-type is a symbol. Valid symbols are `starttls',
 `network' and `ssl'.
+:disabled can be set to `t' to prevent `jabber-connect-all' from
+attempting to connect to it.
 
 Only JID is mandatory.  The rest can be guessed at run-time.
 
