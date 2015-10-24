@@ -387,7 +387,7 @@ that has that contact in its roster."
 			  (jabber-connection-bare-jid matching))))
                  ;; if the buffer is associated with a connection, use it
                  (when (and jabber-buffer-connection
-                            (memq jabber-buffer-connection jabber-connections))
+			    (jabber-find-active-connection jabber-buffer-connection))
                    (jabber-connection-bare-jid jabber-buffer-connection))
                  ;; else, use the first connection in the list
                  (caar completions)))
