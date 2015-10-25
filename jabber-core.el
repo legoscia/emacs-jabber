@@ -192,6 +192,10 @@ With double prefix argument, specify more connection details."
 	  (entry (assoc jid jabber-account-list))
 	  (alist (cdr entry))
 	  password network-server port connection-type registerp)
+     (when (zerop (length jid))
+       (error "No JID specified"))
+     (unless (jabber-jid-username jid)
+       (error "Missing username part in JID"))
      (when entry
        ;; If the user entered the JID of one of the preconfigured
        ;; accounts, use that data.
