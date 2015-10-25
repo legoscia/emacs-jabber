@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 # for options in configure.ac.
 AUTOMAKE_OPTIONS = 1.11
 
-my_lisp_sources=fsm.el jabber-activity.el jabber-ahc-presence.el	\
+my_lisp_sources=jabber-activity.el jabber-ahc-presence.el		\
 jabber-ahc.el jabber-alert.el jabber-autoaway.el jabber-avatar.el	\
 jabber-awesome.el jabber-ping.el jabber-libnotify.el jabber-console.el	\
 jabber-notifications.el							\
@@ -25,7 +25,7 @@ jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
 jabber-muc-nick-coloring.el						\
 jabber-xml.el jabber.el srv.el jabber-tmux.el jabber-ourversion.el
 
-compat_lisp_sources = jabber-fallback-lib/hexrgb.el
+compat_lisp_sources = jabber-fallback-lib/hexrgb.el jabber-fallback-lib/fsm.el
 
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el
 MAINTAINERCLEANFILES=jabber-autoloads.el

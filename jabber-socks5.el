@@ -24,7 +24,8 @@
 (require 'jabber-si-server)
 (require 'jabber-si-client)
 
-(require 'fsm)
+;; jabber-core will require fsm for us
+(require 'jabber-core)
 (eval-when-compile (require 'cl))
 
 (defvar jabber-socks5-pending-sessions nil
