@@ -111,15 +111,16 @@ enough for us."
     (if (search-forward "]]>" nil t)
 	(goto-char (match-end 0))
       (throw 'unfinished nil)))
-   ((looking-at "<\\([^ \t\n/>]+\\)\\([ \t\n]+[^=]+='[^']*'\\|[ \t\n]+[^=]+=\"[^\"]*\"\\)*")
+   ((looking-at "<\\([^[:space:]/>]+\\)\\([[:space:]]+[^=>]+=[[:space:]]*'[^']*'\\|[[:space:]]+[^=>]+=[[:space:]]*\"[^\"]*\"\\)*")
     (let ((node-name (match-string 1)))
       (goto-char (match-end 0))
+      (skip-syntax-forward "\s-") ; Skip over trailing white space.
       (cond
        ((looking-at "/>")
 	(goto-char (match-end 0))
 	t)
        ((looking-at ">")
-	(forward-char 1)
+	(goto-char (match-end 0))
 	(unless (and dont-recurse-into-stream (equal node-name "stream:stream"))
 	  (loop 
 	   do (skip-chars-forward "^<")
