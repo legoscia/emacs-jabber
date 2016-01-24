@@ -133,6 +133,17 @@ enough for us."
    (t
     (throw 'unfinished nil))))
 
+(defun jabber-xml-parse-next-stanza ()
+  "Parse the first XML stanza in the current buffer.
+Parse and return the first complete XML element in the buffer,
+leaving point at the end of it.  If there is no complete XML
+element, return `nil'."
+  (and (catch 'unfinished
+	 (goto-char (point-min))
+	 (jabber-xml-skip-tag-forward)
+	 (> (point) (point-min)))
+       (xml-parse-region (point-min) (point))))
+
 (defsubst jabber-xml-node-name (node)
   "Return the tag associated with NODE.
 The tag is a lower-case symbol."

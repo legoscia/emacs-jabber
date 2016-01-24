@@ -899,10 +899,7 @@ DATA is any sexp."
 	 (while (search-forward-regexp " \\w+=''" nil t)
            (replace-match "")))
        
-       (setq xml-data (and (catch 'unfinished
-			     (jabber-xml-skip-tag-forward)
-			     (> (point) (point-min)))
-			   (xml-parse-region (point-min) (point))))
+       (setq xml-data (jabber-xml-parse-next-stanza))
 
        while xml-data
        do
