@@ -105,8 +105,10 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 	    (put roster-item 'xml item)
 
 	    (put roster-item 'groups
-		 (mapcar (lambda (foo) (nth 2 foo))
-			 (jabber-xml-get-children item 'group)))))))
+		 (delete-duplicates
+		  (mapcar (lambda (foo) (nth 2 foo))
+			  (jabber-xml-get-children item 'group))
+		  :test 'string=))))))
     ;; This is the function that does the actual updating and
     ;; redrawing of the roster.
     (jabber-roster-update jc new-items changed-items deleted-items)
