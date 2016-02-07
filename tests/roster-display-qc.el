@@ -59,7 +59,12 @@
 		   nil))))
 	  (setq all-messages (nreverse all-messages))
 	  (dolist (m all-messages)
-	    (jabber-process-input (car jabber-connections) m))
+	    (pcase m
+	      (`(jabber-show-offline-contacts ,value)
+	       (message "setting jabber-show-offline-contacts to %S" value)
+	       (setq jabber-show-offline-contacts value))
+	      (_
+	       (jabber-process-input (car jabber-connections) m))))
 
 	  ;; The presence stanza causes an asynchronous :roster-update message
 	  ;; to be sent.  Let's wait for that.

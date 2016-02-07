@@ -63,15 +63,22 @@ main = do result <- quickCheckWithResult (stdArgs { chatty = False }) prop_roste
            Success {} -> putStrLn "success"
            Failure { output = o } -> putStrLn $ "failure: " ++ o
 
-prop_rosterEvents :: [RosterEvent] -> Property
-prop_rosterEvents events =
-  printTestCase ("counterexample: " ++ unlines asLisp) $ monadicIO test
+prop_rosterEvents :: Bool -> [RosterEvent] -> Property
+prop_rosterEvents hideOfflineContacts events =
+  printTestCase
+    ("counterexample:\n" ++
+     unlines (map ("  "++) ([(offlineSetting hideOfflineContacts)] ++ asLisp)))
+    (monadicIO test)
   where test = do result <- run testIO
                   assert (result == "t")
-        testIO = do mapM putStrLn asLisp
+        testIO = do putStrLn $ offlineSetting hideOfflineContacts
+                    mapM putStrLn asLisp
                     putStrLn "check"
                     getLine
         asLisp = map toLisp events
+
+offlineSetting True = "(jabber-show-offline-contacts nil)"
+offlineSetting False = "(jabber-show-offline-contacts t)"
 
 toLisp (IqRoster (JID jid) groups maybeName) =
   "(iq ((type . \"set\"))"++
