@@ -18,7 +18,8 @@
     ;; First unintern everything:
     (jabber-clear-roster)
     (plist-put state-data :roster nil)
-    (plist-put state-data :roster-hash nil)))
+    (plist-put state-data :roster-hash nil)
+    (princ "********************\n")))
 
 (let* ((program (expand-file-name "roster-display" (file-name-directory load-file-name)))
        (p (if (not (file-executable-p program))
@@ -46,6 +47,10 @@
 	(error "it failed"))
        ((looking-at "check")
 	(let ((all-messages-s (delete-and-extract-region (point-min) (point)))
+	      ;; We don't want too many full redisplays, since they're expensive.
+	      ;; Let's set a limit for them.
+	      (max-redisplay-count most-positive-fixnum)
+	      (redisplay-count 0)
 	      all-messages
 	      roster-1 roster-2)
 	  (delete-region (point-min) (point-max))
@@ -58,20 +63,25 @@
 		  (end-of-file
 		   nil))))
 	  (setq all-messages (nreverse all-messages))
-	  (dolist (m all-messages)
-	    (pcase m
-	      (`(jabber-show-offline-contacts ,value)
-	       (message "setting jabber-show-offline-contacts to %S" value)
-	       (setq jabber-show-offline-contacts value))
-	      (_
-	       (jabber-process-input (car jabber-connections) m))))
+	  (cl-letf* ((old-jabber-display-roster (symbol-function 'jabber-display-roster))
+		     ((symbol-function 'jabber-display-roster)
+		      (lambda ()
+			(cl-incf redisplay-count)
+			(funcall old-jabber-display-roster))))
+	    (dolist (m all-messages)
+	      (pcase m
+		(`(jabber-show-offline-contacts ,value)
+		 (message "setting jabber-show-offline-contacts to %S" value)
+		 (setq jabber-show-offline-contacts value))
+		(_
+		 (jabber-process-input (car jabber-connections) m))))
 
-	  ;; The presence stanza causes an asynchronous :roster-update message
-	  ;; to be sent.  Let's wait for that.
-	  (accept-process-output nil 0.1)
+	    ;; The presence stanza causes an asynchronous :roster-update message
+	    ;; to be sent.  Let's wait for that.
+	    (accept-process-output nil 0.1)
 
-	  ;; Roster updates are batched.  Force a timeout.
-	  (fsm-send-sync (car jabber-connections) :timeout)
+	    ;; Roster updates are batched.  Force a timeout.
+	    (fsm-send-sync (car jabber-connections) :timeout))
 
 	  (with-current-buffer jabber-roster-buffer
 	    (setq roster-1 (buffer-substring-no-properties (point-min) (point-max))))
@@ -81,11 +91,12 @@
 	  (with-current-buffer jabber-roster-buffer
 	    (setq roster-2 (buffer-substring-no-properties (point-min) (point-max))))
 
-	  (if (equal roster-1 roster-2)
+	  (if (and (<= redisplay-count max-redisplay-count)
+		   (equal roster-1 roster-2))
 	      (process-send-string p "t\n")
 	    (let ((result (mismatch roster-1 roster-2)))
 	      (if (null result)
-		  (princ "match\n")
+		  (princ (concat "match, but too many redisplays: " (number-to-string redisplay-count) "\n"))
 		(princ "mismatch!  Expected:\n")
 		(prin1 roster-2)
 		(princ "\nBut got:\n")
