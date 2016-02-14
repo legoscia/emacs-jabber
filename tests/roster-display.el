@@ -30,7 +30,8 @@
     ;; First unintern everything:
     (jabber-clear-roster)
     (plist-put state-data :roster nil)
-    (plist-put state-data :roster-hash nil)))
+    (plist-put state-data :roster-hash nil)
+    (plist-put state-data :roster-ewoc nil)))
 
 (defun rd-check-roster-buffer (&optional _jc)
   ;; The presence stanza causes an asynchronous :roster-update message
