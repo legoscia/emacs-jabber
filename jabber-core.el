@@ -28,13 +28,12 @@
 (require 'jabber-logon)
 (require 'jabber-conn)
 (eval-and-compile
-  (or (ignore-errors (require 'fsm))
-      (ignore-errors
-        (let ((load-path (cons (expand-file-name
-                                "jabber-fallback-lib"
-                                (file-name-directory (locate-library "jabber")))
-                               load-path)))
-          (require 'fsm)))
+  (or (require 'fsm nil t)
+      (let ((load-path (cons (expand-file-name
+			      "jabber-fallback-lib"
+			      (file-name-directory (locate-library "jabber")))
+			     load-path)))
+	(require 'fsm nil t))
       (error
        "fsm not found in `load-path' or jabber-fallback-lib/ directory.")))
 

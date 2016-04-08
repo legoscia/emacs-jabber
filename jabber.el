@@ -24,7 +24,7 @@
 
 ;;; load Unicode tables if this needed
 (when (and (featurep 'xemacs) (not (emacs-version>= 21 5 5)))
-    (require 'un-define))
+  (require 'un-define))
 
 ;;; these customize fields should come first
 (defgroup jabber nil "Jabber instant messaging"

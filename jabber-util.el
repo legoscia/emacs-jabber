@@ -22,12 +22,8 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'cl)
-(condition-case nil
-    (require 'password)
-  (error nil))
-(condition-case nil
-    (require 'auth-source)
-  (error nil))
+(require 'password nil t)
+(require 'auth-source nil t)
 
 (defvar jabber-jid-history nil
   "History of entered JIDs")

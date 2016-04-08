@@ -29,9 +29,7 @@
 
 ;;; Code:
 
-(condition-case nil
-    (require 'dns)
-  (error nil))
+(require 'dns nil t)
 (eval-when-compile (require 'cl))
 
 (defun srv-lookup (target)
