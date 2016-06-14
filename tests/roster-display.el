@@ -584,3 +584,39 @@
   "__________________________________\n"
   "\n"
   ))
+
+(rd-clear-roster)
+
+(setq jabber-show-offline-contacts nil)
+
+(dolist (input '((iq ((type . "set"))  (query ((xmlns . "jabber:iq:roster"))    (item ((jid . "a@example.com"))  )))
+  (iq ((type . "set"))  (query ((xmlns . "jabber:iq:roster"))    (item ((jid . "b@example.com")) (group () "c")(group () "d")(group () "e") )))
+  (presence ((from . "b@example.com"))   (show () "dnd"))
+  (presence ((from . "a@example.com")))
+  (iq ((type . "set"))  (query ((xmlns . "jabber:iq:roster"))    (item ((jid . "c@example.com")) (group () "d")(group () "e") )))
+  (presence ((from . "c@example.com") (type . "unavailable")))
+		 ))
+  (jabber-process-input (car jabber-connections) input))
+
+(rd-check-roster-buffer)
+
+(rd-compare
+ "Even more ordering issues"
+ (concat
+  "Jabber roster\n"
+"__________________________________\n"
+"\n"
+" - Online -\n"
+"romeo@montague.net\n"
+"__________________________________\n"
+"\n"
+"c\n"
+"   * b@example.com                 Do not Disturb  \n"
+"d\n"
+"   * b@example.com                 Do not Disturb  \n"
+"e\n"
+"   * b@example.com                 Do not Disturb  \n"
+"other\n"
+"   * a@example.com                 Online    \n"
+"__________________________________\n"
+"\n"))
