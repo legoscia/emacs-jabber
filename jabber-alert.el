@@ -271,7 +271,8 @@ Examples:
 
 ;; Alert hooks
 (define-jabber-alert echo "Show a message in the echo area"
-  (lambda (text &optional title) (message "%s" (or title text))))
+  (lambda (text &optional title) (unless (minibuffer-window-active-p (minibuffer-window))
+                              (message "%s" (or title text)))))
 (define-jabber-alert beep "Beep on event"
   (lambda (&rest ignore) (beep)))
 
