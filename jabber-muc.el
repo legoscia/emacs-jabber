@@ -489,6 +489,20 @@ enter it."
 (add-to-list 'jabber-jid-muc-menu
 	     (cons "Join groupchat" 'jabber-muc-join))
 
+(defun jabber-muc-join-group ()
+  (interactive)
+  (let ((account (jabber-read-account)))
+    (jabber-get-bookmarks account
+                          #'(lambda (jc bms)
+                              (let (groups group nickname)
+                                (mapc #'(lambda (b)
+                                          (when (eq 'conference (jabber-xml-node-name b))
+                                            (push (make-symbol (jabber-xml-get-attribute b 'jid)) groups)))
+                                      bms)
+                                (setq group (jabber-read-jid-completing "group: " groups)
+                                      nickname (jabber-muc-read-my-nickname jc group))
+                                (jabber-muc-join jc group nickname))))))
+
 (defun jabber-muc-join (jc group nickname &optional popup)
   "join a groupchat, or change nick.
 In interactive calls, or if POPUP is true, switch to the
