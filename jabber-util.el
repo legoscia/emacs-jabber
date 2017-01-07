@@ -22,9 +22,7 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 (require 'cl)
-(condition-case nil
-    (require 'password)
-  (error nil))
+(require 'password-cache)
 (condition-case nil
     (require 'auth-source)
   (error nil))
@@ -329,24 +327,20 @@ If FULLJIDS is non-nil, complete jids with resources."
 	       (funcall secret)
 	     secret)))
       (let ((prompt (format "Jabber password for %s: " bare-jid)))
-	(if (require 'password-cache nil t)
-	    ;; Need to copy the password, as sasl.el wants to erase it.
-	    (copy-sequence
-	     (password-read prompt (jabber-password-key bare-jid)))
-	  (read-passwd prompt))))))
+	;; Need to copy the password, as sasl.el wants to erase it.
+	(copy-sequence
+	 (password-read prompt (jabber-password-key bare-jid)))))))
 
 (defun jabber-cache-password (bare-jid password)
   "Cache PASSWORD for BARE-JID."
-  (when (fboundp 'password-cache-add)
-    (password-cache-add (jabber-password-key bare-jid) password)))
+  (password-cache-add (jabber-password-key bare-jid) password))
 
 (defun jabber-uncache-password (bare-jid)
   "Uncache cached password for BARE-JID.
 Useful if the password proved to be wrong."
   (interactive (list (jabber-jid-user
 		      (completing-read "Forget password of account: " jabber-account-list nil nil nil 'jabber-account-history))))
-  (when (fboundp 'password-cache-remove)
-    (password-cache-remove (jabber-password-key bare-jid))))
+  (password-cache-remove (jabber-password-key bare-jid)))
 
 (defun jabber-read-account (&optional always-ask contact-hint)
   "Ask for which connected account to use.
