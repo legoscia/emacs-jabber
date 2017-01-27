@@ -221,9 +221,14 @@ Either a string or a buffer is returned, so use `get-buffer' or
 		(cons ?j (jabber-jid-user chat-with))
 		(cons ?r (or (jabber-jid-resource chat-with) "")))))
 
-(defun jabber-chat-create-buffer (jc chat-with)
+(defun jabber-chat-create-buffer (jc chat-with incoming-message-p)
   "Prepare a buffer for chatting with CHAT-WITH.
-This function is idempotent."
+This function is idempotent.
+If INCOMING-MESSAGE-P is non-nil and history is handled by the
+server (using XMPP XEP-0313 MAM, which is controlled via
+`jabber-history-mam'), the first message from the archive request
+is ignored as it is the same as the incoming message (this
+prevents duplicate messages in the buffer)."
   (with-current-buffer (get-buffer-create (jabber-chat-get-buffer chat-with))
     (unless (eq major-mode 'jabber-chat-mode)
       (jabber-chat-mode jc #'jabber-chat-pp)
@@ -234,10 +239,16 @@ This function is idempotent."
       (setq header-line-format jabber-chat-header-line-format)
 
       (make-local-variable 'jabber-chat-earliest-backlog)
+      (when jabber-history-mam
+        (make-local-variable 'jabber-mam-results)
+        (make-local-variable 'jabber-mam-done)
+        (make-local-variable 'jabber-mam-last-id)
+        (make-local-variable 'jabber-mam-lock))
 
       ;; insert backlog
       (when (null jabber-chat-earliest-backlog)
-	(let ((backlog-entries (jabber-history-backlog chat-with)))
+        (let ((backlog-entries (jabber-history-backlog chat-with nil
+                                                       incoming-message-p)))
 	  (if (null backlog-entries)
 	      (setq jabber-chat-earliest-backlog (jabber-float-time))
 	    (setq jabber-chat-earliest-backlog
@@ -315,7 +326,7 @@ This function is idempotent."
 				  jc
 				  (jabber-jid-user from)
 				  (jabber-jid-resource from))
-			       (jabber-chat-create-buffer jc from))
+			       (jabber-chat-create-buffer jc from t))
 	  ;; ...add the message to the ewoc...
 	  (let ((node
 		 (ewoc-enter-last jabber-chat-ewoc (list (if error-p :error :foreign) xml-data :time (current-time)))))
@@ -660,7 +671,7 @@ Returns the chat buffer."
 		       (jabber-read-account nil jid)))
 		 (list 
 		  account jid current-prefix-arg)))
-  (let ((buffer (jabber-chat-create-buffer jc jid)))
+  (let ((buffer (jabber-chat-create-buffer jc jid nil)))
     (if other-window
 	(switch-to-buffer-other-window buffer)
       (switch-to-buffer buffer))))
