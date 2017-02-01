@@ -183,8 +183,28 @@ Result Set Management.  Paging through results is performed in the
          ;; End of set, determine if a subsequent query is required (if the
          ;; result is not complete).
          ;; Extract "complete" attribute from <fin> tag and <last> id
-         (jabber-mam-process-fin (xml-data)))
+         (jabber-mam-process-fin xml-data))
         (t nil)))
+
+(defun jabber-mam-report-success (jc xml-data context)
+  "IQ callback reporting success or failure of the operation.
+CONTEXT is a string describing the action.
+\"CONTEXT succeeded\" or \"CONTEXT failed: REASON\" is displayed in
+the echo area."
+  (let ((type (jabber-xml-get-attribute xml-data 'type)))
+    (message
+     (concat context
+             (if (string= type "result")
+                 " succeeded"
+		       (concat
+                " failed: "
+                (let ((the-error (jabber-iq-error xml-data)))
+                  (if the-error
+                      (jabber-parse-error the-error)
+                    "No error message given"))))))
+    (when (not (string= type "result"))
+      (setq jabber-mam-done t
+            jabber-mam-lock t))))
 
 (defun jabber-mam-query (jc jid-me jid-with start-time end-time number
                             direction)
@@ -208,8 +228,8 @@ set of results is limited to NUMBER messages.  DIRECTION is either \"in\" or
         ;;(message "MAM request: [%s]" (jabber-sexp2xml mam-query))
         (setq jabber-mam-lock nil)
         (jabber-send-iq jc nil "set" mam-query
-                        #'jabber-report-success "MAM request"
-                        #'jabber-report-success "MAM request")
+                        #'jabber-mam-report-success "MAM request"
+                        #'jabber-mam-report-success "MAM request")
         ;; Wait for results
         (while (not jabber-mam-lock)
           (sit-for 1))
