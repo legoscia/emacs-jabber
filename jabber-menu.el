@@ -143,20 +143,10 @@ With prefix argument, remove it."
   [jabber-menu]
   (list 'menu-item "Jabber" jabber-menu
 	:visible
-	;; If the package was installed by the user personally, it's
-	;; probably ok to "clutter" the menu bar with a Jabber menu.
-	(let ((user-installed-package
-	       (and (bound-and-true-p package-user-dir)
-		    (string=
-		     (file-name-as-directory
-		      (expand-file-name ".." (file-name-directory load-file-name)))
-		     (file-name-as-directory
-		      (expand-file-name package-user-dir))))))
-	  `(or (eq jabber-display-menu t)
-	       (and (eq jabber-display-menu 'maybe)
-		    (or ,user-installed-package
-			(bound-and-true-p jabber-account-list)
-			(bound-and-true-p jabber-connections)))))))
+        '(or (eq jabber-display-menu t)
+             (and (eq jabber-display-menu 'maybe)
+                  (or (bound-and-true-p jabber-account-list)
+                      (bound-and-true-p jabber-connections))))))
 
 (defvar jabber-jid-chat-menu nil
   "Menu items for chat menu")
