@@ -21,9 +21,7 @@
 
 
 ;; button.el was introduced in Emacs 22
-(condition-case e
-    (require 'button)
-  (error nil))
+(require 'button nil t)
 
 (defvar jabber-common-keymap 
   (let ((map (make-sparse-keymap)))

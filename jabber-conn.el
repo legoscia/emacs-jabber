@@ -28,13 +28,13 @@
 (eval-when-compile (require 'cl))
 
 ;; Emacs 24 can be linked with GnuTLS
-(ignore-errors (require 'gnutls))
+(require 'gnutls nil t)
 
 ;; Try two different TLS/SSL libraries, but don't fail if none available.
-(or (ignore-errors (require 'tls))
-    (ignore-errors (require 'ssl)))
+(or (require 'tls nil t)
+    (require 'ssl nil t))
 
-(ignore-errors (require 'starttls))
+(require 'starttls nil t)
 
 (require 'srv)
 

@@ -23,14 +23,13 @@
 (eval-when-compile (require 'cl))	;for ignore-errors
 ;; we need hexrgb-hsv-to-hex:
 (eval-and-compile
-  (or (ignore-errors (require 'hexrgb))
+  (or (require 'hexrgb nil t)
       ;; jabber-fallback-lib/ from jabber/lisp/jabber-fallback-lib
-      (ignore-errors
-        (let ((load-path (cons (expand-file-name
-                                "jabber-fallback-lib"
-                                (file-name-directory (locate-library "jabber")))
-                               load-path)))
-          (require 'hexrgb)))
+      (let ((load-path (cons (expand-file-name
+			      "jabber-fallback-lib"
+			      (file-name-directory (locate-library "jabber")))
+			     load-path)))
+	(require 'hexrgb nil t))
       (error
        "hexrgb not found in `load-path' or jabber-fallback-lib/ directory.")))
 
