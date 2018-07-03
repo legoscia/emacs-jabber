@@ -21,11 +21,11 @@
 ;;; Commentary:
 
 ;; Provides an interface to server message archives following XEP-0313 (message
-;; archive management--MAM).  To use, set `jabber-history-enabled' and
-;; `jabber-history-mam' to non-nil values.  This requires server support for
-;; XEP-0313 (http://xmpp.org/extensions/xep-0313.html) and proper configuration.
-;; In particular, the archiving behavior can be configured to select which
-;; messages are stored.  User preferences can be set by server requests
+;; archive management--MAM).  To use, set `jabber-history-mam' to a non-nil
+;; value.  This requires server support for XEP-0313
+;; (http://xmpp.org/extensions/xep-0313.html) and proper configuration.  In
+;; particular, the archiving behavior can be configured to select which messages
+;; are stored.  User preferences can be set by server requests
 ;; (http://xmpp.org/extensions/xep-0313.html#prefs).
 
 

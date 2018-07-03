@@ -40,7 +40,10 @@ Jabber history files."
   :group 'jabber)
 
 (defcustom jabber-history-enabled nil
-  "Non-nil means message logging is enabled."
+  "Non-nil means message logging is enabled.
+When this variable and `jabber-history-mam' are both non-nil,
+messages are logged to files but history requests are handled by
+the MAM module (see `jabber-mam')."
   :type 'boolean
   :group 'jabber-history)
 
@@ -127,7 +130,7 @@ in the message history.")
 	     (not (file-directory-p jabber-history-dir)))
     (make-directory jabber-history-dir))
   (let ((is-muc (jabber-muc-message-p xml-data)))
-    (when (and jabber-history-enabled (not jabber-history-mam)
+    (when (and jabber-history-enabled
 	       (or
 		(not is-muc)                ;chat message or private MUC message
 		(and jabber-history-muc-enabled is-muc))) ;muc message and muc logging active
@@ -150,7 +153,7 @@ in the message history.")
     (make-directory jabber-history-dir))
   ;; This function is called from a chat buffer, so jabber-chatting-with
   ;; contains the desired value.
-  (if (and jabber-history-enabled (not jabber-history-mam))
+  (if jabber-history-enabled
       (jabber-history-log-message "out" nil jabber-chatting-with body (current-time))))
 
 (defun jabber-history-filename (contact)
