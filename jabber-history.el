@@ -33,19 +33,29 @@
 
 (require 'jabber-core)
 (require 'jabber-util)
+(require 'jabber-mam)
 
 (defgroup jabber-history nil "Customization options for Emacs
 Jabber history files."
   :group 'jabber)
 
 (defcustom jabber-history-enabled nil
-  "Non-nil means message logging is enabled."
+  "Non-nil means message logging is enabled.
+When this variable and `jabber-history-mam' are both non-nil,
+messages are logged to files but history requests are handled by
+the MAM module (see `jabber-mam')."
   :type 'boolean
   :group 'jabber-history)
 
 (defcustom jabber-history-muc-enabled nil
   "Non-nil means MUC logging is enabled.
 Default is nil, cause MUC logging may be i/o-intensive."
+  :type 'boolean
+  :group 'jabber-history)
+
+(defcustom jabber-history-mam nil
+  "Non-nil means message history is requested from the server.
+Requires server support for XEP-0313 (Message Archive Management)."
   :type 'boolean
   :group 'jabber-history)
 
@@ -190,6 +200,33 @@ in the message history.")
 	(error
 	 (message "Unable to write history: %s" (error-message-string e)))))))
 
+(defun jabber-history-query-wrapper (start-time
+                                     end-time
+                                     number
+                                     direction
+                                     jid
+                                     &optional skip-first-p)
+  "Get message history from file or server.
+If using file history (`jabber-history-mam' is nil), the `jabber-history-query'
+function is called, otherwise message history is requested from the server (XMPP
+XEP-0313) via the `jabber-mam-query' function.
+
+When SKIP-FIRST-P is non-nil the last message (most recent)
+returned by the request is dropped."
+  (if jabber-history-mam
+      (let* ((jc jabber-buffer-connection)
+             (jabber-chat-ewoc (ewoc-create #'jabber-chat-pp nil nil t))
+             (jid-me (jabber-connection-bare-jid jc))
+             (mam-messages
+              (jabber-mam-query jc jid-me jid start-time end-time
+                                number direction)))
+        (if skip-first-p (nbutlast mam-messages 1) mam-messages))
+    (let ((jid-regexp (concat "^" (regexp-quote
+                                   (jabber-jid-user jid)) "\\(/.*\\)?$"))
+          (history-file (jabber-history-filename jid)))
+      (jabber-history-query
+       start-time end-time number direction jid-regexp history-file))))
+
 (defun jabber-history-query (start-time
 			     end-time
 			     number
@@ -274,21 +311,25 @@ of the log file."
   :group 'jabber
   :type 'integer)
 
-(defun jabber-history-backlog (jid &optional before)
+(defun jabber-history-backlog (jid &optional before skip-first-p)
   "Fetch context from previous chats with JID.
 Return a list of history entries (vectors), limited by
 `jabber-backlog-days' and `jabber-backlog-number'.
 If BEFORE is non-nil, it should be a float-time after which
 no entries will be fetched.  `jabber-backlog-days' still
-applies, though."
-  (jabber-history-query
+applies, though.
+When SKIP-FIRST-P is non-nil and history is handled by the
+server (XMPP MAM), the most recent message is skipped (this
+prevents duplicates when a message is received and the archive is
+interrogated)."
+  (jabber-history-query-wrapper
    (and jabber-backlog-days
 	(- (jabber-float-time) (* jabber-backlog-days 86400.0)))
    before
    jabber-backlog-number
    t					; both incoming and outgoing
-   (concat "^" (regexp-quote (jabber-jid-user jid)) "\\(/.*\\)?$")
-   (jabber-history-filename jid)))
+   jid
+   skip-first-p))
 
 (defun jabber-history-move-to-per-user ()
   "Migrate global history to per-user files."

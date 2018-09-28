@@ -236,7 +236,7 @@ CLOSURE-DATA should be 'initial if initial roster push, nil otherwise."
 
 (defun jabber-process-subscription-request (jc from presence-status)
   "process an incoming subscription request"
-  (with-current-buffer (jabber-chat-create-buffer jc from)
+  (with-current-buffer (jabber-chat-create-buffer jc from nil)
     (ewoc-enter-last jabber-chat-ewoc (list :subscription-request presence-status :time (current-time)))
 
     (dolist (hook '(jabber-presence-hooks jabber-alert-presence-hooks))
