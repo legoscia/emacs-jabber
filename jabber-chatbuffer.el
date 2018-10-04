@@ -114,11 +114,13 @@ window or at `fill-column', whichever is shorter."
       (funcall jabber-send-function jabber-buffer-connection body))))
 
 (defun jabber-chat-buffer-fill-long-lines ()
-  "Fill lines that are wider than the window width."
+  "Fill lines that are wider than the window width or
+fill-column, whichever is shorter."
   ;; This was mostly stolen from article-fill-long-lines
   (interactive)
   (save-excursion
     (let ((inhibit-read-only t)
+	  (inhibit-field-text-motion t)
 	  (width (window-width (get-buffer-window (current-buffer)))))
       (goto-char (point-min))
       (let ((adaptive-fill-mode nil))	;Why?  -sm
