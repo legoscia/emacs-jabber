@@ -134,9 +134,9 @@ Call REMEMBER with the password.  REMEMBER is expected to return it as well."
       ;; need to pass this data to sasl.el - we're not necessarily
       ;; done just because the server says we're done.
       (let* ((data (car (jabber-xml-node-children xml-data)))
-	     (decoded (if data
-			  (base64-decode-string data)
-			"")))
+             (decoded (if (and data (not (string= data "=")))
+                          (base64-decode-string data)
+                        "")))
 	(sasl-step-set-data step decoded)
 	(condition-case e
 	    (progn
