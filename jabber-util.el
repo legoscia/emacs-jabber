@@ -272,8 +272,8 @@ If FULLJIDS is non-nil, complete jids with resources."
 			    jid-completion-table
 			    nil require-match nil 'jabber-jid-history jid-at-point)))
       (setq chosen
-	    (if (and input (assoc-ignore-case input jid-completion-table))
-		(symbol-name (cdr (assoc-ignore-case input jid-completion-table)))
+	    (if (and input (assoc-string input jid-completion-table t))
+		(symbol-name (cdr (assoc-string input jid-completion-table t)))
 	      (and (not (zerop (length input)))
 		   input))))
 
