@@ -2100,6 +2100,10 @@ Emacs 24.1, so they are disabled by default.
 The @code{libnotify} alerts send a message onto your screen using
 @code{notification-daemon}.
 
+@cindex macos-notify
+The @code{macos-notify} alerts send a message onto your screen using
+@code{apple script}.
+
 @cindex Festival speech synthesis
 @cindex Speech synthesis, Festival
 The @code{festival} alerts speak the message using the Emacs interface
