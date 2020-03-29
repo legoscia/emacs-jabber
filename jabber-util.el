@@ -486,8 +486,8 @@ TIME is in a format accepted by `format-time-string'."
 	 (hour (string-to-number (substring time 11 13)))
 	 (minute (string-to-number (substring time 14 16)))
 	 (second (string-to-number (substring time 17 19)))
-	 ;; fractions are optional
          (timezone (if (eq (aref time 19) ?.)
+                       ;; fractions are optional
                        (let ((timezone (cadr
                                         (split-string (substring time 20)
                                                       "[-+Z]"))))
