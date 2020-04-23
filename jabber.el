@@ -143,6 +143,7 @@ configure a Google Talk account like this:
 (require 'jabber-autoaway)
 (require 'jabber-time)
 (require 'jabber-truncate)
+(require 'jabber-carbons)
 
 (require 'jabber-ft-client)
 (require 'jabber-ft-server)
