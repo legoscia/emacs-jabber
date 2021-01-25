@@ -133,7 +133,7 @@ With prefix argument, remove it."
   (interactive "P")
   (setq jabber-display-menu (if remove nil t))
   (force-mode-line-update))
-(make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead.")
+(make-obsolete 'jabber-menu "set the variable `jabber-display-menu' instead." "2008-10-23")
 
 ;; This used to be:
 ;; (define-key-after global-map [menu-bar jabber-menu] ...)
