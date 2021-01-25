@@ -816,7 +816,7 @@ three being lists of JID symbols."
 (defalias 'jabber-presence-update-roster 'ignore)
 ;;jabber-presence-update-roster is not needed anymore.
 ;;Its work is done in `jabber-process-presence'."
-(make-obsolete 'jabber-presence-update-roster 'ignore)
+(make-obsolete 'jabber-presence-update-roster 'ignore "2007-04-01")
 
 (defun jabber-next-property (&optional prev)
   "Return position of next property appearence or nil if there is none.
