@@ -23,9 +23,10 @@ jabber-time.el jabber-truncate.el jabber-util.el			\
 jabber-vcard-avatars.el jabber-vcard.el jabber-version.el		\
 jabber-watch.el jabber-widget.el jabber-wmii.el jabber-xmessage.el	\
 jabber-muc-nick-coloring.el						\
-jabber-xml.el jabber.el srv.el jabber-tmux.el jabber-ourversion.el
+jabber-xml.el jabber.el jabber-tmux.el jabber-ourversion.el
 
-compat_lisp_sources = jabber-fallback-lib/hexrgb.el jabber-fallback-lib/fsm.el
+compat_lisp_sources = jabber-fallback-lib/hexrgb.el jabber-fallback-lib/fsm.el \
+  jabber-fallback-lib/srv.el
 
 dist_lisp_LISP=$(my_lisp_sources) $(compat_lisp_sources) jabber-autoloads.el
 MAINTAINERCLEANFILES=jabber-autoloads.el
