@@ -21,7 +21,7 @@
 
 (require 'cl)
 
-(defgroup jabber-events nil 
+(defgroup jabber-events nil
   "Message events and notifications."
   :group 'jabber)
 
@@ -57,7 +57,7 @@ probably reading the message).")
 (make-variable-buffer-local 'jabber-events-message)
 
 (defun jabber-events-update-message ()
-  (setq jabber-events-message 
+  (setq jabber-events-message
 	(concat (cdr (assq jabber-events-arrived
 			   '((offline . "In offline storage")
 			     (delivered . "Delivered")
@@ -130,9 +130,9 @@ and it hasn't been sent before."
 	       jabber-chatting-with
 	       ;; don't send to bare jids
 	       (jabber-jid-resource jabber-chatting-with))
-      (jabber-send-sexp 
+      (jabber-send-sexp
        jabber-buffer-connection
-       `(message 
+       `(message
 	 ((to . ,jabber-chatting-with))
 	 (x ((xmlns . "jabber:x:event"))
 	    (displayed)
@@ -144,9 +144,9 @@ and it hasn't been sent before."
     (when (and jabber-events-confirm-composing
 	       jabber-chatting-with
 	       (not (eq composing-now jabber-events-composing-sent)))
-      (jabber-send-sexp 
+      (jabber-send-sexp
        jabber-buffer-connection
-       `(message 
+       `(message
 	 ((to . ,jabber-chatting-with))
 	 (x ((xmlns . "jabber:x:event"))
 	    ,@(if composing-now '((composing)) nil)
@@ -172,7 +172,7 @@ and it hasn't been sent before."
 	 ((string= (jabber-xml-get-attribute xml-data 'type) "error")
 	  (remove-hook 'post-command-hook 'jabber-events-after-change t)
 	  (setq jabber-events-requested nil))
-	  
+
 	 ;; If there's a body, it's not an incoming message event.
 	 ((jabber-xml-get-children xml-data 'body)
 	  ;; User is done composing, obviously.
@@ -184,21 +184,21 @@ and it hasn't been sent before."
 	  (setq jabber-events-delivery-confirmed nil)
 
 	  ;; User requests message events
-	  (setq jabber-events-requested 
+	  (setq jabber-events-requested
 		;; There might be empty strings in the XML data,
 		;; which car chokes on.  Having nil values in
 		;; the list won't hurt, therefore car-safe.
-		(mapcar #'car-safe 
+		(mapcar #'car-safe
 			(jabber-xml-node-children x)))
 	  (setq jabber-events-last-id (jabber-xml-get-attribute
 				       xml-data 'id))
 
 	  ;; Send notifications we already know about
-	  (flet ((send-notification 
+	  (flet ((send-notification
 		  (type)
-		  (jabber-send-sexp 
+		  (jabber-send-sexp
 		   jc
-		   `(message 
+		   `(message
 		     ((to . ,(jabber-xml-get-attribute xml-data 'from)))
 		     (x ((xmlns . "jabber:x:event"))
 			(,type)
@@ -228,7 +228,7 @@ and it hasn't been sent before."
 	  ;; We check the latter.
 	  (when (and x (jabber-xml-get-children x 'id))
 	    ;; Currently we don't care about the <id/> node.
-	
+
 	    ;; There's only one node except for the id.
 	    (unless
 		(dolist (possible-node '(offline delivered displayed))

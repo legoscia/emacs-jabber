@@ -238,7 +238,7 @@ This function is idempotent."
   "Remove GROUP from internal bookkeeping."
   (let ((whichgroup (assoc group *jabber-active-groupchats*))
 	(whichparticipants (assoc group jabber-muc-participants)))
-    (setq *jabber-active-groupchats* 
+    (setq *jabber-active-groupchats*
 	  (delq whichgroup *jabber-active-groupchats*))
     (setq jabber-muc-participants
 	  (delq whichparticipants jabber-muc-participants))))
@@ -293,7 +293,7 @@ in the user entering/staying in the room."
   (when (plist-get new-plist 'jid)
     ;; nickname is only used for displaying, so we can modify it if we
     ;; want to.
-    (setq nickname (concat nickname " <" 
+    (setq nickname (concat nickname " <"
 			   (jabber-jid-user (plist-get new-plist 'jid))
 			   ">")))
   (cond
@@ -444,7 +444,7 @@ enter it."
 	  (setq xdata x)))
     (if (not xdata)
 	(insert "No configuration possible.\n")
-      
+
     (jabber-init-widget-buffer (jabber-xml-get-attribute xml-data 'from))
     (setq jabber-buffer-connection jc)
 
@@ -493,7 +493,7 @@ enter it."
   "join a groupchat, or change nick.
 In interactive calls, or if POPUP is true, switch to the
 groupchat buffer."
-  (interactive 
+  (interactive
    (let ((account (jabber-read-account))
 	 (group (jabber-read-jid-completing "group: ")))
      (list account group (jabber-muc-read-my-nickname account group) t)))
@@ -563,7 +563,7 @@ groupchat buffer."
   ;; The response might come quicker than you think.
 
   (puthash (jabber-jid-symbol group) nickname jabber-pending-groupchats)
-  
+
   (jabber-send-sexp jc
 		    `(presence ((to . ,(format "%s/%s" group nickname)))
 			       (x ((xmlns . "http://jabber.org/protocol/muc"))
@@ -594,7 +594,7 @@ groupchat buffer."
     (if default
         default-nickname
         (jabber-read-with-input-method (format "Nickname: (default %s) "
-					   default-nickname) 
+					   default-nickname)
 				   nil nil default-nickname))))
 
 (add-to-list 'jabber-jid-muc-menu
@@ -845,7 +845,7 @@ include groupchat invites."
   ;; are from room@server.
   (let ((from (jabber-xml-get-attribute message 'from))
 	(type (jabber-xml-get-attribute message 'type)))
-    (or 
+    (or
      (string= type "groupchat")
      (and (string= type "error")
 	  (gethash (jabber-jid-symbol from) jabber-pending-groupchats))
@@ -880,7 +880,7 @@ include groupchat invites."
   "Return non-nil if PRESENCE is presence from groupchat."
   (let ((from (jabber-xml-get-attribute presence 'from))
 	(type (jabber-xml-get-attribute presence 'type))
-	(muc-marker (find-if 
+	(muc-marker (find-if
 		     (lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
 				   "http://jabber.org/protocol/muc#user"))
 		     (jabber-xml-get-children presence 'x))))
@@ -906,7 +906,7 @@ Return nil if X-MUC is nil."
 	(insert (jabber-propertize
 		 (format-spec jabber-groupchat-prompt-format
 			      (list
-			       (cons ?t (format-time-string 
+			       (cons ?t (format-time-string
 					 (if timestamp
 					     jabber-chat-delayed-time-format
 					   jabber-chat-time-format)
@@ -938,7 +938,7 @@ Return nil if X-MUC is nil."
     (insert (jabber-propertize
 	     (format-spec jabber-muc-private-foreign-prompt-format
 			  (list
-			   (cons ?t (format-time-string 
+			   (cons ?t (format-time-string
 				     (if timestamp
 					 jabber-chat-delayed-time-format
 				       jabber-chat-time-format)
@@ -971,7 +971,7 @@ Return nil if X-MUC is nil."
 	   (group (jabber-jid-user from))
 	   (nick (jabber-jid-resource from))
 	   (error-p (jabber-xml-get-children xml-data 'error))
-	   (type (cond 
+	   (type (cond
 		  (error-p :muc-error)
 		  ((string= nick (cdr (assoc group *jabber-active-groupchats*)))
 		   :muc-local)
@@ -1005,7 +1005,7 @@ Return nil if X-MUC is nil."
 (defun jabber-muc-process-presence (jc presence)
   (let* ((from (jabber-xml-get-attribute presence 'from))
 	 (type (jabber-xml-get-attribute presence 'type))
-	 (x-muc (find-if 
+	 (x-muc (find-if
 		 (lambda (x) (equal (jabber-xml-get-attribute x 'xmlns)
 			       "http://jabber.org/protocol/muc#user"))
 		 (jabber-xml-get-children presence 'x)))
@@ -1024,7 +1024,7 @@ Return nil if X-MUC is nil."
 			    (jabber-xml-get-attribute status-element 'code))
 			  (jabber-xml-get-children x-muc 'status)))))
     ;; handle leaving a room
-    (cond 
+    (cond
      ((or (string= type "unavailable") (string= type "error"))
       ;; error from room itself? or are we leaving?
       (if (or (null nickname)
@@ -1077,7 +1077,7 @@ Return nil if X-MUC is nil."
 	       (jid (plist-get plist 'jid))
 	       (name (concat nickname
 			     (when jid
-			       (concat " <" 
+			       (concat " <"
 				       (jabber-jid-user jid)
 				       ">")))))
 	  (jabber-muc-remove-participant group nickname)
@@ -1101,7 +1101,7 @@ Return nil if X-MUC is nil."
 		     (t
 		      (concat name " has left the chatroom")))
 		    :time (current-time))))))))
-     (t 
+     (t
       ;; someone is entering
 
       (when (or (member "110" status-codes) (string= nickname our-nickname))
@@ -1165,7 +1165,7 @@ Return nil if X-MUC is nil."
 			 (insert ".")
 			 (buffer-string))
 		       :time (current-time))))))))))))
-	      
+
 (provide 'jabber-muc)
 
 ;;; arch-tag: 1ff7ab35-1717-46ae-b803-6f5b3fb2cd7d

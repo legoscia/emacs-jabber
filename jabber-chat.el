@@ -42,13 +42,13 @@ with):
 
 (defcustom jabber-chat-header-line-format
   '("" (jabber-chat-buffer-show-avatar
-	(:eval 
+	(:eval
 	 (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
 	   (jabber-propertize " "
 			      'display (get buddy 'avatar)))))
     (:eval (jabber-jid-displayname jabber-chatting-with))
     "\t" (:eval (let ((buddy (jabber-jid-symbol jabber-chatting-with)))
-		  (propertize 
+		  (propertize
 		   (or
 		    (cdr (assoc (get buddy 'show) jabber-presence-strings))
 		    (get buddy 'show))
@@ -297,7 +297,7 @@ prevents duplicate messages in the buffer)."
 	 (backlog-entries (jabber-history-backlog
 			   jabber-chatting-with jabber-chat-earliest-backlog)))
     (when backlog-entries
-      (setq jabber-chat-earliest-backlog 
+      (setq jabber-chat-earliest-backlog
 	    (jabber-float-time (jabber-parse-time
 				(aref (car backlog-entries) 0))))
       (save-excursion
@@ -336,14 +336,14 @@ prevents duplicate messages in the buffer)."
 	  (dolist (hook '(jabber-message-hooks jabber-alert-message-hooks))
 	    (run-hook-with-args hook
 				from (current-buffer) body-text
-				(funcall jabber-alert-message-function 
+				(funcall jabber-alert-message-function
 					 from (current-buffer) body-text))))))))
 
 (defun jabber-chat-send (jc body)
   "Send BODY through connection JC, and display it in chat buffer."
   ;; Build the stanza...
   (let* ((id (apply 'format "emacs-msg-%d.%d.%d" (current-time)))
-	 (stanza-to-send `(message 
+	 (stanza-to-send `(message
 			   ((to . ,jabber-chatting-with)
 			    (type . "chat")
 			    (id . ,id))
@@ -410,7 +410,7 @@ This function is used as an ewoc prettyprinter."
 	((:muc-notice :muc-error)
 	 (jabber-muc-system-prompt)))
       (put-text-property prompt-start (point) 'field 'jabber-prompt))
-    
+
     ;; ...and body
     (case (car data)
       ((:local :foreign)
@@ -485,10 +485,10 @@ If DELAYED is true, print long timestamp
 If DONT-PRINT-NICK-P is true, don't include nickname."
   (let ((from (jabber-xml-get-attribute xml-data 'from))
 	(timestamp (or timestamp (jabber-message-timestamp xml-data))))
-    (insert (jabber-propertize 
+    (insert (jabber-propertize
 	     (format-spec jabber-chat-foreign-prompt-format
 			  (list
-			   (cons ?t (format-time-string 
+			   (cons ?t (format-time-string
 				     (if delayed
 					 jabber-chat-delayed-time-format
 				       jabber-chat-time-format)
@@ -502,7 +502,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	     (concat (format-time-string "On %Y-%m-%d %H:%M:%S" timestamp) " from " from)))))
 
 (defun jabber-chat-system-prompt (timestamp)
-  (insert (jabber-propertize 
+  (insert (jabber-propertize
 	   (format-spec jabber-chat-foreign-prompt-format
 			(list
 			 (cons ?t (format-time-string jabber-chat-time-format
@@ -527,10 +527,10 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 	 (server (plist-get state-data :server))
 	 (resource (plist-get state-data :resource))
 	 (nickname username))
-    (insert (jabber-propertize 
+    (insert (jabber-propertize
 	     (format-spec jabber-chat-local-prompt-format
 			  (list
-			   (cons ?t (format-time-string 
+			   (cons ?t (format-time-string
 				     (if delayed
 					 jabber-chat-delayed-time-format
 				       jabber-chat-time-format)
@@ -546,7 +546,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 (defun jabber-chat-print-error (xml-data)
   "Print error in given <message/> in a readable way."
   (let ((the-error (car (jabber-xml-get-children xml-data 'error))))
-    (insert 
+    (insert
      (jabber-propertize
       (concat "Error: " (jabber-parse-error the-error))
       'face 'jabber-chat-error))))
@@ -597,7 +597,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
 			       " "
 			       action)
 		       'face 'jabber-chat-prompt-system)))
-	  (insert (jabber-propertize 
+	  (insert (jabber-propertize
 		   body
 		   'face (case who
 			   ((:foreign :muc-foreign) 'jabber-chat-text-foreign)
@@ -611,7 +611,7 @@ If DONT-PRINT-NICK-P is true, don't include nickname."
       (when (and (listp x) (eq (jabber-xml-node-name x) 'x)
 		 (string= (jabber-xml-get-attribute x 'xmlns) "jabber:x:oob"))
 	(setq foundp t)
-	
+
 	(when (eql mode :insert)
 	  (let ((url (car (jabber-xml-node-children
 			   (car (jabber-xml-get-children x 'url)))))
@@ -669,7 +669,7 @@ Returns the chat buffer."
 		      (jabber-read-jid-completing "chat with:"))
 		      (account
 		       (jabber-read-account nil jid)))
-		 (list 
+		 (list
 		  account jid current-prefix-arg)))
   (let ((buffer (jabber-chat-create-buffer jc jid nil)))
     (if other-window

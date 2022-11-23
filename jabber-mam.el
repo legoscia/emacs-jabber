@@ -33,7 +33,7 @@
 
 (require 'jabber-iq)
 
-(defcustom jabber-mam-namespace "urn:xmpp:mam:0"
+(defcustom jabber-mam-namespace "urn:xmpp:mam:2"
   "XMPP namespace for XEP-0313 request.
 This can be determined by sending a request to the server as
 described in http://xmpp.org/extensions/xep-0313.html#support."
@@ -89,7 +89,7 @@ result set."
         (when after
           ;; Page through results (XMPP Result Set Management)
           (add-to-list 'setxmlns `(after () ,after) t))
-      (add-to-list 'query setxmlns t)))
+        (add-to-list 'query setxmlns t)))
     query))
 
 (defun jabber-mam-process-entry (mam-result)
@@ -170,7 +170,7 @@ In both cases, the lock (`jabber-mam-lock') is released for the caller
   "Manage results from MAM request with connection JC and content XML-DATA.
 The server returns message objects for each message using XMPP
 Result Set Management.  Paging through results is performed in the
-`jabber-mam-query' function.  Results are store in `jabber-mam-results'."
+`jabber-mam-query' function.  Results are stored in `jabber-mam-results'."
   (cond ((jabber-xml-get-children xml-data 'result)
          (let ((mam-jid-me (jabber-jid-user (jabber-xml-get-attribute
                                              xml-data 'to)))
@@ -186,6 +186,9 @@ Result Set Management.  Paging through results is performed in the
          (jabber-mam-process-fin xml-data))
         (t nil)))
 
+(defun jabber-mam-report-error (jc xml-data context)
+  (message "report-error [%s]" xml-data))
+
 (defun jabber-mam-report-success (jc xml-data context)
   "IQ callback reporting success or failure of the operation.
 CONTEXT is a string describing the action.
@@ -196,15 +199,14 @@ the echo area."
      (concat context
              (if (string= type "result")
                  " succeeded"
-		       (concat
+               (concat
                 " failed: "
                 (let ((the-error (jabber-iq-error xml-data)))
                   (if the-error
                       (jabber-parse-error the-error)
                     "No error message given"))))))
-    (when (not (string= type "result"))
-      (setq jabber-mam-done t
-            jabber-mam-lock t))))
+    (when (jabber-xml-get-children xml-data 'fin)
+      (jabber-mam-process-fin xml-data))))
 
 (defun jabber-mam-query (jc jid-me jid-with start-time end-time number
                             direction)
@@ -229,7 +231,7 @@ set of results is limited to NUMBER messages.  DIRECTION is either \"in\" or
         (setq jabber-mam-lock nil)
         (jabber-send-iq jc nil "set" mam-query
                         #'jabber-mam-report-success "MAM request"
-                        #'jabber-mam-report-success "MAM request")
+                        #'jabber-mam-report-error "MAM request")
         ;; Wait for results
         (while (not jabber-mam-lock)
           (sit-for 1))

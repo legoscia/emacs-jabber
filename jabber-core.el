@@ -260,7 +260,7 @@ With double prefix argument, specify more connection details."
     ;;(jabber-clear-roster)
 
     (push (start-jabber-connection username server resource
-				   registerp password 
+				   registerp password
 				   network-server port connection-type)
 	  jabber-connections)))
 
@@ -272,7 +272,7 @@ With double prefix argument, specify more connection details."
 		 (send-function
 		  (jabber-get-send-function connection-type)))
 
-	    (list :connecting 
+	    (list :connecting
 		  (list :send-function send-function
 			;; Save the JID we originally connected with.
 			:original-jid (concat username "@" server)
@@ -404,9 +404,9 @@ With double prefix argument, specify more connection details."
   (fsm state-data)
 
   (jabber-send-stream-header fsm)
-  
+
   ;; Next thing happening is the server sending its own <stream:stream> start tag.
-  
+
   (list state-data nil))
 
 (define-state jabber-connection :connected
@@ -580,7 +580,7 @@ With double prefix argument, specify more connection details."
   (let ((new-state-data
 	 (plist-put state-data
 		    :sasl-data
-		    (jabber-sasl-start-auth 
+		    (jabber-sasl-start-auth
 		     fsm
 		     (plist-get state-data
 				:stream-features)))))
@@ -600,8 +600,8 @@ With double prefix argument, specify more connection details."
 
     (:stanza
      (let ((new-sasl-data
-	    (jabber-sasl-process-input 
-	     fsm (cadr event) 
+	    (jabber-sasl-process-input
+	     fsm (cadr event)
 	     (plist-get state-data :sasl-data))))
        (list :sasl-auth (plist-put state-data :sasl-data new-sasl-data))))
 
@@ -704,7 +704,7 @@ With double prefix argument, specify more connection details."
      (list :session-established state-data))
 
     (:bind-failure
-     (message "Resource binding failed: %s" 
+     (message "Resource binding failed: %s"
 	      (jabber-parse-error
 	       (jabber-iq-error (cadr event))))
      (list nil state-data))
@@ -723,7 +723,7 @@ With double prefix argument, specify more connection details."
 (define-enter-state jabber-connection :session-established
   (fsm state-data)
   (jabber-send-iq fsm nil
-		  "get" 
+		  "get"
 		  '(query ((xmlns . "jabber:iq:roster")))
 		  #'jabber-process-roster 'initial
 		  #'jabber-initial-roster-failure nil)
@@ -763,9 +763,9 @@ With double prefix argument, specify more connection details."
 	       (nconc pending-updates (list jid-symbol-to-update)))
 	     (list :session-established state-data :keep))
 	 ;; Otherwise, we need to create the list and start the timer.
-	 (setq state-data 
+	 (setq state-data
 	       (plist-put state-data
-			  :roster-pending-updates 
+			  :roster-pending-updates
 			  (list jid-symbol-to-update)))
 	 (list :session-established state-data jabber-pending-presence-timeout))))
 
@@ -853,7 +853,7 @@ DATA is any sexp."
     ;; Start from the beginning
     (goto-char (point-min))
     (let (xml-data)
-      (loop 
+      (loop
        do
        ;; Skip whitespace
        (unless (zerop (skip-chars-forward " \t\r\n"))
@@ -886,7 +886,7 @@ DATA is any sexp."
 	   (jabber-log-xml fsm "receive" stream-header)
 	   (fsm-send fsm (list :stream-start session-id stream-version))
 	   (delete-region (point-min) ending-at)))
-       
+
        ;; Normal tag
 
        ;; XXX: do these checks make sense?  If so, reinstate them.
@@ -898,7 +898,7 @@ DATA is any sexp."
        (save-excursion
 	 (while (search-forward-regexp " \\w+=''" nil t)
            (replace-match "")))
-       
+
        (setq xml-data (jabber-xml-parse-next-stanza))
 
        while xml-data
@@ -942,7 +942,7 @@ Return an fsm result list if it is."
 	     (equal (jabber-xml-get-xmlns xml-data) "http://etherx.jabber.org/streams"))
     (let ((condition (jabber-stream-error-condition xml-data))
 	  (text (jabber-parse-stream-error xml-data)))
-      (setq state-data (plist-put state-data :disconnection-reason 
+      (setq state-data (plist-put state-data :disconnection-reason
 				  (format "Stream error: %s" text)))
       ;; Special case: when the error is `conflict', we have been
       ;; forcibly disconnected by the same user.  Don't reconnect
@@ -979,7 +979,7 @@ Return an fsm result list if it is."
 (defun jabber-send-stream-header (jc)
   "Send stream header to connection JC."
   (let ((stream-header
-	 (concat "<?xml version='1.0'?><stream:stream to='" 
+	 (concat "<?xml version='1.0'?><stream:stream to='"
 		 (plist-get (fsm-get-state-data jc) :server)
 		 "' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'"
 		 ;; Not supporting SASL is not XMPP compliant,
