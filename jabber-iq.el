@@ -32,7 +32,7 @@
 (defvar jabber-iq-set-xmlns-alist nil
   "Mapping from XML namespace to handler for IQ SET requests.")
 
-(defvar jabber-browse-mode-map 
+(defvar jabber-browse-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map jabber-common-keymap)
     (define-key map [mouse-2] 'jabber-popup-combined-menu)
@@ -129,7 +129,7 @@ with XML-DATA being the IQ stanza received in response. "
 
 					       *jabber-open-info-queries*)))
     (jabber-send-sexp jc
-		      (list 'iq (append 
+		      (list 'iq (append
 				 (if to (list (cons 'to to)))
 				 (list (cons 'type type))
 				 (list (cons 'id id)))
@@ -150,7 +150,7 @@ TEXT is a string to be sent in the error message, or nil for no text.
 APP-SPECIFIC is a list of extra XML tags.
 
 See section 9.3 of XMPP Core."
-  (jabber-send-sexp 
+  (jabber-send-sexp
    jc
    `(iq (,@(when to `((to . ,to)))
 	 (type . "error")
